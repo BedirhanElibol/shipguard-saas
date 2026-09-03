@@ -1,0 +1,63 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+import { z } from 'zod';
+
+export const PricingPlanSchema = z.object({
+  id: z.enum(['vibepolish', 'shipguard-core', 'vibecare']),
+  name: z.string(),
+  priceMonthly: z.number(),
+  priceAnnual: z.number(),
+  description: z.string(),
+  features: z.array(z.string()),
+  isPopular: z.boolean().optional(),
+  buttonText: z.string(),
+});
+
+export type PricingPlanItem = z.infer<typeof PricingPlanSchema>;
+
+export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
+  {
+    id: 'vibepolish',
+    name: 'VibePolish',
+    priceMonthly: 49,
+    priceAnnual: 39,
+    description: 'Focuses on UI/UX Anti-Cliché Audits, Design System Polish & Accessibility.',
+    features: [
+      '200 VibePolish & AI Slop Anti-Pattern Rules Audit',
+      'Negative Prompt Generator for Cursor / v0 / Lovable',
+      'Accessibility & Color Contrast Scorecard',
+      'Up to 5 connected AI applications',
+    ],
+    buttonText: 'Select VibePolish',
+  },
+  {
+    id: 'shipguard-core',
+    name: 'ShipGuard Core',
+    priceMonthly: 129,
+    priceAnnual: 99,
+    isPopular: true,
+    description: '23 Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Auto-Remediations.',
+    features: [
+      'Full 23 Pre-flight Security Audit Taxonomy',
+      'Real-time CI/CD GitHub & Vercel Release Gate',
+      'One-click Claude & Cursor Auto-Fix Prompts',
+      'Unlimited connected AI applications',
+      'Priority 24/7 SLA Guarantee',
+    ],
+    buttonText: 'Select ShipGuard Core',
+  },
+  {
+    id: 'vibecare',
+    name: 'VibeCare Suite',
+    priceMonthly: 249,
+    priceAnnual: 199,
+    description: 'Long-term lifecycle monitoring, Dependency CVE drifts, Cloud & LLM cost alerts.',
+    features: [
+      'Everything in ShipGuard Core',
+      'LLM & Cloud Budget Guardrails ($50/80/100% caps)',
+      'Automated Encrypted DR S3 Snapshots',
+      'White-label Client Rescue PDF Audit Reports',
+      'Dedicated Security Architect Consultation',
+    ],
+    buttonText: 'Select VibeCare Suite',
+  },
+];

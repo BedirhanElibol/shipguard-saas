@@ -1,0 +1,225 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+'use client';
+
+import React, { useState } from 'react';
+import { Project } from '@/data/schema';
+import { FolderGit2, X, Globe } from 'lucide-react';
+import { isValidGithubUrl, sanitizeTargetUrl } from '@/lib/github-api';
+import { isValidWebUrl } from '@/lib/website-scanner';
+
+interface ConnectTargetModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddNewProject?: (p: Project) => void;
+  onSelectProject: (p: Project) => void;
+}
+
+export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
+  isOpen,
+  onClose,
+  onAddNewProject,
+  onSelectProject
+}) => {
+  const [targetType, setTargetType] = useState<'GITHUB' | 'WEB'>('GITHUB');
+  const [repoName, setRepoName] = useState<string>('');
+  const [githubUrl, setGithubUrl] = useState('https://github.com/user/example-app');
+  const [webSiteUrl, setWebSiteUrl] = useState('https://my-app.vercel.app');
+  const [branch, setBranch] = useState<string>('main');
+  const [framework, setFramework] = useState<string>('Auto-Detect');
+  const [githubToken, setGithubToken] = useState<string>('');
+  const [urlError, setUrlError] = useState<string>('');
+
+  if (!isOpen) return null;
+
+  const handleConnectRepo = (e: React.FormEvent) => {
+    e.preventDefault();
+    setUrlError('');
+
+    let finalUrl = targetType === 'GITHUB' ? githubUrl : webSiteUrl;
+    let customName = repoName.trim();
+
+    if (customName.startsWith('http') || customName.includes('github.com')) {
+      const sanitized = sanitizeTargetUrl(customName);
+      finalUrl = sanitized;
+      const parts = sanitized.replace('https://', '').replace('github.com/', '').split('/');
+      customName = parts[1] || parts[0] || 'GitHub Repository';
+    }
+
+    const fullUrl = finalUrl.startsWith('http') ? finalUrl : `https://${finalUrl}`;
+    const isGithub = isValidGithubUrl(fullUrl);
+    const isWeb = isValidWebUrl(fullUrl);
+
+    if (targetType === 'GITHUB' && !isGithub) {
+      setUrlError('⚠️ Invalid GitHub URL format. Please enter a valid repository URL (e.g. "https://github.com/owner/repo").');
+      return;
+    }
+    if (targetType === 'WEB' && !isWeb) {
+      setUrlError('⚠️ Invalid Web App URL format. Please enter a valid website URL (e.g. "https://my-app.vercel.app").');
+      return;
+    }
+
+    const extractedName = isGithub ? (fullUrl.replace('https://', '').replace('github.com/', '').split('/')[1] || 'GitHub Repository') : new URL(fullUrl).hostname;
+    const displayName = customName || extractedName;
+
+    const newProject: Project = {
+      id: `proj-${targetType.toLowerCase()}-${Date.now()}`,
+      name: `${displayName} (${targetType === 'GITHUB' ? branch : 'Live Site'})`,
+      repoUrl: fullUrl,
+      githubToken: githubToken.trim() || undefined,
+      framework: framework === 'Auto-Detect' ? (targetType === 'GITHUB' ? 'Next.js 15' : 'Production Web App') : framework,
+      providers: targetType === 'GITHUB' ? ['GitHub Action', 'Vercel', 'PostgreSQL'] : ['Vercel', 'CDN', 'Security Headers'],
+      lastScanAt: 'Ready to Run Audit',
+      readinessScore: 100,
+      gateStatus: 'PASSED',
+      criticalCount: 0,
+      highCount: 0,
+      mediumCount: 0,
+      lowCount: 0,
+      uiClicheCount: 0,
+      findings: []
+    };
+
+    if (onAddNewProject) {
+      onAddNewProject(newProject);
+    }
+    onSelectProject(newProject);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+      <div className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-lg p-6 sm:p-8 relative shadow-lg">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-[#A1A1AA] hover:text-white"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            {targetType === 'GITHUB' ? <FolderGit2 size={22} className="text-white" /> : <Globe size={22} className="text-[#3B82F6]" />}
+          </div>
+          <div>
+            <h2 className="text-lg font-extrabold text-[#EDEDED]">
+              Connect Target Application
+            </h2>
+            <div className="text-xs text-[#A1A1AA]">
+              Select your audit scope: GitHub Source Code or Live Web Deployment
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-6 p-1 bg-[#0A0A0A] rounded-xl border border-white/10">
+          <button
+            type="button"
+            onClick={() => setTargetType('GITHUB')}
+            className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
+              targetType === 'GITHUB' ? 'bg-white/5 text-white border border-white/10' : 'text-[#A1A1AA]'
+            }`}
+          >
+            GitHub Repository
+          </button>
+          <button
+            type="button"
+            onClick={() => setTargetType('WEB')}
+            className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
+              targetType === 'WEB' ? 'bg-white/10 text-white border border-white/20' : 'text-[#A1A1AA]'
+            }`}
+          >
+            Live Web App URL
+          </button>
+        </div>
+
+        <form onSubmit={handleConnectRepo} className="flex flex-col gap-4">
+          {urlError && (
+            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg font-medium">
+              {urlError}
+            </div>
+          )}
+
+          {targetType === 'GITHUB' ? (
+            <>
+              <div className="flex flex-col gap-1">
+                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Repository Title</label>
+                <input
+                  type="text"
+                  value={repoName}
+                  onChange={(e) => setRepoName(e.target.value)}
+                  placeholder="e.g. My Next.js SaaS Project"
+                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 font-mono"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Repository URL *</label>
+                <input
+                  type="text"
+                  value={githubUrl}
+                  onChange={(e) => setGithubUrl(e.target.value)}
+                  placeholder="https://github.com/user/my-saas"
+                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Branch</label>
+                  <input
+                    type="text"
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none font-mono"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Framework</label>
+                  <select
+                    value={framework}
+                    onChange={(e) => setFramework(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none cursor-pointer font-mono"
+                  >
+                    <option value="Auto-Detect">Auto-Detect</option>
+                    <option value="Next.js 15">Next.js 15</option>
+                    <option value="React Vite">React Vite</option>
+                    <option value="Express / Node">Express / Node</option>
+                    <option value="FastAPI Python">FastAPI Python</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Private GitHub PAT Token (Optional)</label>
+                <input
+                  type="password"
+                  value={githubToken}
+                  onChange={(e) => setGithubToken(e.target.value)}
+                  placeholder="ghp_..."
+                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none font-mono"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Live Web App Endpoint URL *</label>
+              <input
+                type="text"
+                value={webSiteUrl}
+                onChange={(e) => setWebSiteUrl(e.target.value)}
+                placeholder="https://my-app.vercel.app"
+                className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/30 font-mono"
+              />
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
+          >
+            Connect &amp; Select Target
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};

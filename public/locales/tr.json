@@ -1,0 +1,34 @@
+{
+  "app": {
+    "title": "ShipGuard AI - Otonom Sürüm Kapısı & Güvenlik Denetim Platformu",
+    "description": "Yazılım Takımları İçin Yapay Zeka Destekli Dağıtım Öncesi Güvenlik ve Hijyen Platformu."
+  },
+  "nav": {
+    "dashboard": "Gösterge Paneli",
+    "scan": "Tarama Çalıştırıcı",
+    "projects": "Projeler",
+    "vibe": "Tasarım Cilalama",
+    "audit": "Öz Denetim",
+    "about": "Hakkında",
+    "contact": "İletişim"
+  },
+  "hero": {
+    "title": "Sıfır Hatalı Sürüm Otomasyon Motoru",
+    "subtitle": "Kod üretime canlıya alınmadan önce kritik açıkları, UX ve SEO hatalarını engelleyin.",
+    "cta_scan": "Derin Tarama Başlat",
+    "cta_demo": "Canlı Demoyu İncele"
+  },
+  "about": {
+    "title": "SHIPGUARD NEDEN VAR?",
+    "subtitle": "Yazılım güvenilirliğini ve geliştirici verimliliğini koruyan otonom kalite kapıları."
+  },
+  "contact": {
+    "title": "Ücretsiz Sürüm Denetimi Başlat",
+    "subtitle": "Deponuz için anında güvenlik ve uyumluluk raporu alın.",
+    "send": "İstek Gönder"
+  },
+  "featured": {
+    "title": "SEÇİLMİŞ BAŞARI HİKAYELERİ",
+    "subtitle": "ShipGuard AI'ın yüksek hızlı mühendislik takımlarındaki canlıya alma kazalarını nasıl önlediğini keşfedin."
+  }
+}

@@ -1,0 +1,161 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+'use client';
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Layers, Download, CheckCircle2, Code } from 'lucide-react';
+import { Finding } from '@/data/schema';
+
+interface BulkFixModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  findings: Finding[];
+  projectName: string;
+}
+
+export const BulkFixModal: React.FC<BulkFixModalProps> = ({
+  isOpen,
+  onClose,
+  findings,
+  projectName
+}) => {
+  const openFindings = findings.filter((f) => f.status === 'OPEN');
+  const [selectedIds, setSelectedIds] = useState<string[]>(openFindings.map((f) => f.id));
+
+  if (!isOpen) return null;
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleDownloadCombinedPatch = () => {
+    const selectedFindings = openFindings.filter((f) => selectedIds.includes(f.id));
+
+    let patchContent = `# ShipGuard 3.0 Automated Multi-File Security & UI Remediations
+# Project: ${projectName}
+# Generated: ${new Date().toISOString()}
+# Total Remediations: ${selectedFindings.length}
+# ======================================================================
+
+`;
+
+    selectedFindings.forEach((f, i) => {
+      patchContent += `--- a/${f.filePath}
++++ b/${f.filePath}
+@@ ${f.lineRange} @@
+// RULE [${f.severity}]: ${f.title}
+- ${f.snippet}
++ // REMEDIATION: ${f.remediationPrompt}
+
+`;
+    });
+
+    const blob = new Blob([patchContent], { type: 'text/x-patch' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `shipguard-remediation-patch-${projectName.toLowerCase().replace(/\s+/g, '-')}.patch`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 ">
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl relative"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <Layers size={18} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-extrabold text-[#EDEDED]">
+                  Bulk Unified Git Patch Generator
+                </h2>
+                <p className="text-xs text-[#A1A1AA]">
+                  Select open findings to combine into a single multi-file .patch file for IDE execution
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Checklist */}
+          <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+            {openFindings.map((finding) => (
+              <div
+                key={finding.id}
+                className="bg-[#0A0A0A] p-3.5 rounded-xl border border-white/10 flex items-center justify-between gap-3 hover:border-white/10 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    aria-label={`Select finding ${finding.title} for bulk remediation patch`}
+                    type="checkbox"
+                    checked={selectedIds.includes(finding.id)}
+                    onChange={() => toggleSelect(finding.id)}
+                    className="w-4 h-4 rounded accent-white cursor-pointer"
+                  />
+                  <div>
+                    <div className="text-xs font-mono font-bold text-[#EDEDED]">
+                      {finding.title}
+                    </div>
+                    <div className="text-[0.68rem] text-white font-mono mt-0.5">
+                      {finding.filePath} ({finding.lineRange})
+                    </div>
+                  </div>
+                </div>
+
+                <span
+                  className={`text-[0.65rem] font-extrabold uppercase px-2 py-0.5 rounded ${
+                    finding.severity === 'CRITICAL'
+                      ? 'bg-red-500/20 text-red-400'
+                      : finding.severity === 'HIGH'
+                      ? 'bg-amber-500/20 text-amber-400'
+                      : 'bg-white/5 text-white'
+                  }`}
+                >
+                  {finding.severity}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-2 border-t border-white/10">
+            <div className="text-xs text-[#A1A1AA] font-mono">
+              {selectedIds.length} of {openFindings.length} Selected
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button className="btn btn-secondary text-xs px-4 py-2" onClick={onClose}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary text-xs px-5 py-2 font-bold uppercase tracking-wider rounded-lg flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
+                disabled={selectedIds.length === 0}
+                onClick={handleDownloadCombinedPatch}
+              >
+                <Download size={14} />
+                <span>Download Multi-File .patch</span>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};

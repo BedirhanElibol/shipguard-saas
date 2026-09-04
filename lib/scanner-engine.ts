@@ -72,7 +72,7 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
 
 /**
  * Real Static AST & Pattern Analysis Engine
- * Scans provided source files against 23 Security Rules and 200 VibePolish & AI Anti-Pattern rules.
+ * Scans provided source files against Security Rules and VibePolish & AI Anti-Pattern rules.
  */
 export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target Repository'): ScanResult {
   const findings: Finding[] = [];

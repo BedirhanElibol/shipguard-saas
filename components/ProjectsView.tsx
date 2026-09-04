@@ -126,7 +126,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             <div>
               <h3 className="text-base font-bold text-white mb-1">No AI Applications Connected Yet</h3>
               <p className="text-xs text-[#A1A1AA] max-w-md">
-                Connect your GitHub repository or preview URL to run automated 23 OWASP security and 200 VibePolish audits.
+                Connect your GitHub repository or preview URL to run automated OWASP security and VibePolish audits.
               </p>
             </div>
             <button

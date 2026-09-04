@@ -1,7 +1,7 @@
 -- ==============================================================================
--- SHIPGUARD B2B SAAS - INITIAL SEED DATA (FULL 23 OWASP RULES CATALOG)
+-- SHIPGUARD B2B SAAS - INITIAL SEED DATA (FULL OWASP RULES CATALOG)
 -- File: sql/05_seed_data.sql
--- Description: Complete 23 OWASP reference security catalog seed script.
+-- Description: Complete OWASP reference security catalog seed script.
 -- ==============================================================================
 
 -- 1. SECURITY RULES CATALOG TABLE
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.security_rules_catalog (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- Seed All 23 OWASP Rules Catalog
+-- Seed OWASP Rules Catalog
 INSERT INTO public.security_rules_catalog (id, code, title, category, owasp_tag, risk_level, description, verification_control, remediation_prompt)
 VALUES
 (1, 'SEC-01', 'Plaintext API Key / Hardcoded Secret Leak', 'Authentication Security', 'A02:2021-Cryptographic Failures', 'CRITICAL', 'Hardcoded API secrets or tokens in source code files.', 'Validate environment variable usage.', 'Extract hardcoded secret into process.env.'),

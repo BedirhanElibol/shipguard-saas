@@ -337,7 +337,7 @@ export function processUserData(payload: any) {
 
           {analyzedFindings.length === 0 ? (
             <div className="p-6 rounded-xl bg-[#0A0A0A] border border-white/10 text-center text-xs text-white font-mono">
-              🎉 Zero vulnerabilities detected in pasted snippet! Compliant with 23 OWASP security checks.
+              🎉 Zero vulnerabilities detected in pasted snippet! Compliant with OWASP security checks.
             </div>
           ) : (
             <div className="space-y-4">

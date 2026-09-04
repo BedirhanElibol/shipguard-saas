@@ -228,11 +228,11 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#EDEDED]">
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className="font-medium">23 OWASP Security Pre-flight Checks</span>
+                    <span className="font-medium">OWASP Security Pre-flight Checks</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className="font-medium">30 VibePolish UI Rules</span>
+                    <span className="font-medium">VibePolish UI &amp; Design System Rules</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />

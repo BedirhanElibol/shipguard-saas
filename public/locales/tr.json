@@ -1,34 +1,34 @@
 {
   "app": {
-    "title": "ShipGuard AI - Otonom Sürüm Kapısı & Güvenlik Denetim Platformu",
-    "description": "Yazılım Takımları İçin Yapay Zeka Destekli Dağıtım Öncesi Güvenlik ve Hijyen Platformu."
+    "title": "ShipGuard AI - Autonomous Release Gate & Security Audit Platform",
+    "description": "AI-Powered Pre-Release Audit Gate & Code Hygiene Assurance Platform for Modern Software Teams."
   },
   "nav": {
-    "dashboard": "Gösterge Paneli",
-    "scan": "Tarama Çalıştırıcı",
-    "projects": "Projeler",
-    "vibe": "Tasarım Cilalama",
-    "audit": "Öz Denetim",
-    "about": "Hakkında",
-    "contact": "İletişim"
+    "dashboard": "Dashboard",
+    "scan": "Scan Runner",
+    "projects": "Projects",
+    "vibe": "Vibe Polish",
+    "audit": "Self Audit",
+    "about": "About",
+    "contact": "Contact"
   },
   "hero": {
-    "title": "Sıfır Hatalı Sürüm Otomasyon Motoru",
-    "subtitle": "Kod üretime canlıya alınmadan önce kritik açıkları, UX ve SEO hatalarını engelleyin.",
-    "cta_scan": "Derin Tarama Başlat",
-    "cta_demo": "Canlı Demoyu İncele"
+    "title": "Zero-Defect Release Automation Engine",
+    "subtitle": "Eliminate critical vulnerabilities, UX flaws, and SEO degradation before pushing code to production.",
+    "cta_scan": "Start Deep Scan",
+    "cta_demo": "View Live Demo"
   },
   "about": {
-    "title": "SHIPGUARD NEDEN VAR?",
-    "subtitle": "Yazılım güvenilirliğini ve geliştirici verimliliğini koruyan otonom kalite kapıları."
+    "title": "WHY SHIPGUARD EXISTS",
+    "subtitle": "Autonomous quality gates that safeguard software reliability, security, and developer productivity."
   },
   "contact": {
-    "title": "Ücretsiz Sürüm Denetimi Başlat",
-    "subtitle": "Deponuz için anında güvenlik ve uyumluluk raporu alın.",
-    "send": "İstek Gönder"
+    "title": "Launch Free Release Audit",
+    "subtitle": "Get an immediate executive security and compliance breakdown for your repository.",
+    "send": "Send Request"
   },
   "featured": {
-    "title": "SEÇİLMİŞ BAŞARI HİKAYELERİ",
-    "subtitle": "ShipGuard AI'ın yüksek hızlı mühendislik takımlarındaki canlıya alma kazalarını nasıl önlediğini keşfedin."
+    "title": "SELECTED CASE STUDIES",
+    "subtitle": "Discover how ShipGuard AI prevents deployment incidents for high-velocity engineering teams."
   }
 }

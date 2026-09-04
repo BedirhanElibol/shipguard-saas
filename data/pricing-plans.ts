@@ -22,9 +22,9 @@ export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
     priceMonthly: 19,
     priceAnnual: 15,
     isPopular: true,
-    description: '23 Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Auto-Remediations.',
+    description: 'Comprehensive Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Auto-Remediations.',
     features: [
-      'Full 23 Pre-flight Security Audit Taxonomy',
+      'Full Pre-flight Security Audit Taxonomy',
       'Real-time CI/CD GitHub & Vercel Release Gate',
       'One-click Claude & Cursor Auto-Fix Prompts',
       'Unlimited connected AI applications',

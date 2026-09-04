@@ -1,7 +1,7 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * AI Web Design Cliché Detection Rules (25 Rules)
- * Source: yapay_zeka_web_tasarim_kliseleri.pdf
+ * Source: ai_web_design_cliches.pdf
  *
  * Detects common AI-generated UI/UX anti-patterns in frontend code
  * and provides professional remediation guidance.

@@ -143,7 +143,7 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
             className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
           >
             <ShieldCheck size={13} className="text-white" />
-            <span>Security (23)</span>
+            <span>Security Audit</span>
           </button>
 
           <button
@@ -151,7 +151,7 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
             className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
           >
             <Zap size={13} className="text-white" />
-            <span>VibePolish (30)</span>
+            <span>VibePolish UI</span>
           </button>
 
           <button

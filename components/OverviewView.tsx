@@ -75,7 +75,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
             <p style={{ fontSize: '0.875rem', color: '#A1A1AA', maxWidth: '650px', margin: 0 }}>
               {project.gateStatus === 'FAILED'
                 ? `Release BLOCKED. Detected ${criticals.length} Critical & ${highs.length} High severity security vulnerabilities in ${project.framework} stack.`
-                : `Production Audit PASSED. ${project.name} complies with 23 Security Pre-flight Checks and 200 VibePolish & AI Anti-Pattern rules.`}
+                : `Production Audit PASSED. ${project.name} complies with OWASP Security Pre-flight Checks and VibePolish & AI Anti-Pattern rules.`}
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
             <ShieldCheck size={18} color="#10B981" />
           </div>
           <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#EDEDED' }}>
-            {23 - criticals.length - highs.length} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>/ 23 Passed</span>
+            {criticals.length + highs.length === 0 ? '100%' : `${criticals.length + highs.length} Open`} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>{criticals.length + highs.length === 0 ? 'Passed' : 'Issues'}</span>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: '6px', fontWeight: 600 }}>
             {criticals.length} Critical &amp; {highs.length} High Risks Open
@@ -130,10 +130,10 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
             <Palette size={18} color="#34D399" />
           </div>
           <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#F8FAFC' }}>
-            {uiCleanCount} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>/ 30 Clean</span>
+            {openUiCliches === 0 ? '100%' : `${openUiCliches} Open`} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>{openUiCliches === 0 ? 'Clean' : 'Findings'}</span>
           </div>
           <div style={{ fontSize: '0.75rem', color: openUiCliches > 0 ? '#EF4444' : '#10B981', marginTop: '6px', fontWeight: 600 }}>
-            {openUiCliches > 0 ? `${openUiCliches} UI Cliché Findings Open` : '30 UI Cliché Rules Cleared'}
+            {openUiCliches > 0 ? `${openUiCliches} UI Cliché Findings Open` : 'VibePolish UI Rules Cleared'}
           </div>
         </div>
 

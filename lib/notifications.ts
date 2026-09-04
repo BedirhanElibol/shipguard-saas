@@ -89,7 +89,7 @@ export async function dispatchWebhookAlerts(
           {
             title: `${statusEmoji} Release Gate Audit: ${projectName} (${result.gateStatus})`,
             description: isPassed
-              ? `Production Clearance Audit PASSED. All 23 security pre-flight checks and 200 VibePolish rules cleared.`
+              ? `Production Clearance Audit PASSED. All security pre-flight checks and VibePolish rules cleared.`
               : `Release BLOCKED. Detected ${result.criticalCount} Critical vulnerabilities requiring remediation before production deployment.`,
             color: parseInt(colorHex.replace('#', ''), 16),
             fields: [

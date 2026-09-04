@@ -119,7 +119,7 @@ export const ExecutiveBriefingModal: React.FC<ExecutiveBriefingModalProps> = ({
                 2. COMPLIANCE &amp; OWASP CLEARANCE SUMMARY
               </h3>
               <p>
-                The automated audit engine scanned {project.findings.length} total findings across 23 OWASP Top-10 security guidelines and 200 VibePolish UI rules. Detected{' '}
+                The automated audit engine scanned {project.findings.length} total findings across OWASP Top-10 security guidelines and VibePolish UI rules. Detected{' '}
                 <strong className="text-red-400">{project.criticalCount} Critical</strong> vulnerabilities and{' '}
                 <strong className="text-[#A1A1AA]">{project.highCount} High</strong> risk findings requiring remediation.
               </p>

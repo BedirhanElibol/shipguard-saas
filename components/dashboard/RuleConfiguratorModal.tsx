@@ -58,7 +58,7 @@ export const RuleConfiguratorModal: React.FC<RuleConfiguratorModalProps> = ({
                   Release Gate Rule Engine Configurator
                 </h2>
                 <p className="text-xs text-[#94A3B8]">
-                  Customize 23 OWASP &amp; 200 VibePolish UI clearance rules for {projectName}
+                  Customize OWASP &amp; VibePolish UI clearance rules for {projectName}
                 </p>
               </div>
             </div>

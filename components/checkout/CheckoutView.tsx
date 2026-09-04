@@ -105,7 +105,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
               {activeLicenseKey || 'SG-PROD-2026-X94821'}
             </div>
             <div className="text-[0.7rem] text-[#A1A1AA]">
-              STATUS: ACTIVE (23 Security Checks &amp; 200 VibePolish Rules Enabled)
+              STATUS: ACTIVE (Full Security Checks &amp; VibePolish Rules Enabled)
             </div>
           </div>
 

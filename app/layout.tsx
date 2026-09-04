@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: '%s | ShipGuard',
   },
   description:
-    'Prove your application is secure, polished, and ready for production before launch. 23 OWASP security pre-flight checks and automated code verification.',
+    'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
   keywords: [
     'ShipGuard',
     'Release Gate',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
     description:
-      'Prove your application is secure, polished, and ready for production before launch. 23 OWASP security pre-flight checks and automated code verification.',
+      'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
     url: 'https://shipguard.dev',
     siteName: 'ShipGuard',
     images: [
@@ -89,9 +89,9 @@ export default function RootLayout({
     <html lang="en" className="dark notranslate" translate="no" suppressHydrationWarning>
       <head>
         <title>ShipGuard | AI Codebase Security Clearance &amp; Release Gate</title>
-        <meta name="description" content="Prove your application is secure, polished, and ready for production before launch. 23 OWASP security pre-flight checks and automated code verification." />
+        <meta name="description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
         <meta property="og:title" content="ShipGuard | AI Codebase Security Clearance &amp; Release Gate" />
-        <meta property="og:description" content="Prove your application is secure, polished, and ready for production before launch. 23 OWASP security pre-flight checks and automated code verification." />
+        <meta property="og:description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://shipguard.dev" />
         <link rel="canonical" href="https://shipguard.dev" />

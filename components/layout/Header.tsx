@@ -1,9 +1,9 @@
-﻿// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Project } from '@/data/schema';
-import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap } from 'lucide-react';
+import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { sanitizeTargetUrl } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
@@ -19,6 +19,7 @@ interface HeaderProps {
   onOpenAuth?: (mode: 'signin' | 'signup') => void;
   onSignOut?: () => void;
   onOpenCheckout?: () => void;
+  onNavigateSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,7 +32,8 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onOpenAuth,
   onSignOut,
-  onOpenCheckout
+  onOpenCheckout,
+  onNavigateSettings
 }) => {
   const [isGithubModalOpen, setIsGithubModalOpen] = useState<boolean>(false);
   const [activeTargetUrl, setActiveTargetUrl] = useState<string>(selectedProject.repoUrl);
@@ -140,21 +142,63 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => setIsUserMenuOpen((prev) => !prev)}
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 text-xs font-mono transition-colors"
+                aria-label="User Profile and Plan Options"
               >
-                <div className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-[10px] text-white">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <span className="hidden sm:inline font-bold text-white max-w-[100px] truncate">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-7 h-7 rounded-full object-cover border border-white/20 shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-[10px] text-white shrink-0">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="hidden sm:inline font-bold text-white max-w-[110px] truncate">
                   {user.name}
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  user.tier === 'Free'
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    : user.tier === 'Pro'
+                    ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
+                    : 'bg-purple-500/10 border border-purple-500/30 text-purple-400'
+                }`}>
+                  {user.tier === 'Free' ? 'Ücretsiz Plan' : `${user.tier} Plan`}
                 </span>
                 <ChevronDown size={12} className="text-[#A1A1AA]" />
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-[#141414] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs font-mono">
-                  <div className="px-3 py-2 border-b border-white/10">
-                    <div className="font-bold text-white truncate">{user.name}</div>
-                    <div className="text-[10px] text-[#A1A1AA] truncate">{user.email}</div>
+                <div className="absolute right-0 mt-2 w-64 bg-[#141414] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs font-mono">
+                  <div className="px-3 py-2.5 border-b border-white/10 flex items-center gap-2.5">
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-white truncate">{user.name}</div>
+                      <div className="text-[10px] text-[#A1A1AA] truncate">{user.email}</div>
+                    </div>
+                  </div>
+
+                  <div className="px-3 py-2 bg-white/[0.03] rounded-lg my-1 flex items-center justify-between border border-white/5">
+                    <span className="text-[11px] text-[#A1A1AA]">Durum:</span>
+                    <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {user.tier === 'Free' ? 'Ücretsiz Kullanım (Free Tier) - Aktif' : `${user.tier} Plan - Aktif`}
+                    </span>
                   </div>
 
                   {onOpenCheckout && (
@@ -163,10 +207,23 @@ export const Header: React.FC<HeaderProps> = ({
                         setIsUserMenuOpen(false);
                         onOpenCheckout();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2 transition-colors font-medium"
                     >
-                      <Zap size={13} />
-                      <span>Upgrade Plan</span>
+                      <Zap size={13} className="text-amber-400" />
+                      <span>Planı Yükselt (Upgrade)</span>
+                    </button>
+                  )}
+
+                  {onNavigateSettings && (
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        onNavigateSettings();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2 transition-colors font-medium"
+                    >
+                      <Settings size={13} className="text-[#A1A1AA]" />
+                      <span>Profil ve Ayarlar</span>
                     </button>
                   )}
 
@@ -176,10 +233,10 @@ export const Header: React.FC<HeaderProps> = ({
                         setIsUserMenuOpen(false);
                         onSignOut();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/10 pt-2"
+                      className="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/10 pt-2 transition-colors font-medium"
                     >
                       <LogOut size={13} />
-                      <span>Sign Out</span>
+                      <span>Çıkış Yap (Sign Out)</span>
                     </button>
                   )}
                 </div>

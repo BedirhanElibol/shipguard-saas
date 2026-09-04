@@ -53,6 +53,7 @@ function DashboardContent() {
     handleSelectProject,
     handleToggleResolveFinding,
     handleSignOut,
+    handleUpdateUserProfile,
   } = useDashboardState();
 
   const handleAddNewProject = (newP: Project) => {
@@ -227,6 +228,23 @@ function DashboardContent() {
           {activeNav === 'settings' && (
             <ProjectSettingsView
               project={selectedProject}
+              user={user}
+              onUpdateUser={(updatedUser) => {
+                setUser(updatedUser);
+                try {
+                  localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
+                } catch (e: unknown) {
+                  console.warn('[ShipGuard Auth] Failed to update user profile:', e);
+                }
+              }}
+              onOpenCheckout={() => {
+                if (!user || !user.isLoggedIn) {
+                  setAuthInitialMode('signup');
+                  setIsAuthModalOpen(true);
+                } else {
+                  setIsCheckoutOpen(true);
+                }
+              }}
               onSaveSettings={(updatedFields: Partial<Project>) => {
                 const updatedProject = { ...selectedProject, ...updatedFields };
                 setSelectedProject(updatedProject);
@@ -277,21 +295,7 @@ function DashboardContent() {
         onClose={() => setIsCheckoutOpen(false)}
         user={user}
         onUpgradeSuccess={(newTier) => {
-          const updatedUser: UserProfile = user
-            ? { ...user, tier: newTier }
-            : {
-                name: 'Demo User',
-                email: 'user@example.com',
-                tier: newTier,
-                isLoggedIn: true,
-                emailVerified: true
-              };
-          setUser(updatedUser);
-          try {
-            localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
-          } catch {
-            console.warn('[ShipGuard Checkout] Failed to persist tier upgrade');
-          }
+          handleUpdateUserProfile({ tier: newTier });
         }}
       />
     </AppShell>

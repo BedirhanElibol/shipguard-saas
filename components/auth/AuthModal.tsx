@@ -29,6 +29,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'signin'
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(initialMode);
+  const [oauthProvider, setOauthProvider] = useState<'GitHub' | 'Google' | null>(null);
+  const [githubUser, setGithubUser] = useState('BedirhanElibol');
+  const [isCustomGoogle, setIsCustomGoogle] = useState(false);
+  const [customGoogleName, setCustomGoogleName] = useState('Bedirhan Elibol');
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('bedirhan@gmail.com');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -39,6 +44,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
+      setOauthProvider(null);
+      setGithubUser('BedirhanElibol');
+      setIsCustomGoogle(false);
+      setCustomGoogleName('Bedirhan Elibol');
+      setCustomGoogleEmail('bedirhan@gmail.com');
       setEmail('');
       setPassword('');
       setName('');
@@ -108,23 +118,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleOAuthLogin = (provider: 'GitHub' | 'Google') => {
+  const handleGitHubOAuthSuccess = (usernameToUse?: string) => {
+    const username = (usernameToUse || githubUser).trim() || 'BedirhanElibol';
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      const mockUser: UserProfile = {
-        name: provider === 'GitHub' ? 'Demo User' : 'Demo User',
-        email: provider === 'GitHub' ? 'user@example.com' : 'user@example.com',
-        avatarUrl: provider === 'GitHub'
-          ? ''
-          : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        tier: 'Pro',
+      const authedUser: UserProfile = {
+        name: username,
+        email: `${username.toLowerCase()}@users.noreply.github.com`,
+        avatarUrl: `https://github.com/${username}.png`,
+        tier: 'Free',
         isLoggedIn: true,
         emailVerified: true
       };
-      onLoginSuccess(mockUser);
+      onLoginSuccess(authedUser);
       onClose();
-    }, 500);
+    }, 400);
+  };
+
+  const handleGoogleOAuthSuccess = (chosenName?: string, chosenEmail?: string) => {
+    const finalName = (chosenName || customGoogleName).trim() || 'Bedirhan Elibol';
+    const finalEmail = (chosenEmail || customGoogleEmail).trim() || 'bedirhan@gmail.com';
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      const authedUser: UserProfile = {
+        name: finalName,
+        email: finalEmail,
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+        tier: 'Free',
+        isLoggedIn: true,
+        emailVerified: true
+      };
+      onLoginSuccess(authedUser);
+      onClose();
+    }, 400);
   };
 
   return (
@@ -166,8 +194,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </p>
           </div>
 
-          {/* Mode Switcher Tabs */}
-          {mode !== 'forgot' && (
+          {/* Mode Switcher Tabs (Only if not in OAuth flow and not forgot) */}
+          {oauthProvider === null && mode !== 'forgot' && (
             <div className="grid grid-cols-2 p-1 bg-[#0A0A0A] rounded-xl border border-white/10 text-xs font-bold font-mono">
               <button
                 type="button"
@@ -194,13 +222,222 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* OAuth Buttons (hidden in forgot mode) */}
-          {mode !== 'forgot' && (
+          {/* Interactive GitHub OAuth Flow */}
+          {oauthProvider === 'GitHub' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-[#0A0A0A] border border-white/10">
+                <div className="relative">
+                  <img
+                    src={`https://github.com/${githubUser.trim() || 'BedirhanElibol'}.png`}
+                    alt="GitHub Avatar"
+                    className="w-16 h-16 rounded-full border-2 border-white/20 shadow-xl object-cover bg-neutral-900"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://github.com/github.png';
+                    }}
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#24292F] border border-white/20 flex items-center justify-center text-white">
+                    <Github size={13} />
+                  </div>
+                </div>
+
+                <div className="mt-1">
+                  <h3 className="text-sm font-bold text-white">GitHub ile Giriş Onayı</h3>
+                  <p className="text-[11px] text-[#A1A1AA]">
+                    ShipGuard hesabınıza GitHub profiliniz bağlanacaktır.
+                  </p>
+                </div>
+
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Ücretsiz Kullanım (Free Tier) - Aktif
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase flex items-center justify-between">
+                  <span>GitHub Kullanıcı Adı</span>
+                  <span className="text-emerald-400 text-[10px]">Canlı Avatar Bağlantılı</span>
+                </label>
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
+                  <span className="text-[#A1A1AA] font-mono text-xs">@</span>
+                  <input
+                    aria-label="GitHub Kullanıcı Adı"
+                    type="text"
+                    value={githubUser}
+                    onChange={(e) => setGithubUser(e.target.value)}
+                    placeholder="BedirhanElibol"
+                    className="bg-transparent text-xs text-[#EDEDED] font-mono outline-none w-full font-bold"
+                  />
+                </div>
+                <span className="text-[10px] text-[#A1A1AA]">
+                  Avatarınız <code>https://github.com/{githubUser.trim() || 'BedirhanElibol'}.png</code> adresinden canlı yüklenir.
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleGitHubOAuthSuccess()}
+                  disabled={isLoading}
+                  className="btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-md disabled:opacity-50"
+                >
+                  <Github size={15} />
+                  <span>
+                    {isLoading
+                      ? 'Bağlanıyor...'
+                      : `Continue as @${githubUser.trim() || 'BedirhanElibol'}`}
+                  </span>
+                  <ArrowRight size={14} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setOauthProvider(null)}
+                  className="py-2 text-center text-xs font-bold text-[#A1A1AA] hover:text-white transition-colors"
+                >
+                  ← Diğer Giriş Seçeneklerine Dön
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Interactive Google OAuth 1-Click Account Selector */}
+          {oauthProvider === 'Google' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col items-center text-center gap-2 p-3 rounded-xl bg-[#0A0A0A] border border-white/10">
+                <svg className="w-8 h-8" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
+                  />
+                  <path
+                    fill="#4285F4"
+                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.4 0 15.3c0 2.9.7 5.6 1.9 8l3.7-2.9z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 22.3 12 22.3z"
+                  />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Google ile Giriş Yap</h3>
+                  <p className="text-[11px] text-[#A1A1AA]">
+                    ShipGuard&apos;a bağlanmak için hesap seçin (Ücretsiz Plan).
+                  </p>
+                </div>
+              </div>
+
+              {/* Clean 1-click account selector options */}
+              <div className="flex flex-col gap-2">
+                {/* 1-click option 1: Bedirhan Elibol */}
+                <button
+                  type="button"
+                  onClick={() => handleGoogleOAuthSuccess('Bedirhan Elibol', 'bedirhan@gmail.com')}
+                  disabled={isLoading}
+                  className="w-full p-3 rounded-xl bg-[#0A0A0A] hover:bg-white/[0.06] border border-white/10 hover:border-white/25 transition-all flex items-center justify-between text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-md">
+                      B
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white group-hover:text-white">
+                        Bedirhan Elibol
+                      </div>
+                      <div className="text-[11px] text-[#A1A1AA]">bedirhan@gmail.com</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                      Ücretsiz Plan
+                    </span>
+                    <span className="text-[10px] text-white flex items-center gap-1 font-mono">
+                      Hızlı Giriş <ArrowRight size={10} />
+                    </span>
+                  </div>
+                </button>
+
+                {/* 1-click option 2: Custom account toggle */}
+                {!isCustomGoogle ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsCustomGoogle(true)}
+                    className="w-full p-3 rounded-xl bg-[#0A0A0A]/50 hover:bg-white/[0.04] border border-white/10 border-dashed transition-all flex items-center gap-3 text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-[#A1A1AA] flex items-center justify-center text-xs">
+                      <User size={16} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#EDEDED]">Başka bir Google Hesabı Kullan</div>
+                      <div className="text-[10px] text-[#A1A1AA]">Özel ad ve e-posta ile devam et</div>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="p-3 rounded-xl bg-[#0A0A0A] border border-white/15 flex flex-col gap-2.5 mt-1">
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Özel Google Hesabı</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomGoogle(false)}
+                        className="text-[10px] text-[#A1A1AA] hover:text-white"
+                      >
+                        İptal
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Ad Soyad</label>
+                      <input
+                        type="text"
+                        value={customGoogleName}
+                        onChange={(e) => setCustomGoogleName(e.target.value)}
+                        placeholder="Bedirhan Elibol"
+                        className="px-3 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-xs text-white outline-none"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Google E-Posta</label>
+                      <input
+                        type="email"
+                        value={customGoogleEmail}
+                        onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                        placeholder="bedirhan@gmail.com"
+                        className="px-3 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-xs text-white outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleGoogleOAuthSuccess()}
+                      disabled={isLoading}
+                      className="mt-1 py-2 rounded-lg bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span>{isLoading ? 'Giriş Yapılıyor...' : 'Bu Hesapla Devam Et'}</span>
+                      <ArrowRight size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setOauthProvider(null)}
+                className="py-2 text-center text-xs font-bold text-[#A1A1AA] hover:text-white transition-colors mt-1"
+              >
+                ← Diğer Giriş Seçeneklerine Dön
+              </button>
+            </div>
+          )}
+
+          {/* Standard OAuth Buttons (shown only when no oauth flow is active and not forgot) */}
+          {oauthProvider === null && mode !== 'forgot' && (
             <>
               <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
-                  onClick={() => handleOAuthLogin('GitHub')}
+                  onClick={() => setOauthProvider('GitHub')}
                   disabled={isLoading}
                   className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#1F2937] hover:bg-[#374151] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50"
                 >
@@ -210,7 +447,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleOAuthLogin('Google')}
+                  onClick={() => setOauthProvider('Google')}
                   disabled={isLoading}
                   className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50"
                 >
@@ -244,7 +481,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </>
           )}
 
-          {/* Form Inputs */}
+          {/* Form Inputs (hidden if in interactive OAuth step) */}
+          {oauthProvider === null && (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             {error && (
               <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg text-center font-medium flex items-center justify-center gap-2">
@@ -270,7 +508,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Demo User"
+                    placeholder="Bedirhan Elibol"
                     className="bg-transparent text-xs text-[#EDEDED] outline-none w-full"
                   />
                 </div>
@@ -337,6 +575,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <ArrowRight size={14} />
             </button>
           </form>
+          )}
 
           {/* Footer Back link for forgot mode */}
           {mode === 'forgot' ? (

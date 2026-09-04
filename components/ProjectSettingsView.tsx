@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/data/schema';
+import { UserProfile } from '@/components/auth/AuthModal';
 import {
   Settings,
   Key,
@@ -15,7 +16,10 @@ import {
   X,
   Lock,
   ShieldAlert,
-  Loader2
+  Loader2,
+  CreditCard,
+  Zap,
+  Check
 } from 'lucide-react';
 import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -24,17 +28,59 @@ interface ProjectSettingsViewProps {
   project: Project;
   onSaveSettings?: (updatedFields: Partial<Project>) => void;
   onDeleteAccount?: () => void;
+  user?: UserProfile | null;
+  onUpdateUser?: (updatedUser: UserProfile) => void;
+  onOpenCheckout?: () => void;
 }
 
 export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   project,
   onSaveSettings,
   onDeleteAccount,
+  user,
+  onUpdateUser,
+  onOpenCheckout
 }) => {
   const router = useRouter();
   const [repoUrl, setRepoUrl] = useState(project.repoUrl);
   const [patToken, setPatToken] = useState((project as any).githubToken || '');
   const [saved, setSaved] = useState(false);
+
+  // User Profile & Membership State
+  const [profileName, setProfileName] = useState(user?.name || 'Bedirhan Elibol');
+  const [profileEmail, setProfileEmail] = useState(user?.email || 'bedirhan@gmail.com');
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name) setProfileName(user.name);
+      if (user.email) setProfileEmail(user.email);
+      if (user.avatarUrl !== undefined) setProfileAvatarUrl(user.avatarUrl || '');
+    }
+  }, [user]);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedUser: UserProfile = {
+      name: profileName.trim() || 'Bedirhan Elibol',
+      email: profileEmail.trim() || 'bedirhan@gmail.com',
+      avatarUrl: profileAvatarUrl.trim() || undefined,
+      tier: user?.tier || 'Free',
+      isLoggedIn: true,
+      emailVerified: user?.emailVerified ?? true
+    };
+    if (onUpdateUser) {
+      onUpdateUser(updatedUser);
+    }
+    try {
+      localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
+    } catch (err) {
+      console.warn('[ShipGuard Profile] Failed to persist user in storage:', err);
+    }
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 2500);
+  };
 
   // Danger Zone / GDPR Erasure State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -108,7 +154,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   return (
     <div className="flex flex-col gap-8 pb-12">
       {/* Header */}
-      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 bg-[#141414] border-white/10 flex items-center justify-between">
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
             <Settings size={20} className="text-white" />
@@ -121,6 +167,203 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               Manage target repository URLs, GitHub Personal Access Tokens, and CI/CD clearance policies
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Üyelik ve Abonelik Yönetimi (Membership & Subscription Management) Card */}
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500" />
+
+        {/* Card Header */}
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
+              <CreditCard size={20} />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-extrabold text-white">
+                Üyelik ve Abonelik Yönetimi
+              </h2>
+              <p className="text-xs text-[#A1A1AA] mt-0.5">
+                Mevcut planınızı, dahil edilen denetim kurallarını ve kullanıcı profil tercihlerinizi yönetin.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Aktif
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Plan Overview & Included Features */}
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5 flex flex-col justify-between gap-5">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
+                    Mevcut Plan
+                  </span>
+                  <div className="text-base font-extrabold text-white">
+                    {user?.tier === 'Pro'
+                      ? 'Pro Plan (Gelişmiş Denetim)'
+                      : user?.tier === 'Enterprise'
+                      ? 'Enterprise Plan (Kurumsal)'
+                      : 'Ücretsiz Kullanım (Free Tier)'}
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                  {user?.tier === 'Pro' ? '$29 / ay' : user?.tier === 'Enterprise' ? 'Özel Fiyatlandırma' : '0₺ / Ömür Boyu'}
+                </span>
+              </div>
+
+              {/* Included Features List */}
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
+                  Dahil Edilen Özellikler:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#EDEDED]">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                    <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                    <span className="font-medium">23 OWASP Güvenlik Kontrolü</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                    <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                    <span className="font-medium">30 VibePolish UI Kuralı</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                    <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                    <span className="font-medium">Sınırsız Statik Analiz</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                    <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                    <span className="font-medium">%100 Yerel Gizlilik</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Plan Switcher / Upgrade Button */}
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
+              <span className="text-xs text-[#A1A1AA]">
+                Daha yüksek gate kapasitesi ve canlı webhook entegrasyonu için:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onOpenCheckout) {
+                    onOpenCheckout();
+                  } else {
+                    router.push('/checkout');
+                  }
+                }}
+                className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+              >
+                <Zap size={14} className="fill-black" />
+                <span>Planı Yükselt (Upgrade)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Profile Details & Avatar Preview */}
+          <form onSubmit={handleSaveProfile} className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5 flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
+                Profil Bilgileri &amp; Avatar
+              </span>
+              {profileSaved && (
+                <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1">
+                  <Check size={13} /> Kaydedildi
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              {profileAvatarUrl ? (
+                <img
+                  src={profileAvatarUrl}
+                  alt={profileName}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md bg-[#141414] shrink-0"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0">
+                  {(profileName || 'B').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-bold text-white truncate">{profileName || 'İsimsiz Kullanıcı'}</div>
+                <div className="text-[11px] text-[#A1A1AA] truncate">{profileEmail || 'email@example.com'}</div>
+                <div className="mt-1">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    {user?.tier === 'Free' || !user?.tier ? 'Ücretsiz Plan' : `${user.tier} Plan`}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
+                Görünen İsim (Display Name)
+              </label>
+              <input
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                placeholder="Bedirhan Elibol"
+                className="w-full bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
+                E-Posta Adresi
+              </label>
+              <input
+                type="email"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                placeholder="bedirhan@gmail.com"
+                className="w-full bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
+                Avatar Görsel URL (GitHub veya Özel URL)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={profileAvatarUrl}
+                  onChange={(e) => setProfileAvatarUrl(e.target.value)}
+                  placeholder="https://github.com/BedirhanElibol.png"
+                  className="flex-1 bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => setProfileAvatarUrl('https://github.com/BedirhanElibol.png')}
+                  className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-mono text-[#A1A1AA] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
+                  title="GitHub avatarını kullan"
+                >
+                  GitHub
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="mt-1 min-h-[40px] px-4 py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-md self-end cursor-pointer"
+            >
+              {profileSaved ? <Check size={14} /> : <Save size={14} />}
+              <span>{profileSaved ? 'Profil Güncellendi' : 'Profili Kaydet'}</span>
+            </button>
+          </form>
         </div>
       </div>
 

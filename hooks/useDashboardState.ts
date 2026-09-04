@@ -55,8 +55,15 @@ export function useDashboardState() {
         const savedUserStr = localStorage.getItem('shipguard_user');
         if (savedUserStr) {
           const parsedUser = JSON.parse(savedUserStr);
-          if (parsedUser && parsedUser.isLoggedIn) {
-            setUser(parsedUser);
+          if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
+            setUser({
+              name: parsedUser.name || 'User',
+              email: parsedUser.email || '',
+              avatarUrl: parsedUser.avatarUrl || undefined,
+              tier: (parsedUser.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free',
+              isLoggedIn: Boolean(parsedUser.isLoggedIn),
+              emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true
+            });
           }
         }
       } catch (err) {
@@ -67,7 +74,7 @@ export function useDashboardState() {
     loadProjectsFromStorage();
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'shipguard_projects' || e.key === 'shipguard_selected_project_id') {
+      if (e.key === 'shipguard_projects' || e.key === 'shipguard_selected_project_id' || e.key === 'shipguard_user') {
         loadProjectsFromStorage();
       }
     };
@@ -174,34 +181,72 @@ export function useDashboardState() {
     if (mode === 'signup') {
       const res = await supabaseSignUp(email, pass, name || '');
       if (res.error) throw new Error(res.error);
+      const derivedName = name?.trim() || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
       const newUser: UserProfile = {
-        name: name || email.split('@')[0],
-        email: email,
+        name: derivedName,
+        email: email.trim(),
+        avatarUrl: res.user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
         tier: 'Free',
         isLoggedIn: true,
         emailVerified: false
       };
       setUser(newUser);
-      localStorage.setItem('shipguard_user', JSON.stringify(newUser));
+      try {
+        localStorage.setItem('shipguard_user', JSON.stringify(newUser));
+      } catch (e) {
+        console.warn('[ShipGuard Storage] Failed to persist user:', e);
+      }
     } else {
       const res = await supabaseSignIn(email, pass);
       if (res.error) throw new Error(res.error);
+      const derivedName = email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
       const loggedInUser: UserProfile = res.user || {
-        name: email.split('@')[0],
-        email: email,
-        tier: 'Pro',
+        name: derivedName,
+        email: email.trim(),
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+        tier: 'Free',
         isLoggedIn: true,
         emailVerified: true
       };
       setUser(loggedInUser);
-      localStorage.setItem('shipguard_user', JSON.stringify(loggedInUser));
+      try {
+        localStorage.setItem('shipguard_user', JSON.stringify(loggedInUser));
+      } catch (e) {
+        console.warn('[ShipGuard Storage] Failed to persist user:', e);
+      }
     }
+  };
+
+  const handleUpdateUserProfile = (fields: Partial<UserProfile>) => {
+    setUser((prev) => {
+      const updated: UserProfile = prev
+        ? { ...prev, ...fields }
+        : {
+            name: fields.name || 'Bedirhan Elibol',
+            email: fields.email || 'user@example.com',
+            avatarUrl: fields.avatarUrl,
+            tier: fields.tier || 'Free',
+            isLoggedIn: true,
+            emailVerified: fields.emailVerified ?? true,
+            ...fields
+          };
+      try {
+        localStorage.setItem('shipguard_user', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('[ShipGuard Storage] Failed to persist user profile update:', e);
+      }
+      return updated;
+    });
   };
 
   const handleSignOut = async () => {
     await supabaseSignOut();
     setUser(null);
-    localStorage.removeItem('shipguard_user');
+    try {
+      localStorage.removeItem('shipguard_user');
+    } catch (e) {
+      console.warn('[ShipGuard Storage] Failed to remove user:', e);
+    }
   };
 
   return {
@@ -228,5 +273,6 @@ export function useDashboardState() {
     handleToggleResolveFinding,
     handleAuthSubmit,
     handleSignOut,
+    handleUpdateUserProfile,
   };
 }

@@ -55,6 +55,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         onOpenAuth={onOpenAuth}
         onSignOut={onSignOut}
         onOpenCheckout={onOpenCheckout}
+        onNavigateSettings={() => onNavigate('settings')}
       />
 
       <div className="flex flex-1">
@@ -62,6 +63,9 @@ export const AppShell: React.FC<AppShellProps> = ({
         <Sidebar
           activeNav={activeNav}
           onNavigate={onNavigate}
+          user={user}
+          onOpenAuth={(mode) => onOpenAuth && onOpenAuth(mode)}
+          onNavigateSettings={() => onNavigate('settings')}
         />
 
         {/* Content Area with Fluid Page Transition */}

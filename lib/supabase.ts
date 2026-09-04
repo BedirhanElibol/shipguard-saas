@@ -32,11 +32,13 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) {
     // Local / Mock fallback
+    const rawPrefix = email.split('@')[0] || 'User';
+    const formattedName = rawPrefix.replace(/[._-]/g, ' ').trim() || 'User';
     const mockUser: UserProfile = {
-      name: email.split('@')[0] || 'Demo User',
+      name: formattedName,
       email: email.trim(),
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      tier: 'Pro',
+      tier: 'Free',
       isLoggedIn: true,
       emailVerified: true
     };
@@ -48,11 +50,12 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
     if (error) return { user: null, error: error.message };
 
     if (data.user) {
+      const fallbackName = data.user.email?.split('@')[0]?.replace(/[._-]/g, ' ') || 'User';
       const userProfile: UserProfile = {
-        name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User',
+        name: data.user.user_metadata?.full_name || fallbackName,
         email: data.user.email || email,
         avatarUrl: data.user.user_metadata?.avatar_url,
-        tier: (data.user.user_metadata?.tier as any) || 'Pro',
+        tier: (data.user.user_metadata?.tier as any) || 'Free',
         isLoggedIn: true,
         emailVerified: data.user.email_confirmed_at != null
       };
@@ -62,6 +65,29 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
   } catch (err: any) {
     return { user: null, error: err?.message || 'Authentication error occurred.' };
   }
+}
+
+export function simulateOAuthProfile(provider: 'GitHub' | 'Google', customHandle?: string): UserProfile {
+  if (provider === 'GitHub') {
+    const handle = (customHandle && customHandle.trim()) || 'BedirhanElibol';
+    return {
+      name: handle,
+      email: `${handle.toLowerCase()}@users.noreply.github.com`,
+      avatarUrl: `https://github.com/${handle}.png`,
+      tier: 'Free',
+      isLoggedIn: true,
+      emailVerified: true,
+    };
+  }
+  const name = (customHandle && customHandle.trim()) || 'Bedirhan Elibol';
+  return {
+    name,
+    email: `${name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`,
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+    tier: 'Free',
+    isLoggedIn: true,
+    emailVerified: true,
+  };
 }
 
 export async function supabaseSignUp(email: string, password: string, name: string): Promise<{ user: UserProfile | null; error: string | null; requiresVerification?: boolean }> {

@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 export const PricingPlanSchema = z.object({
-  id: z.enum(['vibepolish', 'shipguard-core', 'vibecare']),
+  id: z.enum(['shipguard-core', 'vibecare']),
   name: z.string(),
   priceMonthly: z.number(),
   priceAnnual: z.number(),

@@ -74,7 +74,7 @@ export function useDashboardState() {
     loadProjectsFromStorage();
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'shipguard_projects' || e.key === 'shipguard_selected_project_id' || e.key === 'shipguard_user') {
+      if (!e.key || e.key === 'shipguard_projects' || e.key === 'shipguard_selected_project_id' || e.key === 'shipguard_user') {
         loadProjectsFromStorage();
       }
     };

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { verifyLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
 
 interface ProjectSettingsViewProps {
   project: Project;
@@ -48,9 +49,46 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
   // User Profile & Membership State
   const [profileName, setProfileName] = useState(user?.name || 'Bedirhan Elibol');
-  const [profileEmail, setProfileEmail] = useState(user?.email || 'bedirhan@gmail.com');
+  const [profileEmail, setProfileEmail] = useState(user?.email || 'bedirelibol7@gmail.com');
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
   const [profileSaved, setProfileSaved] = useState(false);
+
+  // License Key Activation State
+  const [licenseInput, setLicenseInput] = useState('');
+  const [licenseFeedback, setLicenseFeedback] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
+    status: 'idle',
+    message: '',
+  });
+
+  const handleActivateLicense = async () => {
+    if (!licenseInput.trim()) return;
+    const result = verifyLicenseKey(licenseInput.trim());
+    if (result.valid && result.tier !== 'Free') {
+      await activateUserTier(result.tier, licenseInput.trim());
+      if (onUpdateUser && user) {
+        onUpdateUser({
+          ...user,
+          tier: result.tier,
+        });
+      }
+      setLicenseFeedback({
+        status: 'success',
+        message: `Successfully activated ${result.planName}!`,
+      });
+      setLicenseInput('');
+      setTimeout(() => {
+        setLicenseFeedback({ status: 'idle', message: '' });
+      }, 4000);
+    } else {
+      setLicenseFeedback({
+        status: 'error',
+        message: 'Invalid license format. Must start with SG-PRO- or SG-SUITE-.',
+      });
+      setTimeout(() => {
+        setLicenseFeedback({ status: 'idle', message: '' });
+      }, 4000);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -364,6 +402,46 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               <span>{profileSaved ? 'Profile Saved' : 'Save Profile'}</span>
             </button>
           </form>
+        </div>
+
+        {/* License Key Activation Banner */}
+        <div className="pt-4 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[#0A0A0A] p-4 rounded-xl border border-white/10">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <Key size={16} />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-white font-mono uppercase tracking-wider">
+                Have an Enterprise or Pro License Key?
+              </h3>
+              <p className="text-[11px] text-[#A1A1AA] mt-0.5">
+                Paste your license key to immediately unlock advanced rules and multi-team gate clearance.
+              </p>
+              {licenseFeedback.status !== 'idle' && (
+                <div className={`text-[11px] font-mono mt-1.5 flex items-center gap-1.5 ${licenseFeedback.status === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {licenseFeedback.status === 'success' ? <Check size={12} /> : <AlertTriangle size={12} />}
+                  <span>{licenseFeedback.message}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="SG-PRO-2026-..."
+              value={licenseInput}
+              onChange={(e) => setLicenseInput(e.target.value)}
+              className="bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30 uppercase flex-1 md:w-60"
+            />
+            <button
+              type="button"
+              onClick={handleActivateLicense}
+              className="btn btn-secondary px-4 py-2 rounded-xl text-xs font-mono font-bold whitespace-nowrap bg-white text-black hover:bg-neutral-200 transition-all cursor-pointer"
+            >
+              Activate
+            </button>
+          </div>
         </div>
       </div>
 

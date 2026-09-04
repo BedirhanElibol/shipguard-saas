@@ -12,6 +12,7 @@ function CheckoutPageContent() {
 
   const planId = searchParams.get('plan') || 'shipguard-core';
   const billing = (searchParams.get('billing') || 'annual') as 'annual' | 'monthly';
+  const isSuccess = searchParams.get('success') === 'true';
 
   return (
     <AppShell
@@ -29,6 +30,7 @@ function CheckoutPageContent() {
       <CheckoutView
         initialPlanId={planId}
         initialBilling={billing}
+        initialSuccess={isSuccess}
         onBackToPricing={() => router.push('/#pricing')}
       />
     </AppShell>

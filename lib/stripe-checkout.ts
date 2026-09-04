@@ -3,6 +3,7 @@ import { SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 
 export interface LicenseVerificationResult {
   valid: boolean;
+  tier: 'Pro' | 'Enterprise' | 'Free';
   planId: string;
   planName: string;
   expiresAt: string;
@@ -10,11 +11,11 @@ export interface LicenseVerificationResult {
 }
 
 export function generateLicenseKey(planId: string, email: string): string {
-  const cleanEmailHash = email.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4);
+  const cleanEmailHash = (email || 'USER').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4);
   const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
   const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
   
-  const prefix = planId === 'vibecare' ? 'SG-SUITE' : planId === 'vibepolish' ? 'SG-VIBE' : 'SG-CORE';
+  const prefix = planId === 'vibecare' ? 'SG-SUITE' : 'SG-PRO';
   return `${prefix}-2026-${cleanEmailHash}-${randomHex}-${timestamp}`;
 }
 
@@ -22,6 +23,7 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
   if (!licenseKey || typeof licenseKey !== 'string') {
     return {
       valid: false,
+      tier: 'Free',
       planId: 'none',
       planName: 'Free Audit Tier',
       expiresAt: 'N/A',
@@ -30,20 +32,84 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
   }
 
   const cleanKey = licenseKey.trim().toUpperCase();
-  const isVibeCare = cleanKey.startsWith('SG-SUITE');
-  const isVibePolish = cleanKey.startsWith('SG-VIBE');
+  const isEnterprise = cleanKey.startsWith('SG-SUITE');
+  const isPro = cleanKey.startsWith('SG-PRO') || cleanKey.startsWith('SG-CORE') || cleanKey.startsWith('SG-VIBE');
 
-  const planId = isVibeCare ? 'vibecare' : isVibePolish ? 'vibepolish' : 'shipguard-core';
+  if (!isEnterprise && !isPro && cleanKey.length < 16) {
+    return {
+      valid: false,
+      tier: 'Free',
+      planId: 'none',
+      planName: 'Invalid License',
+      expiresAt: 'N/A',
+      maxApplications: 1,
+    };
+  }
+
+  const tier: 'Pro' | 'Enterprise' = isEnterprise ? 'Enterprise' : 'Pro';
+  const planId = isEnterprise ? 'vibecare' : 'shipguard-core';
   const planObj = SHIPGUARD_PRICING_PLANS.find((p) => p.id === planId);
 
   const expiresDate = new Date();
   expiresDate.setFullYear(expiresDate.getFullYear() + 1);
 
   return {
-    valid: cleanKey.length >= 16,
+    valid: true,
+    tier,
     planId,
-    planName: planObj?.name || 'ShipGuard Core Tier',
+    planName: planObj?.name || (tier === 'Enterprise' ? 'ShipGuard Enterprise' : 'ShipGuard Pro'),
     expiresAt: expiresDate.toISOString(),
-    maxApplications: isVibeCare ? 999 : isVibePolish ? 5 : 99,
+    maxApplications: isEnterprise ? 999 : 99,
   };
+}
+
+export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: string): Promise<boolean> {
+  try {
+    if (licenseKey) {
+      localStorage.setItem('shipguard_license_key', licenseKey);
+    }
+    const savedUserStr = localStorage.getItem('shipguard_user');
+    let userObj: any = {
+      name: 'Bedirhan Elibol',
+      email: 'bedirhan@shipguard.app',
+      tier: tier,
+      isLoggedIn: true,
+      emailVerified: true,
+    };
+    if (savedUserStr) {
+      try {
+        const parsed = JSON.parse(savedUserStr);
+        userObj = { ...parsed, tier: tier, isLoggedIn: true };
+      } catch (err) {
+        userObj.tier = tier;
+      }
+    }
+    localStorage.setItem('shipguard_user', JSON.stringify(userObj));
+    window.dispatchEvent(new Event('storage'));
+
+    // If Supabase client exists, attempt syncing
+    try {
+      const { getSupabase } = await import('@/lib/supabase');
+      const supabase = getSupabase();
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await supabase.from('profiles').update({ tier }).eq('id', session.user.id);
+          await supabase.from('subscriptions').upsert({
+            user_id: session.user.id,
+            plan_tier: tier.toLowerCase(),
+            status: 'active',
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+        }
+      }
+    } catch (e: any) {
+      console.warn('[ShipGuard Activation] Supabase sync warning:', e?.message || e);
+    }
+
+    return true;
+  } catch (err) {
+    console.error('[ShipGuard Activation] Failed to activate tier:', err);
+    return false;
+  }
 }

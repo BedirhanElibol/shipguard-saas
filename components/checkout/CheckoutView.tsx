@@ -1,21 +1,23 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
-import { generateLicenseKey } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap } from 'lucide-react';
+import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal } from 'lucide-react';
 
 interface CheckoutViewProps {
   initialPlanId?: string;
   initialBilling?: 'annual' | 'monthly';
+  initialSuccess?: boolean;
   onBackToPricing?: () => void;
 }
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({
   initialPlanId = 'shipguard-core',
   initialBilling = 'annual',
+  initialSuccess = false,
   onBackToPricing,
 }) => {
   const router = useRouter();
@@ -27,12 +29,19 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [companyName, setCompanyName] = useState('');
   const [vatNumber, setVatNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvc, setCardCvc] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(initialSuccess);
   const [activeLicenseKey, setActiveLicenseKey] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
+
+  useEffect(() => {
+    if (initialSuccess) {
+      const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
+      const key = generateLicenseKey(selectedPlanId, 'customer@shipguard.app');
+      setActiveLicenseKey(key);
+      activateUserTier(tier, key);
+      setIsSubmitted(true);
+    }
+  }, [initialSuccess, selectedPlanId]);
 
   const selectedPlan: PricingPlanItem =
     SHIPGUARD_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
@@ -44,16 +53,12 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const tax = Math.round(subtotal * 0.18);
   const total = subtotal + tax;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSimulateSandbox = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !cardNumber) return;
-    const key = generateLicenseKey(selectedPlanId, email);
+    const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
+    const key = generateLicenseKey(selectedPlanId, email || 'evaluator@agency.com');
     setActiveLicenseKey(key);
-    try {
-      localStorage.setItem('shipguard_license_key', key);
-    } catch (e: any) {
-      console.warn('[ShipGuard Checkout] Failed to persist license key:', e?.message || e);
-    }
+    activateUserTier(tier, key);
     setIsSubmitted(true);
   };
 
@@ -132,7 +137,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="full-name-input" className="block text-xs font-bold text-[#A1A1AA] mb-1.5 uppercase font-mono">
@@ -213,106 +218,65 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   </p>
 
                   {/* Polar Live Checkout Card */}
-                  <div className="p-5 mb-5 rounded-xl bg-gradient-to-b from-white/[0.06] to-transparent border border-white/20 flex flex-col gap-3 shadow-lg">
+                  <div className="p-6 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/20 flex flex-col gap-4 shadow-xl">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Zap size={16} className="text-white" />
-                        <span className="text-sm font-extrabold text-white">Live Polar Checkout (Recommended)</span>
+                        <Zap size={18} className="text-white" />
+                        <span className="text-base font-extrabold text-white">Live Polar 3D Secure Checkout</span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white border border-white/20">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white border border-white/20">
                         Merchant of Record
                       </span>
                     </div>
+
                     <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                      Instant 3D Secure checkout with Credit/Debit Card, Apple Pay, or Google Pay. Official invoice and subscription activated immediately.
+                      Instant 3D Secure checkout managed by Polar Software, Inc. Official VAT tax invoice and subscription activated immediately.
                     </p>
+
                     <a
                       href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn btn-primary py-3.5 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
+                      className="btn btn-primary py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
                     >
-                      <Lock size={13} />
-                      <span>Pay Securely with Polar (${pricePerMonth}/mo)</span>
+                      <Lock size={14} />
+                      <span>Pay Securely with Polar (${selectedPlan.priceMonthly}/mo)</span>
                     </a>
-                    <div className="flex items-center justify-center gap-3 text-[10px] text-[#A1A1AA] pt-1">
+                    {isAnnual && (
+                      <p className="text-[10px] text-white/60 font-mono text-center -mt-2">
+                        Polar online checkout bills monthly (${selectedPlan.priceMonthly}/mo). Cancel anytime in 1-click.
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-center gap-4 text-[11px] text-[#A1A1AA] pt-1 border-t border-white/10">
                       <span>✓ Apple Pay</span>
                       <span>✓ Google Pay</span>
                       <span>✓ Visa &amp; Mastercard</span>
-                      <span>✓ Instant Invoicing</span>
+                      <span>✓ Official VAT Invoices</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 my-4">
-                    <div className="h-px bg-white/10 flex-1" />
-                    <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">or Try with Test Simulator</span>
-                    <div className="h-px bg-white/10 flex-1" />
-                  </div>
-
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <label htmlFor="card-number-input" className="block text-xs font-bold text-[#A1A1AA] mb-1.5 uppercase font-mono">
-                        Card Number
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="card-number-input"
-                          type="text"
-                          placeholder="4242 •••• •••• 4242"
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
-                          required
-                          className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 pl-9 font-mono"
-                        />
-                        <CreditCard size={14} className="absolute left-3 top-3 text-[#64748B]" />
-                      </div>
+                  {/* Sandbox / Demo Simulator Section */}
+                  <div className="mt-6 p-5 rounded-xl bg-[#0A0A0A] border border-dashed border-white/20 flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <Terminal size={16} className="text-white" />
+                      <span className="text-xs font-mono font-bold uppercase text-white">
+                        Developer Demo &amp; Sandbox Simulator
+                      </span>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="card-expiry-input" className="block text-xs font-bold text-[#A1A1AA] mb-1.5 uppercase font-mono">
-                          Expiry Date
-                        </label>
-                        <input
-                          id="card-expiry-input"
-                          type="text"
-                          placeholder="MM / YY"
-                          value={cardExpiry}
-                          onChange={(e) => setCardExpiry(e.target.value)}
-                          required
-                          className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 font-mono text-center"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="card-cvc-input" className="block text-xs font-bold text-[#A1A1AA] mb-1.5 uppercase font-mono">
-                          CVC / CVV
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="card-cvc-input"
-                            type="password"
-                            placeholder="•••"
-                            value={cardCvc}
-                            onChange={(e) => setCardCvc(e.target.value)}
-                            required
-                            maxLength={4}
-                            className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 font-mono text-center"
-                          />
-                          <Lock size={12} className="absolute right-3 top-3 text-[#64748B]" />
-                        </div>
-                      </div>
-                    </div>
+                    <p className="text-xs text-[#A1A1AA] leading-relaxed">
+                      Evaluating ShipGuard for your agency or team? Simulate an instant subscription upgrade and generate a valid local license key without payment.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleSimulateSandbox}
+                      className="btn btn-secondary py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border border-white/20 hover:bg-white/10 transition-all text-white font-mono"
+                    >
+                      <span>Simulate Instant Upgrade ({selectedPlan.name})</span>
+                    </button>
                   </div>
                 </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-primary py-3.5 text-xs font-extrabold uppercase tracking-wider w-full mt-4 rounded-lg flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md"
-                >
-                  Start Subscription (${total} {isAnnual ? '/ year' : '/ month'})
-                </button>
-              </form>
+              </div>
             </div>
           </div>
 

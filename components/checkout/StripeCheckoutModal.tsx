@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CreditCard, ShieldCheck, Zap, Check, Lock } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
+import { activateUserTier } from '@/lib/stripe-checkout';
 
 interface StripeCheckoutModalProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
+      activateUserTier(selectedPlan);
 
       setTimeout(() => {
         onUpgradeSuccess(selectedPlan);
@@ -127,7 +129,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                     }`}
                   >
                     <span>Annual</span>
-                    <span className="text-[0.6rem] uppercase tracking-wider bg-white/5 text-white px-1 rounded font-extrabold font-mono">Save 25%</span>
+                    <span className="text-[0.6rem] uppercase tracking-wider bg-white/5 text-white px-1 rounded font-extrabold font-mono">Save 20%</span>
                   </button>
                 </div>
               </div>
@@ -154,8 +156,8 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   </div>
                   <ul className="text-[0.7rem] text-[#A1A1AA] flex flex-col gap-1 mt-1">
                     <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Unlimited Scans</li>
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> All 200 AI Master Rules</li>
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> 25 AI Cliché Detectors</li>
+                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Pre-flight Security Taxonomy</li>
+                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Claude &amp; Cursor Auto-Fix</li>
                   </ul>
                 </div>
 

@@ -168,7 +168,7 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
                     : 'bg-purple-500/10 border border-purple-500/30 text-purple-400'
                 }`}>
-                  {user.tier === 'Free' ? 'Ücretsiz Plan' : `${user.tier} Plan`}
+                  {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
                 </span>
                 <ChevronDown size={12} className="text-[#A1A1AA]" />
               </button>
@@ -194,10 +194,10 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
 
                   <div className="px-3 py-2 bg-white/[0.03] rounded-lg my-1 flex items-center justify-between border border-white/5">
-                    <span className="text-[11px] text-[#A1A1AA]">Durum:</span>
+                    <span className="text-[11px] text-[#A1A1AA]">Status:</span>
                     <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      {user.tier === 'Free' ? 'Ücretsiz Kullanım (Free Tier) - Aktif' : `${user.tier} Plan - Aktif`}
+                      {user.tier === 'Free' ? 'Free Tier - Active' : `${user.tier} Plan - Active`}
                     </span>
                   </div>
 
@@ -210,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2 transition-colors font-medium"
                     >
                       <Zap size={13} className="text-amber-400" />
-                      <span>Planı Yükselt (Upgrade)</span>
+                      <span>Upgrade Plan</span>
                     </button>
                   )}
 
@@ -223,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2 transition-colors font-medium"
                     >
                       <Settings size={13} className="text-[#A1A1AA]" />
-                      <span>Profil ve Ayarlar</span>
+                      <span>Profile & Settings</span>
                     </button>
                   )}
 
@@ -236,7 +236,7 @@ export const Header: React.FC<HeaderProps> = ({
                       className="w-full text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 flex items-center gap-2 border-t border-white/10 pt-2 transition-colors font-medium"
                     >
                       <LogOut size={13} />
-                      <span>Çıkış Yap (Sign Out)</span>
+                      <span>Sign Out</span>
                     </button>
                   )}
                 </div>

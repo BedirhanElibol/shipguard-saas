@@ -258,27 +258,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <div className="mt-1">
-                  <h3 className="text-sm font-bold text-white">GitHub ile Giriş Onayı</h3>
+                  <h3 className="text-sm font-bold text-white">GitHub Sign-In Confirmation</h3>
                   <p className="text-[11px] text-[#A1A1AA]">
-                    ShipGuard hesabınıza GitHub profiliniz bağlanacaktır.
+                    Your GitHub profile will be connected to your ShipGuard account.
                   </p>
                 </div>
 
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Ücretsiz Kullanım (Free Tier) - Aktif
+                  Free Tier - Active
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase flex items-center justify-between">
-                  <span>GitHub Kullanıcı Adı</span>
-                  <span className="text-emerald-400 text-[10px]">Canlı Avatar Bağlantılı</span>
+                  <span>GitHub Username</span>
+                  <span className="text-emerald-400 text-[10px]">Live Avatar Connected</span>
                 </label>
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
                   <span className="text-[#A1A1AA] font-mono text-xs">@</span>
                   <input
-                    aria-label="GitHub Kullanıcı Adı"
+                    aria-label="GitHub Username"
                     type="text"
                     value={githubUser}
                     onChange={(e) => setGithubUser(e.target.value)}
@@ -287,7 +287,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </div>
                 <span className="text-[10px] text-[#A1A1AA]">
-                  Avatarınız <code>https://github.com/{githubUser.trim() || 'BedirhanElibol'}.png</code> adresinden canlı yüklenir.
+                  Your avatar is loaded live from <code>https://github.com/{githubUser.trim() || 'BedirhanElibol'}.png</code>.
                 </span>
               </div>
 
@@ -301,7 +301,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Github size={15} />
                   <span>
                     {isLoading
-                      ? 'Bağlanıyor...'
+                      ? 'Connecting...'
                       : `Continue as @${githubUser.trim() || 'BedirhanElibol'}`}
                   </span>
                   <ArrowRight size={14} />
@@ -312,7 +312,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   onClick={() => setOauthProvider(null)}
                   className="py-2 text-center text-xs font-bold text-[#A1A1AA] hover:text-white transition-colors"
                 >
-                  ← Diğer Giriş Seçeneklerine Dön
+                  ← Back to Sign-In Options
                 </button>
               </div>
             </div>
@@ -341,9 +341,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </svg>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Google ile Giriş Yap</h3>
+                  <h3 className="text-sm font-bold text-white">Sign In with Google</h3>
                   <p className="text-[11px] text-[#A1A1AA]">
-                    ShipGuard&apos;a bağlanmak için hesap seçin (Ücretsiz Plan).
+                    Select an account to connect with ShipGuard (Free Tier).
                   </p>
                 </div>
               </div>
@@ -370,10 +370,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                      Ücretsiz Plan
+                      Free Plan
                     </span>
                     <span className="text-[10px] text-white flex items-center gap-1 font-mono">
-                      Hızlı Giriş <ArrowRight size={10} />
+                      Quick Sign-In <ArrowRight size={10} />
                     </span>
                   </div>
                 </button>
@@ -389,24 +389,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <User size={16} />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-[#EDEDED]">Başka bir Google Hesabı Kullan</div>
-                      <div className="text-[10px] text-[#A1A1AA]">Özel ad ve e-posta ile devam et</div>
+                      <div className="text-xs font-bold text-[#EDEDED]">Use Another Google Account</div>
+                      <div className="text-[10px] text-[#A1A1AA]">Continue with custom name and email</div>
                     </div>
                   </button>
                 ) : (
                   <div className="p-3 rounded-xl bg-[#0A0A0A] border border-white/15 flex flex-col gap-2.5 mt-1">
                     <div className="text-xs font-bold text-white flex items-center justify-between">
-                      <span>Özel Google Hesabı</span>
+                      <span>Custom Google Account</span>
                       <button
                         type="button"
                         onClick={() => setIsCustomGoogle(false)}
                         className="text-[10px] text-[#A1A1AA] hover:text-white"
                       >
-                        İptal
+                        Cancel
                       </button>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Ad Soyad</label>
+                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Full Name</label>
                       <input
                         type="text"
                         value={customGoogleName}
@@ -416,7 +416,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Google E-Posta</label>
+                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Google Email</label>
                       <input
                         type="email"
                         value={customGoogleEmail}
@@ -431,7 +431,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       disabled={isLoading}
                       className="mt-1 py-2 rounded-lg bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2"
                     >
-                      <span>{isLoading ? 'Giriş Yapılıyor...' : 'Bu Hesapla Devam Et'}</span>
+                      <span>{isLoading ? 'Signing In...' : 'Continue with This Account'}</span>
                       <ArrowRight size={12} />
                     </button>
                   </div>
@@ -443,7 +443,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 onClick={() => setOauthProvider(null)}
                 className="py-2 text-center text-xs font-bold text-[#A1A1AA] hover:text-white transition-colors mt-1"
               >
-                ← Diğer Giriş Seçeneklerine Dön
+                ← Back to Sign-In Options
               </button>
             </div>
           )}

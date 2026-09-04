@@ -183,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
                       : 'bg-purple-500/10 border border-purple-500/30 text-purple-400'
                   }`}>
-                    {user.tier === 'Free' ? 'Ücretsiz Plan' : `${user.tier} Plan`}
+                    {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
                   </span>
                 </div>
               </div>
@@ -192,8 +192,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={() => (onNavigateSettings ? onNavigateSettings() : onNavigate('settings'))}
               className="p-1.5 rounded-lg text-[#A1A1AA] hover:text-white hover:bg-white/10 transition-colors shrink-0"
-              title="Profil ve Ayarlar"
-              aria-label="Profil ve Ayarlar"
+              title="Profile & Settings"
+              aria-label="Profile & Settings"
             >
               <Settings size={15} />
             </button>
@@ -204,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-xs font-mono font-bold text-white transition-all shadow-sm group"
           >
             <LogIn size={14} className="text-[#A1A1AA] group-hover:text-white transition-colors" />
-            <span>Giriş Yap / Kaydol</span>
+            <span>Sign In / Register</span>
           </button>
         )}
       </div>

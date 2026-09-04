@@ -190,14 +190,14 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-white uppercase flex items-center gap-1.5">
                     <Zap size={14} className="text-white" />
-                    <span>Canlı Polar Checkout ({selectedPlan} Plan)</span>
+                    <span>Live Polar Checkout ({selectedPlan} Plan)</span>
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
                     Merchant of Record
                   </span>
                 </div>
                 <p className="text-[11px] text-[#A1A1AA] leading-relaxed">
-                  Apple Pay, Google Pay ve tüm kartlar desteklenir. Polar Merchant of Record güvencesiyle anında faturalandırma ve tam erişim.
+                  Supports Apple Pay, Google Pay, and all major cards. Instant Merchant of Record invoicing and immediate access.
                 </p>
                 <a
                   href={
@@ -210,18 +210,18 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   className="btn btn-primary py-3 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md font-mono text-center cursor-pointer"
                 >
                   <Lock size={13} />
-                  <span>Polar ile Güvenli Öde ({currentPrice}/ay)</span>
+                  <span>Pay Securely with Polar ({currentPrice}/mo)</span>
                 </a>
                 <div className="flex items-center justify-center gap-2 text-[10px] text-[#A1A1AA]">
                   <span>✓ Apple Pay</span>
                   <span>✓ Google Pay</span>
-                  <span>✓ Kredi / Banka Kartı</span>
+                  <span>✓ Credit / Debit Card</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 my-1">
                 <div className="h-px bg-white/10 flex-1" />
-                <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">veya Test Simülatörü</span>
+                <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">or Test Simulator</span>
                 <div className="h-px bg-white/10 flex-1" />
               </div>
 

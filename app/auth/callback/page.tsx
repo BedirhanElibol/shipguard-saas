@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,7 +10,7 @@ function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState<string>('GitHub kimliği doğrulanıyor...');
+  const [message, setMessage] = useState<string>('Verifying GitHub identity...');
 
   useEffect(() => {
     let isMounted = true;
@@ -29,7 +29,7 @@ function CallbackHandler() {
       if (!supabase) {
         if (isMounted) {
           setStatus('error');
-          setMessage('Supabase bağlantısı henüz yapılandırılmamış.');
+          setMessage('Supabase connection is not configured yet.');
         }
         return;
       }
@@ -37,7 +37,7 @@ function CallbackHandler() {
       try {
         const code = searchParams.get('code');
         if (code) {
-          setMessage('Yetkilendirme kodu doğrulanıyor...');
+          setMessage('Verifying authorization code...');
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
             console.warn('[ShipGuard OAuth] Code exchange warning:', exchangeError.message);
@@ -53,7 +53,7 @@ function CallbackHandler() {
 
           if (isMounted) {
             setStatus('success');
-            setMessage(`Hoş geldiniz, @${profile.name}! Dashboard'a yönlendiriliyorsunuz...`);
+            setMessage(`Welcome, @${profile.name}! Redirecting to dashboard...`);
           }
 
           setTimeout(() => {
@@ -65,7 +65,7 @@ function CallbackHandler() {
               const profile = mapSupabaseUserToProfile(newSession.user);
               localStorage.setItem('shipguard_user', JSON.stringify(profile));
               setStatus('success');
-              setMessage('Giriş başarılı! Yönlendiriliyorsunuz...');
+              setMessage('Sign in successful! Redirecting...');
               subscription.unsubscribe();
               setTimeout(() => {
                 router.push('/dashboard');
@@ -76,7 +76,7 @@ function CallbackHandler() {
           setTimeout(() => {
             if (isMounted && status === 'loading') {
               setStatus('error');
-              setMessage('Oturum süresi doldu veya GitHub yetkilendirmesi tamamlanamadı.');
+              setMessage('Session timed out or GitHub authorization could not be completed.');
             }
           }, 6000);
         }
@@ -84,7 +84,7 @@ function CallbackHandler() {
         console.error('[ShipGuard OAuth] Callback error:', err);
         if (isMounted) {
           setStatus('error');
-          setMessage(err?.message || 'Kimlik doğrulama sırasında beklenmeyen bir hata oluştu.');
+          setMessage(err?.message || 'An unexpected error occurred during authentication.');
         }
       }
     }
@@ -110,9 +110,9 @@ function CallbackHandler() {
       </div>
 
       <h1 className="text-xl font-bold text-white mb-2">
-        {status === 'loading' && 'GitHub ile Giriş Yapılıyor'}
-        {status === 'success' && 'Oturum Başarıyla Açıldı'}
-        {status === 'error' && 'Yetkilendirme Başarısız'}
+        {status === 'loading' && 'Signing in with GitHub'}
+        {status === 'success' && 'Signed in Successfully'}
+        {status === 'error' && 'Authentication Failed'}
       </h1>
 
       <p className="text-sm text-neutral-400 mb-6 font-mono leading-relaxed">{message}</p>
@@ -123,13 +123,13 @@ function CallbackHandler() {
             href="/dashboard"
             className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-white text-sm font-medium transition-colors"
           >
-            Dashboard'a Dön <ArrowRight className="w-4 h-4" />
+            Return to Dashboard <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             href="/"
             className="inline-block text-xs text-neutral-500 hover:text-neutral-400 underline underline-offset-4"
           >
-            Ana Sayfaya Git
+            Go to Homepage
           </Link>
         </div>
       )}
@@ -144,7 +144,7 @@ export default function AuthCallbackPage() {
         fallback={
           <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center">
             <Loader2 className="w-8 h-8 text-emerald-400 animate-spin mx-auto mb-4" />
-            <p className="text-sm text-neutral-400 font-mono">Yükleniyor...</p>
+            <p className="text-sm text-neutral-400 font-mono">Loading...</p>
           </div>
         }
       >

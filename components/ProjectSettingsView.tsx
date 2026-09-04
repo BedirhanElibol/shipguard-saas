@@ -170,7 +170,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
         </div>
       </div>
 
-      {/* Üyelik ve Abonelik Yönetimi (Membership & Subscription Management) Card */}
+      {/* Membership & Subscription Management Card */}
       <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500" />
 
@@ -182,10 +182,10 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-extrabold text-white">
-                Üyelik ve Abonelik Yönetimi
+                Membership &amp; Subscription Management
               </h2>
               <p className="text-xs text-[#A1A1AA] mt-0.5">
-                Mevcut planınızı, dahil edilen denetim kurallarını ve kullanıcı profil tercihlerinizi yönetin.
+                Manage your active plan, included audit rules, and user profile preferences.
               </p>
             </div>
           </div>
@@ -193,7 +193,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Aktif
+              Active
             </span>
           </div>
         </div>
@@ -205,42 +205,42 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <div>
                   <span className="text-[10px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
-                    Mevcut Plan
+                    Current Plan
                   </span>
                   <div className="text-base font-extrabold text-white">
                     {user?.tier === 'Pro'
-                      ? 'Pro Plan (Gelişmiş Denetim)'
+                      ? 'Pro Plan (Advanced Audit)'
                       : user?.tier === 'Enterprise'
-                      ? 'Enterprise Plan (Kurumsal)'
-                      : 'Ücretsiz Kullanım (Free Tier)'}
+                      ? 'Enterprise Plan'
+                      : 'Free Tier'}
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  {user?.tier === 'Pro' ? '$29 / ay' : user?.tier === 'Enterprise' ? 'Özel Fiyatlandırma' : '0₺ / Ömür Boyu'}
+                  {user?.tier === 'Pro' ? '$129 / mo' : user?.tier === 'Enterprise' ? '$249 / mo' : '$0 / Lifetime'}
                 </span>
               </div>
 
               {/* Included Features List */}
               <div className="flex flex-col gap-2.5">
                 <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
-                  Dahil Edilen Özellikler:
+                  Included Features:
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#EDEDED]">
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className="font-medium">23 OWASP Güvenlik Kontrolü</span>
+                    <span className="font-medium">23 OWASP Security Pre-flight Checks</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className="font-medium">30 VibePolish UI Kuralı</span>
+                    <span className="font-medium">30 VibePolish UI Rules</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className="font-medium">Sınırsız Statik Analiz</span>
+                    <span className="font-medium">Unlimited Static Analysis</span>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
                     <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                    <span className="font-medium">%100 Yerel Gizlilik</span>
+                    <span className="font-medium">100% Local Privacy</span>
                   </div>
                 </div>
               </div>
@@ -249,7 +249,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             {/* Plan Switcher / Upgrade Button */}
             <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
               <span className="text-xs text-[#A1A1AA]">
-                Daha yüksek gate kapasitesi ve canlı webhook entegrasyonu için:
+                For higher release gate limits and live CI/CD webhook integrations:
               </span>
               <button
                 type="button"
@@ -263,7 +263,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
               >
                 <Zap size={14} className="fill-black" />
-                <span>Planı Yükselt (Upgrade)</span>
+                <span>Upgrade Plan</span>
               </button>
             </div>
           </div>
@@ -272,11 +272,11 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
           <form onSubmit={handleSaveProfile} className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
-                Profil Bilgileri &amp; Avatar
+                Profile Details &amp; Avatar
               </span>
               {profileSaved && (
                 <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1">
-                  <Check size={13} /> Kaydedildi
+                  <Check size={13} /> Saved
                 </span>
               )}
             </div>
@@ -297,11 +297,11 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white truncate">{profileName || 'İsimsiz Kullanıcı'}</div>
+                <div className="text-xs font-bold text-white truncate">{profileName || 'Unnamed User'}</div>
                 <div className="text-[11px] text-[#A1A1AA] truncate">{profileEmail || 'email@example.com'}</div>
                 <div className="mt-1">
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                    {user?.tier === 'Free' || !user?.tier ? 'Ücretsiz Plan' : `${user.tier} Plan`}
+                    {user?.tier === 'Free' || !user?.tier ? 'Free Plan' : `${user.tier} Plan`}
                   </span>
                 </div>
               </div>
@@ -309,7 +309,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
-                Görünen İsim (Display Name)
+                Display Name
               </label>
               <input
                 type="text"
@@ -322,7 +322,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
-                E-Posta Adresi
+                Email Address
               </label>
               <input
                 type="email"
@@ -335,7 +335,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
-                Avatar Görsel URL (GitHub veya Özel URL)
+                Avatar Image URL (GitHub or Custom URL)
               </label>
               <div className="flex gap-2">
                 <input
@@ -349,7 +349,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   type="button"
                   onClick={() => setProfileAvatarUrl('https://github.com/BedirhanElibol.png')}
                   className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-mono text-[#A1A1AA] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
-                  title="GitHub avatarını kullan"
+                  title="Use GitHub avatar"
                 >
                   GitHub
                 </button>
@@ -361,7 +361,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               className="mt-1 min-h-[40px] px-4 py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-md self-end cursor-pointer"
             >
               {profileSaved ? <Check size={14} /> : <Save size={14} />}
-              <span>{profileSaved ? 'Profil Güncellendi' : 'Profili Kaydet'}</span>
+              <span>{profileSaved ? 'Profile Saved' : 'Save Profile'}</span>
             </button>
           </form>
         </div>

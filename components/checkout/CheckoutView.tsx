@@ -217,14 +217,14 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Zap size={16} className="text-white" />
-                        <span className="text-sm font-extrabold text-white">Canlı Polar Checkout (Önerilen)</span>
+                        <span className="text-sm font-extrabold text-white">Live Polar Checkout (Recommended)</span>
                       </div>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white border border-white/20">
                         Merchant of Record
                       </span>
                     </div>
                     <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                      Kredi kartı, banka kartı, Apple Pay veya Google Pay ile 3D Secure güvencesiyle anında ödeme yapın. Şirket zorunluluğu olmadan resmi faturanız ve aboneliğiniz anında aktifleştirilir.
+                      Instant 3D Secure checkout with Credit/Debit Card, Apple Pay, or Google Pay. Official invoice and subscription activated immediately.
                     </p>
                     <a
                       href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
@@ -233,19 +233,19 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       className="btn btn-primary py-3.5 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
                     >
                       <Lock size={13} />
-                      <span>Polar ile Güvenli Öde (${pricePerMonth}/ay)</span>
+                      <span>Pay Securely with Polar (${pricePerMonth}/mo)</span>
                     </a>
                     <div className="flex items-center justify-center gap-3 text-[10px] text-[#A1A1AA] pt-1">
                       <span>✓ Apple Pay</span>
                       <span>✓ Google Pay</span>
                       <span>✓ Visa &amp; Mastercard</span>
-                      <span>✓ Otomatik Fatura</span>
+                      <span>✓ Instant Invoicing</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 my-4">
                     <div className="h-px bg-white/10 flex-1" />
-                    <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">veya Test Simülatörü İle Dene</span>
+                    <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">or Try with Test Simulator</span>
                     <div className="h-px bg-white/10 flex-1" />
                   </div>
 

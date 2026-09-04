@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
                       : user.tier === 'Pro'
                       ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
-                      : 'bg-purple-500/10 border border-purple-500/30 text-purple-400'
+                      : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
                   }`}>
                     {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
                   </span>

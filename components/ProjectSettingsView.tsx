@@ -216,7 +216,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  {user?.tier === 'Pro' ? '$129 / mo' : user?.tier === 'Enterprise' ? '$249 / mo' : '$0 / Lifetime'}
+                  {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$49 / mo' : '$0 / Lifetime'}
                 </span>
               </div>
 

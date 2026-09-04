@@ -60,8 +60,8 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
         </div>
       </div>
 
-      {/* 3 Pricing Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+      {/* 2 Pricing Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
         {SHIPGUARD_PRICING_PLANS.length === 0 ? (
           <div className="col-span-3 p-8 text-center bg-[#141414] border border-white/10 rounded-xl bg-[#141414] border-white/10 text-xs text-[#A1A1AA]">
             No pricing tiers available. Contact sales@shipguard.io for enterprise quotes.

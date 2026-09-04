@@ -36,7 +36,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
   const selectedPlan: PricingPlanItem =
     SHIPGUARD_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
-    SHIPGUARD_PRICING_PLANS[1];
+    SHIPGUARD_PRICING_PLANS[0];
 
   const pricePerMonth = isAnnual ? selectedPlan.priceAnnual : selectedPlan.priceMonthly;
   const annualTotal = pricePerMonth * 12;

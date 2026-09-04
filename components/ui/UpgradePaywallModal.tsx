@@ -65,7 +65,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Pro Plan</span>
-                  <span className="text-xs font-mono font-bold text-white">$49/mo</span>
+                  <span className="text-xs font-mono font-bold text-white">$19/mo</span>
                 </div>
                 <ul className="mt-3 space-y-2 text-[0.75rem] text-[#A1A1AA]">
                   <li className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                   rel="noopener noreferrer"
                   className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm font-mono cursor-pointer text-center"
                 >
-                  <span>Pay with Polar ($129/mo)</span>
+                  <span>Pay with Polar ($19/mo)</span>
                   <Zap size={13} />
                 </a>
                 <button
@@ -110,7 +110,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Enterprise</span>
-                  <span className="text-xs font-mono font-bold text-white">$249/mo</span>
+                  <span className="text-xs font-mono font-bold text-white">$49/mo</span>
                 </div>
                 <ul className="mt-3 space-y-2 text-[0.75rem] text-[#A1A1AA]">
                   <li className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                   rel="noopener noreferrer"
                   className="btn btn-secondary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 border border-white/20 text-[#EDEDED] hover:bg-white/5 transition-all shadow-sm font-mono cursor-pointer text-center"
                 >
-                  <span>Pay with Polar ($249/mo)</span>
+                  <span>Pay with Polar ($49/mo)</span>
                   <ShieldCheck size={13} />
                 </a>
                 <button

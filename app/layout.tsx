@@ -10,8 +10,24 @@ export const viewport: Viewport = {
   interactiveWidget: 'resizes-content',
 };
 
+function getMetadataBase(): URL {
+  const raw = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  if (!raw || typeof raw !== 'string' || !raw.trim()) {
+    return new URL('https://shipguard.dev');
+  }
+  const trimmed = raw.trim();
+  const withProtocol = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+    ? trimmed
+    : `https://${trimmed}`;
+  try {
+    return new URL(withProtocol);
+  } catch {
+    return new URL('https://shipguard.dev');
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://shipguard.dev'),
+  metadataBase: getMetadataBase(),
   title: {
     default: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
     template: '%s | ShipGuard',
@@ -36,6 +52,14 @@ export const metadata: Metadata = {
       'Prove your application is secure, polished, and ready for production before launch. 23 OWASP security pre-flight checks and automated code verification.',
     url: 'https://shipguard.dev',
     siteName: 'ShipGuard',
+    images: [
+      {
+        url: '/shipguard-logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
+      },
+    ],
     locale: 'en_US',
     type: 'website',
   },
@@ -44,6 +68,7 @@ export const metadata: Metadata = {
     title: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
     description:
       'Prove your application is secure, polished, and ready for production before launch.',
+    images: ['/shipguard-logo.png'],
   },
   icons: {
     icon: '/shipguard-logo.png',

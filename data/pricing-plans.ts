@@ -10,6 +10,7 @@ export const PricingPlanSchema = z.object({
   features: z.array(z.string()),
   isPopular: z.boolean().optional(),
   buttonText: z.string(),
+  polarCheckoutUrl: z.string().optional(),
 });
 
 export type PricingPlanItem = z.infer<typeof PricingPlanSchema>;
@@ -28,6 +29,7 @@ export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
       'Up to 5 connected AI applications',
     ],
     buttonText: 'Select VibePolish',
+    polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC',
   },
   {
     id: 'shipguard-core',
@@ -44,6 +46,7 @@ export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
       'Priority 24/7 SLA Guarantee',
     ],
     buttonText: 'Select ShipGuard Core',
+    polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC',
   },
   {
     id: 'vibecare',
@@ -59,5 +62,6 @@ export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
       'Dedicated Security Architect Consultation',
     ],
     buttonText: 'Select VibeCare Suite',
+    polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od',
   },
 ];

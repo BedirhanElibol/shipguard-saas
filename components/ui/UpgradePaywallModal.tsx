@@ -83,16 +83,26 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                 </ul>
               </div>
 
-              <button
-                onClick={() => {
-                  onClose();
-                  router.push('/checkout?plan=shipguard-pro&billing=annual');
-                }}
-                className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
-              >
-                <span>Upgrade to Pro</span>
-                <Zap size={13} />
-              </button>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm font-mono cursor-pointer text-center"
+                >
+                  <span>Pay with Polar ($129/mo)</span>
+                  <Zap size={13} />
+                </a>
+                <button
+                  onClick={() => {
+                    onClose();
+                    router.push('/checkout?plan=shipguard-core&billing=annual');
+                  }}
+                  className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
+                >
+                  View Checkout &amp; Invoicing &rarr;
+                </button>
+              </div>
             </div>
 
             {/* Enterprise Plan Card */}
@@ -100,7 +110,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Enterprise</span>
-                  <span className="text-xs font-mono font-bold text-white">$199/mo</span>
+                  <span className="text-xs font-mono font-bold text-white">$249/mo</span>
                 </div>
                 <ul className="mt-3 space-y-2 text-[0.75rem] text-[#A1A1AA]">
                   <li className="flex items-center gap-2">
@@ -118,16 +128,26 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                 </ul>
               </div>
 
-              <button
-                onClick={() => {
-                  onClose();
-                  router.push('/checkout?plan=shipguard-enterprise&billing=annual');
-                }}
-                className="btn btn-secondary w-full py-2 text-xs font-mono uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5"
-              >
-                <span>Contact Enterprise</span>
-                <ShieldCheck size={13} />
-              </button>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 border border-white/20 text-[#EDEDED] hover:bg-white/5 transition-all shadow-sm font-mono cursor-pointer text-center"
+                >
+                  <span>Pay with Polar ($249/mo)</span>
+                  <ShieldCheck size={13} />
+                </a>
+                <button
+                  onClick={() => {
+                    onClose();
+                    router.push('/checkout?plan=vibecare&billing=annual');
+                  }}
+                  className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
+                >
+                  View Checkout &amp; Invoicing &rarr;
+                </button>
+              </div>
             </div>
           </div>
 

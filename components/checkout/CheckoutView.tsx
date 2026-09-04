@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 import { generateLicenseKey } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap } from 'lucide-react';
 
 interface CheckoutViewProps {
   initialPlanId?: string;
@@ -211,6 +211,43 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   <p className="text-xs text-[#A1A1AA] mb-4">
                     All major credit cards accepted. Cancel anytime with 1 click.
                   </p>
+
+                  {/* Polar Live Checkout Card */}
+                  <div className="p-5 mb-5 rounded-xl bg-gradient-to-b from-white/[0.06] to-transparent border border-white/20 flex flex-col gap-3 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Zap size={16} className="text-white" />
+                        <span className="text-sm font-extrabold text-white">Canlı Polar Checkout (Önerilen)</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white border border-white/20">
+                        Merchant of Record
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#A1A1AA] leading-relaxed">
+                      Kredi kartı, banka kartı, Apple Pay veya Google Pay ile 3D Secure güvencesiyle anında ödeme yapın. Şirket zorunluluğu olmadan resmi faturanız ve aboneliğiniz anında aktifleştirilir.
+                    </p>
+                    <a
+                      href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary py-3.5 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
+                    >
+                      <Lock size={13} />
+                      <span>Polar ile Güvenli Öde (${pricePerMonth}/ay)</span>
+                    </a>
+                    <div className="flex items-center justify-center gap-3 text-[10px] text-[#A1A1AA] pt-1">
+                      <span>✓ Apple Pay</span>
+                      <span>✓ Google Pay</span>
+                      <span>✓ Visa &amp; Mastercard</span>
+                      <span>✓ Otomatik Fatura</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="h-px bg-white/10 flex-1" />
+                    <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">veya Test Simülatörü İle Dene</span>
+                    <div className="h-px bg-white/10 flex-1" />
+                  </div>
 
                   <div className="flex flex-col gap-4">
                     <div>

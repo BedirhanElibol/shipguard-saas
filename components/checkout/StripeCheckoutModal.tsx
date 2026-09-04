@@ -185,8 +185,48 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                 </div>
               </div>
 
+              {/* Polar Live Checkout Direct Action */}
+              <div className="p-4 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/20 flex flex-col gap-2.5 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-white uppercase flex items-center gap-1.5">
+                    <Zap size={14} className="text-white" />
+                    <span>Canlı Polar Checkout ({selectedPlan} Plan)</span>
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
+                    Merchant of Record
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#A1A1AA] leading-relaxed">
+                  Apple Pay, Google Pay ve tüm kartlar desteklenir. Polar Merchant of Record güvencesiyle anında faturalandırma ve tam erişim.
+                </p>
+                <a
+                  href={
+                    selectedPlan === 'Enterprise'
+                      ? 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od'
+                      : 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary py-3 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md font-mono text-center cursor-pointer"
+                >
+                  <Lock size={13} />
+                  <span>Polar ile Güvenli Öde ({currentPrice}/ay)</span>
+                </a>
+                <div className="flex items-center justify-center gap-2 text-[10px] text-[#A1A1AA]">
+                  <span>✓ Apple Pay</span>
+                  <span>✓ Google Pay</span>
+                  <span>✓ Kredi / Banka Kartı</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 my-1">
+                <div className="h-px bg-white/10 flex-1" />
+                <span className="text-[10px] uppercase font-mono text-[#A1A1AA]">veya Test Simülatörü</span>
+                <div className="h-px bg-white/10 flex-1" />
+              </div>
+
               {/* Stripe Payment Form */}
-              <form onSubmit={handlePay} className="flex flex-col gap-3 pt-2 border-t border-white/10">
+              <form onSubmit={handlePay} className="flex flex-col gap-3 pt-1">
                 <div className="flex flex-col gap-1">
                   <label className="text-[0.68rem] text-[#A1A1AA] font-mono font-bold uppercase">Cardholder Name</label>
                   <input

@@ -17,6 +17,7 @@ import { ProjectSettingsView } from '@/components/ProjectSettingsView';
 import { RemediationDrawer } from '@/components/findings/RemediationDrawer';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
+import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter } from 'next/navigation';
 
@@ -222,6 +223,14 @@ function DashboardContent() {
             <ScanHistoryView
               project={selectedProject}
               onTriggerScan={() => setIsScanning(true)}
+            />
+          )}
+
+          {activeNav === 'checkout' && (
+            <CheckoutView
+              initialPlanId="shipguard-core"
+              initialBilling="monthly"
+              onBackToPricing={() => setActiveNav('dashboard')}
             />
           )}
 

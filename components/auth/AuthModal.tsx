@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, Github, ArrowRight, CheckCircle2, KeyRound, AlertCircle } from 'lucide-react';
-import { supabaseSignIn, supabaseSignUp, supabaseResetPassword } from '@/lib/supabase';
+import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignInWithOAuth, isSupabaseConfigured } from '@/lib/supabase';
 
 export interface UserProfile {
   name: string;
@@ -118,9 +118,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGitHubOAuthSuccess = (usernameToUse?: string) => {
-    const username = (usernameToUse || githubUser).trim() || 'BedirhanElibol';
+  const handleGitHubOAuthSuccess = async (usernameToUse?: string) => {
     setIsLoading(true);
+    setError('');
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { url, error: oauthError } = await supabaseSignInWithOAuth('github');
+        if (url) {
+          window.location.href = url;
+          return;
+        }
+        if (oauthError && !oauthError.toLowerCase().includes('provider is not enabled')) {
+          console.warn('[ShipGuard OAuth] Notice:', oauthError);
+        }
+      } catch (err) {
+        console.warn('[ShipGuard OAuth] OAuth redirect error:', err);
+      }
+    }
+
+    const username = (usernameToUse || githubUser).trim() || 'BedirhanElibol';
     setTimeout(() => {
       setIsLoading(false);
       const authedUser: UserProfile = {
@@ -437,7 +454,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
-                  onClick={() => setOauthProvider('GitHub')}
+                  onClick={async () => {
+                    if (isSupabaseConfigured()) {
+                      setIsLoading(true);
+                      const { url } = await supabaseSignInWithOAuth('github');
+                      if (url) {
+                        window.location.href = url;
+                        return;
+                      }
+                      setIsLoading(false);
+                    }
+                    setOauthProvider('GitHub');
+                  }}
                   disabled={isLoading}
                   className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#1F2937] hover:bg-[#374151] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50"
                 >

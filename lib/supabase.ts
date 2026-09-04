@@ -167,3 +167,65 @@ export async function supabaseSignOut(): Promise<void> {
     }
   }
 }
+
+export function mapSupabaseUserToProfile(supabaseUser: any): UserProfile {
+  const metadata = supabaseUser?.user_metadata || {};
+  const rawName = metadata.full_name || metadata.name || metadata.user_name || supabaseUser?.email?.split('@')[0] || 'User';
+  const avatar = metadata.avatar_url || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
+  const tier = (metadata.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free';
+
+  return {
+    name: rawName,
+    email: supabaseUser?.email || '',
+    avatarUrl: avatar,
+    tier,
+    isLoggedIn: true,
+    emailVerified: Boolean(supabaseUser?.email_confirmed_at != null || supabaseUser?.app_metadata?.provider === 'github')
+  };
+}
+
+export async function supabaseSignInWithOAuth(
+  provider: 'github' | 'google',
+  redirectTo?: string
+): Promise<{ url?: string | null; error: string | null }> {
+  const supabase = getSupabase();
+  if (!supabase || !isSupabaseConfigured()) {
+    return { error: 'Supabase is not configured' };
+  }
+
+  try {
+    const defaultOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://shipguard-saas.vercel.app';
+    const finalRedirect = redirectTo || `${defaultOrigin}/auth/callback`;
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: finalRedirect,
+        scopes: provider === 'github' ? 'read:user user:email' : undefined
+      }
+    });
+
+    if (error) return { error: error.message };
+    return { url: data?.url, error: null };
+  } catch (err: any) {
+    return { error: err?.message || 'OAuth initialization failed' };
+  }
+}
+
+export async function supabaseGetSession(): Promise<{ user: UserProfile | null; session: any; error: string | null }> {
+  const supabase = getSupabase();
+  if (!supabase || !isSupabaseConfigured()) {
+    return { user: null, session: null, error: null };
+  }
+
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) return { user: null, session: null, error: error.message };
+    if (!session || !session.user) return { user: null, session: null, error: null };
+
+    const profile = mapSupabaseUserToProfile(session.user);
+    return { user: profile, session, error: null };
+  } catch (err: any) {
+    return { user: null, session: null, error: err?.message || 'Failed to fetch session' };
+  }
+}

@@ -4,7 +4,7 @@ import { Project, Finding } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
 import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engine';
 import { UserProfile } from '@/components/auth/AuthModal';
-import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut } from '@/lib/supabase';
+import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
 import { useSearchParams } from 'next/navigation';
 
 export function useDashboardState() {
@@ -80,8 +80,42 @@ export function useDashboardState() {
     };
 
     window.addEventListener('storage', handleStorageChange);
+
+    // Sync active Supabase OAuth session if present
+    const syncSupabaseSession = async () => {
+      try {
+        const { user: supabaseUser } = await supabaseGetSession();
+        if (supabaseUser) {
+          setUser(supabaseUser);
+          localStorage.setItem('shipguard_user', JSON.stringify(supabaseUser));
+        }
+      } catch (err) {
+        console.warn('[ShipGuard Auth] Session sync notice:', err);
+      }
+    };
+    syncSupabaseSession();
+
+    const supabase = getSupabase();
+    let authSubscription: { unsubscribe: () => void } | null = null;
+    if (supabase) {
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session && session.user) {
+          const profile = mapSupabaseUserToProfile(session.user);
+          setUser(profile);
+          localStorage.setItem('shipguard_user', JSON.stringify(profile));
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          localStorage.removeItem('shipguard_user');
+        }
+      });
+      authSubscription = data?.subscription || null;
+    }
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
     };
   }, []);
 

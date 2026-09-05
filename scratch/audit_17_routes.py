@@ -1,4 +1,4 @@
-﻿import urllib.request
+import urllib.request
 import urllib.error
 import json
 import time
@@ -21,7 +21,7 @@ ROUTES = [
     {"path": "/api/v1/badge?status=PASSED", "name": "Badge API (GET)", "expected_status": [200], "method": "GET"},
     {"path": "/api/v1/gate-check", "name": "Gate Check Service Discovery (GET)", "expected_status": [200], "method": "GET"},
     {"path": "/api/v1/gate-check", "name": "Gate Check Run (POST)", "expected_status": [200, 400, 422], "method": "POST", "body": {"repoUrl": "local"}},
-    {"path": "/api/v1/github-proxy?repoUrl=BedirhanElibol/newday", "name": "GitHub Proxy API (GET)", "expected_status": [200, 400, 403], "method": "GET"},
+    {"path": "/api/v1/github-proxy?repoUrl=vercel/next.js", "name": "GitHub Proxy API (GET)", "expected_status": [200, 400, 403], "method": "GET"},
     {"path": "/api/v1/proxy?url=http://127.0.0.1", "name": "SSRF Proxy Defense (GET)", "expected_status": [403], "method": "GET"},
     {"path": "/api/v1/stripe-webhook", "name": "Stripe Webhook Defense (POST)", "expected_status": [400], "method": "POST", "body": {}},
 ]

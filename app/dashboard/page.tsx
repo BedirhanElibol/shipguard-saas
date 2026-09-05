@@ -231,6 +231,11 @@ function DashboardContent() {
               initialPlanId="shipguard-core"
               initialBilling="monthly"
               onBackToPricing={() => setActiveNav('dashboard')}
+              user={user}
+              onOpenAuth={(mode) => {
+                setAuthInitialMode(mode || 'signup');
+                setIsAuthModalOpen(true);
+              }}
             />
           )}
 
@@ -238,12 +243,13 @@ function DashboardContent() {
             <ProjectSettingsView
               project={selectedProject}
               user={user}
+              onOpenAuth={(mode) => {
+                setAuthInitialMode(mode || 'signin');
+                setIsAuthModalOpen(true);
+              }}
               onUpdateUser={(updatedUser) => {
-                setUser(updatedUser);
-                try {
-                  localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
-                } catch (e: unknown) {
-                  console.warn('[ShipGuard Auth] Failed to update user profile:', e);
+                if (user && user.isLoggedIn) {
+                  handleUpdateUserProfile(updatedUser);
                 }
               }}
               onOpenCheckout={() => {
@@ -303,6 +309,11 @@ function DashboardContent() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         user={user}
+        onOpenAuth={(mode) => {
+          setIsCheckoutOpen(false);
+          setAuthInitialMode(mode || 'signup');
+          setIsAuthModalOpen(true);
+        }}
         onUpgradeSuccess={(newTier) => {
           handleUpdateUserProfile({ tier: newTier });
         }}

@@ -69,23 +69,18 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
       localStorage.setItem('shipguard_license_key', licenseKey);
     }
     const savedUserStr = localStorage.getItem('shipguard_user');
-    let userObj: any = {
-      name: 'Developer',
-      email: 'developer@shipguard.dev',
-      tier: tier,
-      isLoggedIn: true,
-      emailVerified: true,
-    };
     if (savedUserStr) {
       try {
         const parsed = JSON.parse(savedUserStr);
-        userObj = { ...parsed, tier: tier, isLoggedIn: true };
+        if (parsed && typeof parsed === 'object' && parsed.isLoggedIn) {
+          const userObj = { ...parsed, tier: tier };
+          localStorage.setItem('shipguard_user', JSON.stringify(userObj));
+          window.dispatchEvent(new Event('storage'));
+        }
       } catch (err) {
-        userObj.tier = tier;
+        console.warn('[ShipGuard Activation] Failed to parse user from storage:', err);
       }
     }
-    localStorage.setItem('shipguard_user', JSON.stringify(userObj));
-    window.dispatchEvent(new Event('storage'));
 
     // If Supabase client exists, attempt syncing
     try {

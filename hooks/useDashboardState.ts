@@ -5,6 +5,7 @@ import { MOCK_PROJECTS } from '@/data/mockData';
 import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engine';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
+import { purgeShipguardStorage } from '@/lib/storage';
 import { useSearchParams } from 'next/navigation';
 
 export function useDashboardState() {
@@ -215,14 +216,14 @@ export function useDashboardState() {
     if (mode === 'signup') {
       const res = await supabaseSignUp(email, pass, name || '');
       if (res.error) throw new Error(res.error);
-      const derivedName = name?.trim() || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
+      const derivedName = name?.trim() || res.user?.name || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
       const newUser: UserProfile = {
         name: derivedName,
         email: email.trim(),
-        avatarUrl: res.user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        tier: 'Free',
+        avatarUrl: res.user?.avatarUrl || undefined,
+        tier: res.user?.tier || 'Free',
         isLoggedIn: true,
-        emailVerified: false
+        emailVerified: res.user?.emailVerified ?? false
       };
       setUser(newUser);
       try {
@@ -233,14 +234,14 @@ export function useDashboardState() {
     } else {
       const res = await supabaseSignIn(email, pass);
       if (res.error) throw new Error(res.error);
-      const derivedName = email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
-      const loggedInUser: UserProfile = res.user || {
+      const derivedName = res.user?.name || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
+      const loggedInUser: UserProfile = {
         name: derivedName,
         email: email.trim(),
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        tier: 'Free',
+        avatarUrl: res.user?.avatarUrl || undefined,
+        tier: res.user?.tier || 'Free',
         isLoggedIn: true,
-        emailVerified: true
+        emailVerified: res.user?.emailVerified ?? true
       };
       setUser(loggedInUser);
       try {
@@ -253,17 +254,10 @@ export function useDashboardState() {
 
   const handleUpdateUserProfile = (fields: Partial<UserProfile>) => {
     setUser((prev) => {
-      const updated: UserProfile = prev
-        ? { ...prev, ...fields }
-        : {
-            name: fields.name || 'Developer',
-            email: fields.email || 'developer@example.com',
-            avatarUrl: fields.avatarUrl,
-            tier: fields.tier || 'Free',
-            isLoggedIn: true,
-            emailVerified: fields.emailVerified ?? true,
-            ...fields
-          };
+      if (!prev) {
+        return null;
+      }
+      const updated: UserProfile = { ...prev, ...fields };
       try {
         localStorage.setItem('shipguard_user', JSON.stringify(updated));
       } catch (e) {
@@ -274,13 +268,9 @@ export function useDashboardState() {
   };
 
   const handleSignOut = async () => {
-    await supabaseSignOut();
+    await supabaseSignOut().catch(() => {});
     setUser(null);
-    try {
-      localStorage.removeItem('shipguard_user');
-    } catch (e) {
-      console.warn('[ShipGuard Storage] Failed to remove user:', e);
-    }
+    purgeShipguardStorage(true);
   };
 
   return {

@@ -66,3 +66,5 @@ export function sanitizeInput(value: unknown, maxLength = 256): string {
 export function escapeHtml(value: unknown): string {
   return escapeXml(value);
 }
+
+export { purgeShipguardStorage } from './storage';

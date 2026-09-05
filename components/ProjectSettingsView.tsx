@@ -26,6 +26,7 @@ import {
 import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { verifyLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
+import { purgeShipguardStorage } from '@/lib/storage';
 
 interface ProjectSettingsViewProps {
   project: Project;
@@ -34,6 +35,7 @@ interface ProjectSettingsViewProps {
   user?: UserProfile | null;
   onUpdateUser?: (updatedUser: UserProfile) => void;
   onOpenCheckout?: () => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
 }
 
 export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
@@ -42,7 +44,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   onDeleteAccount,
   user,
   onUpdateUser,
-  onOpenCheckout
+  onOpenCheckout,
+  onOpenAuth
 }) => {
   const router = useRouter();
   const [repoUrl, setRepoUrl] = useState(project.repoUrl);
@@ -50,6 +53,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const [saved, setSaved] = useState(false);
 
   // User Profile & Membership State
+  const isAuthenticated = Boolean(user && user.isLoggedIn);
+  const isGuest = !isAuthenticated;
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
@@ -59,32 +64,30 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const [licenseInput, setLicenseInput] = useState('');
   const [licenseFeedback, setLicenseFeedback] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
     status: 'idle',
-    message: '',
+    message: ''
   });
 
-  const handleActivateLicense = async () => {
+  const handleActivateLicense = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!licenseInput.trim()) return;
+
     const result = verifyLicenseKey(licenseInput.trim());
-    if (result.valid && result.tier !== 'Free') {
-      await activateUserTier(result.tier, licenseInput.trim());
+    if (result.valid && (result.tier === 'Pro' || result.tier === 'Enterprise')) {
+      activateUserTier(result.tier, licenseInput.trim());
+      setLicenseFeedback({
+        status: 'success',
+        message: `Success! Activated ${result.tier} plan until ${result.expiresAt}. All premium security checks are now unlocked.`
+      });
       if (onUpdateUser && user) {
         onUpdateUser({
           ...user,
-          tier: result.tier,
+          tier: result.tier
         });
       }
-      setLicenseFeedback({
-        status: 'success',
-        message: `Successfully activated ${result.planName}!`,
-      });
-      setLicenseInput('');
-      setTimeout(() => {
-        setLicenseFeedback({ status: 'idle', message: '' });
-      }, 4000);
     } else {
       setLicenseFeedback({
         status: 'error',
-        message: 'Invalid license format. Must start with SG-PRO- or SG-SUITE-.',
+        message: 'Invalid or malformed license key.'
       });
       setTimeout(() => {
         setLicenseFeedback({ status: 'idle', message: '' });
@@ -93,7 +96,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && user.isLoggedIn) {
       setProfileName(user.name || '');
       setProfileEmail(user.email || '');
       setProfileAvatarUrl(user.avatarUrl || '');
@@ -106,13 +109,17 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isGuest || !user) {
+      // Do not save fake users or set isLoggedIn: true
+      return;
+    }
     const updatedUser: UserProfile = {
-      name: profileName.trim() || (user?.name || 'Developer'),
-      email: profileEmail.trim() || (user?.email || 'developer@example.com'),
+      name: profileName.trim() || user.name || 'User',
+      email: profileEmail.trim() || user.email || '',
       avatarUrl: profileAvatarUrl.trim() || undefined,
-      tier: user?.tier || 'Free',
+      tier: user.tier || 'Free',
       isLoggedIn: true,
-      emailVerified: user?.emailVerified ?? true
+      emailVerified: user.emailVerified ?? true
     };
     if (onUpdateUser) {
       onUpdateUser(updatedUser);
@@ -166,17 +173,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       // 1. Sign out of active Supabase session
       await supabaseSignOut().catch(() => {});
 
-      // 2. Cascade wipe all stored/local ShipGuard data
-      try {
-        localStorage.removeItem('shipguard_user');
-        localStorage.removeItem('shipguard_projects');
-        localStorage.removeItem('shipguard_selected_project_id');
-        localStorage.removeItem('shipguard_license_key');
-        localStorage.removeItem('shipguard_data_version');
-        sessionStorage.clear();
-      } catch (err) {
-        console.warn('[GDPR Erasure] LocalStorage purge warning:', err);
-      }
+      // 2. Cascade wipe all stored/local ShipGuard data (including dynamic webhook keys)
+      purgeShipguardStorage(false);
 
       // 3. Trigger parent callback if provided
       if (onDeleteAccount) {
@@ -325,10 +323,21 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               )}
             </div>
 
-            {!user?.isLoggedIn && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2.5 text-amber-300 text-xs">
-                <AlertCircle size={15} className="shrink-0" />
-                <span>You are browsing as Guest. Sign in to link your GitHub account and persist settings.</span>
+            {!isAuthenticated && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-300 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>Sign in to customize and link your profile. Profile settings are read-only in guest mode.</span>
+                </div>
+                {onOpenAuth && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenAuth('signin')}
+                    className="min-h-[44px] sm:min-h-[36px] px-3.5 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold font-mono transition-colors shrink-0 cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>Sign In / Register</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -353,65 +362,98 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               )}
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-white truncate">
-                  {profileName || (user?.isLoggedIn ? 'Unnamed Developer' : 'Guest Developer')}
+                  {profileName || (isAuthenticated ? 'Unnamed Developer' : 'Guest Developer')}
                 </div>
                 <div className="text-[11px] text-[#A1A1AA] truncate">
-                  {profileEmail || (user?.isLoggedIn ? 'email@example.com' : 'Not signed in')}
+                  {profileEmail || (isAuthenticated ? 'email@example.com' : 'Not signed in')}
                 </div>
                 <div className="mt-1">
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                    {user?.tier && user.tier !== 'Free' ? `${user.tier} Plan` : user?.isLoggedIn ? 'Free Plan' : 'Guest Mode'}
+                    {user?.tier && user.tier !== 'Free' ? `${user.tier} Plan` : isAuthenticated ? 'Free Plan' : 'Guest Mode'}
                   </span>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
-                Display Name
+              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase flex items-center justify-between">
+                <span>Display Name</span>
+                {!isAuthenticated && (
+                  <span className="text-[10px] text-amber-400 font-mono font-normal">Sign in to customize and link your profile</span>
+                )}
               </label>
               <input
                 type="text"
+                disabled={!isAuthenticated}
+                readOnly={!isAuthenticated}
                 value={profileName}
                 onChange={(e) => setProfileName(e.target.value)}
-                placeholder="e.g. Alex Morgan"
-                className="w-full bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
+                placeholder={!isAuthenticated ? "Sign in to customize and link your profile." : "e.g. Alex Morgan"}
+                className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
+                  !isAuthenticated
+                    ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
+                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                }`}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
-                Email Address
+              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase flex items-center justify-between">
+                <span>Email Address</span>
+                {!isAuthenticated && (
+                  <span className="text-[10px] text-amber-400 font-mono font-normal">Sign in to customize and link your profile</span>
+                )}
               </label>
               <input
                 type="email"
+                disabled={!isAuthenticated}
+                readOnly={!isAuthenticated}
                 value={profileEmail}
                 onChange={(e) => setProfileEmail(e.target.value)}
-                placeholder="e.g. alex@example.com"
-                className="w-full bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
+                placeholder={!isAuthenticated ? "Sign in to customize and link your profile." : "e.g. alex@example.com"}
+                className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
+                  !isAuthenticated
+                    ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
+                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                }`}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase">
-                Avatar Image URL (GitHub or Custom URL)
+              <label className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase flex items-center justify-between">
+                <span>Avatar Image URL (GitHub or Custom URL)</span>
+                {!isAuthenticated && (
+                  <span className="text-[10px] text-amber-400 font-mono font-normal">Sign in to customize</span>
+                )}
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
+                  disabled={!isAuthenticated}
+                  readOnly={!isAuthenticated}
                   value={profileAvatarUrl}
                   onChange={(e) => setProfileAvatarUrl(e.target.value)}
-                  placeholder="https://github.com/username.png"
-                  className="flex-1 bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
+                  placeholder={!isAuthenticated ? "Sign in to customize and link your profile." : "https://github.com/username.png"}
+                  className={`flex-1 border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
+                    !isAuthenticated
+                      ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
+                      : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                  }`}
                 />
                 <button
                   type="button"
+                  disabled={!isAuthenticated}
                   onClick={() => {
+                    if (!isAuthenticated) return;
                     const handle = profileName.trim().replace(/\s+/g, '') || 'github';
                     setProfileAvatarUrl(`https://github.com/${handle}.png`);
                   }}
-                  className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-mono text-[#A1A1AA] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
-                  title="Use GitHub avatar"
+                  className={`px-3 py-2 border rounded-xl text-[11px] font-mono transition-colors whitespace-nowrap ${
+                    !isAuthenticated
+                      ? 'bg-white/5 border-white/5 text-[#71717A] cursor-not-allowed'
+                      : 'bg-white/5 hover:bg-white/10 border-white/10 text-[#A1A1AA] hover:text-white cursor-pointer'
+                  }`}
+                  title={!isAuthenticated ? "Sign in to customize avatar" : "Use GitHub avatar"}
                 >
                   GitHub
                 </button>
@@ -420,10 +462,17 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
             <button
               type="submit"
-              className="mt-1 min-h-[40px] px-4 py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-md self-end cursor-pointer"
+              disabled={!isAuthenticated}
+              className={`mt-1 min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md self-end transition-all ${
+                !isAuthenticated
+                  ? 'bg-white/5 border border-white/10 text-[#71717A] cursor-not-allowed'
+                  : 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
+              }`}
             >
               {profileSaved ? <Check size={14} /> : <Save size={14} />}
-              <span>{profileSaved ? 'Profile Saved' : 'Save Profile'}</span>
+              <span>
+                {!isAuthenticated ? 'Sign In to Save Profile' : profileSaved ? 'Profile Saved' : 'Save Profile'}
+              </span>
             </button>
           </form>
         </div>
@@ -525,14 +574,18 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-white">
-                  Danger Zone: GDPR / KVKK Data Erasure
+                  {!isAuthenticated
+                    ? 'Danger Zone: Clear Local Browser Cache & Scans'
+                    : 'Danger Zone: GDPR / KVKK Data Erasure'}
                 </h2>
                 <span className="text-[0.65rem] font-extrabold uppercase tracking-wider bg-red-500/20 border border-red-500/40 text-red-300 px-2 py-0.5 rounded-full">
                   Irreversible
                 </span>
               </div>
               <p className="text-xs text-[#CBD5E1] mt-1.5 leading-relaxed max-w-2xl">
-                Exercise your Right to Erasure (GDPR Article 17 / KVKK Madde 7). Permanently destroy your account, wipe all registered repository audits, flush cached vulnerability findings, purge personal access credentials, and wipe local storage states.
+                {isAuthenticated
+                  ? 'Exercise your Right to Erasure (GDPR Article 17 / KVKK Madde 7). Permanently destroy your account, wipe all registered repository audits, flush cached vulnerability findings, purge personal access credentials, and wipe local storage states.'
+                  : 'Exercise your Right to Erasure (GDPR Article 17 / KVKK Madde 7). As an unauthenticated guest, this action clears your local browser cache, registered repository audits, and scan history stored on this device.'}
               </p>
             </div>
           </div>
@@ -545,10 +598,10 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               setPurgeSuccess(false);
               setIsDeleteModalOpen(true);
             }}
-            className="min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-red-100 text-xs font-bold flex items-center justify-center gap-2 transition-colors shrink-0"
+            className="min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-red-100 text-xs font-bold flex items-center justify-center gap-2 transition-colors shrink-0 cursor-pointer"
           >
             <Trash2 size={15} />
-            <span>Delete Account &amp; Wipe Data</span>
+            <span>{isAuthenticated ? 'Delete Account & Wipe Data' : 'Clear Local Cache & Wipe Scans'}</span>
           </button>
         </div>
       </div>
@@ -584,10 +637,12 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                     <CheckCircle2 size={36} />
                   </div>
                   <h3 className="text-xl font-extrabold text-white">
-                    Data Purged Successfully
+                    {isAuthenticated ? 'Data Purged Successfully' : 'Local Cache & Scans Cleared'}
                   </h3>
                   <p className="text-xs text-[#A1A1AA] max-w-sm">
-                    All account records, audits, tokens, and local cache have been erased in compliance with GDPR Art. 17 / KVKK Madde 7. Redirecting to home...
+                    {isAuthenticated
+                      ? 'All account records, audits, tokens, and local cache have been erased in compliance with GDPR Art. 17 / KVKK Madde 7. Redirecting to home...'
+                      : 'All local scan data, cached repositories, and browser storage have been wiped. Redirecting to home...'}
                   </p>
                 </div>
               ) : (
@@ -599,10 +654,14 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                     </div>
                     <div>
                       <h3 id="gdpr-delete-modal-title" className="text-lg font-extrabold text-white">
-                        Confirm Permanent Account &amp; Data Erasure
+                        {!isAuthenticated
+                          ? 'Confirm Local Cache & Scan History Erasure'
+                          : 'Confirm Permanent Account & Data Erasure'}
                       </h3>
                       <p className="text-xs text-[#A1A1AA]">
-                        GDPR Article 17 / KVKK Madde 7 Right to Erasure
+                        {!isAuthenticated
+                          ? 'Wipes local browser storage & scan history on this machine'
+                          : 'GDPR Article 17 / KVKK Madde 7 Right to Erasure'}
                       </p>
                     </div>
                   </div>
@@ -614,11 +673,22 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       The following data will be permanently wiped:
                     </span>
                     <ul className="space-y-1 list-disc list-inside text-[0.72rem] text-red-200/80">
-                      <li>Active user profile, authenticated session tokens, and billing records.</li>
-                      <li>All registered project repositories and custom scan settings.</li>
-                      <li>Historical audit reports, gate matrices, and remediation logs.</li>
-                      <li>Stored GitHub Personal Access Tokens (PAT) and webhook credentials.</li>
-                      <li>Local browser database and storage caches (<code className="text-red-300">shipguard_*</code>).</li>
+                      {!isAuthenticated ? (
+                        <>
+                          <li>Guest mode session and local browser cache (<code className="text-red-300">shipguard_*</code>).</li>
+                          <li>Locally saved project scans and vulnerability findings history on this device.</li>
+                          <li>Temporary repository target configurations and local license state.</li>
+                          <li>Note: No cloud account credentials exist to purge in Guest Mode.</li>
+                        </>
+                      ) : (
+                        <>
+                          <li>Active user profile, authenticated session tokens, and billing records.</li>
+                          <li>All registered project repositories and custom scan settings.</li>
+                          <li>Historical audit reports, gate matrices, and remediation logs.</li>
+                          <li>Stored GitHub Personal Access Tokens (PAT) and webhook credentials.</li>
+                          <li>Local browser database and storage caches (<code className="text-red-300">shipguard_*</code>).</li>
+                        </>
+                      )}
                     </ul>
                   </div>
 
@@ -648,7 +718,9 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                         className="mt-0.5 rounded border-white/20 bg-[#0A0A0A] text-red-600 focus:ring-0 w-4 h-4"
                       />
                       <span>
-                        I acknowledge this action is irreversible and request the permanent deletion of my account and all associated telemetry.
+                        {!isAuthenticated
+                          ? 'I acknowledge this action will permanently clear all local project scans and browser cache on this machine.'
+                          : 'I acknowledge this action is irreversible and request the permanent deletion of my account and all associated telemetry.'}
                       </span>
                     </label>
                   </div>
@@ -678,7 +750,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       ) : (
                         <>
                           <Trash2 size={14} />
-                          <span>Permanently Delete &amp; Wipe</span>
+                          <span>{!isAuthenticated ? 'Permanently Wipe Local Data' : 'Permanently Delete & Wipe'}</span>
                         </>
                       )}
                     </button>

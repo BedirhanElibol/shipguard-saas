@@ -112,6 +112,12 @@ def test_gate_check():
     passed = status == 400 and "neither a valid GitHub repository" in body
     record("GATE-CHECK", "Reject Malformed Repo URL (400)", passed, status, body)
 
+    # 1.4b POST Reject 'newday' Bypass Keyword (Must be 400, not allowed as 'local')
+    payload = {"repoUrl": "newday"}
+    status, headers, body = make_request("POST", "/api/v1/gate-check", body=payload)
+    passed = status == 400 and "neither a valid GitHub repository" in body
+    record("GATE-CHECK", "Reject 'newday' Bypass Keyword (400)", passed, status, body)
+
     # 1.5 POST Valid Local Workspace Scan ("local")
     payload = {"repoUrl": "local"}
     status, headers, body = make_request("POST", "/api/v1/gate-check", body=payload)

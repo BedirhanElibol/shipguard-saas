@@ -488,7 +488,7 @@ export const MOCK_PROJECTS: Project[] = [
   },
   {
     id: 'proj-shipguard-self',
-    name: 'newday (Self Audit)',
+    name: 'ShipGuard SaaS (Self Audit)',
     repoUrl: 'https://github.com/example/shipguard',
     previewUrl: 'http://localhost:3000',
     framework: 'Next.js 15',

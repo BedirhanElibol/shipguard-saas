@@ -13,13 +13,19 @@ interface NotificationSettingsModalProps {
   repoUrl: string;
 }
 
+export const NOTIFICATION_STORAGE_PREFIX = 'shipguard_webhooks_';
+
+export function getNotificationStorageKey(projectName: string): string {
+  return `${NOTIFICATION_STORAGE_PREFIX}${projectName}`;
+}
+
 export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps> = ({
   isOpen,
   onClose,
   projectName,
   repoUrl
 }) => {
-  const storageKey = `shipguard_webhooks_${projectName}`;
+  const storageKey = getNotificationStorageKey(projectName);
   const [slackUrl, setSlackUrl] = useState('');
   const [discordUrl, setDiscordUrl] = useState('');
   const [testStatus, setTestStatus] = useState<string | null>(null);

@@ -64,8 +64,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             type="button"
             onClick={() => {
               const p: Project = {
-                id: `proj-preset-newday`,
-                name: 'newday (Next.js 15 Release Gate)',
+                id: 'proj-preset-self',
+                name: 'ShipGuard SaaS (Self Audit)',
                 repoUrl: 'local',
                 framework: 'Next.js 15',
                 providers: ['Supabase', 'Vercel', 'Tailwind v4'],
@@ -84,7 +84,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
           >
-            <span>newday (Self Audit)</span>
+            <span>ShipGuard (Self Audit)</span>
           </button>
 
           <button

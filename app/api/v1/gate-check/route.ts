@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const isWebTarget = isValidWebUrl(rawRepoUrl);
     const isGithubTarget = !isWebTarget && (isValidGithubUrl(rawRepoUrl) || parseGithubUrl(rawRepoUrl) !== null);
 
-    if (!isWebTarget && !isGithubTarget && rawRepoUrl.toLowerCase() !== 'local' && rawRepoUrl.toLowerCase() !== 'newday') {
+    if (!isWebTarget && !isGithubTarget && rawRepoUrl.toLowerCase() !== 'local') {
       return NextResponse.json(
         {
           status: 'ERROR',
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     let filesToScan: typeof WORKSPACE_SOURCE_FILES = [];
     let targetName = rawRepoUrl;
 
-    if (rawRepoUrl.toLowerCase() === 'local' || rawRepoUrl.toLowerCase() === 'newday') {
+    if (rawRepoUrl.toLowerCase() === 'local') {
       filesToScan = WORKSPACE_SOURCE_FILES;
       targetName = 'ShipGuard Local Workspace';
     } else if (isWebTarget) {

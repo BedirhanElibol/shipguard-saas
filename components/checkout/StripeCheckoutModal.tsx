@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CreditCard, ShieldCheck, Zap, Check, Lock } from 'lucide-react';
+import { X, CreditCard, ShieldCheck, Zap, Check, Lock, User } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { activateUserTier } from '@/lib/stripe-checkout';
 
@@ -12,13 +12,15 @@ interface StripeCheckoutModalProps {
   onClose: () => void;
   user: UserProfile | null;
   onUpgradeSuccess: (newTier: 'Pro' | 'Enterprise') => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
 }
 
 export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
   isOpen,
   onClose,
   user,
-  onUpgradeSuccess
+  onUpgradeSuccess,
+  onOpenAuth
 }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [selectedPlan, setSelectedPlan] = useState<'Pro' | 'Enterprise'>('Pro');
@@ -28,6 +30,8 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
   const [cardHolder, setCardHolder] = useState(user?.name || '');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const isLoggedIn = Boolean(user && user.isLoggedIn);
 
   React.useEffect(() => {
     if (user?.name) {
@@ -43,6 +47,11 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      onClose();
+      if (onOpenAuth) onOpenAuth('signup');
+      return;
+    }
     setIsProcessing(true);
 
     setTimeout(() => {
@@ -77,7 +86,55 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
             <X size={20} />
           </button>
 
-          {isSuccess ? (
+          {!isLoggedIn ? (
+            <div className="py-8 flex flex-col items-center justify-center text-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-lg">
+                <Lock size={32} />
+              </div>
+
+              <div className="flex flex-col gap-2 max-w-sm">
+                <h3 className="text-xl font-extrabold text-white">
+                  Account Required for Checkout
+                </h3>
+                <p className="text-xs text-[#CBD5E1] leading-relaxed">
+                  Please sign in or create a free account before upgrading your plan. Your subscription and security gate limits will be permanently bound to your account.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenAuth) {
+                      onOpenAuth('signin');
+                    }
+                  }}
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-white text-black font-extrabold text-xs hover:bg-neutral-200 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer font-mono"
+                >
+                  <User size={14} />
+                  <span>Sign In</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenAuth) {
+                      onOpenAuth('signup');
+                    }
+                  }}
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
+                >
+                  <span>Create Account</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 text-[11px] text-[#A1A1AA] pt-4 border-t border-white/10 w-full justify-center">
+                <ShieldCheck size={14} className="text-emerald-400" />
+                <span>Free account setup takes 10 seconds</span>
+              </div>
+            </div>
+          ) : isSuccess ? (
             <div className="py-12 flex flex-col items-center justify-center text-center gap-4">
               <motion.div
                 initial={{ scale: 0 }}

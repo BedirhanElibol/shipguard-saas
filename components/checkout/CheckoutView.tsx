@@ -5,13 +5,16 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle } from 'lucide-react';
+import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 
 interface CheckoutViewProps {
   initialPlanId?: string;
   initialBilling?: 'annual' | 'monthly';
   initialSuccess?: boolean;
   onBackToPricing?: () => void;
+  user?: UserProfile | null;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
 }
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({
@@ -19,29 +22,99 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   initialBilling = 'annual',
   initialSuccess = false,
   onBackToPricing,
+  user,
+  onOpenAuth,
 }) => {
   const router = useRouter();
   const [selectedPlanId, setSelectedPlanId] = useState<string>(initialPlanId);
   const [isAnnual, setIsAnnual] = useState<boolean>(initialBilling === 'annual');
 
+  // User Authentication State
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(user ?? null);
+  const [isInternalAuthModalOpen, setIsInternalAuthModalOpen] = useState(false);
+  const [internalAuthMode, setInternalAuthMode] = useState<'signin' | 'signup'>('signin');
+
   // Form Fields
-  const [fullName, setFullName] = useState('');
+  const [fullName, setFullName] = useState(user?.name || '');
   const [companyName, setCompanyName] = useState('');
   const [vatNumber, setVatNumber] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(user?.email || '');
   const [isSubmitted, setIsSubmitted] = useState(initialSuccess);
   const [activeLicenseKey, setActiveLicenseKey] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
 
+  // Sync user state from props or localStorage
+  useEffect(() => {
+    if (user !== undefined) {
+      setCurrentUser(user);
+    } else {
+      try {
+        const saved = localStorage.getItem('shipguard_user');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.isLoggedIn) {
+            setCurrentUser(parsed);
+          }
+        }
+      } catch (err) {
+        console.warn('[CheckoutView] Failed to read user from storage:', err);
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'shipguard_user') {
+        try {
+          if (e.newValue) {
+            const parsed = JSON.parse(e.newValue);
+            if (parsed && parsed.isLoggedIn) {
+              setCurrentUser(parsed);
+            } else {
+              setCurrentUser(null);
+            }
+          } else {
+            setCurrentUser(null);
+          }
+        } catch {
+          setCurrentUser(null);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.name && !fullName) setFullName(currentUser.name);
+      if (currentUser.email && !email) setEmail(currentUser.email);
+    }
+  }, [currentUser]);
+
+  const isAuthenticated = Boolean(currentUser && currentUser.isLoggedIn);
+
+  const handleOpenAuthModal = (mode: 'signin' | 'signup' = 'signin') => {
+    if (onOpenAuth) {
+      onOpenAuth(mode);
+    } else {
+      setInternalAuthMode(mode);
+      setIsInternalAuthModalOpen(true);
+    }
+  };
+
   useEffect(() => {
     if (initialSuccess) {
+      if (!isAuthenticated) {
+        return;
+      }
       const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-      const key = generateLicenseKey(selectedPlanId, 'customer@shipguard.app');
+      const key = generateLicenseKey(selectedPlanId, currentUser?.email || 'customer@shipguard.app');
       setActiveLicenseKey(key);
       activateUserTier(tier, key);
       setIsSubmitted(true);
     }
-  }, [initialSuccess, selectedPlanId]);
+  }, [initialSuccess, selectedPlanId, isAuthenticated, currentUser?.email]);
 
   const selectedPlan: PricingPlanItem =
     SHIPGUARD_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
@@ -55,8 +128,12 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
   const handleSimulateSandbox = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      handleOpenAuthModal('signup');
+      return;
+    }
     const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-    const key = generateLicenseKey(selectedPlanId, email || 'evaluator@agency.com');
+    const key = generateLicenseKey(selectedPlanId, email || currentUser?.email || 'evaluator@agency.com');
     setActiveLicenseKey(key);
     activateUserTier(tier, key);
     setIsSubmitted(true);
@@ -79,6 +156,34 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           <span>256-BIT SSL ENCRYPTED B2B CHECKOUT</span>
         </div>
       </div>
+
+      {/* Account Required Warning Card for Unauthenticated / Guest Users */}
+      {!isAuthenticated && !isSubmitted && (
+        <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0 text-xl">
+              🛡️
+            </div>
+            <div className="flex flex-col gap-1">
+              <h3 className="text-sm font-bold text-white tracking-wide">
+                Account Required
+              </h3>
+              <p className="text-xs text-[#CBD5E1] leading-relaxed max-w-2xl">
+                Please sign in or create a free account before upgrading your plan. Your license and security gates will be permanently bound to your account.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleOpenAuthModal('signup')}
+            className="min-h-[44px] px-5 py-2.5 rounded-xl bg-white text-black font-extrabold text-xs hover:bg-neutral-200 transition-all shadow-md flex items-center justify-center gap-2 shrink-0 cursor-pointer font-mono"
+          >
+            <User size={15} />
+            <span>Open Sign In / Sign Up</span>
+          </button>
+        </div>
+      )}
 
       {isSubmitted ? (
         <div className="bg-[#141414] border border-white/10 rounded-xl p-12 text-center flex flex-col items-center gap-5 border-[#10B981]/40 bg-[#10B981]/10">
@@ -233,16 +338,32 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       Instant 3D Secure checkout managed by Polar Software, Inc. Official VAT tax invoice and subscription activated immediately.
                     </p>
 
-                    <a
-                      href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
-                    >
-                      <Lock size={14} />
-                      <span>Pay Securely with Polar (${selectedPlan.priceMonthly}/mo)</span>
-                    </a>
-                    {isAnnual && (
+                    {isAuthenticated ? (
+                      <a
+                        href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
+                      >
+                        <Lock size={14} />
+                        <span>Pay Securely with Polar (${selectedPlan.priceMonthly}/mo)</span>
+                      </a>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAuthModal('signup')}
+                          className="min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white/10 text-[#A1A1AA] hover:bg-white/15 hover:text-white transition-all border border-white/10 font-mono text-center cursor-pointer"
+                        >
+                          <Lock size={14} />
+                          <span>Sign In to Upgrade (${selectedPlan.priceMonthly}/mo)</span>
+                        </button>
+                        <span className="text-[11px] text-amber-300/80 font-mono text-center">
+                          Guest accounts cannot process payments. Please sign in first.
+                        </span>
+                      </div>
+                    )}
+                    {isAnnual && isAuthenticated && (
                       <p className="text-[10px] text-white/60 font-mono text-center -mt-2">
                         Polar online checkout bills monthly (${selectedPlan.priceMonthly}/mo). Cancel anytime in 1-click.
                       </p>
@@ -270,9 +391,18 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     <button
                       type="button"
                       onClick={handleSimulateSandbox}
-                      className="btn btn-secondary py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border border-white/20 hover:bg-white/10 transition-all text-white font-mono"
+                      disabled={!isAuthenticated}
+                      className={`min-h-[44px] py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border transition-all font-mono ${
+                        !isAuthenticated
+                          ? 'border-white/10 bg-white/5 text-[#71717A] cursor-not-allowed opacity-60'
+                          : 'btn btn-secondary border-white/20 hover:bg-white/10 text-white cursor-pointer'
+                      }`}
                     >
-                      <span>Simulate Instant Upgrade ({selectedPlan.name})</span>
+                      <span>
+                        {!isAuthenticated
+                          ? 'Sign In Required for Instant Upgrade'
+                          : `Simulate Instant Upgrade (${selectedPlan.name})`}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -386,6 +516,22 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Auth Modal for Unauthenticated Checkout Guests */}
+      <AuthModal
+        isOpen={isInternalAuthModalOpen}
+        onClose={() => setIsInternalAuthModalOpen(false)}
+        onLoginSuccess={(authedUser) => {
+          setCurrentUser(authedUser);
+          setIsInternalAuthModalOpen(false);
+          try {
+            localStorage.setItem('shipguard_user', JSON.stringify(authedUser));
+          } catch (err) {
+            console.warn('[CheckoutView] Failed to persist user session:', err);
+          }
+        }}
+        initialMode={internalAuthMode}
+      />
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { MOCK_PROJECTS } from '@/data/mockData';
 import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engine';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
-import { purgeShipguardStorage } from '@/lib/storage';
+import { purgeShipguardStorage, safeSetStorageItem } from '@/lib/storage';
 import { useSearchParams } from 'next/navigation';
 
 export function useDashboardState() {
@@ -28,20 +28,26 @@ export function useDashboardState() {
         const savedVersion = localStorage.getItem('shipguard_data_version');
 
         if (savedVersion !== CURRENT_DATA_VERSION) {
-          localStorage.setItem('shipguard_data_version', CURRENT_DATA_VERSION);
+          safeSetStorageItem('shipguard_data_version', CURRENT_DATA_VERSION);
           localStorage.removeItem('shipguard_projects');
           setProjects(MOCK_PROJECTS);
           setSelectedProject(MOCK_PROJECTS[0]);
           return;
         }
 
-        const savedProjectsStr = localStorage.getItem('shipguard_projects');
         let currentProjects = MOCK_PROJECTS;
+        const savedProjectsStr = localStorage.getItem('shipguard_projects');
         if (savedProjectsStr) {
-          const parsed = JSON.parse(savedProjectsStr);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            currentProjects = parsed;
-            setProjects(parsed);
+          try {
+            const parsed = JSON.parse(savedProjectsStr);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              currentProjects = parsed;
+              setProjects(parsed);
+            }
+          } catch (jsonErr) {
+            console.warn('[ShipGuard Storage] Corrupted shipguard_projects in localStorage; resetting to default.', jsonErr);
+            localStorage.removeItem('shipguard_projects');
+            setProjects(MOCK_PROJECTS);
           }
         }
 
@@ -55,16 +61,22 @@ export function useDashboardState() {
 
         const savedUserStr = localStorage.getItem('shipguard_user');
         if (savedUserStr) {
-          const parsedUser = JSON.parse(savedUserStr);
-          if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
-            setUser({
-              name: parsedUser.name || 'User',
-              email: parsedUser.email || '',
-              avatarUrl: parsedUser.avatarUrl || undefined,
-              tier: (parsedUser.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free',
-              isLoggedIn: Boolean(parsedUser.isLoggedIn),
-              emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true
-            });
+          try {
+            const parsedUser = JSON.parse(savedUserStr);
+            if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
+              setUser({
+                name: parsedUser.name || 'User',
+                email: parsedUser.email || '',
+                avatarUrl: parsedUser.avatarUrl || undefined,
+                tier: (parsedUser.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free',
+                isLoggedIn: Boolean(parsedUser.isLoggedIn),
+                emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true
+              });
+            }
+          } catch (jsonErr) {
+            console.warn('[ShipGuard Storage] Corrupted shipguard_user in localStorage; clearing invalid session token.', jsonErr);
+            localStorage.removeItem('shipguard_user');
+            setUser(null);
           }
         }
       } catch (err) {
@@ -130,7 +142,7 @@ export function useDashboardState() {
           reproductionSteps: Array.isArray(f.reproductionSteps) ? f.reproductionSteps.slice(0, 1) : []
         }))
       }));
-      localStorage.setItem('shipguard_projects', JSON.stringify(lightweight));
+      safeSetStorageItem('shipguard_projects', JSON.stringify(lightweight), selectedProject.id);
     } catch {
       try {
         const ultraCompact = updated.map((p) => ({
@@ -145,7 +157,7 @@ export function useDashboardState() {
             status: f.status
           }))
         }));
-        localStorage.setItem('shipguard_projects', JSON.stringify(ultraCompact));
+        safeSetStorageItem('shipguard_projects', JSON.stringify(ultraCompact), selectedProject.id);
       } catch {
         console.warn('[ShipGuard Storage] Silent localStorage quota limit handled gracefully.');
       }
@@ -154,11 +166,7 @@ export function useDashboardState() {
 
   const handleSelectProject = (p: Project) => {
     setSelectedProject(p);
-    try {
-      localStorage.setItem('shipguard_selected_project_id', p.id);
-    } catch (e: unknown) {
-      console.warn('[ShipGuard Storage] Failed to persist selected project ID:', e);
-    }
+    safeSetStorageItem('shipguard_selected_project_id', p.id);
   };
 
   const handleToggleResolveFinding = (findingId: string) => {
@@ -226,11 +234,7 @@ export function useDashboardState() {
         emailVerified: res.user?.emailVerified ?? false
       };
       setUser(newUser);
-      try {
-        localStorage.setItem('shipguard_user', JSON.stringify(newUser));
-      } catch (e) {
-        console.warn('[ShipGuard Storage] Failed to persist user:', e);
-      }
+      safeSetStorageItem('shipguard_user', JSON.stringify(newUser));
     } else {
       const res = await supabaseSignIn(email, pass);
       if (res.error) throw new Error(res.error);
@@ -244,11 +248,7 @@ export function useDashboardState() {
         emailVerified: res.user?.emailVerified ?? true
       };
       setUser(loggedInUser);
-      try {
-        localStorage.setItem('shipguard_user', JSON.stringify(loggedInUser));
-      } catch (e) {
-        console.warn('[ShipGuard Storage] Failed to persist user:', e);
-      }
+      safeSetStorageItem('shipguard_user', JSON.stringify(loggedInUser));
     }
   };
 
@@ -258,11 +258,7 @@ export function useDashboardState() {
         return null;
       }
       const updated: UserProfile = { ...prev, ...fields };
-      try {
-        localStorage.setItem('shipguard_user', JSON.stringify(updated));
-      } catch (e) {
-        console.warn('[ShipGuard Storage] Failed to persist user profile update:', e);
-      }
+      safeSetStorageItem('shipguard_user', JSON.stringify(updated));
       return updated;
     });
   };

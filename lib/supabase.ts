@@ -31,18 +31,10 @@ export const getSupabase = (): SupabaseClient | null => {
 export async function supabaseSignIn(email: string, password: string): Promise<{ user: UserProfile | null; error: string | null }> {
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) {
-    // Local / Mock fallback
-    const rawPrefix = email.split('@')[0] || 'User';
-    const formattedName = rawPrefix.replace(/[._-]/g, ' ').trim() || 'User';
-    const mockUser: UserProfile = {
-      name: formattedName,
-      email: email.trim(),
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      tier: 'Free',
-      isLoggedIn: true,
-      emailVerified: true
+    return {
+      user: null,
+      error: 'Authentication service is unavailable. Please check Supabase configuration or network connection.'
     };
-    return { user: mockUser, error: null };
   }
 
   try {
@@ -93,15 +85,11 @@ export function simulateOAuthProfile(provider: 'GitHub' | 'Google', customHandle
 export async function supabaseSignUp(email: string, password: string, name: string): Promise<{ user: UserProfile | null; error: string | null; requiresVerification?: boolean }> {
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) {
-    const mockUser: UserProfile = {
-      name: name.trim(),
-      email: email.trim(),
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      tier: 'Free',
-      isLoggedIn: true,
-      emailVerified: false
+    return {
+      user: null,
+      error: 'Authentication service is unavailable. Please check Supabase configuration or network connection.',
+      requiresVerification: false
     };
-    return { user: mockUser, error: null, requiresVerification: true };
   }
 
   try {
@@ -138,8 +126,8 @@ export async function supabaseResetPassword(email: string): Promise<{ success: b
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) {
     return {
-      success: true,
-      message: `A password reset link has been dispatched to ${email}. Please inspect your inbox.`
+      success: false,
+      message: 'Authentication service is unavailable. Please check Supabase configuration or network connection.'
     };
   }
 

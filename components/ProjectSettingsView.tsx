@@ -610,7 +610,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       <AnimatePresence>
         {isDeleteModalOpen && (
           <div
-            className="fixed inset-0 z-50 bg-black/85  flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-3 sm:p-4 min-h-[100dvh]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="gdpr-delete-modal-title"
@@ -619,7 +619,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="w-full max-w-lg max-h-[85vh] overflow-y-auto bg-[#141414] border border-red-500/30 rounded-2xl p-6 sm:p-8 flex flex-col gap-5 shadow-2xl relative"
+              className="w-full max-w-lg max-h-[85dvh] sm:max-h-[90dvh] overflow-y-auto bg-[#141414] border border-red-500/30 rounded-2xl p-5 sm:p-8 flex flex-col gap-5 shadow-2xl relative"
             >
               {/* Close Button with 44x44px target */}
               <button

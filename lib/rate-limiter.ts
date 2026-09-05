@@ -51,17 +51,20 @@ function cleanupExpiredEntries(windowMs: number) {
  * Extracts client IP securely from headers or fallback
  */
 export function getClientIp(req: NextRequest): string {
+  const xClientIp = req.headers.get('x-client-ip');
+  if (xClientIp) return xClientIp.trim();
+
   const cfConnectingIp = req.headers.get('cf-connecting-ip');
   if (cfConnectingIp) return cfConnectingIp.trim();
+
+  const xRealIp = req.headers.get('x-real-ip');
+  if (xRealIp) return xRealIp.trim();
 
   const xForwardedFor = req.headers.get('x-forwarded-for');
   if (xForwardedFor) {
     const firstIp = xForwardedFor.split(',')[0].trim();
     if (firstIp) return firstIp;
   }
-
-  const xRealIp = req.headers.get('x-real-ip');
-  if (xRealIp) return xRealIp.trim();
 
   return '127.0.0.1';
 }

@@ -69,8 +69,12 @@ export async function fetchGithubRepositoryData(
 
   // 1. First-Party Server-Side Proxy Attempt (Prevents Browser 404 Console Errors)
   try {
-    const proxyEndpoint = `/api/v1/github-proxy?repoUrl=${encodeURIComponent(repoUrl)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
-    const proxyRes = await fetch(proxyEndpoint, { signal });
+    const proxyEndpoint = `/api/v1/github-proxy?repoUrl=${encodeURIComponent(repoUrl)}`;
+    const proxyHeaders: Record<string, string> = {};
+    if (token) {
+      proxyHeaders['Authorization'] = `Bearer ${token.trim()}`;
+    }
+    const proxyRes = await fetch(proxyEndpoint, { headers: proxyHeaders, signal });
     if (proxyRes.ok) {
       const data = await proxyRes.json();
       if (data && data.files) {
@@ -97,7 +101,7 @@ export async function fetchGithubRepositoryData(
   };
 
   if (token) {
-    headers['Authorization'] = `token ${token}`;
+    headers['Authorization'] = `Bearer ${token.trim()}`;
   }
 
   try {
@@ -156,7 +160,7 @@ export async function fetchGithubRepositoryData(
             const rawRes = await fetch(
               `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`,
               {
-                headers: token ? { Authorization: `token ${token}` } : {},
+                headers: token ? { Authorization: `Bearer ${token.trim()}` } : {},
                 signal: signal || AbortSignal.timeout(5000)
               }
             );

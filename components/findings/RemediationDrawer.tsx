@@ -12,6 +12,18 @@ interface RemediationDrawerProps {
   onToggleResolve: (id: string) => void;
 }
 
+/**
+ * Defang raw dangerous HTML tags and scripts to prevent client-side XSS injection
+ */
+function sanitizeContent(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRUBBED_SCRIPT]')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '[SCRUBBED_IFRAME]')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '[SCRUBBED_OBJECT]')
+    .replace(/javascript\s*:/gi, 'blocked-javascript:');
+}
+
 export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
   finding,
   onClose,
@@ -34,7 +46,12 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
 
   if (!finding) return null;
 
-  const diffText = `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${finding.snippet}\n+ // REMEDIATION: ${finding.remediationPrompt}`;
+  const cleanSnippet = sanitizeContent(finding.snippet);
+  const cleanPrompt = sanitizeContent(finding.remediationPrompt);
+  const cleanTitle = sanitizeContent(finding.title);
+  const cleanSteps = (finding.reproductionSteps || []).map(sanitizeContent);
+
+  const diffText = `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${cleanSnippet}\n+ // REMEDIATION: ${cleanPrompt}`;
 
   const copyDiff = () => {
     navigator.clipboard.writeText(diffText);
@@ -43,7 +60,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
   };
 
   const copyPrompt = () => {
-    navigator.clipboard.writeText(finding.remediationPrompt);
+    navigator.clipboard.writeText(cleanPrompt);
     setCopiedPrompt(true);
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
@@ -51,7 +68,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-50 flex justify-end bg-black/70  cursor-pointer"
+        className="fixed inset-0 z-50 flex justify-end bg-black/70 cursor-pointer min-h-[100dvh]"
         onClick={onClose}
       >
         <motion.div
@@ -62,8 +79,8 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
-          aria-label={`Remediation details for ${finding.title}`}
-          className="w-full max-w-xl bg-[#141414] border-l border-white/10 h-full overflow-y-auto p-8 flex flex-col gap-6 cursor-default shadow-2xl"
+          aria-label={`Remediation details for ${cleanTitle}`}
+          className="w-full max-w-xl bg-[#141414] border-l border-white/10 h-[100dvh] overflow-y-auto p-5 sm:p-8 flex flex-col gap-6 cursor-default shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -87,7 +104,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
             <button
               onClick={onClose}
               aria-label="Close remediation drawer"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -96,7 +113,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
           {/* Finding Title & File */}
           <div>
             <h2 className="text-xl font-extrabold text-[#EDEDED]">
-              {finding.title}
+              {cleanTitle}
             </h2>
             <div className="text-xs font-mono text-white mt-1">
               File: {finding.filePath} ({finding.lineRange})
@@ -110,7 +127,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
               <span>Exposed Code Snippet Evidence:</span>
             </div>
             <div className="code-block bg-[#0A0A0A] border border-white/10 p-4 rounded-xl font-mono text-xs text-[#EDEDED] overflow-x-auto">
-              <pre className="m-0">{finding.snippet}</pre>
+              <pre className="m-0 whitespace-pre">{cleanSnippet}</pre>
             </div>
           </div>
 
@@ -121,10 +138,10 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
               <span>Audit Proof &amp; Reproduction Steps:</span>
             </div>
             <ol className="list-decimal list-inside space-y-1.5 text-xs text-[#A1A1AA]">
-              {(!finding.reproductionSteps || finding.reproductionSteps.length === 0) ? (
+              {cleanSteps.length === 0 ? (
                 <li className="list-none text-gray-500 italic">No custom reproduction steps recorded for this automated finding.</li>
               ) : (
-                finding.reproductionSteps.map((step, idx) => (
+                cleanSteps.map((step, idx) => (
                   <li key={idx}>{step}</li>
                 ))
               )}
@@ -210,7 +227,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
                   <div className="text-white select-none font-bold">+++ b/{finding.filePath}</div>
                   <div className="text-[#A1A1AA] select-none font-bold">@@ -{finding.lineRange} +{finding.lineRange} @@</div>
                   {/* Deletion line(s) */}
-                  {finding.snippet.split('\n').map((line, idx) => (
+                  {cleanSnippet.split('\n').map((line, idx) => (
                     <div
                       key={`del-${idx}`}
                       className="bg-red-500/15 text-red-300 px-2 py-0.5 rounded border-l-2 border-red-500 flex items-start gap-2 font-mono"
@@ -222,13 +239,13 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
                   {/* Addition line */}
                   <div className="bg-white/5 text-white px-2 py-0.5 rounded border-l-2 border-white/20 flex items-start gap-2 font-mono">
                     <span className="text-white select-none font-bold">+</span>
-                    <span className="whitespace-pre">// REMEDIATION: {finding.remediationPrompt}</span>
+                    <span className="whitespace-pre">// REMEDIATION: {cleanPrompt}</span>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/10 font-mono text-xs text-white leading-relaxed select-text">
-                {finding.remediationPrompt}
+                {cleanPrompt}
               </div>
             )}
 
@@ -242,27 +259,32 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
             </div>
           </div>
 
-          {/* Owner & Controls */}
-          <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between">
+          {/* Owner & Controls (min 44px touch targets for mobile viewport safety) */}
+          <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs text-[#A1A1AA]">
               <User size={14} />
               <span>Owner: {finding.owner || 'Unassigned'}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="btn btn-secondary btn-sm" onClick={onClose}>
+              <button
+                type="button"
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-[#EDEDED] transition-colors cursor-pointer"
+                onClick={onClose}
+              >
                 Close
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   onToggleResolve(finding.id);
                   onClose();
                 }}
-                className={`btn btn-sm ${
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                   finding.status === 'RESOLVED'
-                    ? 'bg-slate-700 text-white'
-                    : 'btn-primary'
+                    ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    : 'bg-white text-black hover:bg-neutral-200'
                 }`}
               >
                 <CheckCircle2 size={14} />

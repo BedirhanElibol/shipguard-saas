@@ -32,12 +32,7 @@ export const GithubProxyQuerySchema = z.object({
       {
         message: 'repoUrl must be a valid GitHub repository path (e.g., owner/repo or https://github.com/owner/repo)'
       }
-    ),
-  token: z
-    .string()
-    .max(256, 'token exceeds maximum length of 256')
-    .optional()
-    .or(z.literal(''))
+    )
 });
 
 /**

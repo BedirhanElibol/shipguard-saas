@@ -124,7 +124,7 @@ export function isPrivateIp(ip: string): boolean {
  * Comprehensive SSRF inspection on a parsed URL
  * Resolves DNS to detect DNS-rebinding attacks targeting internal cloud networks.
  */
-export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boolean; reason?: string; url?: URL }> {
+export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boolean; reason?: string; url?: URL; resolvedIp?: string }> {
   let parsed: URL;
   try {
     const formatted = rawUrl.includes('://') ? rawUrl : `https://${rawUrl}`;
@@ -174,12 +174,15 @@ export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boo
     if (isPrivateIp(cleanHostname)) {
       return { safe: false, reason: `Access to private or loopback IP "${hostname}" is prohibited` };
     }
-    return { safe: true, url: parsed };
+    return { safe: true, url: parsed, resolvedIp: cleanHostname };
   }
 
   // 6. DNS Resolution to prevent DNS Rebinding to RFC 1918 / Cloud Metadata addresses
   try {
     const lookupResult = await dns.promises.lookup(hostname, { all: true });
+    if (!lookupResult || lookupResult.length === 0) {
+      return { safe: false, reason: `Target host "${hostname}" returned no DNS records` };
+    }
     for (const record of lookupResult) {
       if (isPrivateIp(record.address)) {
         return {
@@ -188,10 +191,9 @@ export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boo
         };
       }
     }
+    return { safe: true, url: parsed, resolvedIp: lookupResult[0].address };
   } catch (dnsErr: any) {
     // If DNS resolution fails, reject to prevent blind proxying
     return { safe: false, reason: `Target host "${hostname}" could not be resolved via DNS` };
   }
-
-  return { safe: true, url: parsed };
 }

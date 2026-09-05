@@ -23,13 +23,24 @@ export async function GET(req: NextRequest) {
     return createRateLimitResponse(rateLimit);
   }
 
-  // 2. Strict Zod Query Parameter Validation
+  // 2. Prohibit credential transmission via URL query string (CWE-598)
+  if (req.nextUrl.searchParams.has('token')) {
+    return NextResponse.json(
+      {
+        error: 'Insecure Credential Transmission (CWE-598)',
+        message: 'Passing GitHub tokens in URL query string is prohibited due to CWE-598. Pass via Authorization: Bearer header.'
+      },
+      { status: 400 }
+    );
+  }
+
+  // 3. Strict Zod Query Parameter Validation
   const validation = validateQueryParams(GithubProxyQuerySchema, req.nextUrl.searchParams);
   if (!validation.success) {
     return validation.response;
   }
 
-  const { repoUrl, token } = validation.data;
+  const { repoUrl } = validation.data;
   const parsed = parseGithubUrl(repoUrl);
 
   if (!parsed || !parsed.owner || !parsed.repo || parsed.owner === 'local') {
@@ -50,13 +61,17 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // 4. Secure Token Extraction: Read exclusively from Authorization header
+  const authHeader = req.headers.get('authorization');
+  const token = authHeader?.replace(/^Bearer\s+/i, '').trim() || undefined;
+
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'ShipGuard-Release-Gate-Scanner/4.0'
   };
 
   if (token) {
-    headers['Authorization'] = `token ${token.trim()}`;
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   try {

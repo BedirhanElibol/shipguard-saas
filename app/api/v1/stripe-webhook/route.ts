@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { verifyStripeSignature } from '@/lib/stripe-webhook';
+import { getSupabase } from '@/lib/supabase';
+
+// In-memory idempotency cache for processed Stripe event IDs (VULN-08)
+const PROCESSED_WEBHOOK_EVENTS = new Set<string>();
+const MAX_IDEMPOTENCY_CACHE = 5000;
 
 export async function POST(req: NextRequest) {
   // 1. Rate Limiting Check (Max 60 webhook events per minute per IP)
@@ -62,6 +67,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Malformed JSON payload' }, { status: 400 });
   }
 
+  // VULN-08: Webhook Idempotency Check
+  if (event?.id) {
+    if (PROCESSED_WEBHOOK_EVENTS.has(event.id)) {
+      logger.info(`[Stripe Webhook] Duplicate event detected (ID: ${event.id}), skipping duplicate processing.`);
+      return NextResponse.json({ received: true, deduplicated: true }, { status: 200 });
+    }
+
+    if (PROCESSED_WEBHOOK_EVENTS.size >= MAX_IDEMPOTENCY_CACHE) {
+      const oldestKey = PROCESSED_WEBHOOK_EVENTS.values().next().value;
+      if (oldestKey) PROCESSED_WEBHOOK_EVENTS.delete(oldestKey);
+    }
+    PROCESSED_WEBHOOK_EVENTS.add(event.id);
+  }
+
   logger.info(`[Stripe Webhook] Successfully verified and received event: ${event?.type} (ID: ${event?.id})`);
 
   // 5. Handle supported Stripe event types
@@ -71,7 +90,29 @@ export async function POST(req: NextRequest) {
         const session = event.data?.object;
         const customerEmail = session?.customer_details?.email || session?.customer_email;
         const clientReferenceId = session?.client_reference_id;
-        logger.info(`[Stripe Webhook] Checkout completed for email: ${customerEmail}, ref: ${clientReferenceId}`);
+        const metadata = session?.metadata || {};
+        const tier = metadata.tier || (session?.amount_total && session.amount_total > 5000 ? 'Enterprise' : 'Pro');
+
+        logger.info(`[Stripe Webhook] Checkout completed for email: ${customerEmail}, ref: ${clientReferenceId}, tier: ${tier}`);
+
+        // Synchronize tier to Supabase profiles table if available
+        const supabase = getSupabase();
+        if (supabase && customerEmail) {
+          try {
+            const { error: dbError } = await supabase
+              .from('profiles')
+              .update({ tier, updated_at: new Date().toISOString() })
+              .eq('email', customerEmail);
+
+            if (dbError) {
+              logger.warn(`[Stripe Webhook] Failed to update profile tier in Supabase: ${dbError.message}`);
+            } else {
+              logger.info(`[Stripe Webhook] Supabase profile tier updated to "${tier}" for ${customerEmail}`);
+            }
+          } catch (syncErr: any) {
+            logger.warn(`[Stripe Webhook] Supabase sync exception: ${syncErr?.message}`);
+          }
+        }
         break;
       }
 

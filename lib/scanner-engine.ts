@@ -20,6 +20,7 @@ export interface ScanResult {
   uiClicheCount: number;
   findings: Finding[];
   logs: string[];
+  summary?: string;
 }
 
 /**
@@ -137,18 +138,74 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     return true;
   });
 
-  logs.push(`[${new Date().toLocaleTimeString()}] 📦 Repository Tree Loaded: ${validFiles.length} total source files queued for file-by-file audit.`);
+  const MAX_SCANNED_FILES = 300;
+  let targetFiles = validFiles;
+  let fileLimitWarning: string | undefined = undefined;
+
+  if (targetFiles.length > MAX_SCANNED_FILES) {
+    targetFiles = [...targetFiles].sort((a, b) => {
+      const getPriority = (p: string) => {
+        const lp = p.toLowerCase();
+        if (lp.endsWith('.ts') || lp.endsWith('.tsx') || lp.endsWith('.js') || lp.endsWith('.jsx')) return 1;
+        if (lp.endsWith('.sql') || lp.endsWith('.py')) return 2;
+        if (lp.endsWith('.json') || lp.endsWith('.yml') || lp.endsWith('.yaml')) return 3;
+        return 4;
+      };
+      return getPriority(a.path) - getPriority(b.path);
+    });
+
+    const excessCount = targetFiles.length - MAX_SCANNED_FILES;
+    targetFiles = targetFiles.slice(0, MAX_SCANNED_FILES);
+    fileLimitWarning = `Target repository exceeds maximum scan limit (${MAX_SCANNED_FILES} files). Scanned top ${MAX_SCANNED_FILES} critical source files; ${excessCount} non-critical files skipped to prevent resource exhaustion.`;
+    logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ RESOURCE GUARD: ${fileLimitWarning}`);
+  }
+
+  logs.push(`[${new Date().toLocaleTimeString()}] 📦 Repository Tree Loaded: ${targetFiles.length} total source files queued for file-by-file audit.`);
   logs.push(`[${new Date().toLocaleTimeString()}] --------------------------------------------------`);
 
   let findingCounter = 1;
   let fileIndex = 1;
 
-  for (const file of validFiles) {
-    const rawContent = file.content;
-    const cleanContent = stripComments(rawContent);
+  for (const file of targetFiles) {
+    const rawContent = file.content || '';
     const lines = rawContent.split('\n');
     const startFindingsCount = findings.length;
     const lowerFilePath = file.path.toLowerCase();
+
+    // File size guard (500 KB / 512,000 bytes)
+    const MAX_FILE_SIZE_BYTES = 512000;
+    const byteLength = typeof Buffer !== 'undefined'
+      ? Buffer.byteLength(rawContent, 'utf8')
+      : rawContent.length;
+
+    if (byteLength > MAX_FILE_SIZE_BYTES) {
+      const fileSizeKb = Math.round(byteLength / 1024);
+      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ PERF-OVERSIZE: File ${file.path} (${fileSizeKb}KB) exceeds maximum static scan size limit (500KB). Skipped to prevent regex event loop starvation.`);
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter++}`,
+        ruleId: 999,
+        type: 'VIBEPOLISH',
+        title: `[PERF-OVERSIZE] File ${file.path} (${fileSizeKb}KB) exceeds maximum static scan size limit (500KB). Skipped to prevent regex event loop starvation.`,
+        severity: 'LOW',
+        category: 'Performance & Scalability',
+        filePath: file.path,
+        lineRange: 'L1',
+        snippet: `[File size: ${fileSizeKb}KB exceeds 500KB limit - regex evaluation bypassed to prevent event loop starvation]`,
+        reproductionSteps: [
+          `Scanned repository file ${file.path}.`,
+          `Detected file size ${fileSizeKb}KB (> 500KB threshold).`,
+          'Skipped static regex analysis to prevent regex event loop starvation.'
+        ],
+        remediationPrompt: `Refactor or split ${file.path}, or add it to .shipguardignore if it is a bundled/generated artifact.`,
+        status: 'OPEN',
+        owner: 'Engineering Lead',
+        falsePositive: false
+      });
+      fileIndex++;
+      continue;
+    }
+
+    const cleanContent = stripComments(rawContent);
 
     // Detect if current file is a rule catalog, scanner engine definition, or demo playground component
     const isScannerRuleCatalog =
@@ -1217,7 +1274,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   }
 
   logs.push(`[${new Date().toLocaleTimeString()}] --------------------------------------------------`);
-  logs.push(`[${new Date().toLocaleTimeString()}] 📊 DEEP AUDIT SUMMARY: Processed ${validFiles.length} files. Total findings detected: ${findings.length}.`);
+  logs.push(`[${new Date().toLocaleTimeString()}] 📊 DEEP AUDIT SUMMARY: Processed ${targetFiles.length} files. Total findings detected: ${findings.length}.`);
 
   const openFindings = findings.filter(f => f.status === 'OPEN');
   const criticalCount = openFindings.filter(f => f.severity === 'CRITICAL').length;
@@ -1231,6 +1288,14 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
 
   logs.push(`[${new Date().toLocaleTimeString()}] 📊 SCAN COMPLETE: Readiness Score = ${score}/100 | Gate Status = ${gateStatus}`);
 
+  const defaultSummary = gateStatus === 'PASSED'
+    ? 'Production Audit PASSED. All security and design compliance checks cleared.'
+    : gateStatus === 'WARNING'
+    ? `Release WARNING. Detected ${highCount} High and ${mediumCount} Medium findings. Review recommended before production deployment.`
+    : `Release BLOCKED. Detected ${criticalCount} Critical blocker(s) requiring immediate remediation.`;
+
+  const summary = fileLimitWarning ? `${defaultSummary} (${fileLimitWarning})` : defaultSummary;
+
   return {
     score,
     gateStatus,
@@ -1240,7 +1305,8 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     lowCount,
     uiClicheCount,
     findings,
-    logs
+    logs,
+    summary
   };
 }
 

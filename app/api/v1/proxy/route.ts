@@ -54,7 +54,20 @@ export async function GET(req: NextRequest) {
 
   try {
     while (true) {
-      logger.info(`[Proxy Fetch] Requesting verified target: ${currentUrl}`);
+      // TOCTOU DNS Rebinding Defense: Re-verify host IP immediately prior to outbound connection
+      const preFlightCheck = await validateSafeTargetUrl(currentUrl);
+      if (!preFlightCheck.safe || !preFlightCheck.url) {
+        logger.warn(`[SSRF Blocked / DNS Rebinding] Target ${currentUrl} failed pre-flight check: ${preFlightCheck.reason}`);
+        return NextResponse.json(
+          {
+            error: 'SSRF Protection Blocked Request',
+            message: preFlightCheck.reason || 'Access to internal, private, or restricted network endpoints is forbidden.'
+          },
+          { status: 403 }
+        );
+      }
+
+      logger.info(`[Proxy Fetch] Requesting verified target: ${currentUrl} (IP: ${preFlightCheck.resolvedIp || 'verified'})`);
       const res: Response = await fetch(currentUrl, {
         headers: {
           'User-Agent': 'ShipGuard-Release-Gate-Scanner/4.0 (Enterprise Auditor)',
@@ -105,7 +118,70 @@ export async function GET(req: NextRequest) {
       throw new Error('No response received from proxy target.');
     }
 
-    const bodyText = await finalRes.text();
+    // VULN-02: Bounded Stream Reading (Max 2 MB / 2,097,152 bytes) to prevent OOM / DoS
+    const MAX_RESPONSE_BYTES = 2 * 1024 * 1024; // 2 MB
+
+    // Fast-path: check Content-Length header if present
+    const contentLengthHeader = finalRes.headers.get('content-length');
+    if (contentLengthHeader) {
+      const contentLength = parseInt(contentLengthHeader, 10);
+      if (!isNaN(contentLength) && contentLength > MAX_RESPONSE_BYTES) {
+        return NextResponse.json(
+          {
+            error: 'Payload Too Large',
+            message: `Proxy target response size (${contentLength} bytes) exceeds maximum allowable limit of 2 MB.`
+          },
+          { status: 413 }
+        );
+      }
+    }
+
+    // Stream reader with byte counter and early cancellation
+    let bodyText = '';
+    if (finalRes.body) {
+      const reader = finalRes.body.getReader();
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      let totalBytesRead = 0;
+      const chunks: string[] = [];
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          if (value) {
+            totalBytesRead += value.byteLength;
+            if (totalBytesRead > MAX_RESPONSE_BYTES) {
+              await reader.cancel('Payload exceeded 2 MB limit');
+              return NextResponse.json(
+                {
+                  error: 'Payload Too Large',
+                  message: 'Proxy response stream exceeded the maximum allowable limit of 2 MB (2,097,152 bytes).'
+                },
+                { status: 413 }
+              );
+            }
+            chunks.push(decoder.decode(value, { stream: true }));
+          }
+        }
+        chunks.push(decoder.decode()); // Flush any remaining bytes
+        bodyText = chunks.join('');
+      } catch (streamErr: any) {
+        if (totalBytesRead > MAX_RESPONSE_BYTES) {
+          return NextResponse.json(
+            {
+              error: 'Payload Too Large',
+              message: 'Proxy response stream exceeded the maximum allowable limit of 2 MB (2,097,152 bytes).'
+            },
+            { status: 413 }
+          );
+        }
+        throw streamErr;
+      }
+    } else {
+      bodyText = await finalRes.text();
+    }
+
     const headersObj: Record<string, string> = {};
 
     // Forward safe HTTP response headers (excluding sensitive set-cookie)
@@ -121,7 +197,7 @@ export async function GET(req: NextRequest) {
       status: finalRes.status,
       statusText: finalRes.statusText,
       headers: headersObj,
-      content: bodyText.slice(0, 1000000) // Cap to 1MB to prevent memory exhaustion
+      content: bodyText.slice(0, 1000000) // Cap payload to 1MB
     });
   } catch (err: any) {
     logger.error(`[Proxy Fetch Error] Failed to fetch: ${targetUrl}`, err?.message);

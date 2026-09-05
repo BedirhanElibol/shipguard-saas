@@ -13,6 +13,18 @@ export interface FindingDetailModalProps {
   onToggleResolve?: (id: string) => void;
 }
 
+/**
+ * Defang raw dangerous HTML tags and scripts to prevent client-side XSS injection
+ */
+function sanitizeContent(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRUBBED_SCRIPT]')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '[SCRUBBED_IFRAME]')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '[SCRUBBED_OBJECT]')
+    .replace(/javascript\s*:/gi, 'blocked-javascript:');
+}
+
 export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
   isOpen,
   finding,
@@ -36,7 +48,12 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
 
   if (!isOpen || !finding) return null;
 
-  const diffText = `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${finding.snippet}\n+ // REMEDIATION: ${finding.remediationPrompt}`;
+  const cleanSnippet = sanitizeContent(finding.snippet);
+  const cleanPrompt = sanitizeContent(finding.remediationPrompt);
+  const cleanTitle = sanitizeContent(finding.title);
+  const cleanSteps = (finding.reproductionSteps || []).map(sanitizeContent);
+
+  const diffText = `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${cleanSnippet}\n+ // REMEDIATION: ${cleanPrompt}`;
 
   const copyDiff = () => {
     navigator.clipboard.writeText(diffText);
@@ -45,7 +62,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
   };
 
   const copyPrompt = () => {
-    navigator.clipboard.writeText(finding.remediationPrompt);
+    navigator.clipboard.writeText(cleanPrompt);
     setCopiedPrompt(true);
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
@@ -62,7 +79,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm min-h-[100dvh]"
         onClick={onClose}
         role="presentation"
       >
@@ -74,8 +91,8 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
-          aria-label={`Detailed Audit Finding: ${finding.title}`}
-          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl relative"
+          aria-label={`Detailed Audit Finding: ${cleanTitle}`}
+          className="w-full max-w-2xl max-h-[85dvh] sm:max-h-[90dvh] overflow-y-auto bg-[#141414] border border-white/10 rounded-2xl p-5 sm:p-8 flex flex-col gap-6 shadow-2xl relative"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -92,7 +109,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Close modal"
-              className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
             >
               <X size={18} />
             </button>
@@ -101,7 +118,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
           {/* Finding Title & File Path */}
           <div>
             <h2 className="text-lg sm:text-xl font-extrabold text-[#EDEDED] leading-tight">
-              {finding.title}
+              {cleanTitle}
             </h2>
             <div className="text-xs font-mono text-emerald-400/90 mt-1.5 flex items-center gap-2">
               <span>{finding.filePath}</span>
@@ -119,19 +136,19 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
               <span>Exposed Code Snippet Evidence:</span>
             </div>
             <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-xl font-mono text-xs text-zinc-200 overflow-x-auto leading-relaxed">
-              <pre className="m-0 whitespace-pre">{finding.snippet}</pre>
+              <pre className="m-0 whitespace-pre">{cleanSnippet}</pre>
             </div>
           </div>
 
           {/* Reproduction & Audit Steps */}
-          {finding.reproductionSteps && finding.reproductionSteps.length > 0 && (
+          {cleanSteps.length > 0 && (
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-zinc-300 mb-2 font-mono">
                 <AlertTriangle size={15} className="text-amber-400" />
                 <span>Reproduction &amp; Verification Evidence:</span>
               </div>
               <ol className="list-decimal list-inside space-y-1.5 text-xs text-zinc-400 bg-black/40 border border-white/5 rounded-xl p-3.5">
-                {finding.reproductionSteps.map((step, idx) => (
+                {cleanSteps.map((step, idx) => (
                   <li key={idx} className="leading-relaxed">
                     {step}
                   </li>
@@ -208,7 +225,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
             {/* Prompt or Diff View */}
             {activeTab === 'prompt' ? (
               <div className="bg-[#141414] p-4 rounded-xl border border-white/10 font-mono text-xs text-zinc-200 leading-relaxed select-text">
-                {finding.remediationPrompt}
+                {cleanPrompt}
               </div>
             ) : (
               <div className="bg-[#141414] border border-white/10 rounded-xl overflow-hidden font-mono text-xs">
@@ -216,7 +233,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   <div className="text-zinc-400 select-none">--- a/{finding.filePath}</div>
                   <div className="text-zinc-400 select-none">+++ b/{finding.filePath}</div>
                   <div className="text-zinc-500 select-none">@@ -{finding.lineRange} +{finding.lineRange} @@</div>
-                  {finding.snippet.split('\n').map((line, idx) => (
+                  {cleanSnippet.split('\n').map((line, idx) => (
                     <div
                       key={`del-${idx}`}
                       className="bg-red-500/15 text-red-300 px-2 py-0.5 rounded border-l-2 border-red-500 flex items-start gap-2 font-mono"
@@ -227,7 +244,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   ))}
                   <div className="bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded border-l-2 border-emerald-500 flex items-start gap-2 font-mono">
                     <span className="text-emerald-400 select-none">+</span>
-                    <span className="whitespace-pre">// REMEDIATION: {finding.remediationPrompt}</span>
+                    <span className="whitespace-pre">// REMEDIATION: {cleanPrompt}</span>
                   </div>
                 </div>
               </div>
@@ -243,7 +260,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Footer Actions */}
+          {/* Footer Actions (min 44px touch targets for mobile viewport safety) */}
           <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2 text-xs text-zinc-400">
               <User size={14} />
@@ -255,7 +272,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                 <button
                   type="button"
                   onClick={() => onToggleResolve(finding.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     finding.status === 'RESOLVED'
                       ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
                       : 'bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300'
@@ -267,7 +284,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all shadow-sm"
+                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all shadow-sm cursor-pointer"
               >
                 Close
               </button>

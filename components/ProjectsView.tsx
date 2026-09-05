@@ -91,11 +91,11 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             type="button"
             onClick={() => {
               const p: Project = {
-                id: `proj-preset-carvis`,
-                name: 'Carvis-App (Mobile + Capacitor)',
-                repoUrl: 'https://github.com/user/example-app',
-                framework: 'React + Capacitor',
-                providers: ['PostgreSQL', 'Vercel', 'PayTR'],
+                id: `proj-preset-mobile`,
+                name: 'React Native Mobile App (Demo)',
+                repoUrl: 'https://github.com/facebook/react-native',
+                framework: 'React Native + Expo',
+                providers: ['PostgreSQL', 'Vercel', 'Firebase'],
                 lastScanAt: 'Just now',
                 readinessScore: 100,
                 gateStatus: 'PASSED',

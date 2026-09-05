@@ -30,10 +30,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(initialMode);
   const [oauthProvider, setOauthProvider] = useState<'GitHub' | 'Google' | null>(null);
-  const [githubUser, setGithubUser] = useState('BedirhanElibol');
+  const [githubUser, setGithubUser] = useState('');
   const [isCustomGoogle, setIsCustomGoogle] = useState(false);
-  const [customGoogleName, setCustomGoogleName] = useState('Bedirhan Elibol');
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('bedirhan@gmail.com');
+  const [customGoogleName, setCustomGoogleName] = useState('');
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -45,10 +45,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (isOpen) {
       setMode(initialMode);
       setOauthProvider(null);
-      setGithubUser('BedirhanElibol');
+      setGithubUser('');
       setIsCustomGoogle(false);
-      setCustomGoogleName('Bedirhan Elibol');
-      setCustomGoogleEmail('bedirhan@gmail.com');
+      setCustomGoogleName('');
+      setCustomGoogleEmail('');
       setEmail('');
       setPassword('');
       setName('');
@@ -137,7 +137,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     }
 
-    const username = (usernameToUse || githubUser).trim() || 'BedirhanElibol';
+    const username = (usernameToUse || githubUser).trim() || 'developer';
     setTimeout(() => {
       setIsLoading(false);
       const authedUser: UserProfile = {
@@ -154,8 +154,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   const handleGoogleOAuthSuccess = (chosenName?: string, chosenEmail?: string) => {
-    const finalName = (chosenName || customGoogleName).trim() || 'Bedirhan Elibol';
-    const finalEmail = (chosenEmail || customGoogleEmail).trim() || 'bedirhan@gmail.com';
+    const finalName = (chosenName || customGoogleName).trim() || 'Demo Developer';
+    const finalEmail = (chosenEmail || customGoogleEmail).trim() || 'demo@shipguard.dev';
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -245,7 +245,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <div className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-[#0A0A0A] border border-white/10">
                 <div className="relative">
                   <img
-                    src={`https://github.com/${githubUser.trim() || 'BedirhanElibol'}.png`}
+                    src={githubUser.trim() ? `https://github.com/${githubUser.trim()}.png` : 'https://github.com/github.png'}
                     alt="GitHub Avatar"
                     className="w-16 h-16 rounded-full border-2 border-white/20 shadow-xl object-cover bg-neutral-900"
                     onError={(e) => {
@@ -282,12 +282,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     type="text"
                     value={githubUser}
                     onChange={(e) => setGithubUser(e.target.value)}
-                    placeholder="BedirhanElibol"
+                    placeholder="e.g. octocat"
                     className="bg-transparent text-xs text-[#EDEDED] font-mono outline-none w-full font-bold"
                   />
                 </div>
                 <span className="text-[10px] text-[#A1A1AA]">
-                  Your avatar is loaded live from <code>https://github.com/{githubUser.trim() || 'BedirhanElibol'}.png</code>.
+                  {githubUser.trim() ? (
+                    <>Your avatar is loaded live from <code>https://github.com/{githubUser.trim()}.png</code>.</>
+                  ) : (
+                    'Enter your GitHub username to link your profile and avatar.'
+                  )}
                 </span>
               </div>
 
@@ -302,7 +306,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>
                     {isLoading
                       ? 'Connecting...'
-                      : `Continue as @${githubUser.trim() || 'BedirhanElibol'}`}
+                      : (githubUser.trim() ? `Continue as @${githubUser.trim()}` : 'Continue with GitHub')}
                   </span>
                   <ArrowRight size={14} />
                 </button>
@@ -350,22 +354,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {/* Clean 1-click account selector options */}
               <div className="flex flex-col gap-2">
-                {/* 1-click option 1: Bedirhan Elibol */}
+                {/* 1-click option 1: Demo Developer Account */}
                 <button
                   type="button"
-                  onClick={() => handleGoogleOAuthSuccess('Bedirhan Elibol', 'bedirhan@gmail.com')}
+                  onClick={() => handleGoogleOAuthSuccess('Demo Developer', 'demo@shipguard.dev')}
                   disabled={isLoading}
                   className="w-full p-3 rounded-xl bg-[#0A0A0A] hover:bg-white/[0.06] border border-white/10 hover:border-white/25 transition-all flex items-center justify-between text-left group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-md">
-                      B
+                      D
                     </div>
                     <div>
                       <div className="text-xs font-bold text-white group-hover:text-white">
-                        Bedirhan Elibol
+                        Demo Developer
                       </div>
-                      <div className="text-[11px] text-[#A1A1AA]">bedirhan@gmail.com</div>
+                      <div className="text-[11px] text-[#A1A1AA]">demo@shipguard.dev</div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
@@ -411,7 +415,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="text"
                         value={customGoogleName}
                         onChange={(e) => setCustomGoogleName(e.target.value)}
-                        placeholder="Bedirhan Elibol"
+                        placeholder="e.g. Alex Morgan"
                         className="px-3 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-xs text-white outline-none"
                       />
                     </div>
@@ -421,7 +425,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="email"
                         value={customGoogleEmail}
                         onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                        placeholder="bedirhan@gmail.com"
+                        placeholder="e.g. alex@company.dev"
                         className="px-3 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-xs text-white outline-none"
                       />
                     </div>
@@ -536,7 +540,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Bedirhan Elibol"
+                    placeholder="e.g. Alex Morgan"
                     className="bg-transparent text-xs text-[#EDEDED] outline-none w-full"
                   />
                 </div>

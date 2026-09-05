@@ -470,12 +470,12 @@ export const UI_RULES_CATALOG: UiRule[] = [
 
 export const MOCK_PROJECTS: Project[] = [
   {
-    id: 'proj-carvis-app',
-    name: 'Carvis-App (Production Repository)',
-    repoUrl: 'https://github.com/example/carvis-app',
-    previewUrl: 'https://carvis.app',
-    framework: 'React + Capacitor',
-    providers: ['PostgreSQL', 'PayTR', 'Firebase', 'Vercel'],
+    id: 'proj-saas-starter',
+    name: 'Next.js 15 SaaS Starter (Demo)',
+    repoUrl: 'https://github.com/vercel/next.js',
+    previewUrl: 'https://demo.shipguard.dev',
+    framework: 'Next.js 15 + Tailwind',
+    providers: ['PostgreSQL', 'Stripe', 'Vercel', 'Tailwind v4'],
     lastScanAt: 'Just now',
     readinessScore: 100,
     gateStatus: 'PASSED',

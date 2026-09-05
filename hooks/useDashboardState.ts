@@ -256,8 +256,8 @@ export function useDashboardState() {
       const updated: UserProfile = prev
         ? { ...prev, ...fields }
         : {
-            name: fields.name || 'Bedirhan Elibol',
-            email: fields.email || 'user@example.com',
+            name: fields.name || 'Developer',
+            email: fields.email || 'developer@example.com',
             avatarUrl: fields.avatarUrl,
             tier: fields.tier || 'Free',
             isLoggedIn: true,

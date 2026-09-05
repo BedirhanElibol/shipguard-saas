@@ -70,8 +70,8 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
     }
     const savedUserStr = localStorage.getItem('shipguard_user');
     let userObj: any = {
-      name: 'Bedirhan Elibol',
-      email: 'bedirhan@shipguard.app',
+      name: 'Developer',
+      email: 'developer@shipguard.dev',
       tier: tier,
       isLoggedIn: true,
       emailVerified: true,

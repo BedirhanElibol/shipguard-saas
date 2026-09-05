@@ -69,7 +69,7 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
 
 export function simulateOAuthProfile(provider: 'GitHub' | 'Google', customHandle?: string): UserProfile {
   if (provider === 'GitHub') {
-    const handle = (customHandle && customHandle.trim()) || 'BedirhanElibol';
+    const handle = (customHandle && customHandle.trim()) || 'octocat';
     return {
       name: handle,
       email: `${handle.toLowerCase()}@users.noreply.github.com`,
@@ -79,10 +79,10 @@ export function simulateOAuthProfile(provider: 'GitHub' | 'Google', customHandle
       emailVerified: true,
     };
   }
-  const name = (customHandle && customHandle.trim()) || 'Bedirhan Elibol';
+  const name = (customHandle && customHandle.trim()) || 'Demo Developer';
   return {
     name,
-    email: `${name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`,
+    email: `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
     tier: 'Free',
     isLoggedIn: true,

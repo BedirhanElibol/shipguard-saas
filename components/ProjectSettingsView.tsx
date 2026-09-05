@@ -19,7 +19,9 @@ import {
   Loader2,
   CreditCard,
   Zap,
-  Check
+  Check,
+  User,
+  AlertCircle
 } from 'lucide-react';
 import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -48,8 +50,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const [saved, setSaved] = useState(false);
 
   // User Profile & Membership State
-  const [profileName, setProfileName] = useState(user?.name || 'Bedirhan Elibol');
-  const [profileEmail, setProfileEmail] = useState(user?.email || 'bedirelibol7@gmail.com');
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
   const [profileSaved, setProfileSaved] = useState(false);
 
@@ -92,17 +94,21 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
   useEffect(() => {
     if (user) {
-      if (user.name) setProfileName(user.name);
-      if (user.email) setProfileEmail(user.email);
-      if (user.avatarUrl !== undefined) setProfileAvatarUrl(user.avatarUrl || '');
+      setProfileName(user.name || '');
+      setProfileEmail(user.email || '');
+      setProfileAvatarUrl(user.avatarUrl || '');
+    } else {
+      setProfileName('');
+      setProfileEmail('');
+      setProfileAvatarUrl('');
     }
   }, [user]);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     const updatedUser: UserProfile = {
-      name: profileName.trim() || 'Bedirhan Elibol',
-      email: profileEmail.trim() || 'bedirhan@gmail.com',
+      name: profileName.trim() || (user?.name || 'Developer'),
+      email: profileEmail.trim() || (user?.email || 'developer@example.com'),
       avatarUrl: profileAvatarUrl.trim() || undefined,
       tier: user?.tier || 'Free',
       isLoggedIn: true,
@@ -319,11 +325,18 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               )}
             </div>
 
+            {!user?.isLoggedIn && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2.5 text-amber-300 text-xs">
+                <AlertCircle size={15} className="shrink-0" />
+                <span>You are browsing as Guest. Sign in to link your GitHub account and persist settings.</span>
+              </div>
+            )}
+
             <div className="flex items-center gap-4">
               {profileAvatarUrl ? (
                 <img
                   src={profileAvatarUrl}
-                  alt={profileName}
+                  alt={profileName || 'User Avatar'}
                   className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md bg-[#141414] shrink-0"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';
@@ -331,15 +344,23 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0">
-                  {(profileName || 'B').charAt(0).toUpperCase()}
+                  {profileName ? (
+                    profileName.charAt(0).toUpperCase()
+                  ) : (
+                    <User size={22} className="text-[#A1A1AA]" />
+                  )}
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white truncate">{profileName || 'Unnamed User'}</div>
-                <div className="text-[11px] text-[#A1A1AA] truncate">{profileEmail || 'email@example.com'}</div>
+                <div className="text-xs font-bold text-white truncate">
+                  {profileName || (user?.isLoggedIn ? 'Unnamed Developer' : 'Guest Developer')}
+                </div>
+                <div className="text-[11px] text-[#A1A1AA] truncate">
+                  {profileEmail || (user?.isLoggedIn ? 'email@example.com' : 'Not signed in')}
+                </div>
                 <div className="mt-1">
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                    {user?.tier === 'Free' || !user?.tier ? 'Free Plan' : `${user.tier} Plan`}
+                    {user?.tier && user.tier !== 'Free' ? `${user.tier} Plan` : user?.isLoggedIn ? 'Free Plan' : 'Guest Mode'}
                   </span>
                 </div>
               </div>
@@ -353,7 +374,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 type="text"
                 value={profileName}
                 onChange={(e) => setProfileName(e.target.value)}
-                placeholder="Bedirhan Elibol"
+                placeholder="e.g. Alex Morgan"
                 className="w-full bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
               />
             </div>
@@ -366,7 +387,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 type="email"
                 value={profileEmail}
                 onChange={(e) => setProfileEmail(e.target.value)}
-                placeholder="bedirhan@gmail.com"
+                placeholder="e.g. alex@example.com"
                 className="w-full bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
               />
             </div>
@@ -380,12 +401,15 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   type="text"
                   value={profileAvatarUrl}
                   onChange={(e) => setProfileAvatarUrl(e.target.value)}
-                  placeholder="https://github.com/BedirhanElibol.png"
+                  placeholder="https://github.com/username.png"
                   className="flex-1 bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30"
                 />
                 <button
                   type="button"
-                  onClick={() => setProfileAvatarUrl('https://github.com/BedirhanElibol.png')}
+                  onClick={() => {
+                    const handle = profileName.trim().replace(/\s+/g, '') || 'github';
+                    setProfileAvatarUrl(`https://github.com/${handle}.png`);
+                  }}
                   className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-mono text-[#A1A1AA] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
                   title="Use GitHub avatar"
                 >

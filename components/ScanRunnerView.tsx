@@ -72,19 +72,26 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
     hasCompletedRef.current = false;
 
     async function executeLiveScan() {
+      const isLocalOrSelfAudit =
+        project.repoUrl === 'local' ||
+        project.repoUrl.toLowerCase() === 'local' ||
+        project.id === 'proj-shipguard-self' ||
+        project.id === 'proj-preset-self' ||
+        project.name.toLowerCase().includes('self audit') ||
+        project.name.toLowerCase().includes('shipguard') ||
+        ['proj-nexus', 'proj-synthflow', 'proj-aura'].includes(project.id);
       const isWebTarget = isValidWebUrl(project.repoUrl);
-      const isDemoProject = ['proj-nexus', 'proj-synthflow', 'proj-aura'].includes(project.id);
 
       let filesToScan: CodeFile[] = [];
 
-      if (isDemoProject) {
+      if (isLocalOrSelfAudit) {
         const { WORKSPACE_SOURCE_FILES } = await import('@/data/workspaceFiles');
         filesToScan = WORKSPACE_SOURCE_FILES;
         setQueuedFilesCount(filesToScan.length);
         if (!isCancelled) {
           setLogs([
-            `[${new Date().toLocaleTimeString()}] 🚀 Loaded Demo Project Repository: "${project.name}" (${filesToScan.length} source files queued).`,
-            `[${new Date().toLocaleTimeString()}] 📦 Auditing ${filesToScan.length} files for security clearance & VibePolish UI rules...`
+            `[${new Date().toLocaleTimeString()}] 🚀 Loaded Repository Files for "${project.name}" (${filesToScan.length} source files queued).`,
+            `[${new Date().toLocaleTimeString()}] 📦 Auditing ${filesToScan.length} files for OWASP Security Clearance, Supply Chain & VibePolish UI rules...`
           ]);
         }
       } else if (isWebTarget) {
@@ -267,64 +274,59 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 sm:gap-6 w-full max-w-full overflow-hidden">
       {/* Header & File Inspection Status */}
-      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 bg-[#141414] border-white/10 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-extrabold text-[#EDEDED]">
-              Sequential File-by-File AST Audit: {project.name}
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-4 sm:p-8 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-xl font-extrabold text-[#EDEDED] truncate">
+              Sequential AST Audit: {project.name}
             </h1>
             <div className="text-xs text-[#A1A1AA] mt-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-white " />
-              <span>Auditing every single repository file through automated security clearance &amp; UX quality gates</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+              <span className="truncate">Automated security clearance &amp; UX quality gates</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
             {!isFinished && (
               <button
                 onClick={handleAbortScan}
                 className="btn btn-secondary text-xs px-3 py-1.5 text-red-400 border-red-500/30 hover:bg-red-500/10 font-bold font-mono"
               >
-                Stop &amp; Abort Audit
+                Abort Audit
               </button>
             )}
-            <div className="text-2xl font-extrabold text-[#EDEDED] font-mono">
+            <div className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] font-mono">
               {progress}%
             </div>
           </div>
         </div>
 
         {/* Current Active File Card */}
-        <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-white">
+        <div className="bg-[#0A0A0A] p-3 sm:p-4 rounded-xl border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1 w-full">
+            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
               AST
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="text-[0.68rem] text-[#A1A1AA] font-bold uppercase tracking-wider font-mono">
                 {isFinished ? 'Audit Execution Status:' : 'Currently Inspecting File:'}
               </div>
-              <div className={`text-xs font-mono font-bold mt-0.5 truncate max-w-md ${isFinished ? 'text-white' : 'text-white'}`}>
+              <div className="text-xs font-mono font-bold mt-0.5 truncate text-white">
                 {isFinished ? `✅ All ${queuedFilesCount} Source Files Inspected & Verified` : currentFileName}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-mono text-[#A1A1AA]">
-            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded border border-white/10">
+          <div className="flex items-center gap-3 text-xs font-mono text-[#A1A1AA] shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded border border-white/10 shrink-0">
               <Clock size={12} className="text-white" />
               <span>Elapsed: {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s</span>
             </div>
-            {queuedFilesCount > 0 ? (
-              <span className="text-white font-bold hidden sm:inline">
-                {queuedFilesCount.toLocaleString()} Total Source Files Queued
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 text-amber-400 font-semibold hidden sm:inline">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                Connecting &amp; Fetching Remote File Tree...
+            {queuedFilesCount > 0 && (
+              <span className="text-white font-bold hidden md:inline">
+                {queuedFilesCount.toLocaleString()} Files
               </span>
             )}
           </div>

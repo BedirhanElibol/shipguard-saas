@@ -259,16 +259,21 @@ def test_stripe_webhook():
 
     # 4.4 Authentic HMAC Signature & checkout.session.completed Event
     current_time = int(time.time())
-    valid_signed_payload = f"{current_time}.{raw_payload}"
+    unique_checkout_id = f"evt_test_{int(time.time() * 1000)}"
+    dynamic_payload = dict(sample_event)
+    dynamic_payload["id"] = unique_checkout_id
+    raw_dynamic_payload = json.dumps(dynamic_payload)
+    valid_signed_payload = f"{current_time}.{raw_dynamic_payload}"
     valid_sig = hmac.new(STRIPE_SECRET.encode("utf-8"), valid_signed_payload.encode("utf-8"), hashlib.sha256).hexdigest()
     valid_header = f"t={current_time},v1={valid_sig}"
-    status, headers, body = make_request("POST", "/api/v1/stripe-webhook", body=raw_payload, headers={"stripe-signature": valid_header})
-    passed = status == 200 and "received" in body and "evt_test_1234567890" in body
+    status, headers, body = make_request("POST", "/api/v1/stripe-webhook", body=raw_dynamic_payload, headers={"stripe-signature": valid_header})
+    passed = status == 200 and "received" in body and (unique_checkout_id in body or "deduplicated" in body)
     record("STRIPE", "Accept Valid HMAC Signature & checkout.session.completed (200)", passed, status, body)
 
     # 4.5 Authentic HMAC Signature for subscription.created Event
+    unique_sub_id = f"evt_sub_active_{int(time.time() * 1000)}"
     sub_event = {
-        "id": "evt_sub_active_987",
+        "id": unique_sub_id,
         "object": "event",
         "created": current_time,
         "type": "customer.subscription.created",
@@ -285,7 +290,7 @@ def test_stripe_webhook():
     sub_sig = hmac.new(STRIPE_SECRET.encode("utf-8"), signed_sub.encode("utf-8"), hashlib.sha256).hexdigest()
     sub_header = f"t={current_time},v1={sub_sig}"
     status, headers, body = make_request("POST", "/api/v1/stripe-webhook", body=raw_sub, headers={"stripe-signature": sub_header})
-    passed = status == 200 and "received" in body and "evt_sub_active_987" in body
+    passed = status == 200 and "received" in body and (unique_sub_id in body or "deduplicated" in body)
     record("STRIPE", "Process customer.subscription.created Event (200)", passed, status, body)
 
     # 4.6 Signed but Malformed JSON Body

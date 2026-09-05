@@ -489,7 +489,7 @@ export const MOCK_PROJECTS: Project[] = [
   {
     id: 'proj-shipguard-self',
     name: 'ShipGuard SaaS (Self Audit)',
-    repoUrl: 'https://github.com/example/shipguard',
+    repoUrl: 'local',
     previewUrl: 'http://localhost:3000',
     framework: 'Next.js 15',
     providers: ['PostgreSQL', 'Stripe', 'Anthropic Claude', 'Vercel'],

@@ -1,4 +1,4 @@
-﻿// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React, { useState } from 'react';
@@ -24,15 +24,15 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
   const [hasCopiedLogs, setHasCopiedLogs] = useState<boolean>(false);
 
   return (
-    <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-6">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10 font-mono text-xs text-[#EDEDED] flex-wrap gap-2">
-        <div className="flex items-center gap-2.5">
-          <Terminal size={16} className="text-white" />
-          <span className="hidden sm:inline">shipguard-ast-engine --scan --target {repoUrl}</span>
+    <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-3.5 sm:p-6 w-full max-w-full overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-white/10 font-mono text-xs text-[#EDEDED] gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Terminal size={16} className="text-white shrink-0" />
+          <span className="truncate text-[11px] sm:text-xs text-[#A1A1AA]">shipguard-ast-engine --scan --target {repoUrl}</span>
         </div>
 
-        <div className="flex items-center gap-3 flex-1 justify-end">
-          <div className="relative max-w-xs w-full sm:w-64">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="relative flex-1 sm:w-64 max-w-xs">
             <Search size={12} className="absolute left-2.5 top-2.5 text-[#A1A1AA]" />
             <input
               type="text"
@@ -46,7 +46,7 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
 
           {scanResult && (
             <span className="text-[0.7rem] text-white font-bold hidden lg:inline font-mono">
-              {queuedFilesCount} Files Analyzed • {scanResult.findings.length} Open Findings
+              {queuedFilesCount} Files • {scanResult.findings.length} Findings
             </span>
           )}
 
@@ -60,7 +60,7 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
             title="Copy all terminal log lines to clipboard"
           >
             {hasCopiedLogs ? <Check size={12} className="text-white" /> : <Copy size={12} />}
-            <span>{hasCopiedLogs ? 'Logs Copied!' : 'Copy Logs'}</span>
+            <span className="hidden xs:inline">{hasCopiedLogs ? 'Copied!' : 'Copy Logs'}</span>
           </button>
         </div>
       </div>

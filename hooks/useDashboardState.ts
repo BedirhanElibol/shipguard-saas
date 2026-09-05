@@ -24,7 +24,7 @@ export function useDashboardState() {
   useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
-        const CURRENT_DATA_VERSION = 'v5_authentic_scanned_data_only';
+        const CURRENT_DATA_VERSION = 'v6_local_self_audit_clean';
         const savedVersion = localStorage.getItem('shipguard_data_version');
 
         if (savedVersion !== CURRENT_DATA_VERSION) {
@@ -41,8 +41,13 @@ export function useDashboardState() {
           try {
             const parsed = JSON.parse(savedProjectsStr);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              currentProjects = parsed;
-              setProjects(parsed);
+              currentProjects = parsed.map((p: any) => {
+                if (p.repoUrl === 'https://github.com/example/shipguard' || p.id === 'proj-shipguard-self') {
+                  return { ...p, repoUrl: 'local' };
+                }
+                return p;
+              });
+              setProjects(currentProjects);
             }
           } catch (jsonErr) {
             console.warn('[ShipGuard Storage] Corrupted shipguard_projects in localStorage; resetting to default.', jsonErr);

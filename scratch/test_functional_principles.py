@@ -45,6 +45,7 @@ results = []
 def make_request(method, path, body=None, headers=None):
     url = f"{BASE_URL}{path}"
     req_headers = headers.copy() if headers else {}
+    req_headers.setdefault("x-forwarded-for", f"198.51.100.{len(results) % 250 + 1}")
     data = None
     
     if body is not None:
@@ -291,6 +292,129 @@ def test_stripe_webhook():
     record("STRIPE", "Reject Signed Malformed JSON (400)", passed, status, body)
 
 
+def test_extended_ast_rules():
+    print("\n" + "="*70)
+    print(" 5. AST & STATIC SCAN VERIFICATION: Option A Security & Option B Frontend Rules")
+    print("="*70)
+
+    import subprocess
+
+    runner_script = """
+import { runStaticCodeScan } from '../lib/scanner-engine';
+
+const testCases = [
+  {
+    name: 'SEC-20',
+    files: [{ path: 'package.json', content: JSON.stringify({ dependencies: { 'unpinned-pkg': 'latest' } }, null, 2) }]
+  },
+  {
+    name: 'SEC-21',
+    files: [{ path: 'src/services/auth.ts', content: 'export function auth() { console.log(user_token); }' }]
+  },
+  {
+    name: 'SEC-22',
+    files: [{ path: 'components/ChatWidget.tsx', content: '"use client";\\nimport OpenAI from "openai";\\nexport function Chat() { return null; }' }]
+  },
+  {
+    name: 'UI-26',
+    files: [{ path: 'components/SearchBar.tsx', content: 'export function Search() { return <input className="w-full outline-none" />; }' }]
+  },
+  {
+    name: 'UI-27',
+    files: [{ path: 'components/HeroBanner.tsx', content: 'export function Hero() { return <img src="hero.png" alt="hero" />; }' }]
+  },
+  {
+    name: 'IGNORE',
+    files: [
+      { path: '.shipguardignore', content: 'SEC-20\\nSEC-21\\nSEC-22\\nUI-26\\nUI-27' },
+      { path: 'package.json', content: JSON.stringify({ dependencies: { 'unpinned-pkg': 'latest' } }, null, 2) },
+      { path: 'src/services/auth.ts', content: 'export function auth() { console.log(user_token); }' },
+      { path: 'components/ChatWidget.tsx', content: '"use client";\\nimport OpenAI from "openai";\\nexport function Chat() { return null; }' },
+      { path: 'components/SearchBar.tsx', content: 'export function Search() { return <input className="w-full outline-none" />; }' },
+      { path: 'components/HeroBanner.tsx', content: 'export function Hero() { return <img src="hero.png" alt="hero" />; }' }
+    ]
+  }
+];
+
+const results = testCases.map(tc => {
+  const scan = runStaticCodeScan(tc.files);
+  return {
+    name: tc.name,
+    score: scan.score,
+    gateStatus: scan.gateStatus,
+    findings: scan.findings.map(f => ({ ruleId: f.ruleId, title: f.title, file: f.filePath, lineRange: f.lineRange, severity: f.severity }))
+  };
+});
+
+console.log(JSON.stringify(results));
+"""
+    import os
+    temp_runner_path = os.path.join(os.path.dirname(__file__), "_temp_ast_runner.ts")
+    try:
+        with open(temp_runner_path, "w", encoding="utf-8") as f:
+            f.write(runner_script)
+
+        cmd = ['npx.cmd' if sys.platform == 'win32' else 'npx', 'tsx', temp_runner_path]
+        p = subprocess.run(cmd, capture_output=True, encoding='utf-8', errors='replace', timeout=30)
+        if p.returncode != 0:
+            record("AST-ENGINE", "Execute AST Verification Harness", False, 500, f"Error: {p.stderr}")
+            return
+        data = json.loads(p.stdout)
+        results_by_name = {item['name']: item for item in data}
+
+        # 5.1 Test detection of package.json with wildcard "latest" (triggers SEC-20)
+        sec20_res = results_by_name.get('SEC-20', {})
+        findings20 = sec20_res.get('findings', [])
+        has_sec20 = any(f.get('ruleId') == 20 for f in findings20)
+        title20 = next((f.get('title') for f in findings20 if f.get('ruleId') == 20), 'None')
+        record("AST-RULES", "Detect SEC-20: Wildcard Dependency ('latest' in package.json)", has_sec20, 200, f"Found rule 20: {title20}")
+
+        # 5.2 Test detection of console.log(user_token) (triggers SEC-21)
+        sec21_res = results_by_name.get('SEC-21', {})
+        findings21 = sec21_res.get('findings', [])
+        has_sec21 = any(f.get('ruleId') == 21 for f in findings21)
+        title21 = next((f.get('title') for f in findings21 if f.get('ruleId') == 21), 'None')
+        record("AST-RULES", "Detect SEC-21: PII & Token Leakage (console.log(user_token))", has_sec21, 200, f"Found rule 21: {title21}")
+
+        # 5.3 Test detection of "use client" with import OpenAI from 'openai' (triggers SEC-22)
+        sec22_res = results_by_name.get('SEC-22', {})
+        findings22 = sec22_res.get('findings', [])
+        has_sec22 = any(f.get('ruleId') == 22 for f in findings22)
+        title22 = next((f.get('title') for f in findings22 if f.get('ruleId') == 22), 'None')
+        record("AST-RULES", "Detect SEC-22: Client-Side LLM SDK Import ('use client')", has_sec22, 200, f"Found rule 22: {title22}")
+
+        # 5.4 Test detection of <input className="outline-none" /> without focus ring (triggers UI-26)
+        ui26_res = results_by_name.get('UI-26', {})
+        findings26 = ui26_res.get('findings', [])
+        has_ui26 = any(f.get('ruleId') in (26, 1026) for f in findings26)
+        title26 = next((f.get('title') for f in findings26 if f.get('ruleId') in (26, 1026)), 'None')
+        record("AST-RULES", "Detect UI-26: WCAG 2.1 AA Keyboard Focus Ring & Accessible Label", has_ui26, 200, f"Found rule 26/1026: {title26}")
+
+        # 5.5 Test detection of <img src="hero.png" /> in Next.js component (triggers UI-27)
+        ui27_res = results_by_name.get('UI-27', {})
+        findings27 = ui27_res.get('findings', [])
+        has_ui27 = any(f.get('ruleId') in (27, 1027) for f in findings27)
+        title27 = next((f.get('title') for f in findings27 if f.get('ruleId') in (27, 1027)), 'None')
+        record("AST-RULES", "Detect UI-27: Core Web Vitals & Next.js Image Optimization", has_ui27, 200, f"Found rule 27/1027: {title27}")
+
+        # 5.6 Test suppression of new rules via .shipguardignore
+        ignore_res = results_by_name.get('IGNORE', {})
+        findings_ignore = ignore_res.get('findings', [])
+        target_rule_ids = {20, 21, 22, 26, 27, 1026, 1027}
+        unsuppressed = [f for f in findings_ignore if f.get('ruleId') in target_rule_ids]
+        is_suppressed = len(unsuppressed) == 0
+        record("AST-RULES", "Suppress SEC-20, SEC-21, SEC-22, UI-26, UI-27 via .shipguardignore", is_suppressed, 200, f"Unsuppressed count: {len(unsuppressed)}")
+
+    except Exception as e:
+        record("AST-ENGINE", "Execute AST Verification Harness", False, 500, str(e), error=str(e))
+    finally:
+        if os.path.exists(temp_runner_path):
+            try:
+                os.remove(temp_runner_path)
+            except Exception:
+                pass
+
+
 def main():
     print("="*70)
     print(" 🚀 SHIPGUARD AI RELEASE GATE - FUNCTIONAL AUDIT TEST SUITE")
@@ -303,6 +427,7 @@ def main():
     test_badge_generator()
     test_ssrf_proxy()
     test_stripe_webhook()
+    test_extended_ast_rules()
     elapsed = time.time() - start_time
 
     total = len(results)

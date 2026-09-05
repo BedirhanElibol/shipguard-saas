@@ -214,35 +214,35 @@ export const SECURITY_RULES_CATALOG: SecurityRule[] = [
   {
     id: 20,
     code: 'SEC-20',
-    title: 'Automated Encrypted Backups & Recovery',
-    category: 'Compliance & Cost',
-    owaspTag: 'Business Continuity',
-    riskLevel: 'MEDIUM',
-    description: 'Missing daily automated encrypted database snapshots and untested restore procedures.',
-    verificationControl: 'Automated daily S3 encrypted snapshot active; backup restoration tested successfully in staging.',
-    claudePrompt: 'Create a backup script and cron workflow that takes daily encrypted database snapshots, uploads them to cloud storage (S3/R2), and documents restore steps.'
+    title: 'Dependency & Supply Chain Risks (SEC-SCA-01)',
+    category: 'Supply Chain & Deps',
+    owaspTag: 'OWASP A06:2021 Vulnerable Components',
+    riskLevel: 'HIGH',
+    description: 'Unpinned wildcard dependencies (*, latest) or known vulnerable/deprecated packages (lodash, axios, moment) in package.json.',
+    verificationControl: 'Zero wildcard dependency definitions in package.json; all packages patched to secure versions.',
+    claudePrompt: 'Audit package.json. Pin all wildcard (*) dependencies to fixed semantic versions. Upgrade axios to >=1.7.4, lodash to >=4.17.21, and replace deprecated moment with date-fns or dayjs to eliminate supply chain vulnerabilities.'
   },
   {
     id: 21,
     code: 'SEC-21',
-    title: 'GDPR/KVKK Data Deletion Cascade',
-    category: 'Compliance & Cost',
-    owaspTag: 'Data Privacy Compliance',
+    title: 'Sensitive Secret & PII Log Leakage (SEC-LOG-01)',
+    category: 'Secret Isolation',
+    owaspTag: 'OWASP A09:2021 Logging Failures',
     riskLevel: 'HIGH',
-    description: 'Account deletion setting soft flag deleted: true while leaving PII intact in database and storage.',
-    verificationControl: 'Account deletion permanently purges PII, storage objects, and third-party SaaS customer records.',
-    claudePrompt: 'Write a GDPR/KVKK compliant account deletion cascade function that permanently anonymizes PII, deletes user storage files, and cancels third-party customer accounts.'
+    description: 'console.log or logger outputting raw tokens, passwords, API keys, request headers, or user PII into application telemetry.',
+    verificationControl: 'Application logs contain no raw passwords or secret tokens; telemetry uses structured logging with automated PII masking.',
+    claudePrompt: 'Remove all raw console.log calls exposing passwords, tokens, or request headers in source files. Implement structured logging with automatic PII masking (lib/logger.ts) to prevent log leakage.'
   },
   {
     id: 22,
     code: 'SEC-22',
-    title: 'Cloud & LLM Budget Alerts',
-    category: 'Compliance & Cost',
-    owaspTag: 'Financial Denial of Service',
-    riskLevel: 'HIGH',
-    description: 'Runaway OpenAI/Claude token loops or bot attacks inflating monthly cloud billing.',
-    verificationControl: 'Hard/soft monthly spending caps set at $50/$80/$100 thresholds with Slack/Email alerts.',
-    claudePrompt: 'Design budget guardrails for OpenAI/AWS/Vercel: set soft/hard billing limits, webhook alerts at 50%, 80%, 100% thresholds, and per-user daily token caps.'
+    title: 'Client-Side Direct LLM API SDK Exposure (SEC-LLM-01)',
+    category: 'AI & LLM Security',
+    owaspTag: 'OWASP Top 10 for LLM (LLM06)',
+    riskLevel: 'CRITICAL',
+    description: 'Directly importing OpenAI/Anthropic/Gemini SDKs or setting dangerouslyAllowBrowser: true in "use client" components, leaking API keys and system prompts to the browser.',
+    verificationControl: 'Zero client-side LLM provider SDK imports; all AI requests routed through server-only route handlers with backend-isolated keys.',
+    claudePrompt: 'Refactor client components to remove direct OpenAI/Anthropic/Gemini SDK imports and dangerouslyAllowBrowser flags. Route all LLM API invocations through secure server-side route handlers (/api/chat) with server-only environment variables.'
   },
   {
     id: 23,
@@ -283,9 +283,9 @@ export const UI_RULES_CATALOG: UiRule[] = [
   { id: 23, code: 'UI-23', title: 'Robotic Apologies', category: 'Model Behavior', clichePattern: 'Refusing requests with "As an AI language model, I cannot..."', whyAiDoesIt: 'Standard safety alignment default templates', shipguardSolution: 'Define natural system messages; direct unavailable requests immediately to alternative solutions.' },
   { id: 24, code: 'UI-24', title: 'Bloated / Inflated Responses', category: 'Output Hygiene', clichePattern: 'Expanding a 2-line answer into 5 verbose paragraphs to consume tokens', whyAiDoesIt: 'Model associating response length with detail and quality', shipguardSolution: 'Enforce strict word/token caps and structured bullet-point formatting constraints.' },
   { id: 25, code: 'UI-25', title: '"In Summary" Concluding Paragraphs', category: 'Text & Copywriting', clichePattern: 'Tacking redundant "In conclusion" or "In summary" paragraphs onto short responses', whyAiDoesIt: 'LLM habit of closing every response with a formal summary', shipguardSolution: 'Ban concluding summary tags; end responses directly with actionable next steps when needed.' },
-  { id: 26, code: 'UI-26', title: 'Monotone Encyclopedic Tone', category: 'Tone & Persona', clichePattern: 'Dry, robotic text lacking persona or conversational cadence', whyAiDoesIt: 'Neutral default system instructions', shipguardSolution: 'Define target-audience Persona and Tone profiles (e.g., "Senior Security Architect", "Concise Engineer").' },
-  { id: 27, code: 'UI-27', title: '"Not Only, But Also" Sentence Loops', category: 'Text & Copywriting', clichePattern: 'Repetitive use of dual-contrast phrasing formulas across paragraphs', whyAiDoesIt: 'Model frequency bias toward comparative conjunctive patterns', shipguardSolution: 'Provide diverse few-shot examples and optimize temperature sampling.' },
-  { id: 28, code: 'UI-28', title: 'Generic Surface-Level Advice', category: 'Content Depth', clichePattern: 'Vague guidance like "Plan carefully, focus, and research"', whyAiDoesIt: 'Generating default advice under incomplete context', shipguardSolution: 'Require every recommendation to include a Concrete Case Study, Tool Reference, and Step-by-Step Metric.' },
+  { id: 26, code: 'UI-26', title: 'WCAG 2.1 AA Keyboard Focus Ring & Accessible Label (UI-A11Y-01)', category: 'Accessibility & WCAG', clichePattern: 'Stripping focus rings via outline-none without providing focus-visible replacement, or form controls missing aria-label', whyAiDoesIt: 'AI often strips default browser focus outlines with outline-none for visual minimalism without adding accessible focus indicators', shipguardSolution: 'Always pair outline-none with focus-visible:ring-2 focus-visible:ring-emerald-500, and ensure all inputs have accessible labels or aria-label.' },
+  { id: 27, code: 'UI-27', title: 'Core Web Vitals & Next.js Image Optimization (UI-PERF-01)', category: 'Frontend Performance', clichePattern: 'Using standard HTML <img> tags in Next.js applications instead of next/image or inlining large base64 image data URIs', whyAiDoesIt: 'LLMs default to basic HTML <img> tags instead of framework-optimized image components, degrading LCP and CLS Core Web Vitals', shipguardSolution: 'Import Image from next/image for automatic WebP/AVIF compression, responsive sizing, and zero layout shift.' },
+  { id: 28, code: 'UI-28', title: 'Social OpenGraph & Semantic Metadata (UI-SEO-01)', category: 'SEO & Metadata', clichePattern: 'Page or layout missing OpenGraph images, Twitter card tags, or proper semantic heading hierarchy', whyAiDoesIt: 'AI boilerplate generators often omit complete metadata export or openGraph configurations in App Router layouts', shipguardSolution: 'Export complete metadata object with openGraph (title, description, images) and twitter tags in page.tsx / layout.tsx.' },
   { id: 29, code: 'UI-29', title: 'Hallucinated Citations & Links', category: 'Accuracy & Trust', clichePattern: 'Generating non-existent URLs, paper titles, or library names', whyAiDoesIt: 'Probabilistic text completion from parametric memory', shipguardSolution: 'Integrate web search / API verification layers to validate all reference URLs before rendering.' },
   { id: 30, code: 'UI-30', title: 'Reversal Curse Failure', category: 'Reasoning & Logic', clichePattern: 'Failing to infer "B is A\'s child" from "A is B\'s parent"', whyAiDoesIt: 'Unidirectional autoregressive sequence prediction limitations', shipguardSolution: 'Supply Chain-of-Thought (CoT) reasoning or bidirectional knowledge graphs.' },
   { id: 31, code: 'UI-31', title: 'Audience Skill Level Misalignment', category: 'Tone & Persona', clichePattern: 'Explaining beginner questions using dense academic jargon', whyAiDoesIt: 'Failing to dynamically gauge user expertise level', shipguardSolution: 'Assess user profile level (Beginner, Mid, Expert) and inject dynamic persona prompts.' },
@@ -462,7 +462,10 @@ export const UI_RULES_CATALOG: UiRule[] = [
   { id: 222, code: 'CLICHE-22', title: 'Pastel Square Rounded Icon Containers', category: 'AI Cliché & Visual', clichePattern: 'Feature items led by pastel rounded square boxes with Lucide icons', whyAiDoesIt: 'Replicates pastel icon container templates', shipguardSolution: 'Replace pastel icon boxes with real UI snippets, micro-illustrations, or inline graphics.' },
   { id: 223, code: 'CLICHE-23', title: 'Generic Faceless Flat Stock Vectors (unDraw)', category: 'AI Cliché & Visual', clichePattern: 'Faceless single-color stock vector illustrations (unDraw style)', whyAiDoesIt: 'Selects generic flat vector illustrations as visual placeholders', shipguardSolution: 'Use authentic product UI screenshots, data flows, or custom brand artwork.' },
   { id: 224, code: 'CLICHE-24', title: 'Decorative Floating Glassmorphism Blur Orbs', category: 'AI Cliché & Visual', clichePattern: 'Floating blurred colorful glassmorphism circles behind content', whyAiDoesIt: 'Fills background whitespace with random blur circles', shipguardSolution: 'Remove decorative blur orbs; treat negative space (whitespace) as a design element.' },
-  { id: 225, code: 'CLICHE-25', title: 'Stock Photo of Happy Team Looking at Laptop', category: 'AI Cliché & Visual', clichePattern: 'Overly enthusiastic stock office photo of team looking at laptop', whyAiDoesIt: 'Uses generic stock photography instead of authentic media', shipguardSolution: 'Show real team members, actual workspace, or direct product interface.' }
+  { id: 225, code: 'CLICHE-25', title: 'Stock Photo of Happy Team Looking at Laptop', category: 'AI Cliché & Visual', clichePattern: 'Overly enthusiastic stock office photo of team looking at laptop', whyAiDoesIt: 'Uses generic stock photography instead of authentic media', shipguardSolution: 'Show real team members, actual workspace, or direct product interface.' },
+  { id: 1026, code: 'UI-A11Y-01', title: 'WCAG 2.1 AA Focus & Label Validation', category: 'Accessibility (WCAG)', clichePattern: 'Stripping keyboard focus outlines (outline-none) without focus rings, and unlabelled form inputs missing aria-label or id', whyAiDoesIt: 'LLMs default to aesthetic minimalism and forget keyboard accessibility (WCAG 2.1 AA)', shipguardSolution: 'Enforce visible focus indicators (focus-visible:ring-2) and require aria-label or associated <label> for all interactive inputs.' },
+  { id: 1027, code: 'UI-PERF-01', title: 'Core Web Vitals & Next.js Image Optimization', category: 'Performance & CWV', clichePattern: 'Unoptimized raw HTML <img> tags in Next.js or heavy inline Base64 data URIs (>1000 characters)', whyAiDoesIt: 'Copying basic HTML <img> tags without leveraging Next.js image optimization or embedding base64 directly into JSX', shipguardSolution: 'Use next/image <Image> with explicit width, height, and priority attributes, and serve images from /public static storage.' },
+  { id: 1028, code: 'UI-SEO-01', title: 'Social OpenGraph & Semantic Metadata', category: 'SEO & Social Meta', clichePattern: 'Missing OpenGraph/Twitter Card social preview metadata in layout.tsx/page.tsx, or multiple duplicate <h1> headings', whyAiDoesIt: 'Omitting complete Next.js Metadata objects or repeating <h1> tags across multiple component sections', shipguardSolution: 'Export comprehensive Next.js Metadata with openGraph and twitter cards, and restrict pages to a single semantic <h1>.' }
 ];
 
 export const MOCK_PROJECTS: Project[] = [

@@ -2,6 +2,8 @@
 import { Finding, SecurityRule, UiRule } from '@/data/schema';
 import { SECURITY_RULES_CATALOG, UI_RULES_CATALOG } from '@/data/mockData';
 import { evaluateAiClicheRules } from './rules/ai-cliche-rules';
+import { evaluateSecurityRules } from './rules/security-rules';
+import { evaluateFrontendRules } from './rules/frontend-rules';
 
 export interface CodeFile {
   path: string;
@@ -50,12 +52,31 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
     const uiMatch = trimmed.match(/^UI-?(\d+)$/i);
     const numMatch = trimmed.match(/^(\d+)$/);
 
-    if (secMatch) {
+    const upper = trimmed.toUpperCase();
+    if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
+      ignoredRuleIds.add(26);
+      ignoredRuleIds.add(1026);
+    } else if (upper === 'UI-PERF-01' || upper === 'UI-PERF' || upper === 'UI-27') {
+      ignoredRuleIds.add(27);
+      ignoredRuleIds.add(1027);
+    } else if (upper === 'UI-SEO-01' || upper === 'UI-SEO' || upper === 'UI-28') {
+      ignoredRuleIds.add(28);
+      ignoredRuleIds.add(1028);
+    } else if (upper === 'SEC-SCA-01' || upper === 'SEC-SCA' || upper === 'SEC-20') {
+      ignoredRuleIds.add(20);
+    } else if (upper === 'SEC-LOG-01' || upper === 'SEC-LOG' || upper === 'SEC-21') {
+      ignoredRuleIds.add(21);
+    } else if (upper === 'SEC-LLM-01' || upper === 'SEC-LLM' || upper === 'SEC-22') {
+      ignoredRuleIds.add(22);
+    } else if (secMatch) {
       const num = parseInt(secMatch[1], 10);
       if (!isNaN(num)) ignoredRuleIds.add(num);
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
-      if (!isNaN(num)) ignoredRuleIds.add(num + 1000);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(num);
+        ignoredRuleIds.add(num + 1000);
+      }
     } else if (numMatch) {
       const num = parseInt(numMatch[1], 10);
       if (!isNaN(num)) {
@@ -150,7 +171,13 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
 
     // Helper to add finding unless suppressed or false-positive inside rule definition files
     const addFinding = (f: Finding) => {
-      if (ignoredRuleIds.has(f.ruleId)) return;
+      if (
+        ignoredRuleIds.has(f.ruleId) ||
+        (f.ruleId >= 1000 && ignoredRuleIds.has(f.ruleId - 1000)) ||
+        (f.ruleId < 1000 && ignoredRuleIds.has(f.ruleId + 1000))
+      ) {
+        return;
+      }
       // Filter out self-referential alerts inside scanner engine definition catalogs and demo playgrounds
       if (isScannerRuleCatalog) {
         return;
@@ -269,6 +296,21 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       });
 
       logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: SEC-16 Unsanitized innerHTML in ${file.path}:${lineNum}`);
+    }
+
+    // Advanced Option A Security Rules (SEC-SCA-01, SEC-LOG-01, SEC-LLM-01) & Modular Engine
+    const secCounter = { count: findingCounter };
+    const secResult = evaluateSecurityRules(file, lines, cleanContent, secCounter);
+    findingCounter = secCounter.count;
+    for (const sf of secResult.findings) {
+      if (!findings.some((existing) => existing.ruleId === sf.ruleId && existing.filePath === sf.filePath && existing.lineRange === sf.lineRange)) {
+        addFinding(sf);
+      }
+    }
+    for (const logItem of secResult.logs) {
+      if (!logs.includes(logItem)) {
+        logs.push(logItem);
+      }
     }
 
     // Live Web Deployment Security Header Rules: Parse missingSecurityHeaders from JSON
@@ -1155,6 +1197,15 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...clicheResult.logs);
+
+    // Option B: Frontend Performance, WCAG 2.1 AA & SEO Rules (UI-A11Y-01, UI-PERF-01, UI-SEO-01)
+    const frontendCounter = { count: findingCounter };
+    const frontendResult = evaluateFrontendRules(file, lines, cleanContent, frontendCounter);
+    findingCounter = frontendCounter.count;
+    for (const ff of frontendResult.findings) {
+      addFinding(ff);
+    }
+    logs.push(...frontendResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

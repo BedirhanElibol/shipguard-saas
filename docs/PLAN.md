@@ -1,824 +1,627 @@
-# 🛡️ SHIPGUARD AI RELEASE GATE - SQL DATABASE, SUPABASE SENKRONİZASYON VE KİMLİK/ÜYELİK YÖNETİMİ MASTER UYGULAMA PLANI (docs/PLAN.md)
+# 🛡️ SHIPGUARD AI RELEASE GATE - GELİŞMİŞ GÜVENLİK, TEDARİK ZİNCİRİ (OPTION A) VE FRONTEND PERFORMANS, WCAG & SEO (OPTION B) MASTER UYGULAMA PLANI (`docs/PLAN.md`)
 
 **Proje:** ShipGuard AI Release Gate SaaS  
-**Versiyon & Altyapı:** Next.js 15.1 (App Router), React 18, TypeScript 5.7, Tailwind CSS, Supabase (PostgreSQL 15+), Stripe  
-**Referans Doküman:** [.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) (UI/UX Anti-Slop, OWASP 23 Güvenlik Kuralı ve Mobil Test Standartları)  
-**Kullanıcı Direktifi:** *"/orchestrate kendin ekleme yaptığın sql kodlarını da /browser edip kendin güncelleyebilirsin."*  
-**Tarih / Durum:** Eylül 2026 / **FAZ 1 MASTER SENKRONİZASYON PLANI ONAYLANDI - FAZ 2 OTONOM İCRAYA HAZIR**
+**Versiyon:** 4.0.0 (Next.js 15.1, React 18, TypeScript 5.7, Tailwind CSS, Supabase PostgreSQL, Stripe)  
+**Referans Dokümanlar:**  
+- [.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) (AI Slop & Problem Kataloğu, 25+30 Web Tasarım Klişesi, 23 OWASP Canlıya Alım Kuralı, 20 Mobil QA Testi)  
+- [lib/scanner-engine.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/lib/scanner-engine.ts) (Statik AST & Desen Tarama Motoru)  
+- [lib/rules/security-rules.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/lib/rules/security-rules.ts) (Güvenlik Kural Motoru)  
+- [lib/rules/ai-cliche-rules.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/lib/rules/ai-cliche-rules.ts) (AI Arayüz Klişe Kuralları)  
+- [data/mockData.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/data/mockData.ts) (`SECURITY_RULES_CATALOG`, `UI_RULES_CATALOG`)  
+- [scratch/test_functional_principles.py](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/scratch/test_functional_principles.py) (Otomatik Doğrulama Test Paketi)  
+**Tarih / Durum:** Eylül 2026 / **FAZ 1 ONAYLANDI — FAZ 2 OTONOM UYGULAMAYA HAZIR**
 
 ---
 
 ## 📑 İÇİNDEKİLER (TABLE OF CONTENTS)
 
-1. [Yönetici Özeti ve Mimari Vizyon (Executive Summary & Architectural Context)](#1-yönetici-özeti-ve-mimari-vizyon)
-2. [SQL Veritabanı Şeması ve Modüler Tablo Mimarisi (Schema Architecture)](#2-sql-veritabanı-şeması-ve-modüler-tablo-mimarisi)
-   - [2.1 Özel ENUM Tipleri ve Idempotency](#21-özel-enum-tipleri-ve-idempotency)
-   - [2.2 8 Temel Modüler Tablo Detayı](#22-8-temel-modüler-tablo-detayı)
-     - [`public.profiles`](#221-publicprofiles)
-     - [`public.subscriptions`](#222-publicsubscriptions)
-     - [`public.projects`](#223-publicprojects)
-     - [`public.scans`](#224-publicscans)
-     - [`public.findings`](#225-publicfindings)
-     - [`public.remediation_items`](#226-publicremediation_items)
-     - [`public.gate_webhooks`](#227-publicgate_webhooks)
-     - [`public.activity_logs`](#228-publicactivity_logs)
-   - [2.3 Performans B-Tree İndeksleri & Foreign Key Kısıtları](#23-performans-b-tree-indeksleri--foreign-key-kısıtları)
-   - [2.4 Otomatik Tetikleyiciler (Triggers & Functions)](#24-otomatik-tetikleyiciler-triggers--functions)
-   - [2.5 Çok Kiracılı (Multi-Tenant) Katı Row Level Security (RLS) Politikaları](#25-çok-kiracılı-multi-tenant-katı-row-level-security-rls-politikaları)
-3. [Supabase & Browser Otonom İşlem Akışı (Autonomous Browser Execution Flow)](#3-supabase--browser-otonom-işlem-akışı)
-   - [3.1 Supabase Dashboard Giriş & SSO Oturumu](#31-supabase-dashboard-giriş--sso-oturumu)
-   - [3.2 Proje Seçimi ve Hazırlığı](#32-proje-seçimi-ve-hazırlığı)
-   - [3.3 SQL Editor ile Birleşik Şema Uygulaması (`/sql/new`)](#33-sql-editor-ile-birleşik-şema-uygulaması-sqlnew)
-   - [3.4 Table Editor ile Doğrulama & Kanıt Toplama (Screenshots)](#34-table-editor-ile-doğrulama--kanıt-toplama-screenshots)
-   - [3.5 Environment & API Key Senkronizasyonu](#35-environment--api-key-senkronizasyonu)
-4. [Kimlik Doğrulama & Gerçek Profil Deneyimi (Auth & Profile Experience)](#4-kimlik-doğrulama--gerçek-profil-deneyimi)
-   - [4.1 GitHub Giriş Akışı (Dinamik Kullanıcı Adı, Avatar, Profil Eşleme)](#41-github-giriş-akışı-dinamik-kullanıcı-adı-avatar)
-   - [4.2 Google Giriş Akışı (Gerçek İsim, E-posta ve Profil Seçici)](#42-google-giriş-akışı-gerçek-isim-e-posta-ve-profil-seçici)
-   - [4.3 E-posta / Parola Kayıt & Kalıcılık](#43-e-posta--parola-kayıt--kalıcılık)
-   - [4.4 Hardcoded 'Demo User' Kalıntılarının Temizlenmesi](#44-hardcoded-demo-user-kalıntılarının-temizlenmesi)
-5. [Üyelik Kademeleri & Plan Mimarisi (Membership & Tier Architecture)](#5-üyelik-kademeleri--plan-mimarisi)
-   - [5.1 Tier 1: Ücretsiz Kullanım (Free Tier)](#51-tier-1-ücretsiz-kullanım-free-tier)
-   - [5.2 Tier 2: Pro Plan ($99/yıl)](#52-tier-2-pro-plan-99yıl)
-   - [5.3 Tier 3: Enterprise Plan ($199/yıl)](#53-tier-3-enterprise-plan-199yıl)
-   - [5.4 Karşılaştırmalı Yetki & Özellik Matrisi](#54-karşılaştırmalı-yetki--özellik-matrisi)
-6. [Arayüz Dokunuşları ve UI/UX Anti-Slop Mimarisi (UI Touchpoints)](#6-arayüz-dokunuşları-ve-uiux-anti-slop-mimarisi)
-   - [6.1 Header.tsx İyileştirmeleri (Gerçek Avatar, Plan Badge, Zengin Menü)](#61-headertsx-iyileştirmeleri)
-   - [6.2 Sidebar.tsx Alt Profil & Plan Widget'ı (Linear / Vercel Stili)](#62-sidebartsx-alt-profil--plan-widgetı)
-   - [6.3 AppShell.tsx Veri & Olay Bağlantıları](#63-appshelltsx-veri--olay-bağlantıları)
-   - [6.4 ProjectSettingsView.tsx Üyelik ve Abonelik Yönetimi Kartı](#64-projectsettingsviewtsx-üyelik-ve-abonelik-yönetimi-kartı)
-   - [6.5 RemediationQueueView.tsx & Gate Webhooks Entegrasyonu](#65-remediationqueueviewtsx--gate-webhooks-entegrasyonu)
-7. [Güvenlik, Gizlilik ve OWASP Denetimi (.agent/Proje_Gelistirme_Rehberi.md)](#7-güvenlik-gizlilik-ve-owasp-denetimi)
-8. [Faz 2 Uzman Görev Dağılım Matrisi (Phase 2 Specialist Tasks)](#8-faz-2-uzman-görev-dağılım-matrisi)
-   - [8.1 `database-architect` (veya `backend_specialist`) Görev Paketi](#81-database-architect-veya-backend_specialist-görev-paketi)
-   - [8.2 `browser` Subagent Görev Paketi](#82-browser-subagent-görev-paketi)
-   - [8.3 `security_specialist` (veya `security-auditor`) Görev Paketi](#83-security_specialist-veya-security-auditor-görev-paketi)
-   - [8.4 `frontend-specialist` Görev Paketi](#84-frontend-specialist-görev-paketi)
-   - [8.5 `mobile-developer` Görev Paketi](#85-mobile-developer-görev-paketi)
-   - [8.6 `test-engineer` Görev Paketi](#86-test-engineer-görev-paketi)
-9. [Test, Doğrulama & Kabul Kriterleri (E2E Verification Scenarios)](#9-test-doğrulama--kabul-kriterleri)
-10. [Dosya Değişiklikleri ve SQL Script Entegrasyon Haritası](#10-dosya-değişiklikleri-ve-sql-script-entegrasyon-haritası)
+1. [Yönetici Özeti ve Kullanıcı Karar Özeti](#1-yönetici-özeti-ve-kullanıcı-karar-özeti)
+2. [Mimari & Felsefe (Auditor Philosophy & Liability Protection)](#2-mimari--felsefe-auditor-philosophy--liability-protection)
+   - [2.1 Neden Kör Otopilot (In-Place Auto-Fix) Reddedildi?](#21-neden-kör-otopilot-in-place-auto-fix-reddedildi)
+   - [2.2 Snyk / SonarQube Modeli: Denetçi & Güvenli Danışman (Auditor & Advisor)](#22-snyk--sonarqube-modeli-denetçi--güvenli-danışman-auditor--advisor)
+   - [2.3 Yasal Sorumluluk Reddi (Disclaimer) ve Geliştirici Kontrol Döngüsü](#23-yasal-sorumluluk-reddi-disclaimer-ve-geliştirici-kontrol-döngüsü)
+3. [Kapsam 1: Gelişmiş Güvenlik & Tedarik Zinciri Kuralları (Option A)](#3-kapsam-1-gelişmiş-güvenlik--tedarik-zinciri-kuralları-option-a)
+   - [3.1 `SEC-SCA-01`: Bağımlılık & Tedarik Zinciri Açıkları (SCA)](#31-sec-sca-01-bağımlılık--tedarik-zinciri-açıkları-sca)
+   - [3.2 `SEC-LOG-01`: Hassas Veri, Şifre & PII Log Sızıntısı](#32-sec-log-01-hassas-veri-şifre--pii-log-sızıntısı)
+   - [3.3 `SEC-LLM-01`: İstemci Katmanı AI/LLM SDK & Prompt İfşası](#33-sec-llm-01-istemci-katmanı-aillm-sdk--prompt-ifşası)
+4. [Kapsam 2: Frontend Performans, WCAG & SEO Kuralları (Option B)](#4-kapsam-2-frontend-performans-wcag--seo-kuralları-option-b)
+   - [4.1 `UI-A11Y-01`: WCAG 2.1 AA Erişilebilirlik & Klavye Odak Halkası](#41-ui-a11y-01-wcag-21-aa-erişilebilirlik--klavye-odak-halkası)
+   - [4.2 `UI-PERF-01`: Core Web Vitals & Next.js Image Optimizasyonu](#42-ui-perf-01-core-web-vitals--nextjs-image-optimizasyonu)
+   - [4.3 `UI-SEO-01`: Sosyal Medya Open Graph, Twitter Card & Semantik SEO](#43-ui-seo-01-sosyal-medya-open-graph-twitter-card--semantik-seo)
+5. [Teknik Entegrasyon ve Kod Mimarisi Haritası](#5-teknik-entegrasyon-ve-kod-mimarisi-haritası)
+   - [5.1 `lib/rules/security-rules.ts` Genişletme Mimarisi](#51-librulessecurity-rulests-genişletme-mimarisi)
+   - [5.2 `lib/rules/frontend-rules.ts` Modüler Kural Yapısı](#52-librulesfrontend-rulests-modüler-kural-yapısı)
+   - [5.3 `lib/scanner-engine.ts` Entegrasyon ve Yürütme Pipeline'ı](#53-libscanner-enginets-entegrasyon-ve-yürütme-pipelineı)
+   - [5.4 `data/mockData.ts` Katalog Güncellemeleri](#54-datamockdatats-katalog-güncellemeleri)
+   - [5.5 `app/api/v1/gate-check/route.ts` API Yanıt Uyumluluğu](#55-appapiv1gate-checkroutets-api-yanıt-uyumluluğu)
+6. [Faz 2 Uzman Görev Dağılım Matrisi (Specialist Agent Task Assignments)](#6-faz-2-uzman-görev-dağılım-matrisi-specialist-agent-task-assignments)
+   - [6.1 `security-auditor` Görev Paketi](#61-security-auditor-görev-paketi)
+   - [6.2 `frontend-specialist` Görev Paketi](#62-frontend-specialist-görev-paketi)
+   - [6.3 `mobile-developer` Görev Paketi (.agent Rehberi 20 Hızlı Test)](#63-mobile-developer-görev-paketi-agent-rehberi-20-hızlı-test)
+   - [6.4 `test-engineer` Görev Paketi & Test Otomasyonu](#64-test-engineer-görev-paketi--test-otomasyonu)
+7. [Test, Doğrulama & Kalite Kontrol Planı](#7-test-doğrulama--kalite-kontrol-planı)
+   - [7.1 `scratch/test_functional_principles.py` Kapsamına Kural Testleri Eklenmesi](#71-scratchtest_functional_principlespy-kapsamına-kural-testleri-eklenmesi)
+   - [7.2 Yanlış Pozitif (False Positive) ve Bastırma (`.shipguardignore`) Testleri](#72-yanlış-pozitif-false-positive-ve-bastırma-shipguardignore-testleri)
+   - [7.3 E2E Doğrulama Senaryoları & Başarı Kriterleri](#73-e2e-doğrulama-senaryoları--başarı-kriterleri)
 
 ---
 
-## 1. YÖNETİCİ ÖZETİ VE MİMARİ VİZYON
+## 1. YÖNETİCİ ÖZETİ VE KULLANICI KARAR ÖZETİ
 
-ShipGuard AI Release Gate platformunun en kritik yapı taşlarından biri, yerel istemci (Local Storage) üzerindeki simülasyonel verilerin bulut tabanlı, ölçeklenebilir ve çok kiracılı (multi-tenant) **Supabase PostgreSQL** mimarisine kesintisiz entegre edilmesidir.
+Kullanıcımız, projenin canlıya alım ve denetim vizyonu konusunda son derece kritik ve stratejik bir karar vermiştir:
 
-Kullanıcımızın `/orchestrate kendin ekleme yaptığın sql kodlarını da /browser edip kendin güncelleyebilirsin` direktifi doğrultusunda:
-1. Kod tabanındaki dağınık SQL scriptleri (`supabase/migrations/20260828000000_init_auth_saas_schema.sql`, `sql/01..05`, `data/supabase-migration.sql` ve `lib/db-schema.sql`) tek ve idempotant bir **Master Production Schema** altında konsolide edilir.
-2. `browser` otonom alt ajanı, Supabase Dashboard arayüzüne bağlanarak projeyi inceler, SQL Editor'de birleşik DDL scriptini çalıştırır ve Table Editor üzerinden tabloları doğrular.
-3. Uygulamanın kimlik, abonelik, proje, tarama, bulgu, iyileştirme kuyruğu (`remediation_items`), webhook'lar (`gate_webhooks`) ve aktivite logları (`activity_logs`) 8 modüler tablo halinde canlı PostgreSQL veritabanına mühürlenir.
-4. Katı **Row Level Security (RLS)** kuralları ile her kullanıcının yalnızca kendi verisini görmesi (`auth.uid() = user_id`) garanti altına alınır.
+> **Kullanıcı İfadesi:**  
+> *"Seçenek a ve b tamam fakat c seçeneği kullanıcı düzeltmemizi istedi fakat ya hata yaparsak o zaman bizi suçlarlar ."*
+
+### Alınan Kesin Kararlar:
+1. **SEÇENEK C KESİNLİKLE REDDEDİLDİ (Kör Kod Düzenleme / Auto-Fix İptal):**
+   - Kaynak kodun geliştirici onayı olmadan ShipGuard tarafından otomatik olarak değiştirilmesi, ezilmesi veya "inplace" düzeltilmesi engellenmiştir.
+   - Yazılım mühendisliği ve yasal sorumluluk (engineering & legal liability) ilkeleri gereğince, istem dışı syntax kırılması, derleme hatası veya mantık bozulmalarına karşı ShipGuard sistemi **asla sessizce kod yazmaz**.
+2. **SEÇENEK A KABUL EDİLDİ (Gelişmiş Güvenlik & Bağımlılık Taraması):**
+   - Modern yazılım güvenliğinin kalbi olan bağımlılık zinciri (Software Composition Analysis - SCA), hassas log sızıntıları (PII/Secret Log Leakage) ve istemci katmanında yapay zeka anahtarı ifşası (`"use client"` LLM SDK exposure) kuralları eklenir.
+3. **SEÇENEK B KABUL EDİLDİ (Frontend Performans, WCAG & SEO Meta Taraması):**
+   - WCAG 2.1 AA klavye odak halkaları ve aria etiketleri, Next.js `<Image>` Core Web Vitals optimizasyonu ve sosyal medya Open Graph / Twitter Card eksiksizliği kural motoruna dahil edilir.
+4. **GEMINI / CURSOR VE REHBER UYUMU:**
+   - Tüm yeni kurallar [.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) dokümanında listelenen 23 OWASP Canlıya Alım Kuralı, UI/UX Anti-Slop Kataloğu ve 20 Maddelik Mobil Test Standartları ile %100 uyumlu olarak tasarlanmıştır.
 
 ```mermaid
 flowchart TD
-    subgraph LocalArch ["💻 Yerel Kod Tabanı & Konsolidasyon"]
-        S1["sql/01_extensions_and_enums.sql"] --> SC["Consolidated Master DDL Script"]
-        S2["sql/02_tables_and_constraints.sql"] --> SC
-        S3["sql/03_indexes_and_triggers.sql"] --> SC
-        S4["sql/04_rls_security_policies.sql"] --> SC
-        S5["sql/05_seed_data.sql"] --> SC
-        SC --> MIG["supabase/migrations/20260904000000_master_schema.sql"]
+    subgraph Decisions ["🎯 Kullanıcı Stratejik Kararı"]
+        DEC_C["❌ Seçenek C: Blind Auto-Fix<br/>(REDDEDİLDİ - Sorumluluk Riski)"]
+        DEC_A["✅ Seçenek A: Advanced Security & SCA<br/>(ONAYLANDI - SEC-SCA, SEC-LOG, SEC-LLM)"]
+        DEC_B["✅ Seçenek B: Frontend Perf, WCAG & SEO<br/>(ONAYLANDI - UI-A11Y, UI-PERF, UI-SEO)"]
     end
 
-    subgraph BrowserFlow ["🌐 Browser Subagent Otonom Akışı"]
-        MIG --> B1["browser: Supabase Dashboard Giriş"]
-        B1 --> B2["browser: Proje Seçimi & SQL Editor (/sql/new)"]
-        B2 --> B3["browser: Master SQL Scriptini İcra Et"]
-        B3 --> B4["browser: Table Editor & RLS Doğrulaması"]
-        B4 --> B5["browser: Ekran Görüntüsü & Kanıt Kaydı"]
+    subgraph ShipGuardEngine ["🛡️ ShipGuard Core Engine (Auditor & Advisor)"]
+        AST["Static AST & Lexical Parser Engine<br/>(lib/scanner-engine.ts)"]
+        SEC["Security & Supply Chain Rules<br/>(lib/rules/security-rules.ts)"]
+        UI["UI/UX, A11y & Perf Rules<br/>(lib/rules/frontend-rules.ts)"]
     end
 
-    subgraph DatabaseEngine ["🐘 Supabase Cloud PostgreSQL Engine"]
-        B3 --> DB1["8 Modüler Tablo + 6 Özel Enum"]
-        B3 --> DB2["auth.users -> handle_new_user() Trigger"]
-        B3 --> DB3["Strict Multi-Tenant RLS Policies"]
+    subgraph OutputModel ["📋 Güvenli Çıktı & Danışmanlık Katmanı"]
+        REP["Detaylı Bulgu & Repro Adımları"]
+        REM["Kopyala-Yapıştır Güvenli Prompt"]
+        DISC["Yasal Sorumluluk Reddi (Disclaimer)"]
+        GATE["CI/CD Gate Status & Score (0-100)"]
     end
+
+    DEC_A --> SEC
+    DEC_B --> UI
+    SEC --> AST
+    UI --> AST
+    AST --> REP
+    AST --> REM
+    AST --> DISC
+    AST --> GATE
 ```
 
 ---
 
-## 2. SQL VERİTABANI ŞEMASI VE MODÜLER TABLO MİMARİSİ
+## 2. MİMARİ & FELSEFE (AUDITOR PHILOSOPHY & LIABILITY PROTECTION)
 
-Veritabanı şeması, PostgreSQL 15+ ve Supabase Auth ile tam uyumlu, DDL idempotent (tekrar çalıştırıldığında hata vermeyen) ve referans bütünlüğüne sahip 8 modüler tablo üzerine inşa edilmiştir.
+### 2.1 Neden Kör Otopilot (In-Place Auto-Fix) Reddedildi?
 
-### 2.1 Özel ENUM Tipleri ve Idempotency
+Bir SaaS platformunun veya statik analiz motorunun kullanıcı deposundaki kaynak dosyaları doğrudan düzenlemesi ("in-place auto-fixing") ilk bakışta cazip görünse de pratikte telafisi imkansız riskler barındırır:
 
-Yinelenen script çalışmalarında `type already exists` hatasını önlemek için tüm tipler PL/pgSQL bloklarıyla korunur:
+1. **Sözdizimi ve Mantık Bozulması (AST Incompatibility):** Kod otomatik yamalanırken JSX kapanış tagleri, TypeScript generic parametreleri veya CSS modülleri bozulabilir. Proje derlenemez hale gelebilir (`npm run build` çöker).
+2. **Yan Etkiler (Side Effects & Regressions):** Güvenlik gerekçesiyle değiştirilen bir `origin: '*'` veya kaldırılan bir `console.log`, uygulamanın başka bir yerindeki telemetry modülünü veya üçüncü parti entegrasyonu çökertebilir.
+3. **Mühendislik & Yasal Sorumluluk ("Bizi Suçlarlar" İlkesi):** Müşteri veya geliştirici, "ShipGuard dosyamı değiştirdi ve müşterilerimin sipariş akışı çöktü" diyerek platformu sorumlu tutabilir. B2B SaaS sözleşmelerinde veri ve kod bütünlüğünü bozan otopilotlar dava riskine tabidir.
 
-```sql
--- 1. EXTENSIONS
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+### 2.2 Snyk / SonarQube Modeli: Denetçi & Güvenli Danışman (Auditor & Advisor)
 
--- 2. CUSTOM ENUMS
-DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('user', 'admin', 'auditor');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+Endüstri standardı lider analiz platformları (Snyk, SonarQube, GitHub CodeQL, ESLint) kodu körü körüne ezmez. Bunun yerine:
+- **Hassas Tespit (Pinpointed Detection):** Dosya yolu (`filePath`), kesin satır numarası (`L42`), bağlam kod parçası (`snippet`) gösterilir.
+- **Yeniden Üretim Adımları (Reproduction Steps):** Zafiyetin veya hatanın neden oluştuğu adım adım listelenir.
+- **Eyleme Geçirilebilir İyileştirme Kılavuzu (Actionable Remediation Prompt):** Geliştiriciye özel, kopyalanıp doğrudan Claude/Cursor/DeepSeek'e verilebilecek veya manuel uygulanabilecek optimize kod blokları sağlanır.
+- **Geliştirici İradesi (Human-in-the-Loop):** Son kararı ve git commit/merge işlemini her zaman insan geliştirici verir.
 
-DO $$ BEGIN
-    CREATE TYPE plan_tier AS ENUM ('Free', 'Pro', 'Enterprise');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+### 2.3 Yasal Sorumluluk Reddi (Disclaimer) ve Geliştirici Kontrol Döngüsü
 
-DO $$ BEGIN
-    CREATE TYPE gate_status AS ENUM ('PASSED', 'WARNING', 'FAILED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+ShipGuard'ın ürettiği tüm raporlarda, CLI çıktılarında, `/api/v1/gate-check` JSON yanıtlarında ve arayüzdeki `RemediationDrawer` bileşeninde standart **Güvenli Danışman Beyanı** yer alır:
 
-DO $$ BEGIN
-    CREATE TYPE finding_severity AS ENUM ('CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'PASSED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+> **ShipGuard Güvenlik & Danışmanlık Beyanı (Disclaimer):**  
+> *"ShipGuard, yazılım güvenliği, tedarik zinciri ve arayüz standartları için bağımsız bir denetçi ve analiz motorudur. Sunulan düzeltme önerileri ve kod blokları tavsiye niteliğindedir; kod tabanında yapılacak tüm değişikliklerin canlı ortama alınmadan önce geliştirici tarafından test edilmesi, incelenmesi ve onaylanması tavsiye edilir."*
 
-DO $$ BEGIN
-    CREATE TYPE finding_status AS ENUM ('OPEN', 'ACCEPTED_RISK', 'RESOLVED');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+---
 
-DO $$ BEGIN
-    CREATE TYPE pillar_type AS ENUM ('SECURITY', 'VIBEPOLISH', 'AICLICHE', 'AIMASTER', 'VIBECARE');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+## 3. KAPSAM 1: GELİŞMİŞ GÜVENLİK & TEDARİK ZİNCİRİ KURALLARI (OPTION A)
+
+[.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) Dokümanı Bölüm 6 (Kod & Yazılım Mimarisi) ve Bölüm 9 (Güvenlik, Guardrails) ile 23 Canlıya Alım Kuralı referans alınarak 3 kritik güvenlik kuralı tanımlanmıştır:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ OPTION A: GELİŞMİŞ GÜVENLİK VE TEDARİK ZİNCİRİ (SCA) KURAL SETİ                             │
+├─────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────┤
+│ Kural Kodu  │ Başlık                               │ Seviye   │ İlgili Standart             │
+├─────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────┤
+│ SEC-SCA-01  │ Dependency / Supply Chain Risk       │ HIGH     │ OWASP A06:2021 Vuln Deps    │
+│ SEC-LOG-01  │ Sensitive Token & PII Log Leakage    │ HIGH     │ OWASP A09:2021 Logging Fail │
+│ SEC-LLM-01  │ AI/LLM Client Exposure & Leakage     │ CRITICAL │ OWASP Top 10 for LLM (LLM06)│
+└─────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────┘
 ```
 
 ---
 
-### 2.2 8 Temel Modüler Tablo Detayı
+### 3.1 `SEC-SCA-01`: Bağımlılık & Tedarik Zinciri Açıkları (SCA)
 
-#### 2.2.1 `public.profiles`
-Kullanıcıların Supabase `auth.users` ile 1-e-1 bağlanan profil tablosu. Hassas kimlik verilerini izole eder.
-```sql
-CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email TEXT UNIQUE NOT NULL,
-    full_name TEXT,
-    avatar_url TEXT,
-    role user_role DEFAULT 'user'::user_role NOT NULL,
-    github_username TEXT,
-    company_name TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
+- **Kategori:** `Supply Chain & Dependencies`
+- **Risk Seviyesi:** `HIGH` (Önemli Güvenlik Riski)
+- **OWASP Referansı:** OWASP A06:2021 – Vulnerable and Outdated Components / Rehber Madde 222 (`npm audit`).
+- **Amaç:** `package.json` dosyasını tarayarak açık versiyon tanımlarını (unpinned wildcard `*`, `latest`), bilinen zafiyetli kütüphaneleri ve kritik CVE geçmişine sahip paket sürümlerini tespit etmek.
+
+#### Tespit Algoritması & Desenler:
+1. **Unpinned / Wildcard Versiyonlar:**
+   - `"dependency": "*"` veya `"dependency": "latest"` veya `"dependency": ">=0.0.0"`. Bu durum, dış bir saldırganın kütüphaneye zararlı sürüm yüklemesi halinde CI/CD ortamında otomatik derlenip sisteme sızmasına (Supply Chain Poisoning) neden olur.
+2. **Bilinen Riskli ve Eski Kütüphaneler:**
+   - `axios`: `<1.7.4` (CVE-2023-45857, CVE-2024-39338 - SSRF ve Header Injection açıkları).
+   - `lodash`: `<4.17.21` (CVE-2020-8203, CVE-2021-23337 - Prototype Pollution ve Command Injection).
+   - `moment`: Deprecated kütüphane; ReDoS (Düzenli ifade kaynak tüketimi) zafiyetleri ve aşırı paket boyutu. Yerine `date-fns` veya modern `dayjs` önerilir.
+   - `minimist`: `<1.2.6` (CVE-2021-44906 - Prototype Pollution).
+   - `jsonwebtoken`: `<9.0.0` (Key confusion ve unverified signature açıkları).
+   - `tar`: `<6.2.1` (CVE-2024-28863 - Arbitrary file creation/overwrite).
+   - `express`: `<4.19.2` (CVE-2024-29041 - Open redirect ve IP spoofing).
+
+#### Kod Örneği & Çıktı:
+- **Hatalı Kod (`package.json`):**
+  ```json
+  {
+    "dependencies": {
+      "axios": "^0.21.1",
+      "lodash": "4.17.15",
+      "moment": "^2.29.1",
+      "some-helper": "*"
+    }
+  }
+  ```
+- **Remediation Önerisi:**
+  ```json
+  {
+    "dependencies": {
+      "axios": "^1.7.4",
+      "lodash": "^4.17.21",
+      "date-fns": "^3.6.0",
+      "some-helper": "1.2.4"
+    }
+  }
+  ```
+- **Prompt:** *"Audit package.json. Pin all wildcard (*) dependencies to fixed semantic versions. Upgrade axios to >=1.7.4, lodash to >=4.17.21, and replace deprecated moment with date-fns or dayjs to eliminate supply chain vulnerabilities."*
+
+---
+
+### 3.2 `SEC-LOG-01`: Hassas Veri, Şifre & PII Log Sızıntısı
+
+- **Kategori:** `Logging & PII Protection`
+- **Risk Seviyesi:** `HIGH`
+- **OWASP Referansı:** OWASP A09:2021 – Security Logging and Monitoring Failures / Rehber Madde 217 (`Loglardan PII Temizle`).
+- **Amaç:** Kaynak kod içinde hassas kullanıcı verilerinin, kimlik doğrulama tokenlarının veya tüm HTTP başlıklarının `console.log` / `console.error` ile açık şekilde loglanmasını engellemek.
+
+#### Tespit Algoritması & Desenler:
+1. **Hassas Değişken Loglama:**
+   - `console\.(log|error|warn|info|debug)\s*\([^)]*(token|secret|password|passwd|api[_-]?key|auth_header|bearer|private_key|refresh_token)` (Büyük/küçük harf duyarsız).
+2. **Ham Request Başlıkları & Gövde Sızıntısı:**
+   - `console\.(log|info)\s*\([^)]*(req\.headers|req\.cookies|request\.headers)` (Yetkilendirme çerezleri ve Bearer tokenları doğrudan log servislerine - Datadog/CloudWatch sızar).
+3. **PII (Kişisel Tanımlanabilir Bilgi) Loglama:**
+   - `console\.log\s*\([^)]*(credit_card|cvv|ssn|tckn|card_number)`
+
+#### Kod Örneği & Çıktı:
+- **Hatalı Kod (`app/api/auth/route.ts`):**
+  ```typescript
+  export async function POST(req: NextRequest) {
+    const { email, password } = await req.json();
+    console.log("User login attempt:", email, password); // 🛑 KRİTİK SIZINTI
+    console.log("Incoming request headers:", req.headers); // 🛑 BEARER TOKEN SIZINTISI
+    ...
+  }
+  ```
+- **Remediation Önerisi:**
+  ```typescript
+  import { logger } from '@/lib/logger';
+
+  export async function POST(req: NextRequest) {
+    const { email } = await req.json();
+    logger.info("User login attempt", { email: maskEmail(email) });
+    // Asla parola, token veya ham req.headers loglanmaz.
+  }
+  ```
+- **Prompt:** *"Remove all raw console.log calls exposing passwords, tokens, or request headers in source files. Implement structured logging with automatic PII masking (lib/logger.ts) to prevent log leakage."*
+
+---
+
+### 3.3 `SEC-LLM-01`: İstemci Katmanı AI/LLM SDK & Prompt İfşası
+
+- **Kategori:** `AI Security & Key Isolation`
+- **Risk Seviyesi:** `CRITICAL`
+- **OWASP Referansı:** OWASP Top 10 for LLM Applications (LLM06: Sensitive Information Disclosure, LLM01: Prompt Injection) / Rehber Bölüm 5 Madde 10 & 18.
+- **Amaç:** `'use client'` direktifi içeren React/Next.js istemci bileşenlerinde doğrudan OpenAI, Anthropic veya Google Gemini SDK'larının import edilmesini, client bundle içine secret API key enjeksiyonunu ve gizli system prompt'larının tarayıcı DevTools ağ sekmesinde açığa çıkmasını tespit etmek.
+
+#### Tespit Algoritması & Desenler:
+1. **İstemci Bileşeninde LLM SDK Importu:**
+   - Dosya başında veya gövdesinde `'use client'` veya `"use client"` varken:
+   - `import ... from ['"](openai|@anthropic-ai\/sdk|@google\/genai|groq-sdk|replicate)['"]`
+2. **Client-Side LLM Örneği Oluşturma:**
+   - `new OpenAI({` veya `new GoogleGenerativeAI(` veya `new Anthropic({` doğrudan istemci bileşeni dosyasında çağrılması.
+3. **Client Tarafında System Prompt İfşası:**
+   - İstemci dosyası içinde açık ve telifli kurumsal prompt şablonlarının tutulması:
+   - `dangerouslyAllowBrowser:\s*true` bayrağının açılması (OpenAI SDK'da client-side çağrıyı zorlamak için kullanılan tehlikeli bayrak).
+
+#### Kod Örneği & Çıktı:
+- **Hatalı Kod (`components/AiChat.tsx`):**
+  ```tsx
+  'use client';
+  import OpenAI from 'openai'; // 🛑 İSTEMCİDE LLM SDK KULLANIMI
+
+  const openai = new OpenAI({
+    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY, // 🛑 CLIENT'A AÇILAN SECRET
+    dangerouslyAllowBrowser: true // 🛑 GÜVENLİK BARİYERİ DEVRE DIŞI
+  });
+  ```
+- **Remediation Önerisi:**
+  ```tsx
+  'use client';
+  // LLM çağrısını sunucu API rotası üzerinden yürütün
+  const response = await fetch('/api/v1/chat', {
+    method: 'POST',
+    body: JSON.stringify({ prompt })
+  });
+  ```
+- **Prompt:** *"Refactor client component to remove direct OpenAI/Anthropic/Gemini SDK imports and dangerouslyAllowBrowser flags. Route all LLM API invocations through secure server-side route handlers (/api/chat) with server-only environment variables."*
+
+---
+
+## 4. KAPSAM 2: FRONTEND PERFORMANS, WCAG & SEO KURALLARI (OPTION B)
+
+[.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) Dokümanı Bölüm 1 (UI/UX Anti-Slop), Bölüm 2 (25+30 Web Tasarım Klişesi) ve Bölüm 7 (Performans, Gecikme & Streaming) referans alınarak 3 temel kural belirlenmiştir:
+
 ```
-
-#### 2.2.2 `public.subscriptions`
-Kullanıcının üyelik kademesini (`Free`, `Pro`, `Enterprise`), aylık tarama kotalarını ve Stripe müşteri/abonelik kimliklerini saklar.
-```sql
-CREATE TABLE IF NOT EXISTS public.subscriptions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL UNIQUE,
-    plan_tier plan_tier DEFAULT 'Free'::plan_tier NOT NULL,
-    status TEXT DEFAULT 'active' NOT NULL,
-    monthly_scan_quota INTEGER DEFAULT 3 NOT NULL,
-    scans_used_this_month INTEGER DEFAULT 0 NOT NULL,
-    stripe_customer_id TEXT,
-    stripe_subscription_id TEXT,
-    current_period_start TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    current_period_end TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days') NOT NULL,
-    cancel_at_period_end BOOLEAN DEFAULT FALSE NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-```
-
-#### 2.2.3 `public.projects`
-Geliştiricinin denetlediği GitHub depoları, web servisleri ve deployment hedefleri.
-```sql
-CREATE TABLE IF NOT EXISTS public.projects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL,
-    repo_url TEXT NOT NULL,
-    preview_url TEXT,
-    github_token TEXT, -- Şifrelenmiş PAT belirteci
-    framework TEXT DEFAULT 'Next.js 15' NOT NULL,
-    providers TEXT[] DEFAULT ARRAY['GitHub Action', 'Vercel']::TEXT[] NOT NULL,
-    last_scan_at TIMESTAMPTZ,
-    readiness_score INTEGER DEFAULT 100 NOT NULL CHECK (readiness_score >= 0 AND readiness_score <= 100),
-    gate_status gate_status DEFAULT 'PASSED'::gate_status NOT NULL,
-    critical_count INTEGER DEFAULT 0 NOT NULL,
-    high_count INTEGER DEFAULT 0 NOT NULL,
-    medium_count INTEGER DEFAULT 0 NOT NULL,
-    low_count INTEGER DEFAULT 0 NOT NULL,
-    ui_cliche_count INTEGER DEFAULT 0 NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-```
-
-#### 2.2.4 `public.scans`
-Projeler üzerinde çalıştırılan her güvenlik ve kod kalitesi taramasının anlık görüntüsü ve telemetrisi.
-```sql
-CREATE TABLE IF NOT EXISTS public.scans (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    trigger_type TEXT DEFAULT 'MANUAL' NOT NULL, -- 'MANUAL', 'CI_CD', 'WEBHOOK', 'SCHEDULED'
-    readiness_score INTEGER NOT NULL CHECK (readiness_score >= 0 AND readiness_score <= 100),
-    gate_status gate_status NOT NULL,
-    critical_count INTEGER DEFAULT 0 NOT NULL,
-    high_count INTEGER DEFAULT 0 NOT NULL,
-    medium_count INTEGER DEFAULT 0 NOT NULL,
-    low_count INTEGER DEFAULT 0 NOT NULL,
-    ui_cliche_count INTEGER DEFAULT 0 NOT NULL,
-    scan_duration_ms INTEGER DEFAULT 0 NOT NULL,
-    scanned_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-```
-
-#### 2.2.5 `public.findings`
-Taramalar sonucunda tespit edilen OWASP ve UI/UX kural ihlallerinin satır bazlı detayları ve Claude iyileştirme promptları.
-```sql
-CREATE TABLE IF NOT EXISTS public.findings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    scan_id UUID REFERENCES public.scans(id) ON DELETE CASCADE NOT NULL,
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
-    rule_id INTEGER NOT NULL,
-    type pillar_type NOT NULL,
-    title TEXT NOT NULL,
-    severity finding_severity NOT NULL,
-    category TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    line_range TEXT NOT NULL,
-    snippet TEXT NOT NULL,
-    reproduction_steps TEXT[] DEFAULT ARRAY[]::TEXT[] NOT NULL,
-    remediation_prompt TEXT NOT NULL,
-    status finding_status DEFAULT 'OPEN'::finding_status NOT NULL,
-    false_positive BOOLEAN DEFAULT FALSE NOT NULL,
-    resolved_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    resolved_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-```
-
-#### 2.2.6 `public.remediation_items`
-`RemediationQueueView.tsx` ekranının arka planındaki kuyruk yönetimi. Her açık bulgunun otonom/manuel yama görevini tutar.
-```sql
-CREATE TABLE IF NOT EXISTS public.remediation_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    finding_id UUID REFERENCES public.findings(id) ON DELETE CASCADE NOT NULL,
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    title TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    patch_diff TEXT,
-    ai_prompt TEXT,
-    priority INTEGER DEFAULT 1 NOT NULL,
-    status TEXT DEFAULT 'QUEUED' NOT NULL, -- 'QUEUED', 'APPLYING', 'APPLIED', 'FAILED'
-    applied_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-```
-
-#### 2.2.7 `public.gate_webhooks`
-CI/CD geçişleri, GitHub Actions, Vercel dağıtımları ve Slack/Discord uyarıları için harici webhook entegrasyon ayarları.
-```sql
-CREATE TABLE IF NOT EXISTS public.gate_webhooks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    service_name TEXT NOT NULL, -- 'github', 'vercel', 'slack', 'discord'
-    webhook_url TEXT NOT NULL,
-    secret_token TEXT,
-    is_active BOOLEAN DEFAULT TRUE NOT NULL,
-    last_triggered_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
-```
-
-#### 2.2.8 `public.activity_logs`
-Sistemde gerçekleşen kritik güvenlik, tarama, plan yükseltme ve GDPR eylemlerinin kurumsal denetim izi (audit trail).
-```sql
-CREATE TABLE IF NOT EXISTS public.activity_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
-    action TEXT NOT NULL,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    details JSONB DEFAULT '{}'::jsonb NOT NULL,
-    ip_address TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
-);
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ OPTION B: FRONTEND PERFORMANS, WCAG & SEO KURAL SETİ                                        │
+├─────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────┤
+│ Kural Kodu  │ Başlık                               │ Seviye   │ İlgili Standart             │
+├─────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────┤
+│ UI-A11Y-01  │ WCAG 2.1 AA Focus & Label Validation │ MEDIUM   │ WCAG 2.1 AA (1.3.1 & 2.4.7) │
+│ UI-PERF-01  │ Core Web Vitals Next.js Image Rule   │ HIGH     │ Web Vitals (LCP, CLS)       │
+│ UI-SEO-01   │ Social OpenGraph & Semantic SEO Meta │ MEDIUM   │ Search Engine Standards     │
+└─────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────┘
 ```
 
 ---
 
-### 2.3 Performans B-Tree İndeksleri & Foreign Key Kısıtları
+### 4.1 `UI-A11Y-01`: WCAG 2.1 AA Erişilebilirlik & Klavye Odak Halkası
 
-N+1 sorgu problemlerini önlemek ve yüksek eşzamanlılıkta sorgu gecikmesini <15ms seviyesinde tutmak için stratejik indeksler tanımlanır:
+- **Kategori:** `Accessibility & WCAG`
+- **Risk Seviyesi:** `MEDIUM`
+- **Standart Referansı:** WCAG 2.1 Level AA (Başarı Kriteri 2.4.7 Focus Visible, Başarı Kriteri 1.3.1 Info and Relationships, Başarı Kriteri 4.1.2 Name, Role, Value).
+- **Amaç:** Klavye ile gezinen (Tab tuşu) engelli kullanıcılar için odak göstergesinin (`outline`) silinmesini engellemek ve form inputlarının etiket (`<label>` / `aria-label`) olmaksızın bırakılmasını önlemek.
 
-```sql
-CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_projects_user_id ON public.projects(user_id);
-CREATE INDEX IF NOT EXISTS idx_projects_gate_status ON public.projects(gate_status);
-CREATE INDEX IF NOT EXISTS idx_scans_project_id ON public.scans(project_id);
-CREATE INDEX IF NOT EXISTS idx_scans_user_id ON public.scans(user_id);
-CREATE INDEX IF NOT EXISTS idx_scans_scanned_at ON public.scans(scanned_at DESC);
-CREATE INDEX IF NOT EXISTS idx_findings_scan_id ON public.findings(scan_id);
-CREATE INDEX IF NOT EXISTS idx_findings_project_id ON public.findings(project_id);
-CREATE INDEX IF NOT EXISTS idx_findings_status_severity ON public.findings(status, severity);
-CREATE INDEX IF NOT EXISTS idx_remediation_user_status ON public.remediation_items(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_gate_webhooks_project ON public.gate_webhooks(project_id, is_active);
-CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON public.activity_logs(user_id, created_at DESC);
-```
+#### Tespit Algoritması & Desenler:
+1. **Kör Odak Halkası Silinmesi (Focus Ring Stripping):**
+   - Tailwind sınıflarında `outline-none` veya `focus:outline-none` kullanılmış ancak yerine hiçbir görsel odak halkası (`focus:ring`, `focus-visible:ring`, `focus:border`, `focus:outline-white`) konulmamışsa.
+   - Regex: `/(?:focus:)?outline-none\b/` var VE `/(?:focus(?:-visible)?:ring|focus:border)/` YOK.
+2. **Etiketsiz Form Girdileri (Unlabelled Form Inputs):**
+   - `<input` veya `<textarea` veya `<select` elemanında:
+   - `aria-label` YOK, `aria-labelledby` YOK, `id` (bağlı `<label htmlFor="...">`) YOK ve `type="hidden"` veya `type="submit"` değilse.
+3. **Yalnızca İkon İçeren Erişilemez Butonlar:**
+   - `<button` içinde yalnızca bir SVG/Lucide ikonu bulunup buton üzerinde görünür bir metin veya `aria-label` bulunmaması.
+
+#### Kod Örneği & Çıktı:
+- **Hatalı Kod:**
+  ```tsx
+  <input 
+    type="text" 
+    placeholder="Search repositories..." 
+    className="bg-black text-white outline-none" // 🛑 ETIKETSIZ VE ODAK HALKASI YOK
+  />
+  ```
+- **Remediation Önerisi:**
+  ```tsx
+  <input 
+    type="text" 
+    aria-label="Search repositories"
+    placeholder="Search repositories..." 
+    className="bg-black text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+  />
+  ```
+- **Prompt:** *"Add missing aria-label to form inputs. Replace bare outline-none with accessible focus rings using focus-visible:ring-2 focus-visible:ring-emerald-500 to ensure WCAG 2.1 AA keyboard accessibility compliance."*
 
 ---
 
-### 2.4 Otomatik Tetikleyiciler (Triggers & Functions)
+### 4.2 `UI-PERF-01`: Core Web Vitals & Next.js Image Optimizasyonu
 
-#### 2.4.1 Otomatik Profil ve Ücretsiz Plan Tahsisi (`handle_new_user()`)
-Kullanıcı GitHub, Google veya E-posta ile `auth.users` tablosuna kaydolduğu anda, tetikleyici devreye girerek:
-1. `public.profiles` tablosuna kullanıcının adını, e-postasını ve avatarını yazar.
-2. `public.subscriptions` tablosuna ömür boyu `Free` planını ve 3 adet aylık tarama kotasını otomatik tanımlar.
-3. `public.activity_logs` tablosuna `USER_PROVISIONED` kaydını düşer.
+- **Kategori:** `Performance & Web Vitals`
+- **Risk Seviyesi:** `HIGH`
+- **Standart Referansı:** Google Core Web Vitals (Largest Contentful Paint - LCP, Cumulative Layout Shift - CLS) / Rehber Bölüm 7 (Görsel Optimizasyonu).
+- **Amaç:** Standart unoptimized HTML `<img>` etiketlerinin modern Next.js projelerinde kullanılmasını engellemek, devasa base64 gömülü verilerinin bundle boyutunu şişirmesini önlemek ve resimlerde boyut oranını (`width`/`height`) zorunlu kılmak.
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-DECLARE
-    default_name TEXT;
-    default_avatar TEXT;
-BEGIN
-    default_name := COALESCE(
-        NEW.raw_user_meta_data->>'full_name',
-        NEW.raw_user_meta_data->>'name',
-        NEW.raw_user_meta_data->>'user_name',
-        SPLIT_PART(NEW.email, '@', 1)
+#### Tespit Algoritması & Desenler:
+1. **Unoptimized `<img>` Kullanımı:**
+   - Next.js projesi dosyalarında (`.tsx`, `.jsx`) doğrudan `<img\s+[^>]*src=` etiketinin kullanılması (`next/image` yerine).
+2. **Devasa Base64 Data URI Tespiti:**
+   - Kod içinde veya JSX `src` niteliğinde 1.000 karakterden (yaklaşık 1 KB) uzun `data:image/(png|jpeg|webp|gif);base64,...` dizgilerinin tespiti. Bu durum DOM ayrıştırmasını kilitler ve JS dosya boyutunu megabaytlarca şişirir.
+3. **Boyutsuz Görsel Tespiti (Layout Shift Riski):**
+   - Görsel etiketinde hem `width` hem de `height` (veya Next.js'in `fill` özelliği) belirtilmemesi; sayfa yüklenirken görselin aniden genişleyerek içerikleri aşağı kaydırması (Yüksek CLS skoru).
+
+#### Kod Örneği & Çıktı:
+- **Hatalı Kod:**
+  ```tsx
+  export function HeroImage() {
+    return (
+      <img 
+        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..." // 🛑 GIGANTIC BASE64
+        alt="Dashboard Preview" 
+      />
     );
-    default_avatar := COALESCE(
-        NEW.raw_user_meta_data->>'avatar_url',
-        NEW.raw_user_meta_data->>'picture'
+  }
+  ```
+- **Remediation Önerisi:**
+  ```tsx
+  import Image from 'next/image';
+
+  export function HeroImage() {
+    return (
+      <Image 
+        src="/assets/dashboard-preview.webp" 
+        alt="ShipGuard Dashboard Realtime Security and UI Audit Preview"
+        width={1200}
+        height={675}
+        priority
+        className="rounded-xl border border-white/10"
+      />
     );
-
-    -- 1. Create Profile
-    INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        default_name,
-        default_avatar,
-        'user'::user_role
-    )
-    ON CONFLICT (id) DO UPDATE SET
-        full_name = EXCLUDED.full_name,
-        avatar_url = COALESCE(public.profiles.avatar_url, EXCLUDED.avatar_url),
-        updated_at = NOW();
-
-    -- 2. Create Free Tier Subscription
-    INSERT INTO public.subscriptions (user_id, plan_tier, monthly_scan_quota, status)
-    VALUES (NEW.id, 'Free'::plan_tier, 3, 'active')
-    ON CONFLICT (user_id) DO NOTHING;
-
-    -- 3. Log Provisioning Activity
-    INSERT INTO public.activity_logs (user_id, action, entity_type, entity_id, details)
-    VALUES (
-        NEW.id,
-        'USER_PROVISIONED',
-        'profiles',
-        NEW.id::text,
-        jsonb_build_object(
-            'provider', NEW.raw_app_meta_data->>'provider',
-            'email', NEW.email,
-            'timestamp', NOW()
-        )
-    );
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS trigger_on_auth_user_created ON auth.users;
-CREATE TRIGGER trigger_on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-```
-
-#### 2.4.2 Güncellenme Zaman Damgası (`update_timestamp_column()`)
-```sql
-CREATE OR REPLACE FUNCTION public.update_timestamp_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS update_profiles_timestamp ON public.profiles;
-CREATE TRIGGER update_profiles_timestamp BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_timestamp_column();
-
-DROP TRIGGER IF EXISTS update_subscriptions_timestamp ON public.subscriptions;
-CREATE TRIGGER update_subscriptions_timestamp BEFORE UPDATE ON public.subscriptions FOR EACH ROW EXECUTE FUNCTION public.update_timestamp_column();
-
-DROP TRIGGER IF EXISTS update_projects_timestamp ON public.projects;
-CREATE TRIGGER update_projects_timestamp BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION public.update_timestamp_column();
-
-DROP TRIGGER IF EXISTS update_findings_timestamp ON public.findings;
-CREATE TRIGGER update_findings_timestamp BEFORE UPDATE ON public.findings FOR EACH ROW EXECUTE FUNCTION public.update_timestamp_column();
-
-DROP TRIGGER IF EXISTS update_remediation_timestamp ON public.remediation_items;
-CREATE TRIGGER update_remediation_timestamp BEFORE UPDATE ON public.remediation_items FOR EACH ROW EXECUTE FUNCTION public.update_timestamp_column();
-
-DROP TRIGGER IF EXISTS update_gate_webhooks_timestamp ON public.gate_webhooks;
-CREATE TRIGGER update_gate_webhooks_timestamp BEFORE UPDATE ON public.gate_webhooks FOR EACH ROW EXECUTE FUNCTION public.update_timestamp_column();
-```
+  }
+  ```
+- **Prompt:** *"Replace raw <img> tags with Next.js next/image component. Eliminate inline base64 image strings larger than 1KB by moving them to public/ static assets. Specify explicit width, height, and priority attributes to boost Core Web Vitals (LCP & CLS)."*
 
 ---
 
-### 2.5 Çok Kiracılı (Multi-Tenant) Katı Row Level Security (RLS) Politikaları
+### 4.3 `UI-SEO-01`: Sosyal Medya Open Graph, Twitter Card & Semantik SEO
 
-Tüm tablolarda RLS etkinleştirilir. Veri sızıntısını ve IDOR (Insecure Direct Object Reference) açıklarını imkansız kılacak kurallar uygulanır:
+- **Kategori:** `SEO & Social Graph`
+- **Risk Seviyesi:** `MEDIUM`
+- **Standart Referansı:** Open Graph Protocol, Twitter Cards Specs, Semantic HTML5 Hierarchy.
+- **Amaç:** Next.js App Router sayfalarında (`layout.tsx`, `page.tsx`) eksik olan sosyal paylaşım kartlarını (`og:image`, `og:title`, `twitter:card`) ve semantik etiketleme hatalarını tespit ederek arama motoru görünürlüğünü garantiye almak.
 
-```sql
--- 1. Enable RLS on all 8 tables
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.scans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.findings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.remediation_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.gate_webhooks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+#### Tespit Algoritması & Desenler:
+1. **Eksik Open Graph / Twitter Card Metadata:**
+   - Root `layout.tsx` veya landing `page.tsx` içinde `openGraph` veya `twitter` alanlarının bulunmaması ya da `openGraph.images` / `og:image` görselinin tanımlanmaması (LinkedIn, X, WhatsApp paylaşımlarında görselin boş çıkması).
+2. **Eksik Sayfa Başlığı ve Açıklaması (Meta Description):**
+   - `metadata` nesnesinde `title` veya `description` tanımlanmaması ya da 10 karakterden kısa jenerik metin girilmesi.
+3. **Hiyerarşik Başlık Hataları (Semantic Headings):**
+   - Sayfa içinde birden fazla `<h1>` kullanımı ya da `<h1>` olmadan doğrudan `<h2>` veya `<h3>` ile başlanması.
 
--- 2. Profiles: Yalnızca kendi profilini okuma ve güncelleme
-DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
-CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+#### Kod Örneği & Çıktı:
+- **Hatalı Kod (`app/layout.tsx`):**
+  ```tsx
+  export const metadata = {
+    title: 'ShipGuard',
+    description: 'Security app' // 🛑 Eksik OpenGraph, Twitter ve Canonical
+  };
+  ```
+- **Remediation Önerisi:**
+  ```tsx
+  import type { Metadata } from 'next';
 
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-
--- 3. Subscriptions: Yalnızca kendi aboneliğini görüntüleme
-DROP POLICY IF EXISTS "Users can view own subscription" ON public.subscriptions;
-CREATE POLICY "Users can view own subscription" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
-
--- 4. Projects: CRUD tam sahiplik kontrolü
-DROP POLICY IF EXISTS "Users can view own projects" ON public.projects;
-CREATE POLICY "Users can view own projects" ON public.projects FOR SELECT USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can create own projects" ON public.projects;
-CREATE POLICY "Users can create own projects" ON public.projects FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can update own projects" ON public.projects;
-CREATE POLICY "Users can update own projects" ON public.projects FOR UPDATE USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can delete own projects" ON public.projects;
-CREATE POLICY "Users can delete own projects" ON public.projects FOR DELETE USING (auth.uid() = user_id);
-
--- 5. Scans: Taramalara tam erişim
-DROP POLICY IF EXISTS "Users can view own scans" ON public.scans;
-CREATE POLICY "Users can view own scans" ON public.scans FOR SELECT USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can insert own scans" ON public.scans;
-CREATE POLICY "Users can insert own scans" ON public.scans FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- 6. Findings: Proje sahipliğine bağlı miras kalan güvenlik (Inherited Security)
-DROP POLICY IF EXISTS "Users can view findings for own projects" ON public.findings;
-CREATE POLICY "Users can view findings for own projects" ON public.findings
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.projects WHERE public.projects.id = public.findings.project_id AND public.projects.user_id = auth.uid()
-        )
-    );
-
-DROP POLICY IF EXISTS "Users can update findings for own projects" ON public.findings;
-CREATE POLICY "Users can update findings for own projects" ON public.findings
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM public.projects WHERE public.projects.id = public.findings.project_id AND public.projects.user_id = auth.uid()
-        )
-    );
-
--- 7. Remediation Items: Sahiplik kontrolü
-DROP POLICY IF EXISTS "Users can manage own remediation items" ON public.remediation_items;
-CREATE POLICY "Users can manage own remediation items" ON public.remediation_items
-    FOR ALL USING (auth.uid() = user_id);
-
--- 8. Gate Webhooks: Sahiplik kontrolü
-DROP POLICY IF EXISTS "Users can manage own gate webhooks" ON public.gate_webhooks;
-CREATE POLICY "Users can manage own gate webhooks" ON public.gate_webhooks
-    FOR ALL USING (auth.uid() = user_id);
-
--- 9. Activity Logs: Sadece kendi loglarını okuma
-DROP POLICY IF EXISTS "Users can view own activity logs" ON public.activity_logs;
-CREATE POLICY "Users can view own activity logs" ON public.activity_logs
-    FOR SELECT USING (auth.uid() = user_id);
-```
+  export const metadata: Metadata = {
+    title: {
+      default: 'ShipGuard AI Release Gate - Production Readiness Platform',
+      template: '%s | ShipGuard'
+    },
+    description: 'Automated pre-flight release gate auditor checking OWASP security rules, supply chain dependencies, and UI/UX standards before production deployment.',
+    metadataBase: new URL('https://shipguard-saas.vercel.app'),
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: 'https://shipguard-saas.vercel.app',
+      siteName: 'ShipGuard AI Release Gate',
+      title: 'ShipGuard - Production Readiness & Security Gate',
+      description: 'Ship with absolute confidence. Zero false positives, strict security guardrails.',
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ShipGuard Platform' }]
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'ShipGuard AI Release Gate',
+      description: 'Automated pre-flight security and UX audit gate for SaaS teams.',
+      images: ['/og-image.png']
+    }
+  };
+  ```
+- **Prompt:** *"Update Next.js App Router metadata configuration in app/layout.tsx. Add comprehensive OpenGraph and Twitter card configurations with high-res 1200x630 social preview image to maximize social share conversion."*
 
 ---
 
-## 3. SUPABASE & BROWSER OTONOM İŞLEM AKIŞI
+## 5. TEKNİK ENTEGRASYON VE KOD MİMARİSİ HARİTASI
 
-Kullanıcı `/orchestrate kendin ekleme yaptığın sql kodlarını da /browser edip kendin güncelleyebilirsin` dediğinde, `browser` subagent koordineli olarak aşağıdaki 5 adımlı canlı tarayıcı operasyonunu yürütür:
+Tüm yeni kuralların kod tabanına temiz, modüler ve yüksek performanslı biçimde entegre edilmesi için aşağıdaki mimari izlenecektir:
+
+```
+lib/
+├── rules/
+│   ├── security-rules.ts       <-- SEC-SCA-01, SEC-LOG-01, SEC-LLM-01 kuralları eklenir
+│   ├── ai-cliche-rules.ts      <-- Mevcut 25 AI klişe kuralı (korunur)
+│   └── frontend-rules.ts       <-- UI-A11Y-01, UI-PERF-01, UI-SEO-01 kuralları eklenir
+├── scanner-engine.ts           <-- AST motoru: package.json ayrıştırıcı, kural pipeline'ı
+data/
+└── mockData.ts                 <-- SECURITY_RULES_CATALOG ve UI_RULES_CATALOG genişletilir
+scratch/
+└── test_functional_principles.py <-- Kural doğrulamaları Test Suite 5 olarak entegre edilir
+```
+
+### 5.1 `lib/rules/security-rules.ts` Genişletme Mimarisi
+
+Mevcut `evaluateSecurityRules` fonksiyonu dosya bazlı çalışmaktadır. `package.json` dosyası geldiğinde SCA denetimi devreye alınır; genel JS/TS dosyalarında ise PII loglama ve client-side LLM SDK importları taranır.
+
+```typescript
+// evaluateSecurityRules fonksiyonuna eklenecek imza ve akış
+export function evaluateSecurityRules(
+  file: CodeFile, 
+  lines: string[], 
+  cleanContent: string, 
+  findingCounter: { count: number }
+): { findings: Finding[]; logs: string[] } {
+  // 1. Mevcut Kurallar: SEC-01 (API Key), SEC-03 (Supabase RLS), SEC-16 (XSS innerHTML)
+  // 2. YENİ: SEC-SCA-01 (package.json analizinde unpinned deps ve bilinen CVE paketleri)
+  // 3. YENİ: SEC-LOG-01 (console.log ile şifre, token, request.headers sızıntısı)
+  // 4. YENİ: SEC-LLM-01 ("use client" dosyalarında doğrudan OpenAI/Claude SDK importu)
+}
+```
+
+### 5.2 `lib/rules/frontend-rules.ts` Modüler Kural Yapısı
+
+Performans ve sürdürülebilirlik açısından UI kuralları ayrı bir modülde toplanır:
+
+```typescript
+export function evaluateFrontendQualityRules(
+  file: CodeFile,
+  lines: string[],
+  cleanContent: string,
+  findingCounter: { count: number }
+): { findings: Finding[]; logs: string[] } {
+  // 1. YENİ: UI-A11Y-01 (outline-none ringsiz silinmesi, etiketsiz form inputları)
+  // 2. YENİ: UI-PERF-01 (raw <img> kullanımı, >1KB inline base64 URI tespiti)
+  // 3. YENİ: UI-SEO-01 (layout/page dosyalarında eksik OpenGraph, Twitter Card, semantik tagler)
+}
+```
+
+### 5.3 `lib/scanner-engine.ts` Entegrasyon ve Yürütme Pipeline'ı
+
+`runStaticCodeScan` döngüsü içinde her geçerli kaynak dosya sırayla:
+1. Yorum satırlarından arındırılır (`stripComments`).
+2. `evaluateSecurityRules` çalıştırılır (SEC-01..23 + SEC-SCA-01, SEC-LOG-01, SEC-LLM-01).
+3. `evaluateFrontendQualityRules` çalıştırılır (UI-A11Y-01, UI-PERF-01, UI-SEO-01).
+4. `evaluateAiClicheRules` çalıştırılır (CLICHE-01..25).
+5. `.shipguardignore` filtresi uygulanarak bastırılan kurallar elenir.
+6. `calculateReadinessScore` ve `calculateGateStatus` skoru hesaplar.
+
+---
+
+## 6. FAZ 2 UZMAN GÖREV DAĞILIM MATRİSİ (SPECIALIST AGENT TASK ASSIGNMENTS)
+
+Geliştirme süreci 4 uzman ajanın paralel ve koordineli çalışmasıyla yürütülecektir:
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Geliştirici / Orchestrator
-    participant Browser as browser Subagent
-    participant Supabase as Supabase Dashboard
-    participant DB as PostgreSQL Cloud Engine
-
-    User->>Browser: "Supabase dashboarduna git ve SQL şemasını güncelle"
-    Browser->>Supabase: GET https://supabase.com/dashboard
-    Note over Browser,Supabase: Oturum kontrolü / GitHub SSO doğrulaması
-    Browser->>Supabase: Aktif Projeyi Seç (veya yeni proje oluştur)
-    Browser->>Supabase: GET /project/{ref}/sql/new (SQL Editor)
-    Browser->>Supabase: Master DDL SQL Scriptini Yapıştır ve "Run" Butonuna Bas
-    Supabase->>DB: DDL İcrası (8 Tablo, Triggers, RLS, Seed Data)
-    DB-->>Supabase: "Success. No rows returned (Duration: 240ms)"
-    Browser->>Supabase: GET /project/{ref}/editor (Table Editor Doğrulaması)
-    Note over Browser,Supabase: 8 Tablonun ve RLS rozetlerinin ekran görüntüsünü al
-    Browser-->>User: "Tüm tablolar başarıyla oluşturuldu, RLS aktif, kanıt kaydedildi."
-```
-
-### 3.1 Supabase Dashboard Giriş & SSO Oturumu
-- **Hedef URL:** `https://supabase.com/dashboard`
-- **İşlem Adımları:**
-  1. `browser` aracıyla ana sayfaya gidilir.
-  2. Oturum açık değilse, "Sign In" ekranında "Continue with GitHub" seçeneği tetiklenir veya geliştiricinin açık GitHub oturumu üzerinden tek tıkla yetkilendirme tamamlanır.
-  3. Organizasyon listesi ve aktif projeler taranır.
-
-### 3.2 Proje Seçimi ve Hazırlığı
-- **İşlem:**
-  - Eğer mevcut `shipguard` projesi varsa doğrudan proje paneline tıklanır ve proje referansı (`ref`) alınır (örn. `https://supabase.com/dashboard/project/abcxyz123`).
-  - Eğer proje yoksa, "New Project" butonuna basılır:
-    - **Name:** `shipguard-production`
-    - **Database Password:** Güçlü rastgele parola (güvenli belleğe alınır).
-    - **Region:** `Frankfurt (eu-central-1)` veya en yakın düşük gecikmeli bölge.
-    - **Plan:** Free Tier ($0/month).
-
-### 3.3 SQL Editor ile Birleşik Şema Uygulaması (`/sql/new`)
-- **Hedef URL:** `https://supabase.com/dashboard/project/{ref}/sql/new`
-- **İşlem Adımları:**
-  1. Sol navigasyondan **"SQL Editor"** sekmesine tıklanır veya doğrudan `/sql/new` adresine yönlenilir.
-  2. `supabase/migrations/20260904000000_master_schema.sql` dosyasındaki konsolide SQL kodu editör penceresine yapıştırılır.
-  3. **"Run"** butonuna (veya `Cmd+Enter` / `Ctrl+Enter`) basılır.
-  4. Konsolda `"Success. No rows returned"` çıktısı ve yeşil onay işareti doğrulanır.
-  5. Hata alınması durumunda PL/pgSQL hata kodu ve satırı analiz edilip düzeltilir.
-
-### 3.4 Table Editor ile Doğrulama & Kanıt Toplama (Screenshots)
-- **Hedef URL:** `https://supabase.com/dashboard/project/{ref}/editor`
-- **İşlem Adımları:**
-  1. Sol menüden **"Table Editor"** sekmesine geçilir.
-  2. Listelenen 8 tablonun varlığı tek tek denetlenir:
-     - `profiles` (RLS: Enabled, PK: id)
-     - `subscriptions` (RLS: Enabled, PK: id, FK: user_id)
-     - `projects` (RLS: Enabled, PK: id)
-     - `scans` (RLS: Enabled, PK: id)
-     - `findings` (RLS: Enabled, PK: id)
-     - `remediation_items` (RLS: Enabled, PK: id)
-     - `gate_webhooks` (RLS: Enabled, PK: id)
-     - `activity_logs` (RLS: Enabled, PK: id)
-  3. `browser.take_screenshot` komutu ile Table Editor ve SQL Editor çıktıları PNG olarak yakalanıp proje dokümantasyonuna (`artifacts/`) kanıt olarak eklenir.
-
-### 3.5 Environment & API Key Senkronizasyonu
-- Proje Ayarlarından (`Settings > API`) şu iki değer okunur:
-  - `Project URL`: `https://{ref}.supabase.co`
-  - `Project API Keys > anon public`: `eyJhbGciOiJIUzI1NiIsInR5cCI6...`
-- Yerel `.env.local` dosyasındaki `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_ANON_KEY` değişkenleri bu gerçek değerlerle güncellenir.
-
----
-
-## 4. KİMLİK DOĞRULAMA & GERÇEK PROFİL DENEYİMİ
-
-Kullanıcımızın haklı olarak belirttiği *"Google, GitHub vs. giriş yapanlarda 'Demo User' yerine ücretsiz kullanım da olsa ismi vs. olmalı bence"* beklentisi, modern SaaS prensiplerine uygun olarak hayata geçirilir.
-
-### 4.1 GitHub Giriş Akışı (Dinamik Kullanıcı Adı, Avatar)
-1. **Buton Eylemi:** Kullanıcı `Continue with GitHub` butonuna bastığında, statik sahte kullanıcı üretilmez.
-2. **Kullanıcı Tanımlama Arayüzü:** Geliştiricinin GitHub kullanıcı adını girmesi veya tek tıkla seçmesi için şık bir mini modal açılır (Varsayılan: `BedirhanElibol`).
-3. **Profil Enjeksiyonu:**
-   - `name`: Kullanıcının belirttiği GitHub rumuzu (örn. `BedirhanElibol`).
-   - `email`: `${username.toLowerCase()}@users.noreply.github.com`
-   - `avatarUrl`: `https://github.com/${username}.png` (Canlı GitHub profil resmi)
-   - `tier`: Varsayılan olarak `'Free'` (Ücretsiz Kullanım)
-   - `isLoggedIn`: `true`
-4. **Veritabanı Senkronizasyonu:** Supabase bağlı olduğunda `handle_new_user()` tetikleyicisi profili anında veritabanına işler; bağlı olmadığında yerel depolamada (`localStorage.setItem('shipguard_user', ...)`) kalıcı tutulur.
-
-### 4.2 Google Giriş Akışı (Gerçek İsim, E-posta ve Profil Seçici)
-1. **One-Tap Seçici:** `Continue with Google` tıklandığında modern bir Google hesap seçici açılır.
-2. **Alanlar:**
-   - Ad Soyad: `Bedirhan Elibol`
-   - E-posta: `bedirhan@gmail.com`
-   - Profil Görseli: Gerçekçi yüksek çözünürlüklü avatar.
-   - Aktif Plan: `'Free'`
-
-### 4.3 E-posta / Parola Kayıt & Kalıcılık
-- Kayıt formundaki `Demo User` placeholder'ı kaldırılarak `Bedirhan Elibol` veya `Jane Doe` gibi profesyonel yer tutucular kullanılır.
-- Kullanıcı giriş yaptığında e-posta kullanıcı adı (`split('@')[0]`) akıllıca biçimlendirilir (örn. `bedirhan.elibol` -> `Bedirhan Elibol`).
-
-### 4.4 Hardcoded 'Demo User' Kalıntılarının Temizlenmesi
-Aşağıdaki dosyalardaki tüm sabit `Demo User` ve `user@example.com` atamaları tamamen temizlenecektir:
-1. `components/auth/AuthModal.tsx`: Satır 116-117, satır 273.
-2. `lib/supabase.ts`: Satır 36.
-3. `hooks/useDashboardState.ts`: Satır 190.
-4. `app/dashboard/page.tsx`: Satır 283.
-
----
-
-## 5. ÜYELİK KADEMELERİ & PLAN MİMARİSİ
-
-ShipGuard SaaS, 3 kademeli şeffaf bir üyelik modeline sahiptir:
-
-```mermaid
-graph LR
-    F["⚪ Ücretsiz Plan (Free Tier)<br/>0 $/ömür boyu<br/>Tek Proje & OWASP Güvenlik"] -->|"1-Tıkla Yükselt"| P["🔵 Pro Plan<br/>19 $/ay<br/>Sınırsız Proje & CI/CD Gate"]
-    P -->|"Kurumsal SLA"| E["🟣 Enterprise Plan<br/>49 $/ay<br/>7/24 VibeCare & S3 DR"]
-```
-
-### 5.1 Tier 1: Ücretsiz Kullanım (Free Tier)
-- **Kullanıcı Deneyimi:** Her yeni kullanıcı giriş yaptığında adının yanında şık bir `Ücretsiz Plan` rozeti görür.
-- **Maliyet:** 0 $ (Kredi kartı gerekmez).
-- **Kapsam:**
-  - 1 Aktif proje denetimi.
-  - Sınırsız yerel OWASP ve UI/UX Anti-Slop analizi.
-  - Aylık 3 bulut tabanlı gate çalıştırma kotası.
-
-### 5.2 Tier 2: Pro Plan ($19/ay)
-- **Rozet:** `Pro Plan` (Mavi/zümrüt kurumsal pill).
-- **Kapsam:**
-  - Sınırsız proje & GitHub Actions / Vercel otomatik pre-commit gate.
-  - Claude 3.5 Sonnet & Cursor 1-Tıkla Otonom Düzeltme (Auto-Fix) promptları.
-  - SVG Gate rozetleri (`/api/v1/badge`) ve Slack/Discord webhook bildirimleri.
-
-### 5.3 Tier 3: Enterprise Plan ($49/ay)
-- **Rozet:** `Enterprise Plan` (Lüks koyu mor/altın detaylı pill).
-- **Kapsam:**
-  - VibeCare 7/24 Kesintisiz Lifecycle & CVE sızıntı takibi.
-  - Cloud & LLM Bütçe Alarm Muhafızları (Circuit Breaker).
-  - Şifreli S3 otomatik yedekleme ve Beyaz Etiketli (White-label) denetim PDF raporları.
-
-### 5.4 Karşılaştırmalı Yetki & Özellik Matrisi
-
-| Özellik / Kriter | Ücretsiz Kullanım (Free) | Pro Plan ($19/ay) | Enterprise Plan ($49/ay) |
-| :--- | :---: | :---: | :---: |
-| **Statik Güvenlik Taraması (OWASP)** | ✅ Sınırsız | ✅ Sınırsız | ✅ Sınırsız |
-| **UI/UX Anti-Slop & VibePolish Denetimi** | ✅ Dahil | ✅ Dahil | ✅ Dahil |
-| **Kayıtlı Proje Limiti** | 1 Proje | Sınırsız | Sınırsız |
-| **Otomatik CI/CD Release Gate** | Manuel / Webhook | Pre-commit & Push | Full PR Bot + Pre-commit |
-| **Claude & Cursor 1-Tık Auto-Fix** | ❌ Yok | ✅ Aktif | ✅ Aktif (Öncelikli Model) |
-| **Remediation Queue (`remediation_items`)** | Yerel İnceleme | Bulut Senkronu | Otomatik PR Açma |
-| **Gate Webhooks (`gate_webhooks`)** | 1 Adet | 10 Adet | Sınırsız |
-| **VibeCare 7/24 Sağlık İzleme** | ❌ Yok | ❌ Yok | ✅ 7/24 Kesintisiz |
-| **Cloud & LLM Bütçe Koruması** | ❌ Yok | ❌ Yok | ✅ Aktif |
-
----
-
-## 6. ARAYÜZ DOKUNUŞLARI VE UI/UX ANTI-SLOP MİMARİSİ
-
-[.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) rehberine göre jenerik mor gradyanlar ve uydurma istatistikler yerine net, amaca yönelik modern arayüz bileşenleri konumlandırılır:
-
-### 6.1 Header.tsx İyileştirmeleri
-- **Avatar & İsim:** Gerçek `avatarUrl` (GitHub veya Google fotoğrafı) dairesel çerçeveyle gösterilir; resim yoksa baş harf şık zinc arka plan üzerinde sunulur.
-- **Plan Rozeti:** Kullanıcı adının hemen yanında zarif bir rozet yer alır:
-  - Free: `<span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white/5 text-[#A1A1AA] border border-white/10">Ücretsiz Plan</span>`
-- **Profil Menüsü:** Tıklandığında tam isim, e-posta, aktiflik durumu, Stripe yükseltme butonu ve oturumu kapatma linki açılır.
-
-### 6.2 Sidebar.tsx Alt Profil & Plan Widget'ı
-- Sol panelin en altına Linear / Vercel stilinde sabit bir kullanıcı kartı entegre edilir:
-  - Üst satır: Kullanıcı Adı (örn. `Bedirhan Elibol`).
-  - Alt satır: Aktif Plan (örn. `Ücretsiz Plan`).
-  - Sağ eylemler: ⚡ `Zap` (Stripe Yükseltme) ve ⚙️ `Settings` (Ayarlar).
-- Misafir modunda: *"Misafir Modu - Giriş Yap"* çağrısı görünür.
-
-### 6.3 AppShell.tsx Veri & Olay Bağlantıları
-- `Sidebar`'a `user`, `onOpenAuth`, `onOpenCheckout`, `onSignOut` prop'ları taşınır.
-
-### 6.4 ProjectSettingsView.tsx Üyelik ve Abonelik Yönetimi Kartı
-- Mevcut plan göstergesi, plan karşılaştırma grid'i ve tek tıkla Stripe Checkout modal tetikleyicisi eklenir.
-
-### 6.5 RemediationQueueView.tsx & Gate Webhooks Entegrasyonu
-- `public.remediation_items` ve `public.gate_webhooks` veritabanı tablolarıyla doğrudan eşleşen aksiyon listeleri arayüzde görünür kılınır.
-
----
-
-## 7. GÜVENLİK, GİZLİLİK VE OWASP DENETİMİ
-
-[.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) Bölüm 3'teki 23 OWASP kuralı temelinde veritabanı ve kimlik katmanına şu sıkılaştırmalar uygulanır:
-
-1. **Katı Çok Kiracılı İzolasyon (SEC-05 IDOR Önleme):**
-   - Her SQL tablosunda `auth.uid() = user_id` şartı zorunlu kılınmıştır. Kullanıcı A, asla Kullanıcı B'nin projesini veya bulgularını REST/GraphQL üzerinden sorgulayamaz.
-2. **Anon Public Key İzolasyonu:**
-   - İstemciye açık `NEXT_PUBLIC_SUPABASE_ANON_KEY` yalnızca RLS izinli tabloları okuyabilir. `service_role` gizli anahtarı kesinlikle istemci tarafında veya bundle'da yer alamaz.
-3. **SSRF ve Webhook Koruması (SEC-08):**
-   - `gate_webhooks` tablosuna girilen URL'ler sunucu tarafında doğrulanır; özel IP aralıklarına (`127.0.0.1`, `10.0.0.0/8`, `192.168.0.0/16`) istek atılması engellenir.
-4. **XSS & İsim Temizleme (SEC-03):**
-   - Kullanıcıdan gelen `full_name` veya `title` değerleri React JSX içinde otomatik escape edilir; asla `dangerouslySetInnerHTML` içine alınmaz.
-5. **GDPR Article 17 Kalıcı Silme (Sağlam Silme):**
-   - Kullanıcı hesabını sildiğinde `auth.users` üzerindeki `ON DELETE CASCADE` zinciriyle `profiles`, `subscriptions`, `projects`, `scans`, `findings`, `remediation_items`, `gate_webhooks` ve `activity_logs` tamamen imha edilir.
-
----
-
-## 8. FAZ 2 UZMAN GÖREV DAĞILIM MATRİSİ
-
-Uygulama aşaması 6 uzman rol arasında otonom olarak icra edilecektir:
-
-### 8.1 `database-architect` (veya `backend_specialist`) Görev Paketi
-- [ ] **Görev D1 - Master SQL Migration Scripti Hazırlama:**
-  - `supabase/migrations/20260904000000_master_schema.sql` dosyasını oluşturmak; 8 tabloyu (`profiles`, `subscriptions`, `projects`, `scans`, `findings`, `remediation_items`, `gate_webhooks`, `activity_logs`), 6 enum tipini, trigger fonksiyonlarını ve 23 OWASP seed verisini birleştirmek.
-- [ ] **Görev D2 - İdempotency & Sözdizimi Kontrolü:**
-  - `CREATE TABLE IF NOT EXISTS`, `DO $$ BEGIN ... EXCEPTION` ve `ON CONFLICT DO NOTHING` kontrollerini sağlamak.
-- [ ] **Görev D3 - lib/supabase-client.ts ve lib/supabase.ts Güncellemesi:**
-  - Yeni tablolar için CRUD istemci fonksiyonlarını eklemek, RLS JWT Bearer header'larını bağlamak ve sahte `Demo User` kalıntılarını kaldırmak.
-
-### 8.2 `browser` Subagent Görev Paketi
-- [ ] **Görev B1 - Supabase Dashboard Navigasyonu:**
-  - `https://supabase.com/dashboard` adresine gitmek, oturum durumunu doğrulamak.
-- [ ] **Görev B2 - SQL Editor'de Şema Çalıştırma:**
-  - `/project/{ref}/sql/new` sekmesine geçmek, master DDL scriptini yapıştırıp çalıştırmak ve execution çıktısını onaylamak.
-- [ ] **Görev B3 - Table Editor Doğrulaması:**
-  - `/project/{ref}/editor` üzerinden 8 tablonun oluştuğunu ve yeşil "RLS Enabled" rozetlerini doğrulamak.
-- [ ] **Görev B4 - Ekran Görüntüsü & Kanıt Kaydı:**
-  - Ekran görüntüsü alarak (`artifacts/supabase_tables_verified.png`) kanıt sunmak.
-
-### 8.3 `security_specialist` (veya `security-auditor`) Görev Paketi
-- [ ] **Görev S1 - RLS Çapraz Kiracı Penetrasyon Denetimi:**
-  - Farklı `auth.uid()` değerleriyle diğer kullanıcıların `projects` ve `findings` kayıtlarına erişilemediğini doğrulamak.
-- [ ] **Görev S2 - Anon Key Kısıtlama Testi:**
-  - Anonim (JWT'siz) isteklerin tablolara yazamadığını test etmek.
-- [ ] **Görev S3 - GDPR İptal ve Cascade Silme Doğrulaması:**
-  - Kullanıcı silindiğinde tüm ilişkili verilerin temizlendiğini teyit etmek.
-
-### 8.4 `frontend-specialist` Görev Paketi
-- [ ] **Görev F1 - AuthModal.tsx Dinamik Profil Akışı:**
-  - `Demo User` kaldırılarak GitHub kullanıcı adı seçici (`BedirhanElibol`) ve Google profil seçici arayüzü kurulacak.
-- [ ] **Görev F2 - Header.tsx Rozet ve Menü:**
-  - Gerçek profil resmi/avatarı, `Ücretsiz Plan` rozeti ve zenginleştirilmiş kullanıcı dropdown'ı eklenecek.
-- [ ] **Görev F3 - Sidebar.tsx Alt Profil Kartı:**
-  - En alta Linear/Vercel stili kullanıcı profili, plan etiketi, hızlı yükseltme (Zap) ve ayarlar butonları yerleştirilecek.
-- [ ] **Görev F4 - ProjectSettingsView.tsx Üyelik Kartı:**
-  - Üyelik ve Abonelik Yönetimi paneli, 1-tıkla plan yükseltici eklenecek.
-
-### 8.5 `mobile-developer` Görev Paketi
-- [ ] **Görev M1 - Mobil Düzen ve Dokunmatik Hedefler (375px - 428px):**
-  - Header profil menüsünün ve Sidebar alt kartının mobilde taşma yapmaması, butonların min 44x44px olması sağlanacak.
-- [ ] **Görev M2 - Sanal Klavye ve Modal Scroll:**
-  - AuthModal içerisinde klavye açıldığında butonların ekranda görünür kalması sağlanacak.
-
-### 8.6 `test-engineer` Görev Paketi
-- [ ] **Görev T1 - Veritabanı ve Senkronizasyon Otomasyon Testi:**
-  - `scratch/test_supabase_sync.py` ile yeni kullanıcı oluşturma, `handle_new_user()` tetikleyicisi, profil kalıcılığı ve RLS doğrulaması yapılacak.
-- [ ] **Görev T2 - Regresyon & Build Doğrulaması:**
-  - `next build` ve tüm 30 temel prensip testinin başarıyla geçtiği teyit edilecek.
-
----
-
-## 9. TEST, DOĞRULAMA & KABUL KRİTERLERİ
-
-```
-[SENARYO 1: Browser ile Supabase Şema İcrası]
-1. browser ajanı Supabase Dashboard'a bağlanır.
-2. SQL Editor'de birleşik master şemayı çalıştırır.
-3. BEKLENEN: 8 tablo, 6 enum, 2 trigger ve RLS politikaları sıfır hatayla kurulur.
-
-[SENARYO 2: Yeni Kullanıcı Kaydı & Otomatik Tahsis]
-1. GitHub veya Google ile giriş yapılır (örn: BedirhanElibol).
-2. BEKLENEN: auth.users insert'ü sonrası trigger çalışır; profiles'a 'BedirhanElibol', subscriptions'a 'Free' planı atanır.
-
-[SENARYO 3: Arayüzde Profil ve Plan Gösterimi]
-1. Header ve Sidebar alt widget'ı kontrol edilir.
-2. BEKLENEN: Kullanıcı adı 'BedirhanElibol', avatar https://github.com/BedirhanElibol.png ve 'Ücretsiz Plan' rozeti görünür.
-
-[SENARYO 4: RLS Çok Kiracılı Veri İzolasyonu]
-1. User A ve User B oluşturulur. User A bir proje ekler.
-2. User B'nin JWT'si ile User A'nın projesi sorgulanır.
-3. BEKLENEN: Supabase boş dizi [] döndürür; cross-tenant sızıntı sıfırdır.
-
-[SENARYO 5: Plan Yükseltme ve Settings Senkronizasyonu]
-1. Settings ekranında 'Pro Plan'a yükselt butonuna basılır.
-2. BEKLENEN: subscriptions tablosu 'Pro' olarak güncellenir; UI'daki rozet anında 'Pro Plan'a döner.
+gantt
+    title ShipGuard Phase 2 Specialist Execution Matrix
+    dateFormat  YYYY-MM-DD
+    section security-auditor
+    SEC-SCA-01, SEC-LOG-01, SEC-LLM-01 Kodlama :active, a1, 2026-09-05, 1d
+    data/mockData.ts Security Katalog Güncellemesi :active, a2, 2026-09-05, 1d
+    section frontend-specialist
+    UI-A11Y-01, UI-PERF-01, UI-SEO-01 Kodlama :active, b1, 2026-09-05, 1d
+    lib/rules/frontend-rules.ts Modül Entegrasyonu :active, b2, 2026-09-05, 1d
+    section mobile-developer
+    20 Maddelik Mobil & Responsive QA Denetimi :active, c1, 2026-09-05, 1d
+    Mobile Viewport, Touch Target & Dark Mode Fixes :active, c2, 2026-09-05, 1d
+    section test-engineer
+    test_functional_principles.py Suite 5 Yazımı :active, d1, 2026-09-05, 1d
+    Uçtan Uca CI/CD Doğrulama ve Raporlama :active, d2, 2026-09-05, 1d
 ```
 
 ---
 
-## 10. DOSYA DEĞİŞİKLİKLERİ VE SQL SCRIPT ENTEGRASYON HARİTASI
+### 6.1 `security-auditor` Görev Paketi
 
-| Dosya Yolu | Sorumlu Uzman | İşlem & Açıklama |
-| :--- | :--- | :--- |
-| `supabase/migrations/20260904000000_master_schema.sql` | `database-architect` | 8 Tablo, 6 Enum, Trigger'lar ve RLS politikalarını içeren konsolide DDL |
-| `sql/02_tables_and_constraints.sql` | `database-architect` | `remediation_items` ve `gate_webhooks` tablolarının eklenmesi |
-| `sql/03_indexes_and_triggers.sql` | `database-architect` | `handle_new_user()` ve timestamp tetikleyicilerinin güncellenmesi |
-| `sql/04_rls_security_policies.sql` | `database-architect` | 8 tablo için çok kiracılı katı RLS politikaları |
-| `components/auth/AuthModal.tsx` | `frontend-specialist` | 'Demo User' temizliği, dinamik GitHub/Google profil seçici modalı |
-| `components/layout/Header.tsx` | `frontend-specialist` | Gerçek avatar resmi, 'Ücretsiz Plan' rozeti ve zengin profil açılır menüsü |
-| `components/layout/Sidebar.tsx` | `frontend-specialist` | Linear/Vercel stili sabit alt profil & plan widget'ı (Zap ve Ayarlar butonları) |
-| `components/layout/AppShell.tsx` | `frontend-specialist` | Sidebar'a kullanıcı profili ve kimlik işleyicilerinin bağlanması |
-| `components/ProjectSettingsView.tsx` | `frontend-specialist` | Üyelik ve Abonelik Yönetimi kartı, 1-tıkla plan yükseltici |
-| `lib/supabase.ts` & `lib/supabase-client.ts` | `database-architect` | 'Demo User' temizliği, RLS JWT Bearer desteği, 8 tablo CRUD fonksiyonları |
-| `scratch/test_supabase_sync.py` | `test-engineer` | Veritabanı şeması, tetikleyiciler ve profil kalıcılığı otomasyon testi |
+- **Yetki Alanı:** Güvenlik motoru, tedarik zinciri analizi ve secret sızıntısı tespiti.
+- **Görevler:**
+  1. `lib/rules/security-rules.ts` dosyasına `SEC-SCA-01`, `SEC-LOG-01`, `SEC-LLM-01` kural fonksiyonlarını eklemek.
+  2. `data/mockData.ts` içindeki `SECURITY_RULES_CATALOG` dizisine bu 3 yeni kuralı (id, code, title, owaspTag, riskLevel, verificationControl, claudePrompt) tanımlamak.
+  3. `package.json` analiz algoritmasında unpinned `*` ve bilinen CVE'li sürümleri (`axios <1.7.4`, `lodash <4.17.21`, `moment`) regex ve JSON parse ile yakalamak.
+  4. Client component'lerde (`"use client"`) LLM SDK importlarını ve `dangerouslyAllowBrowser: true` kullanımını tespit eden AST mantığını yazmak.
+  5. Tüm bulgularda net satır numarası (`lineRange: L42`), kod bağlamı (`snippet`) ve geliştiricinin kopyalayabileceği `remediationPrompt` üretilmesini sağlamak.
 
 ---
 
-> [!TIP]
-> **Sistem Mimarı Onayı:** Bu master plan, `.agent/Proje_Gelistirme_Rehberi.md` standartlarına tam uyumlu olup, hem veritabanı şema konsolidasyonunu hem de `/browser` otonom Supabase entegrasyonunu eksiksiz biçimde tanımlamıştır. Faz 2 uygulama fazına geçilmeye hazırdır.
+### 6.2 `frontend-specialist` Görev Paketi
+
+- **Yetki Alanı:** Arayüz kalitesi, erişilebilirlik (WCAG 2.1 AA), Core Web Vitals ve SEO.
+- **Görevler:**
+  1. `lib/rules/frontend-rules.ts` dosyasını oluşturup `UI-A11Y-01`, `UI-PERF-01`, `UI-SEO-01` kurallarını kodlamak.
+  2. `lib/scanner-engine.ts` içine bu yeni kuralların çağrısını eklemek.
+  3. `data/mockData.ts` içindeki `UI_RULES_CATALOG` dizisine bu kuralların karşılıklarını girmek.
+  4. WCAG odak halkası denetiminde `outline-none` ile birlikte `focus-visible:ring` kullanılıp kullanılmadığını doğrulayan regex kuralını geliştirmek.
+  5. Next.js App Router `layout.tsx` ve `page.tsx` sayfalarında `openGraph.images` ve `twitter.card` etiketlerinin doğrulanmasını sağlamak.
+  6. ShipGuard'ın kendi bileşenlerini (`components/`, `app/`) tarayarak yeni kurallarla uyumlu olduğunu teyit etmek.
+
+---
+
+### 6.3 `mobile-developer` Görev Paketi (.agent Rehberi 20 Hızlı Test)
+
+- **Yetki Alanı:** Mobil görünüm, duyarlılık (responsive), dokunmatik hedefler ve PWA hazırlığı.
+- **Referans:** [.agent/Proje_Gelistirme_Rehberi.md](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/.agent/Proje_Gelistirme_Rehberi.md) Bölüm 4 (Mobil Geliştirici & QA Kontrol Listesi).
+- **Görevler:**
+  1. **20 Maddelik Mobil Test Matrisini Uygulamak:**
+     - Test 1 (Uçak Modu / Offline): Ağ koptuğunda uygulamanın çökmemesi, graceful hata vermesi.
+     - Test 3 (Karanlık Mod / Kontrast): Koyu temada kaybolan metin olmaması, WCAG kontrast oranları.
+     - Test 4 (Büyük Font Ölçeği): Sistem fontu büyütüldüğünde butonların taşmaması.
+     - Test 5 (Sanal Klavye): Input'a tıklandığında klavyenin butonları kapatmaması.
+     - Test 6 (Boş Durum / Empty State): İlk açılışta boş ekranlarda rehberlik kartlarının bulunması.
+     - Test 8 (Yatay/Dikey Oryantasyon): Mobilde ekran döndürüldüğünde düzenin esnekliği.
+     - Test 15 (Çarpıyı Bul): Modal ve Drawer kapatma butonlarının mobilde en az 44x44px dokunma alanına sahip olması.
+     - Test 16 (Düşük Pil & Isınma): Gereksiz sonsuz CSS animasyonları veya memory leak'lerin temizlenmesi.
+  2. Arayüzün mobil kırılma noktalarında (`sm:`, `md:`) test edilmesi ve mobil uyumsuz geniş tabloların dikey kartlara dönüştürülmesi.
+
+---
+
+### 6.4 `test-engineer` Görev Paketi & Test Otomasyonu
+
+- **Yetki Alanı:** Otomatik testler, uçtan uca doğrulama ve gerileme (regression) testleri.
+- **Görevler:**
+  1. `scratch/test_functional_principles.py` dosyasını genişleterek **Test Suite 5: Static AST Engine New Rules Verification** bölümünü eklemek.
+  2. Aşağıdaki test senaryolarını kodlamak:
+     - `SEC-SCA-01`: Mock `package.json` dosyasında `axios: "^0.21.1"` ve `lodash: "*"` içeren girdilerin taranıp HIGH seviyesinde bulgu üretildiğinin doğrulanması.
+     - `SEC-LOG-01`: Mock dosyada `console.log("Token:", userToken)` ifadesinin yakalandığının doğrulanması.
+     - `SEC-LLM-01`: `'use client'` içeren mock dosyada `import OpenAI from 'openai'` ifadesinin CRITICAL olarak yakalandığının doğrulanması.
+     - `UI-A11Y-01`: Mock JSX dosyasında `className="outline-none"` olup ring olmayan input'un yakalandığının doğrulanması.
+     - `UI-PERF-01`: Mock JSX dosyasında `<img>` etiketinin ve 2KB'lık base64 URI'nin yakalandığının doğrulanması.
+     - `UI-SEO-01`: Mock layout dosyasında eksik OpenGraph etiketinin MEDIUM olarak yakalandığının doğrulanması.
+  3. Bastırma mekanizmasının (`.shipguardignore`) bu yeni kuralları doğru şekilde bastırabildiğini test etmek.
+  4. Mevcut tüm testlerin (`/api/v1/gate-check`, `/api/v1/badge`, `/api/v1/proxy`, `/api/v1/stripe-webhook`) %100 yeşil (PASS) kaldığını teyit etmek.
+
+---
+
+## 7. TEST, DOĞRULAMA & KALİTE KONTROL PLANI
+
+### 7.1 `scratch/test_functional_principles.py` Kapsamına Kural Testleri Eklenmesi
+
+`test_functional_principles.py` test paketine eklenecek yapı:
+
+```python
+def test_static_ast_new_rules():
+    print("\n" + "="*70)
+    print(" 5. FUNCTIONAL AUDIT: Static AST Engine New Rules (Option A & B)")
+    print("="*70)
+    
+    # 5.1 Test SEC-SCA-01 (Vulnerable & Unpinned Dependencies)
+    # 5.2 Test SEC-LOG-01 (Sensitive Token Logging)
+    # 5.3 Test SEC-LLM-01 (Client Component LLM SDK Exposure)
+    # 5.4 Test UI-A11Y-01 (WCAG Missing Ring & Unlabelled Input)
+    # 5.5 Test UI-PERF-01 (Unoptimized <img> & Giant Base64)
+    # 5.6 Test UI-SEO-01 (Missing OpenGraph & Twitter Cards)
+    # 5.7 Test .shipguardignore Rule Suppression
+```
+
+### 7.2 Yanlış Pozitif (False Positive) ve Bastırma (`.shipguardignore`) Testleri
+
+- Kural motoru tanım dosyaları (`lib/rules/*`, `data/mockData.ts`), kural adlarını veya örnek kodları içerdiği için motor tarafından taranırken kendi kendini yanlışlıkla ihlal olarak raporlamamalıdır (`isScannerRuleCatalog` koruması).
+- Kullanıcı `.shipguardignore` dosyasına `SEC-SCA-01` veya `UI-A11Y-01` yazdığında motor bu kuralı sessizce atlamalı ve skora ceza puanı yansıtmamalıdır.
+
+### 7.3 E2E Doğrulama Senaryoları & Başarı Kriterleri
+
+| Test ID | Test Senaryosu | Beklenen Sonuç | Doğrulama Yöntemi |
+| :--- | :--- | :--- | :--- |
+| **TC-01** | `package.json` içinde `*` versiyonu taraması | `SEC-SCA-01` HIGH bulgusu üretilir, skor -15 düşer | Unit / Static Scan |
+| **TC-02** | Kod içinde `console.log(token)` taraması | `SEC-LOG-01` HIGH bulgusu üretilir | Unit / Static Scan |
+| **TC-03** | `'use client'` içinde OpenAI import taraması | `SEC-LLM-01` CRITICAL bulgusu üretilir, gate FAILED olur | Unit / Gate Check API |
+| **TC-04** | `<input className="outline-none">` taraması | `UI-A11Y-01` MEDIUM bulgusu üretilir | Unit / Static Scan |
+| **TC-05** | Standart `<img>` etiketi taraması | `UI-PERF-01` HIGH bulgusu üretilir | Unit / Static Scan |
+| **TC-06** | `app/layout.tsx` OpenGraph taraması | `UI-SEO-01` MEDIUM bulgusu üretilir | Unit / Static Scan |
+| **TC-07** | `.shipguardignore` kural bastırma | Belirtilen kural bulgulardan çıkarılır, skor etkilenmez | Functional Test |
+| **TC-08** | `/api/v1/gate-check` POST uçtan uca çağrı | JSON yanıtında yeni bulgular ve remediationPrompt yer alır | HTTP Automated Suite |
+| **TC-09** | 20 Maddelik Mobil QA Kontrolü | Mobil görünüm, kontrast ve dokunmatik hedefler sorunsuz çalışır | Manual & Emulation |
+
+---
+
+## 8. SONUÇ VE FAZ 2 BAŞLANGIÇ TALİMATI
+
+Bu plan, kullanıcının yasal ve teknik çekincesini ("bizi suçlarlar") tam anlamıyla koruyan, **Snyk / SonarQube** benzeri profesyonel bir **Denetçi & Güvenli Danışman (Auditor & Advisor)** mimarisini hayata geçirmektedir. Kör kod yamalama (Option C) tamamen kapsam dışı bırakılmış; yerine Option A ve Option B kuralları en katı OWASP ve WCAG standartlarıyla tasarlanmıştır.
+
+**Faz 2 Başlangıç Direktifi:**  
+Kullanıcı onayının ardından `security-auditor`, `frontend-specialist`, `mobile-developer` ve `test-engineer` uzmanları eşzamanlı olarak kodlama ve doğrulama fazına başlayacaktır.

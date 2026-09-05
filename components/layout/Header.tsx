@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Project } from '@/data/schema';
-import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings } from 'lucide-react';
+import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { sanitizeTargetUrl } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
@@ -20,6 +20,7 @@ interface HeaderProps {
   onSignOut?: () => void;
   onOpenCheckout?: () => void;
   onNavigateSettings?: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,7 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   onSignOut,
   onOpenCheckout,
-  onNavigateSettings
+  onNavigateSettings,
+  onToggleMobileMenu
 }) => {
   const [isGithubModalOpen, setIsGithubModalOpen] = useState<boolean>(false);
   const [activeTargetUrl, setActiveTargetUrl] = useState<string>(selectedProject.repoUrl);
@@ -72,13 +74,24 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="h-16 px-4 sm:px-6 bg-[#0E0E12] border-b border-white/10 flex items-center justify-between gap-4 sticky top-0 z-30">
-        {/* Left: Brand / Home Link */}
-        <div className="flex items-center gap-4">
+      <header className="h-16 px-3 sm:px-6 bg-[#0E0E12] border-b border-white/10 flex items-center justify-between gap-2 sm:gap-4 sticky top-0 z-30">
+        {/* Left: Mobile Menu Trigger + Brand / Home Link */}
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          {onToggleMobileMenu && (
+            <button
+              onClick={onToggleMobileMenu}
+              className="p-1.5 -ml-1 text-[#A1A1AA] hover:text-white md:hidden rounded-lg hover:bg-white/5 transition-colors shrink-0"
+              aria-label="Open Navigation Menu"
+              title="Open Menu"
+            >
+              <Menu size={20} />
+            </button>
+          )}
+
           {onNavigateLanding && (
             <button
               onClick={onNavigateLanding}
-              className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-xs text-[#A1A1AA] hover:text-white transition-colors shrink-0"
               title="Return to Landing Page"
             >
               <ArrowLeft size={15} />
@@ -87,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Project Selector Dropdown */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <select
               aria-label="Select Active Project"
               value={selectedProject.id}
@@ -95,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
                 const found = projects.find((p) => p.id === e.target.value);
                 if (found) onSelectProject(found);
               }}
-              className="bg-[#141414] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-white outline-none cursor-pointer max-w-[180px] sm:max-w-[240px] truncate"
+              className="bg-[#141414] border border-white/10 rounded-lg px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-mono font-bold text-white outline-none cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-[240px] truncate"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -106,10 +119,10 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => setIsGithubModalOpen(true)}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors"
+              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors shrink-0"
               title="Connect Repository / Website"
             >
-              <FolderGit2 size={15} />
+              <FolderGit2 size={14} />
             </button>
           </div>
         </div>
@@ -127,13 +140,13 @@ export const Header: React.FC<HeaderProps> = ({
         </form>
 
         {/* Right: Quick Audit Trigger & User Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={onTriggerScan}
-            className="btn btn-primary px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white text-black hover:bg-neutral-200"
+            className="btn btn-primary px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white text-black hover:bg-neutral-200 shrink-0"
           >
             <Play size={12} fill="#0A0A0A" />
-            <span>Audit</span>
+            <span className="hidden xs:inline">Audit</span>
           </button>
 
           {/* User Auth Info / Profile Dropdown */}
@@ -243,16 +256,16 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 onClick={() => onOpenAuth && onOpenAuth('signin')}
-                className="text-xs font-mono text-[#A1A1AA] hover:text-white px-2 py-1 rounded transition-colors"
+                className="text-[11px] sm:text-xs font-mono text-[#A1A1AA] hover:text-white px-1.5 sm:px-2 py-1 rounded transition-colors whitespace-nowrap"
               >
                 Sign In
               </button>
               <button
                 onClick={() => onOpenAuth && onOpenAuth('signup')}
-                className="btn btn-primary text-xs font-mono px-3 py-1 rounded bg-white text-black hover:bg-neutral-200"
+                className="btn btn-primary text-[11px] sm:text-xs font-mono px-2 sm:px-3 py-1 rounded bg-white text-black hover:bg-neutral-200 whitespace-nowrap font-bold"
               >
                 Sign Up
               </button>

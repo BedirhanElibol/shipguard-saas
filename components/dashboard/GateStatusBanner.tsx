@@ -1,4 +1,4 @@
-﻿// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React, { useRef } from 'react';
@@ -45,42 +45,42 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
   return (
     <div
-      className={`bg-[#141414] border rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 ${
+      className={`bg-[#141414] border rounded-xl p-4 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6 ${
         project.gateStatus === 'FAILED' ? 'border-red-500/30' : 'border-white/10'
       }`}
     >
-      <div className="flex items-center gap-5">
+      <div className="flex items-start sm:items-center gap-3.5 sm:gap-5 min-w-0">
         <div
-          className={`w-14 h-14 rounded-xl flex items-center justify-center border font-bold ${
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border font-bold shrink-0 ${
             project.gateStatus === 'FAILED'
               ? 'bg-red-500/10 border-red-500/30 text-red-500'
               : 'bg-white/5 border-white/10 text-white'
           }`}
         >
-          {project.gateStatus === 'FAILED' ? <AlertTriangle size={28} /> : <CheckCircle2 size={28} />}
+          {project.gateStatus === 'FAILED' ? <AlertTriangle size={24} className="sm:w-7 sm:h-7" /> : <CheckCircle2 size={24} className="sm:w-7 sm:h-7" />}
         </div>
 
-        <div>
-          <div className="text-xs font-bold text-[#A1A1AA] font-mono tracking-widest uppercase">
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] sm:text-xs font-bold text-[#A1A1AA] font-mono tracking-widest uppercase">
             RELEASE GATE EVALUATION
           </div>
-          <h1 className="text-2xl font-extrabold text-[#EDEDED] mt-1">
+          <h1 className="text-lg sm:text-2xl font-extrabold text-[#EDEDED] mt-0.5 sm:mt-1 truncate">
             {project.name} ·{' '}
             <span className={project.gateStatus === 'FAILED' ? 'text-red-400' : 'text-emerald-400'}>
               {project.gateStatus}
             </span>
           </h1>
-          <p className="text-xs text-[#A1A1AA] mt-1">
+          <p className="text-[11px] sm:text-xs text-[#A1A1AA] mt-1 leading-relaxed">
             Readiness Score: <strong className="text-white font-mono">{project.readinessScore}/100</strong> ·{' '}
             {criticals.length} Criticals, {highs.length} Highs, {uiCliches.length} UI Clichés
           </p>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
         <button
           onClick={onTriggerScan}
-          className="btn btn-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-2 bg-white text-black hover:bg-neutral-200"
+          className="btn btn-primary px-4 sm:px-5 py-2 sm:py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 flex-1 sm:flex-initial"
         >
           <Play size={13} fill="#0A0A0A" />
           <span>Re-Run Audit</span>
@@ -88,29 +88,29 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
         <button
           onClick={() => setIsRuleConfigOpen(true)}
-          className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
+          className="btn btn-secondary px-3 py-2 sm:py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
           title="Configure Rule Matrix"
         >
           <Sliders size={13} />
-          <span className="hidden sm:inline">Rules</span>
+          <span className="hidden xs:inline">Rules</span>
         </button>
 
         <button
           onClick={() => generateAuditPdfReport(project)}
-          className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
+          className="btn btn-secondary px-3 py-2 sm:py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
           title="Export PDF Report"
         >
           <Download size={13} />
-          <span className="hidden sm:inline">PDF</span>
+          <span className="hidden xs:inline">PDF</span>
         </button>
 
         <button
           onClick={() => setIsExecutiveBriefingOpen(true)}
-          className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
+          className="btn btn-secondary px-3 py-2 sm:py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
           title="Executive Briefing"
         >
           <Award size={13} />
-          <span className="hidden sm:inline">Briefing</span>
+          <span className="hidden xs:inline">Briefing</span>
         </button>
 
         <div className="relative" ref={moreToolsRef}>

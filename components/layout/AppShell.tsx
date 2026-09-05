@@ -40,6 +40,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   onSignOut,
   onOpenCheckout
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[#EDEDED] flex flex-col font-sans">
@@ -56,20 +57,23 @@ export const AppShell: React.FC<AppShellProps> = ({
         onSignOut={onSignOut}
         onOpenCheckout={onOpenCheckout}
         onNavigateSettings={() => onNavigate('settings')}
+        onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
       />
 
-      <div className="flex flex-1">
-        {/* Left Persistent Sidebar */}
+      <div className="flex flex-1 relative">
+        {/* Left Persistent Sidebar (Desktop) + Slide-over Drawer (Mobile) */}
         <Sidebar
           activeNav={activeNav}
           onNavigate={onNavigate}
           user={user}
           onOpenAuth={(mode) => onOpenAuth && onOpenAuth(mode)}
           onNavigateSettings={() => onNavigate('settings')}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Content Area with Fluid Page Transition */}
-        <main className="flex-1 min-w-0 bg-[#0A0A0A] p-6 sm:p-8 overflow-y-auto w-full">
+        <main className="flex-1 min-w-0 bg-[#0A0A0A] p-3 sm:p-6 md:p-8 overflow-y-auto w-full">
           <PageTransition routeKey={activeNav}>
             {children}
           </PageTransition>

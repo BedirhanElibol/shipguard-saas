@@ -34,7 +34,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTarget, setLoadingTarget] = useState<'github' | 'google' | 'email' | null>(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -44,8 +44,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setName('');
       setError('');
       setSuccessMsg('');
+      setLoadingTarget(null);
     }
   }, [initialMode, isOpen]);
+
+  React.useEffect(() => {
+    const handleReset = () => setLoadingTarget(null);
+    window.addEventListener('pageshow', handleReset);
+    window.addEventListener('focus', handleReset);
+    const handleVis = () => {
+      if (document.visibilityState === 'visible') {
+        setLoadingTarget(null);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVis);
+
+    return () => {
+      window.removeEventListener('pageshow', handleReset);
+      window.removeEventListener('focus', handleReset);
+      document.removeEventListener('visibilitychange', handleVis);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -60,9 +79,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     if (mode === 'forgot') {
-      setIsLoading(true);
+      setLoadingTarget('email');
       const { success, message } = await supabaseResetPassword(email.trim());
-      setIsLoading(false);
+      setLoadingTarget(null);
       if (success) {
         setSuccessMsg(message);
       } else {
@@ -80,11 +99,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    setIsLoading(true);
+    setLoadingTarget('email');
 
     if (mode === 'signin') {
       const { user, error: signError } = await supabaseSignIn(email.trim(), password);
-      setIsLoading(false);
+      setLoadingTarget(null);
       if (signError) {
         setError(signError);
       } else if (user) {
@@ -93,7 +112,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } else if (mode === 'signup') {
       const { user, error: signUpErr, requiresVerification } = await supabaseSignUp(email.trim(), password, name.trim());
-      setIsLoading(false);
+      setLoadingTarget(null);
       if (signUpErr) {
         setError(signUpErr);
       } else if (user) {
@@ -111,17 +130,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleInitiateOAuth = async (provider: 'github' | 'google') => {
     setError('');
     setSuccessMsg('');
-    setIsLoading(true);
+    setLoadingTarget(provider);
+
+    // Auto-unlock safety timer: unlocks if user aborts or stays on page
+    const safetyTimer = setTimeout(() => {
+      setLoadingTarget(null);
+    }, 4500);
+
     try {
       const { url, error: oauthError } = await supabaseSignInWithOAuth(provider);
       if (url) {
         window.location.href = url;
         return;
       }
-      setIsLoading(false);
+      clearTimeout(safetyTimer);
+      setLoadingTarget(null);
       setError(oauthError || `${provider === 'github' ? 'GitHub' : 'Google'} sign-in could not be initiated.`);
     } catch (err: any) {
-      setIsLoading(false);
+      clearTimeout(safetyTimer);
+      setLoadingTarget(null);
       setError(err?.message || 'Authentication error occurred.');
     }
   };
@@ -200,17 +227,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleInitiateOAuth('github')}
-                  disabled={isLoading}
+                  disabled={loadingTarget !== null}
                   className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#1F2937] hover:bg-[#374151] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   <Github size={16} />
-                  <span>{isLoading ? 'Connecting...' : 'Continue with GitHub'}</span>
+                  <span>{loadingTarget === 'github' ? 'Connecting to GitHub...' : 'Continue with GitHub'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleInitiateOAuth('google')}
-                  disabled={isLoading}
+                  disabled={loadingTarget !== null}
                   className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -231,7 +258,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 22.3 12 22.3z"
                     />
                   </svg>
-                  <span>{isLoading ? 'Connecting...' : 'Continue with Google'}</span>
+                  <span>{loadingTarget === 'google' ? 'Connecting to Google...' : 'Continue with Google'}</span>
                 </button>
               </div>
 
@@ -321,11 +348,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-md"
+              disabled={loadingTarget !== null}
+              className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-md disabled:opacity-50"
             >
               <span>
-                {isLoading
+                {loadingTarget === 'email'
                   ? 'Processing...'
                   : mode === 'signin'
                   ? 'Sign In'

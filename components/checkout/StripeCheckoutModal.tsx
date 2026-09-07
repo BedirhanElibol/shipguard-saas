@@ -22,7 +22,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
   onUpgradeSuccess,
   onOpenAuth
 }) => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [selectedPlan, setSelectedPlan] = useState<'Pro' | 'Enterprise'>('Pro');
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [expiry, setExpiry] = useState('12/28');
@@ -186,7 +186,15 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                     }`}
                   >
                     <span>Annual</span>
-                    <span className="text-[0.6rem] uppercase tracking-wider bg-white/5 text-white px-1 rounded font-extrabold font-mono">Save 20%</span>
+                    <span
+                      className={`text-[0.6rem] uppercase tracking-wider px-1.5 py-0.5 rounded font-extrabold font-mono transition-colors ${
+                        billingCycle === 'annual'
+                          ? 'bg-neutral-900 text-emerald-400'
+                          : 'bg-white/10 text-emerald-400'
+                      }`}
+                    >
+                      Save 20%
+                    </span>
                   </button>
                 </div>
               </div>

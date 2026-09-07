@@ -12,7 +12,7 @@ interface PricingProps {
 }
 
 export function PricingSection({ onSelectPlan }: PricingProps) {
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [isAnnual, setIsAnnual] = useState(false);
 
   return (
     <div className="flex flex-col items-center gap-10 py-8 max-w-6xl mx-auto w-full px-4">

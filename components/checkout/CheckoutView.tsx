@@ -19,7 +19,7 @@ interface CheckoutViewProps {
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({
   initialPlanId = 'shipguard-core',
-  initialBilling = 'annual',
+  initialBilling = 'monthly',
   initialSuccess = false,
   onBackToPricing,
   user,

@@ -12,7 +12,7 @@ function CheckoutPageContent() {
   const router = useRouter();
 
   const planId = searchParams.get('plan') || 'shipguard-core';
-  const billing = (searchParams.get('billing') || 'annual') as 'annual' | 'monthly';
+  const billing = (searchParams.get('billing') || 'monthly') as 'annual' | 'monthly';
   const isSuccess = searchParams.get('success') === 'true';
 
   const [user, setUser] = useState<UserProfile | null>(null);

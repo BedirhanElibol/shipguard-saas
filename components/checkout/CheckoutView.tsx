@@ -121,10 +121,10 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
     SHIPGUARD_PRICING_PLANS[0];
 
   const pricePerMonth = isAnnual ? selectedPlan.priceAnnual : selectedPlan.priceMonthly;
-  const annualTotal = pricePerMonth * 12;
-  const subtotal = isAnnual ? annualTotal : pricePerMonth;
-  const tax = Math.round(subtotal * 0.18);
-  const total = subtotal + tax;
+  const annualTotal = Number((pricePerMonth * 12).toFixed(2));
+  const subtotal = Number((isAnnual ? annualTotal : pricePerMonth).toFixed(2));
+  const tax = Number((subtotal * 0.18).toFixed(2));
+  const total = Number((subtotal + tax).toFixed(2));
 
   const handleSimulateSandbox = (e: React.FormEvent) => {
     e.preventDefault();
@@ -346,7 +346,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         className="btn btn-primary min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
                       >
                         <Lock size={14} />
-                        <span>Pay Securely with Polar (${selectedPlan.priceMonthly}/mo)</span>
+                        <span>Pay Securely with Polar (${selectedPlan.priceMonthly.toFixed(2)}/mo)</span>
                       </a>
                     ) : (
                       <div className="flex flex-col gap-2">
@@ -356,7 +356,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                           className="min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white/10 text-[#A1A1AA] hover:bg-white/15 hover:text-white transition-all border border-white/10 font-mono text-center cursor-pointer"
                         >
                           <Lock size={14} />
-                          <span>Sign In to Upgrade (${selectedPlan.priceMonthly}/mo)</span>
+                          <span>Sign In to Upgrade (${selectedPlan.priceMonthly.toFixed(2)}/mo)</span>
                         </button>
                         <span className="text-[11px] text-amber-300/80 font-mono text-center">
                           Guest accounts cannot process payments. Please sign in first.
@@ -365,7 +365,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     )}
                     {isAnnual && isAuthenticated && (
                       <p className="text-[10px] text-white/60 font-mono text-center -mt-2">
-                        Polar online checkout bills monthly (${selectedPlan.priceMonthly}/mo). Cancel anytime in 1-click.
+                        Polar online checkout bills monthly (${selectedPlan.priceMonthly.toFixed(2)}/mo). Cancel anytime in 1-click.
                       </p>
                     )}
 
@@ -447,7 +447,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     {selectedPlan.name}
                   </h3>
                   <div className="text-sm font-extrabold text-white font-mono">
-                    ${pricePerMonth} <span className="text-xs text-[#A1A1AA]">/ mo</span>
+                    ${pricePerMonth.toFixed(2)} <span className="text-xs text-[#A1A1AA]">/ mo</span>
                   </div>
                 </div>
                 <p className="text-xs text-[#A1A1AA] mt-1">
@@ -482,15 +482,15 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
               <div className="space-y-2.5 text-xs text-[#A1A1AA] pt-3 border-t border-white/10">
                 <div className="flex justify-between">
                   <span>Base Price ({isAnnual ? '12 Months' : '1 Month'}):</span>
-                  <span className="font-mono text-white">${subtotal}</span>
+                  <span className="font-mono text-white">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[#A1A1AA]">
                   <span>Estimated VAT / Tax (18%):</span>
-                  <span className="font-mono">${tax}</span>
+                  <span className="font-mono">${tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-white/10 text-sm font-extrabold text-white">
                   <span>Total Due Today:</span>
-                  <span className="font-mono text-white font-bold">${total}</span>
+                  <span className="font-mono text-white font-bold">${total.toFixed(2)}</span>
                 </div>
               </div>
 

@@ -41,7 +41,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
 
   if (!isOpen) return null;
 
-  const proPrice = billingCycle === 'annual' ? '$15' : '$19';
+  const proPrice = billingCycle === 'annual' ? '$0.50' : '$0.50';
   const enterprisePrice = billingCycle === 'annual' ? '$39' : '$49';
   const currentPrice = selectedPlan === 'Pro' ? proPrice : enterprisePrice;
 

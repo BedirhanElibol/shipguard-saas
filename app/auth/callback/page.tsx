@@ -50,6 +50,9 @@ function CallbackHandler() {
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
           localStorage.setItem('shipguard_user', JSON.stringify(profile));
+          if (typeof document !== 'undefined') {
+            document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
+          }
 
           if (isMounted) {
             setStatus('success');
@@ -64,6 +67,9 @@ function CallbackHandler() {
             if (newSession && newSession.user && isMounted) {
               const profile = mapSupabaseUserToProfile(newSession.user);
               localStorage.setItem('shipguard_user', JSON.stringify(profile));
+              if (typeof document !== 'undefined') {
+                document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
+              }
               setStatus('success');
               setMessage('Sign in successful! Redirecting...');
               subscription.unsubscribe();

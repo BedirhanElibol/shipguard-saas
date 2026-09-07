@@ -49,7 +49,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       setCurrentUser(user);
     } else {
       try {
-        const saved = localStorage.getItem('shipguard_user');
+        let saved = localStorage.getItem('shipguard_user');
+        if (!saved && typeof document !== 'undefined') {
+          const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
+          if (match && match[2]) {
+            saved = decodeURIComponent(match[2]);
+          }
+        }
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed && parsed.isLoggedIn) {
@@ -105,16 +111,14 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
   useEffect(() => {
     if (initialSuccess) {
-      if (!isAuthenticated) {
-        return;
-      }
       const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-      const key = generateLicenseKey(selectedPlanId, currentUser?.email || 'customer@shipguard.app');
+      const userEmail = currentUser?.email || 'customer@shipguard.app';
+      const key = generateLicenseKey(selectedPlanId, userEmail);
       setActiveLicenseKey(key);
       activateUserTier(tier, key);
       setIsSubmitted(true);
     }
-  }, [initialSuccess, selectedPlanId, isAuthenticated, currentUser?.email]);
+  }, [initialSuccess, selectedPlanId, currentUser?.email]);
 
   const selectedPlan: PricingPlanItem =
     SHIPGUARD_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||

@@ -21,7 +21,13 @@ function CheckoutPageContent() {
 
   useEffect(() => {
     try {
-      const savedUserStr = localStorage.getItem('shipguard_user');
+      let savedUserStr = localStorage.getItem('shipguard_user');
+      if (!savedUserStr && typeof document !== 'undefined') {
+        const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
+        if (match && match[2]) {
+          savedUserStr = decodeURIComponent(match[2]);
+        }
+      }
       if (savedUserStr) {
         const parsed = JSON.parse(savedUserStr);
         if (parsed && parsed.isLoggedIn) {
@@ -54,6 +60,9 @@ function CheckoutPageContent() {
         setUser(null);
         try {
           localStorage.removeItem('shipguard_user');
+          if (typeof document !== 'undefined') {
+            document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
+          }
         } catch (e) {}
       }}
     >
@@ -77,6 +86,9 @@ function CheckoutPageContent() {
           setUser(loggedUser);
           try {
             localStorage.setItem('shipguard_user', JSON.stringify(loggedUser));
+            if (typeof document !== 'undefined') {
+              document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(loggedUser))}; path=/; max-age=2592000; SameSite=Lax`;
+            }
           } catch (e) {}
           setIsAuthModalOpen(false);
         }}

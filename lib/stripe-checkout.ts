@@ -68,13 +68,22 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
     if (licenseKey) {
       localStorage.setItem('shipguard_license_key', licenseKey);
     }
-    const savedUserStr = localStorage.getItem('shipguard_user');
+    let savedUserStr = localStorage.getItem('shipguard_user');
+    if (!savedUserStr && typeof document !== 'undefined') {
+      const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
+      if (match && match[2]) {
+        savedUserStr = decodeURIComponent(match[2]);
+      }
+    }
     if (savedUserStr) {
       try {
         const parsed = JSON.parse(savedUserStr);
         if (parsed && typeof parsed === 'object' && parsed.isLoggedIn) {
           const userObj = { ...parsed, tier: tier };
           localStorage.setItem('shipguard_user', JSON.stringify(userObj));
+          if (typeof document !== 'undefined') {
+            document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
+          }
           window.dispatchEvent(new Event('storage'));
         }
       } catch (err) {

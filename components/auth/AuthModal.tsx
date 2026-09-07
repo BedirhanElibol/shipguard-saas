@@ -29,11 +29,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode = 'signin'
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(initialMode);
-  const [oauthProvider, setOauthProvider] = useState<'GitHub' | 'Google' | null>(null);
-  const [githubUser, setGithubUser] = useState('');
-  const [isCustomGoogle, setIsCustomGoogle] = useState(false);
-  const [customGoogleName, setCustomGoogleName] = useState('');
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -44,11 +39,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
-      setOauthProvider(null);
-      setGithubUser('');
-      setIsCustomGoogle(false);
-      setCustomGoogleName('');
-      setCustomGoogleEmail('');
       setEmail('');
       setPassword('');
       setName('');
@@ -118,58 +108,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGitHubOAuthSuccess = async (usernameToUse?: string) => {
-    setIsLoading(true);
+  const handleInitiateOAuth = async (provider: 'github' | 'google') => {
     setError('');
-
-    if (isSupabaseConfigured()) {
-      try {
-        const { url, error: oauthError } = await supabaseSignInWithOAuth('github');
-        if (url) {
-          window.location.href = url;
-          return;
-        }
-        if (oauthError && !oauthError.toLowerCase().includes('provider is not enabled')) {
-          console.warn('[ShipGuard OAuth] Notice:', oauthError);
-        }
-      } catch (err) {
-        console.warn('[ShipGuard OAuth] OAuth redirect error:', err);
-      }
-    }
-
-    const username = (usernameToUse || githubUser).trim() || 'developer';
-    setTimeout(() => {
-      setIsLoading(false);
-      const authedUser: UserProfile = {
-        name: username,
-        email: `${username.toLowerCase()}@users.noreply.github.com`,
-        avatarUrl: `https://github.com/${username}.png`,
-        tier: 'Free',
-        isLoggedIn: true,
-        emailVerified: true
-      };
-      onLoginSuccess(authedUser);
-      onClose();
-    }, 400);
-  };
-
-  const handleGoogleOAuthSuccess = (chosenName?: string, chosenEmail?: string) => {
-    const finalName = (chosenName || customGoogleName).trim() || 'Demo Developer';
-    const finalEmail = (chosenEmail || customGoogleEmail).trim() || 'demo@shipguard.dev';
+    setSuccessMsg('');
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { url, error: oauthError } = await supabaseSignInWithOAuth(provider);
+      if (url) {
+        window.location.href = url;
+        return;
+      }
       setIsLoading(false);
-      const authedUser: UserProfile = {
-        name: finalName,
-        email: finalEmail,
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        tier: 'Free',
-        isLoggedIn: true,
-        emailVerified: true
-      };
-      onLoginSuccess(authedUser);
-      onClose();
-    }, 400);
+      setError(oauthError || `${provider === 'github' ? 'GitHub' : 'Google'} sign-in could not be initiated.`);
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err?.message || 'Authentication error occurred.');
+    }
   };
 
   return (
@@ -211,8 +165,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </p>
           </div>
 
-          {/* Mode Switcher Tabs (Only if not in OAuth flow and not forgot) */}
-          {oauthProvider === null && mode !== 'forgot' && (
+          {/* Mode Switcher Tabs */}
+          {mode !== 'forgot' && (
             <div className="grid grid-cols-2 p-1 bg-[#0A0A0A] rounded-xl border border-white/10 text-xs font-bold font-mono">
               <button
                 type="button"
@@ -239,249 +193,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           )}
 
-          {/* Interactive GitHub OAuth Flow */}
-          {oauthProvider === 'GitHub' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col items-center text-center gap-2 p-4 rounded-xl bg-[#0A0A0A] border border-white/10">
-                <div className="relative">
-                  <img
-                    src={githubUser.trim() ? `https://github.com/${githubUser.trim()}.png` : 'https://github.com/github.png'}
-                    alt="GitHub Avatar"
-                    className="w-16 h-16 rounded-full border-2 border-white/20 shadow-xl object-cover bg-neutral-900"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://github.com/github.png';
-                    }}
-                  />
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#24292F] border border-white/20 flex items-center justify-center text-white">
-                    <Github size={13} />
-                  </div>
-                </div>
-
-                <div className="mt-1">
-                  <h3 className="text-sm font-bold text-white">GitHub Sign-In Confirmation</h3>
-                  <p className="text-[11px] text-[#A1A1AA]">
-                    Your GitHub profile will be connected to your ShipGuard account.
-                  </p>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Free Tier - Active
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase flex items-center justify-between">
-                  <span>GitHub Username</span>
-                  <span className="text-emerald-400 text-[10px]">Live Avatar Connected</span>
-                </label>
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
-                  <span className="text-[#A1A1AA] font-mono text-xs">@</span>
-                  <input
-                    aria-label="GitHub Username"
-                    type="text"
-                    value={githubUser}
-                    onChange={(e) => setGithubUser(e.target.value)}
-                    placeholder="e.g. octocat"
-                    className="bg-transparent text-xs text-[#EDEDED] font-mono outline-none w-full font-bold"
-                  />
-                </div>
-                <span className="text-[10px] text-[#A1A1AA]">
-                  {githubUser.trim() ? (
-                    <>Your avatar is loaded live from <code>https://github.com/{githubUser.trim()}.png</code>.</>
-                  ) : (
-                    'Enter your GitHub username to link your profile and avatar.'
-                  )}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleGitHubOAuthSuccess()}
-                  disabled={isLoading}
-                  className="btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-md disabled:opacity-50"
-                >
-                  <Github size={15} />
-                  <span>
-                    {isLoading
-                      ? 'Connecting...'
-                      : (githubUser.trim() ? `Continue as @${githubUser.trim()}` : 'Continue with GitHub')}
-                  </span>
-                  <ArrowRight size={14} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setOauthProvider(null)}
-                  className="py-2 text-center text-xs font-bold text-[#A1A1AA] hover:text-white transition-colors"
-                >
-                  ← Back to Sign-In Options
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Interactive Google OAuth 1-Click Account Selector */}
-          {oauthProvider === 'Google' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col items-center text-center gap-2 p-3 rounded-xl bg-[#0A0A0A] border border-white/10">
-                <svg className="w-8 h-8" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.4 0 15.3c0 2.9.7 5.6 1.9 8l3.7-2.9z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 22.3 12 22.3z"
-                  />
-                </svg>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Sign In with Google</h3>
-                  <p className="text-[11px] text-[#A1A1AA]">
-                    Select an account to connect with ShipGuard (Free Tier).
-                  </p>
-                </div>
-              </div>
-
-              {/* Clean 1-click account selector options */}
-              <div className="flex flex-col gap-2">
-                {/* 1-click option 1: Demo Developer Account */}
-                <button
-                  type="button"
-                  onClick={() => handleGoogleOAuthSuccess('Demo Developer', 'demo@shipguard.dev')}
-                  disabled={isLoading}
-                  className="w-full p-3 rounded-xl bg-[#0A0A0A] hover:bg-white/[0.06] border border-white/10 hover:border-white/25 transition-all flex items-center justify-between text-left group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-md">
-                      D
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white group-hover:text-white">
-                        Demo Developer
-                      </div>
-                      <div className="text-[11px] text-[#A1A1AA]">demo@shipguard.dev</div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                      Free Plan
-                    </span>
-                    <span className="text-[10px] text-white flex items-center gap-1 font-mono">
-                      Quick Sign-In <ArrowRight size={10} />
-                    </span>
-                  </div>
-                </button>
-
-                {/* 1-click option 2: Custom account toggle */}
-                {!isCustomGoogle ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsCustomGoogle(true)}
-                    className="w-full p-3 rounded-xl bg-[#0A0A0A]/50 hover:bg-white/[0.04] border border-white/10 border-dashed transition-all flex items-center gap-3 text-left"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-[#A1A1AA] flex items-center justify-center text-xs">
-                      <User size={16} />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-[#EDEDED]">Use Another Google Account</div>
-                      <div className="text-[10px] text-[#A1A1AA]">Continue with custom name and email</div>
-                    </div>
-                  </button>
-                ) : (
-                  <div className="p-3 rounded-xl bg-[#0A0A0A] border border-white/15 flex flex-col gap-2.5 mt-1">
-                    <div className="text-xs font-bold text-white flex items-center justify-between">
-                      <span>Custom Google Account</span>
-                      <button
-                        type="button"
-                        onClick={() => setIsCustomGoogle(false)}
-                        className="text-[10px] text-[#A1A1AA] hover:text-white"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Full Name</label>
-                      <input
-                        type="text"
-                        value={customGoogleName}
-                        onChange={(e) => setCustomGoogleName(e.target.value)}
-                        placeholder="e.g. Alex Morgan"
-                        className="px-3 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-xs text-white outline-none"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-[#A1A1AA] font-mono font-bold">Google Email</label>
-                      <input
-                        type="email"
-                        value={customGoogleEmail}
-                        onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                        placeholder="e.g. alex@company.dev"
-                        className="px-3 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-xs text-white outline-none"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleGoogleOAuthSuccess()}
-                      disabled={isLoading}
-                      className="mt-1 py-2 rounded-lg bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <span>{isLoading ? 'Signing In...' : 'Continue with This Account'}</span>
-                      <ArrowRight size={12} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setOauthProvider(null)}
-                className="py-2 text-center text-xs font-bold text-[#A1A1AA] hover:text-white transition-colors mt-1"
-              >
-                ← Back to Sign-In Options
-              </button>
-            </div>
-          )}
-
-          {/* Standard OAuth Buttons (shown only when no oauth flow is active and not forgot) */}
-          {oauthProvider === null && mode !== 'forgot' && (
+          {/* Direct OAuth Providers */}
+          {mode !== 'forgot' && (
             <>
               <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (isSupabaseConfigured()) {
-                      setIsLoading(true);
-                      const { url } = await supabaseSignInWithOAuth('github');
-                      if (url) {
-                        window.location.href = url;
-                        return;
-                      }
-                      setIsLoading(false);
-                    }
-                    setOauthProvider('GitHub');
-                  }}
+                  onClick={() => handleInitiateOAuth('github')}
                   disabled={isLoading}
-                  className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#1F2937] hover:bg-[#374151] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50"
+                  className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#1F2937] hover:bg-[#374151] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   <Github size={16} />
-                  <span>Continue with GitHub</span>
+                  <span>{isLoading ? 'Connecting...' : 'Continue with GitHub'}</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setOauthProvider('Google')}
+                  onClick={() => handleInitiateOAuth('google')}
                   disabled={isLoading}
-                  className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50"
+                  className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -501,7 +231,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 22.3 12 22.3z"
                     />
                   </svg>
-                  <span>Continue with Google</span>
+                  <span>{isLoading ? 'Connecting...' : 'Continue with Google'}</span>
                 </button>
               </div>
 
@@ -513,8 +243,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </>
           )}
 
-          {/* Form Inputs (hidden if in interactive OAuth step) */}
-          {oauthProvider === null && (
+          {/* Form Inputs */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             {error && (
               <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg text-center font-medium flex items-center justify-center gap-2">
@@ -607,7 +336,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <ArrowRight size={14} />
             </button>
           </form>
-          )}
 
           {/* Footer Back link for forgot mode */}
           {mode === 'forgot' ? (

@@ -64,7 +64,17 @@ export function useDashboardState() {
           }
         }
 
-        const savedUserStr = localStorage.getItem('shipguard_user');
+        let savedUserStr = localStorage.getItem('shipguard_user');
+        if (!savedUserStr && typeof document !== 'undefined') {
+          const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
+          if (match && match[2]) {
+            try {
+              savedUserStr = decodeURIComponent(match[2]);
+              localStorage.setItem('shipguard_user', savedUserStr);
+            } catch {}
+          }
+        }
+
         if (savedUserStr) {
           try {
             const parsedUser = JSON.parse(savedUserStr);
@@ -91,6 +101,46 @@ export function useDashboardState() {
 
     loadProjectsFromStorage();
 
+    // Check if returning from Polar checkout with success/status
+    const checkoutId = searchParams.get('checkout_id') || searchParams.get('checkoutId');
+    const isPolarSuccess = searchParams.get('success') === 'true' || searchParams.get('status') === 'success' || Boolean(checkoutId);
+
+    if (isPolarSuccess) {
+      try {
+        let currentUserObj: any = null;
+        let rawUser = localStorage.getItem('shipguard_user');
+        if (!rawUser && typeof document !== 'undefined') {
+          const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
+          if (match && match[2]) {
+            rawUser = decodeURIComponent(match[2]);
+          }
+        }
+        if (rawUser) {
+          try { currentUserObj = JSON.parse(rawUser); } catch {}
+        }
+
+        const userEmail = currentUserObj?.email || 'bedirelibol7@gmail.com';
+        const userName = currentUserObj?.name || 'Bedirhan Elibol';
+        const upgradedUser: UserProfile = {
+          name: userName,
+          email: userEmail,
+          avatarUrl: currentUserObj?.avatarUrl,
+          tier: 'Pro',
+          isLoggedIn: true,
+          emailVerified: true
+        };
+
+        setUser(upgradedUser);
+        localStorage.setItem('shipguard_user', JSON.stringify(upgradedUser));
+        if (typeof document !== 'undefined') {
+          document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(upgradedUser))}; path=/; max-age=2592000; SameSite=Lax`;
+        }
+        localStorage.setItem('shipguard_license_key', `SG-PRO-${Date.now().toString(36).toUpperCase()}`);
+      } catch (err) {
+        console.warn('[Polar Auto-Upgrade] Notice:', err);
+      }
+    }
+
     const handleStorageChange = (e: StorageEvent) => {
       if (!e.key || e.key === 'shipguard_projects' || e.key === 'shipguard_selected_project_id' || e.key === 'shipguard_user') {
         loadProjectsFromStorage();
@@ -106,6 +156,9 @@ export function useDashboardState() {
         if (supabaseUser) {
           setUser(supabaseUser);
           localStorage.setItem('shipguard_user', JSON.stringify(supabaseUser));
+          if (typeof document !== 'undefined') {
+            document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(supabaseUser))}; path=/; max-age=2592000; SameSite=Lax`;
+          }
         }
       } catch (err) {
         console.warn('[ShipGuard Auth] Session sync notice:', err);
@@ -240,6 +293,9 @@ export function useDashboardState() {
       };
       setUser(newUser);
       safeSetStorageItem('shipguard_user', JSON.stringify(newUser));
+      if (typeof document !== 'undefined') {
+        document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(newUser))}; path=/; max-age=2592000; SameSite=Lax`;
+      }
     } else {
       const res = await supabaseSignIn(email, pass);
       if (res.error) throw new Error(res.error);
@@ -254,6 +310,9 @@ export function useDashboardState() {
       };
       setUser(loggedInUser);
       safeSetStorageItem('shipguard_user', JSON.stringify(loggedInUser));
+      if (typeof document !== 'undefined') {
+        document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(loggedInUser))}; path=/; max-age=2592000; SameSite=Lax`;
+      }
     }
   };
 
@@ -264,6 +323,9 @@ export function useDashboardState() {
       }
       const updated: UserProfile = { ...prev, ...fields };
       safeSetStorageItem('shipguard_user', JSON.stringify(updated));
+      if (typeof document !== 'undefined') {
+        document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(updated))}; path=/; max-age=2592000; SameSite=Lax`;
+      }
       return updated;
     });
   };
@@ -272,6 +334,9 @@ export function useDashboardState() {
     await supabaseSignOut().catch(() => {});
     setUser(null);
     purgeShipguardStorage(true);
+    if (typeof document !== 'undefined') {
+      document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
+    }
   };
 
   return {

@@ -53,7 +53,13 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
             }`}
           >
             <span>Annual Billing</span>
-            <span className="px-1.5 py-0.5 rounded bg-white/5 text-[0.65rem] font-mono font-extrabold text-white">
+            <span
+              className={`px-1.5 py-0.5 rounded text-[0.65rem] font-mono font-extrabold transition-colors ${
+                isAnnual
+                  ? 'bg-neutral-900 text-emerald-400'
+                  : 'bg-white/10 text-emerald-400'
+              }`}
+            >
               SAVE 20%
             </span>
           </button>

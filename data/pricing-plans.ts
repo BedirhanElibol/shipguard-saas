@@ -19,8 +19,8 @@ export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
   {
     id: 'shipguard-core',
     name: 'ShipGuard Pro',
-    priceMonthly: 0.50,
-    priceAnnual: 0.50,
+    priceMonthly: 19,
+    priceAnnual: 15,
     isPopular: true,
     description: 'Comprehensive Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Auto-Remediations.',
     features: [

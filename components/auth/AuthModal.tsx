@@ -34,7 +34,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [loadingTarget, setLoadingTarget] = useState<'github' | 'google' | 'email' | null>(null);
+  const [loadingTarget, setLoadingTarget] = useState<'github' | 'email' | null>(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -127,18 +127,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleInitiateOAuth = async (provider: 'github' | 'google') => {
+  const handleInitiateOAuth = async (provider: 'github') => {
     setError('');
     setSuccessMsg('');
-
-    if (provider === 'google') {
-      setError('Google ile giriş henüz Supabase üzerinde yapılandırılmamıştır. Lütfen GitHub veya E-posta adresiniz ile giriş yapınız.');
-      return;
-    }
-
     setLoadingTarget(provider);
 
-    // Auto-unlock safety timer: unlocks if user aborts or stays on page
+    // Auto-unlock safety timer: resets button state if redirect is cancelled or delayed
     const safetyTimer = setTimeout(() => {
       setLoadingTarget(null);
     }, 4500);
@@ -151,11 +145,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
       clearTimeout(safetyTimer);
       setLoadingTarget(null);
-      setError(oauthError || `${provider === 'github' ? 'GitHub' : 'Google'} sign-in could not be initiated.`);
+      setError(oauthError || 'GitHub authentication could not be initiated. Please try again or use email sign-in.');
     } catch (err: any) {
       clearTimeout(safetyTimer);
       setLoadingTarget(null);
-      setError(err?.message || 'Authentication error occurred.');
+      setError(err?.message || 'Authentication error occurred. Please try again.');
     }
   };
 
@@ -234,44 +228,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={() => handleInitiateOAuth('github')}
                   disabled={loadingTarget !== null}
-                  className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#1F2937] hover:bg-[#374151] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+                  className="flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl bg-[#24292F] hover:bg-[#1f2328] border border-white/15 text-xs font-bold text-white transition-all shadow-md disabled:opacity-50 cursor-pointer min-h-[48px]"
                 >
-                  <Github size={16} />
+                  <Github size={18} className="shrink-0" />
                   <span>{loadingTarget === 'github' ? 'Connecting to GitHub...' : 'Continue with GitHub'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleInitiateOAuth('google')}
-                  disabled={loadingTarget !== null}
-                  className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-xl bg-[#18181B] hover:bg-[#27272A] border border-white/15 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path
-                      fill="#EA4335"
-                      d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
-                    />
-                    <path
-                      fill="#4285F4"
-                      d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.4 0 15.3c0 2.9.7 5.6 1.9 8l3.7-2.9z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 22.3 12 22.3z"
-                    />
-                  </svg>
-                  <span>Continue with Google</span>
-                  <span className="text-[10px] text-amber-400/80 font-mono font-normal ml-auto">(Setup Required)</span>
                 </button>
               </div>
 
-              <div className="flex items-center gap-3 my-0.5">
+              <div className="flex items-center gap-3 my-1">
                 <div className="flex-1 h-[1px] bg-white/10" />
-                <span className="text-[0.65rem] text-[#64748B] uppercase tracking-wider font-bold">OR EMAIL</span>
+                <span className="text-[0.65rem] text-[#A1A1AA] uppercase tracking-wider font-mono font-bold">OR CONTINUE WITH EMAIL</span>
                 <div className="flex-1 h-[1px] bg-white/10" />
               </div>
             </>

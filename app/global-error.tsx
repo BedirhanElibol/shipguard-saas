@@ -67,7 +67,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               <div className="flex flex-col gap-1">
                 <span className="text-[#A1A1AA] text-[11px]">Message:</span>
                 <p className="text-white font-medium text-xs">
-                  {error?.message || 'An unexpected runtime error was caught by the root error boundary.'}
+                  {process.env.NODE_ENV === 'development'
+                    ? error?.message || 'An unexpected runtime error was caught by the root error boundary.'
+                    : 'A critical application exception was caught. Local audit data is preserved.'}
                 </p>
               </div>
               {error?.digest && (

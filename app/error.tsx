@@ -57,22 +57,28 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
         {/* Error Details Container */}
         <div className="flex flex-col gap-2">
           <span className="text-xs font-mono font-bold uppercase text-[#A1A1AA]">
-            Diagnostics &amp; Stack Info
+            Incident Diagnostics
           </span>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-4 font-mono text-xs text-red-300 break-words leading-relaxed overflow-x-auto max-h-[12rem]">
-            <p className="font-semibold text-white mb-1">
-              {error.name || 'Error'}: {error.message || 'Unknown runtime error'}
-            </p>
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-4 font-mono text-xs text-zinc-300 break-words leading-relaxed overflow-x-auto max-h-[12rem]">
+            {process.env.NODE_ENV === 'development' ? (
+              <p className="font-semibold text-red-400 mb-1">
+                {error.name || 'Error'}: {error.message || 'Unknown runtime error'}
+              </p>
+            ) : (
+              <p className="font-semibold text-white mb-1">
+                We encountered an issue completing this operation. Your audit data and local settings are safely preserved.
+              </p>
+            )}
             {error.digest && (
               <p className="text-[0.7rem] text-[#A1A1AA] mt-2 border-t border-white/10 pt-2">
-                Digest Hash: <span className="text-white">{error.digest}</span>
+                Incident Reference: <span className="text-emerald-400 font-mono">{error.digest}</span>
               </p>
             )}
           </div>
         </div>
 
         <p className="text-xs text-[#A1A1AA] leading-relaxed">
-          The application encountered an unhandled exception while processing your session state or analyzing components. You can retry the operation or return to the main dashboard.
+          The application encountered an unexpected runtime condition. You can safely retry the action or return to the main dashboard.
         </p>
 
         {/* Action Buttons */}

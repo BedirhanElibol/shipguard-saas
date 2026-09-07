@@ -96,10 +96,16 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className={`px-2.5 py-1 rounded-md text-xs font-mono font-extrabold uppercase ${severityBadgeClass}`}>
                 {finding.severity}
               </span>
+              {finding.type === 'LEGAL_COMPLIANCE' && (
+                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+                  <span>⚖️</span>
+                  <span>Legal &amp; Privacy Gate</span>
+                </span>
+              )}
               <span className="text-xs font-mono text-zinc-400 font-bold">
                 {finding.category}
               </span>
@@ -251,13 +257,23 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
             )}
 
             {/* Auditor & Advisor Disclaimer Banner */}
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
-              <span className="text-emerald-400 select-none text-base leading-none shrink-0 mt-0.5">🛡️</span>
-              <div className="leading-relaxed">
-                <span className="font-bold text-emerald-400">ShipGuard Advisor Notice:</span>{' '}
-                Remediation prompts are suggested guidelines. Always review code changes in your development environment before committing.
+            {finding.type === 'LEGAL_COMPLIANCE' ? (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
+                <span className="text-amber-400 select-none text-base leading-none shrink-0 mt-0.5">⚖️</span>
+                <div className="leading-relaxed">
+                  <span className="font-bold text-amber-400">Legal &amp; Regulatory Pre-Flight Gate:</span>{' '}
+                  This finding flags non-compliance with statutory privacy or payment standards (GDPR, ePrivacy, CCPA, PCI-DSS). Remediate before deploying to production.
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
+                <span className="text-emerald-400 select-none text-base leading-none shrink-0 mt-0.5">🛡️</span>
+                <div className="leading-relaxed">
+                  <span className="font-bold text-emerald-400">ShipGuard Advisor Notice:</span>{' '}
+                  Remediation prompts are suggested guidelines. Always review code changes in your development environment before committing.
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer Actions (min 44px touch targets for mobile viewport safety) */}

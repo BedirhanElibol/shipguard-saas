@@ -1,5 +1,5 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
-import { Project, Finding, SecurityRule, UiRule } from './schema';
+import { Project, Finding, SecurityRule, UiRule, ComplianceRule, ComplianceRuleSchema } from './schema';
 
 export const SECURITY_RULES_CATALOG: SecurityRule[] = [
   {
@@ -542,6 +542,81 @@ export const MOCK_SCAN_LOGS = [
 export const VIBEPOLISH_30_CATALOG: UiRule[] = UI_RULES_CATALOG.slice(0, 30);
 export const AI_CLICHE_25_CATALOG: UiRule[] = UI_RULES_CATALOG.filter(r => r.code.startsWith('CLICHE-'));
 
+export const COMPLIANCE_RULES_CATALOG: ComplianceRule[] = [
+  {
+    id: 2001,
+    code: 'COMPL-01',
+    title: 'Accessible Privacy Policy & Terms Routes & Links',
+    category: 'Transparency & Notice',
+    legalFramework: 'GDPR Art. 13/14, CCPA § 1798.100, FTC Act Sec. 5',
+    riskLevel: 'HIGH',
+    penaltyExposure: 'Up to €20M or 4% global turnover (GDPR); $7,500 statutory fines per violation (CCPA)',
+    description: 'Scans for absence of accessible Privacy Policy and Terms of Service routes or presence of dummy/dead links (href="#", href="javascript:void(0)") in navigation footers, layouts, and authentication modals.',
+    verificationControl: 'Project must provide functional /privacy and /terms routes, linked conspicuously in primary layout footers and auth modals.',
+    remediationPrompt: 'Add dedicated, accessible legal routes at app/privacy/page.tsx and app/terms/page.tsx. Replace all placeholder anchor links with Next.js <Link href="/privacy"> and <Link href="/terms"> in footers and auth modals.'
+  },
+  {
+    id: 2002,
+    code: 'COMPL-02',
+    title: 'Unconsented Third-Party Tracker & Pixel Script Injection',
+    category: 'Consent & Tracking',
+    legalFramework: 'ePrivacy Directive 2002/58/EC Art. 5(3), GDPR Art. 6(1)(a)',
+    riskLevel: 'CRITICAL',
+    penaltyExposure: 'Immediate regulatory injunctions, daily non-compliance penalties up to €100,000/day, national DPA fines (e.g. CNIL €150M)',
+    description: 'Detects hardcoded third-party analytics and ad pixel trackers (Google Tag Manager, GA4, Meta Pixel, TikTok, Hotjar) loaded in <head> or root components without dynamic consent state gating.',
+    verificationControl: 'Non-essential tracking scripts must be conditionally mounted only after verified user consent (hasConsented === true or Google Consent Mode v2 initialized to "denied").',
+    remediationPrompt: 'Wrap all third-party analytics (GA4, GTM, Meta Pixel, Hotjar) inside a consent-aware component. Initialize Google Consent Mode v2 with default denied parameters, and only fire tracking scripts once the user explicitly clicks "Accept" on the cookie consent banner.'
+  },
+  {
+    id: 2003,
+    code: 'COMPL-03',
+    title: 'Dark Pattern Cookie Banner Prevention (Equal Choice Standard)',
+    category: 'Consent & Tracking',
+    legalFramework: 'EDPB Cookie Banner Guidelines, CNIL Deliberation 2020-091, FTC Dark Patterns',
+    riskLevel: 'HIGH',
+    penaltyExposure: 'CNIL administrative fines (€10M–€60M range), FTC enforcement against deceptive UI practices',
+    description: 'Scans cookie consent banner components to ensure they provide an equally prominent "Reject All" / "Decline" action button adjacent to the "Accept All" button without forcing users into nested panels.',
+    verificationControl: 'Cookie banner must offer equal visual hierarchy and 1-click parity between "Accept All" and "Reject All / Decline".',
+    remediationPrompt: 'Modify cookie banner component to render dual, equally visible action buttons: "Accept All" and "Reject Non-Essential". Both buttons must have equivalent click targets, visible contrast, and trigger with a single click.'
+  },
+  {
+    id: 2004,
+    code: 'COMPL-04',
+    title: 'Consent Disclosure on User Input & Lead Forms',
+    category: 'Data Collection & Forms',
+    legalFramework: 'GDPR Art. 7, CAN-SPAM Act, California CCPA/CPRA',
+    riskLevel: 'MEDIUM',
+    penaltyExposure: 'Administrative fines up to €10M under GDPR Art. 83(4); CAN-SPAM penalties up to $50,120 per non-compliant email',
+    description: 'Scans lead capture forms, newsletter inputs, registration screens, and contact forms for missing affirmative consent disclosures or missing links referencing the Privacy Policy before form submission.',
+    verificationControl: 'All forms collecting personal data (email, phone, name) must include either an un-checked explicit consent checkbox or clear notice text hyperlinking to the Privacy Policy directly adjacent to the submit action.',
+    remediationPrompt: 'Add an explicit consent disclosure directly adjacent to the form submit button: "By submitting, you agree to our Privacy Policy and Terms of Service." Include accessible <Link href="/privacy">.'
+  },
+  {
+    id: 2005,
+    code: 'COMPL-05',
+    title: 'PII & Secret Leakage in URL Query Parameters',
+    category: 'Privacy by Design',
+    legalFramework: 'GDPR Art. 25 & 32, OWASP API Top 10',
+    riskLevel: 'HIGH',
+    penaltyExposure: 'GDPR data breach notifications, supervisory authority investigations, fines up to €10,000,000',
+    description: 'Detects routing or client navigation code passing Personally Identifiable Information (PII) such as email, phone, token, or apiKey inside URL search parameters, exposing data in browser history and server logs.',
+    verificationControl: 'Zero PII or sensitive authentication tokens passed in URL query strings. PII must be transmitted via encrypted HTTP POST bodies or managed via secure server-side sessions.',
+    remediationPrompt: 'Refactor router navigation to remove PII (email, phone) and tokens from URL query parameters. Transmit sensitive data via encrypted POST request bodies or server-managed session cookies.'
+  },
+  {
+    id: 2006,
+    code: 'COMPL-06',
+    title: 'Raw Cardholder Data Input Exposure (PCI-DSS)',
+    category: 'Payment Card Security',
+    legalFramework: 'PCI-DSS v4.0 Requirements 3, 4, 6 & 12',
+    riskLevel: 'CRITICAL',
+    penaltyExposure: 'Monthly bank fines from $5,000 to $100,000; mandatory SAQ D audit upgrade; merchant card processing revocation',
+    description: 'Scans for unhosted HTML input elements designed to accept raw primary account numbers (PAN), CVVs, or cardholder credentials directly on application pages without PCI-certified hosted iframes.',
+    verificationControl: 'Source code must never declare unhosted credit card inputs. All card collection must use vendor-certified iframe SDKs (Stripe Elements, Polar, PayPal).',
+    remediationPrompt: 'Remove raw credit card inputs (card_number, cvv) from source code. Integrate PCI-DSS Level 1 certified hosted fields (e.g., Stripe <CardElement /> or Polar Checkout) so sensitive PAN data never touches your web servers.'
+  }
+];
+
 export const DEMO_AUDIT_FINDINGS: Finding[] = [
   {
     id: 'demo-finding-1',
@@ -617,6 +692,44 @@ export const DEMO_AUDIT_FINDINGS: Finding[] = [
     remediationPrompt: 'Implement responsive stacked card renderer (block md:hidden) for mobile viewports to prevent viewport clipping.',
     status: 'OPEN',
     owner: 'Frontend Specialist',
+    falsePositive: false
+  },
+  {
+    id: 'demo-finding-5',
+    ruleId: 2002,
+    type: 'LEGAL_COMPLIANCE',
+    title: 'Unconsented Meta Pixel & GA4 Script Injection in Root Layout',
+    severity: 'CRITICAL',
+    category: 'Consent & Tracking',
+    filePath: 'app/layout.tsx',
+    lineRange: 'Lines 12-18',
+    snippet: '<Script src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" />',
+    reproductionSteps: [
+      'Inspected client network waterfall on initial application load.',
+      'Detected immediate HTTP POST beacon to graph.facebook.com prior to any cookie consent interaction.'
+    ],
+    remediationPrompt: 'Wrap third-party analytics and tracking scripts in a consent-gated wrapper component that loads scripts only after explicit user opt-in.',
+    status: 'OPEN',
+    owner: 'Compliance Officer',
+    falsePositive: false
+  },
+  {
+    id: 'demo-finding-6',
+    ruleId: 2001,
+    type: 'LEGAL_COMPLIANCE',
+    title: 'Missing Privacy Policy & Dead Legal Links in Footer',
+    severity: 'HIGH',
+    category: 'Transparency & Notice',
+    filePath: 'components/Footer.tsx',
+    lineRange: 'Lines 45-48',
+    snippet: '<a href="#" className="text-zinc-500">Privacy Policy</a>',
+    reproductionSteps: [
+      'Scanned application footer and authentication modal anchor targets.',
+      'Detected dead anchor links (href="#") for required statutory legal disclosures.'
+    ],
+    remediationPrompt: 'Deploy dedicated /privacy and /terms routes and update anchor elements to use Next.js <Link href="/privacy"> and <Link href="/terms">.',
+    status: 'OPEN',
+    owner: 'Legal Engineering',
     falsePositive: false
   }
 ];

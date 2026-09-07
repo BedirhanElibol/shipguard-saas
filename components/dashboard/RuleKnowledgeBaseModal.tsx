@@ -3,12 +3,40 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, BookOpen, Search, ShieldCheck, Zap, ExternalLink } from 'lucide-react';
+import { X, BookOpen, Search, ShieldCheck, Zap, ExternalLink, AlertTriangle } from 'lucide-react';
+import { COMPLIANCE_RULES_CATALOG } from '@/data/mockData';
 
 interface RuleKnowledgeBaseModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const COMPLIANCE_SNIPPETS: Record<string, { vulnerable: string; remediated: string }> = {
+  'COMPL-01': {
+    vulnerable: `<footer className="py-6">\n  <a href="#" className="text-gray-400">Privacy Policy</a>\n  <a href="javascript:void(0)">Terms</a>\n</footer>`,
+    remediated: `<footer className="py-6 flex gap-4 text-xs">\n  <Link href="/privacy">Privacy Policy</Link>\n  <Link href="/terms">Terms of Service</Link>\n</footer>`
+  },
+  'COMPL-02': {
+    vulnerable: `<head>\n  <Script src="https://googletagmanager.com/gtag/js?id=G-XXX" />\n  <Script id="meta-pixel">{fbq('init', '123')}</Script>\n</head>`,
+    remediated: `const { consent } = useCookieConsent();\nif (consent !== 'granted') return null;\nreturn <Script src="https://googletagmanager.com/gtag/js?id=G-XXX" />;`
+  },
+  'COMPL-03': {
+    vulnerable: `<div className="cookie-banner">\n  <span>We use cookies.</span>\n  <button onClick={acceptAll}>Accept All Cookies</button>\n</div>`,
+    remediated: `<div className="cookie-banner flex gap-3">\n  <button onClick={rejectNonEssential}>Reject Non-Essential</button>\n  <button onClick={acceptAll}>Accept All</button>\n</div>`
+  },
+  'COMPL-04': {
+    vulnerable: `<form onSubmit={handleSubscribe}>\n  <input type="email" placeholder="Enter email" required />\n  <button type="submit">Subscribe</button>\n</form>`,
+    remediated: `<form onSubmit={handleSubscribe}>\n  <input type="email" placeholder="Enter email" required />\n  <button type="submit">Subscribe</button>\n  <p>By submitting, you agree to our <Link href="/privacy">Privacy Policy</Link>.</p>\n</form>`
+  },
+  'COMPL-05': {
+    vulnerable: `// Leaking PII into browser history and proxy access logs\nrouter.push('/onboarding?email=' + email + '&token=' + secretToken);`,
+    remediated: `// Secure transmission via encrypted POST request body\nawait fetch('/api/session', { method: 'POST', body: JSON.stringify({ email, token }) });\nrouter.push('/onboarding');`
+  },
+  'COMPL-06': {
+    vulnerable: `<form onSubmit={processCard}>\n  <input name="card_number" placeholder="Card Number (16 digits)" />\n  <input name="cvv" placeholder="CVV" />\n</form>`,
+    remediated: `import { CardElement, useStripe } from '@stripe/react-stripe-js';\n// Hosted iframe ensures PCI-DSS SAQ A scope\n<CardElement options={{ style: { base: { color: '#ffffff' } } }} />`
+  }
+};
 
 export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
   isOpen,
@@ -17,13 +45,14 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
 
-  const kbRules = [
+  const baseKbRules = [
     {
       id: 'SEC-01',
       title: 'Exposed Hardcoded API Key / Secret Token',
       category: 'SECURITY',
       severity: 'CRITICAL',
       compliance: 'ISO27001 A.10.1 / PCI-DSS 6.5.3',
+      penaltyExposure: '',
       description: 'Hardcoded API tokens (e.g. OpenAI, Stripe, AWS credentials) committed into version control expose production infrastructure to automated key-harvester bots.',
       vulnerableSnippet: `const stripeKey = process.env.STRIPE_LIVE_KEY || "sk_live_env_token";`,
       remediatedSnippet: `const stripeKey = process.env.STRIPE_SECRET_KEY;`
@@ -34,6 +63,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       category: 'SECURITY',
       severity: 'CRITICAL',
       compliance: 'SOC2 Trust Principles / OWASP A01:2021',
+      penaltyExposure: '',
       description: 'Supabase / PostgreSQL Row Level Security policies configured with USING (true) allow any authenticated or unauthenticated client to read/modify arbitrary database records.',
       vulnerableSnippet: `CREATE POLICY "Allow Owner" ON profiles FOR SELECT USING (auth.uid() = user_id);`,
       remediatedSnippet: `CREATE POLICY "Allow Owner Only" ON profiles FOR SELECT USING (auth.uid() = user_id);`
@@ -44,6 +74,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       category: 'SECURITY',
       severity: 'CRITICAL',
       compliance: 'OWASP A03:2021 / NIST SP 800-53',
+      penaltyExposure: '',
       description: 'Missing CSP HTTP headers allow attackers to inject malicious external scripts, inline XSS payloads, and exfiltrate user session cookies.',
       vulnerableSnippet: `// Response Headers missing Content-Security-Policy`,
       remediatedSnippet: `Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-...'`
@@ -54,6 +85,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       category: 'VIBEPOLISH',
       severity: 'MEDIUM',
       compliance: 'Maestro Premium Design Token System',
+      penaltyExposure: '',
       description: 'High-contrast raw linear gradients look generic and unpolished across dark mode interfaces.',
       vulnerableSnippet: `<div className="bg-gradient-to-r from-indigo-600 to-blue-500">`,
       remediatedSnippet: `<div className="bg-[#141414] border border-white/10 shadow-xl">`
@@ -64,6 +96,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       category: 'VIBEPOLISH',
       severity: 'MEDIUM',
       compliance: 'WCAG 2.2 / Usability Heuristics',
+      penaltyExposure: '',
       description: 'Rendering list mappings (.map()) without an empty state component leads to blank or confusing UI layouts when data arrays are empty.',
       vulnerableSnippet: `{items.map(item => <Card key={item.id} />)}`,
       remediatedSnippet: `{items.length === 0 ? <EmptyState prompt="No items found" /> : items.map(...)}`
@@ -74,6 +107,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       category: 'AI CLICHÉ',
       severity: 'LOW',
       compliance: 'AI Web Design Cliché Guide',
+      penaltyExposure: '',
       description: 'Small glowing badge/pill component placed above hero title (✨ Build the Future). Hallmark of generic AI landing page templates.',
       vulnerableSnippet: `<span className="badge">✨ Introducing</span>`,
       remediatedSnippet: `<!-- Remove decorative badge or use only for real product releases -->`
@@ -84,11 +118,26 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       category: 'AI CLICHÉ',
       severity: 'MEDIUM',
       compliance: 'AI Web Design Cliché Guide',
+      penaltyExposure: '',
       description: '"TRUSTED BY THOUSANDS" followed by fake brand names (Nexora, Vertexa, Lumina) destroys user trust.',
       vulnerableSnippet: `"Trusted by" Nexora, Vertexa, Lumina...`,
       remediatedSnippet: `<!-- Show only real partner logos or focus on direct value proposition -->`
     }
   ];
+
+  const complianceKbRules = COMPLIANCE_RULES_CATALOG.map((cr) => ({
+    id: cr.code,
+    title: cr.title,
+    category: 'LEGAL COMPLIANCE',
+    severity: cr.riskLevel,
+    compliance: cr.legalFramework,
+    penaltyExposure: cr.penaltyExposure,
+    description: cr.description,
+    vulnerableSnippet: COMPLIANCE_SNIPPETS[cr.code]?.vulnerable || `// Vulnerable pattern for ${cr.code}`,
+    remediatedSnippet: COMPLIANCE_SNIPPETS[cr.code]?.remediated || `// Remediated code for ${cr.code}`
+  }));
+
+  const kbRules = [...baseKbRules, ...complianceKbRules];
 
   if (!isOpen) return null;
 
@@ -96,7 +145,9 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
     const matchesSearch =
       r.title.toLowerCase().includes(search.toLowerCase()) ||
       r.id.toLowerCase().includes(search.toLowerCase()) ||
-      r.description.toLowerCase().includes(search.toLowerCase());
+      r.description.toLowerCase().includes(search.toLowerCase()) ||
+      (r.compliance && r.compliance.toLowerCase().includes(search.toLowerCase())) ||
+      (r.penaltyExposure && r.penaltyExposure.toLowerCase().includes(search.toLowerCase()));
     const matchesCat = categoryFilter === 'ALL' || r.category === categoryFilter;
     return matchesSearch && matchesCat;
   });
@@ -148,18 +199,18 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              {['ALL', 'SECURITY', 'VIBEPOLISH'].map((cat) => (
+            <div className="flex items-center gap-2 overflow-x-auto">
+              {['ALL', 'SECURITY', 'LEGAL COMPLIANCE', 'VIBEPOLISH'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
-                  className={`text-xs font-mono font-bold px-3 py-2 rounded-xl border transition-all ${
+                  className={`text-xs font-mono font-bold px-3 py-2 rounded-xl border transition-all cursor-pointer whitespace-nowrap ${
                     categoryFilter === cat
-                      ? 'bg-white/5 text-white border-white/10'
+                      ? 'bg-white/15 text-white border-white/30 shadow-sm'
                       : 'bg-white/5 text-[#94A3B8] border-white/10 hover:text-white'
                   }`}
                 >
-                  {cat}
+                  {cat === 'LEGAL COMPLIANCE' ? '⚖️ LEGAL & PRIVACY' : cat}
                 </button>
               ))}
             </div>
@@ -180,26 +231,42 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
                     <h3 className="text-sm font-bold text-[#EDEDED]">{rule.title}</h3>
                   </div>
 
-                  <span
-                    className={`text-[0.62rem] font-extrabold uppercase px-2 py-0.5 rounded ${
-                      rule.severity === 'CRITICAL'
-                        ? 'bg-red-500/20 text-red-400'
-                        : rule.severity === 'HIGH'
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-[#10B981]/20 text-[#10B981]'
-                    }`}
-                  >
-                    {rule.severity}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {rule.category === 'LEGAL COMPLIANCE' && (
+                      <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                        <span>⚖️</span>
+                        <span>LEGAL GATE</span>
+                      </span>
+                    )}
+                    <span
+                      className={`text-[0.62rem] font-extrabold uppercase px-2 py-0.5 rounded ${
+                        rule.severity === 'CRITICAL'
+                          ? 'bg-red-500/20 text-red-400'
+                          : rule.severity === 'HIGH'
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-[#10B981]/20 text-[#10B981]'
+                      }`}
+                    >
+                      {rule.severity}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-xs text-[#94A3B8] leading-relaxed">
                   {rule.description}
                 </p>
 
-                <div className="text-[0.68rem] font-mono text-[#A1A1AA] flex items-center gap-1.5">
-                  <ShieldCheck size={13} />
-                  <span>Compliance Framework: {rule.compliance}</span>
+                <div className="flex flex-wrap items-center gap-2 text-[0.68rem] font-mono text-[#A1A1AA]">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-zinc-300">
+                    <ShieldCheck size={13} className="text-emerald-400" />
+                    <span>Compliance Framework: {rule.compliance}</span>
+                  </div>
+                  {rule.penaltyExposure && (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 font-bold">
+                      <AlertTriangle size={12} className="text-rose-400" />
+                      <span>Statutory Penalty: {rule.penaltyExposure}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Snippets Grid */}

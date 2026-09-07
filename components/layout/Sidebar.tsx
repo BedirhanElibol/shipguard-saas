@@ -15,7 +15,8 @@ import {
   FileText,
   LogIn,
   X,
-  ShieldAlert
+  ShieldAlert,
+  Scale
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 
@@ -46,6 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const pillarNav = [
     { id: 'security', label: 'Security Pre-Flight', icon: ShieldCheck },
+    { id: 'compliance', label: 'Legal & Privacy Gate', icon: Scale },
     { id: 'vibepolish', label: 'Design & UX Polish', icon: Palette },
     { id: 'aicliche', label: 'AI Anti-Pattern Audit', icon: Palette },
     { id: 'aimaster', label: 'Master Quality Matrix', icon: Layers },

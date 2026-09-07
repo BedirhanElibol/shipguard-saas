@@ -4,6 +4,7 @@ import { SECURITY_RULES_CATALOG, UI_RULES_CATALOG } from '@/data/mockData';
 import { evaluateAiClicheRules } from './rules/ai-cliche-rules';
 import { evaluateSecurityRules } from './rules/security-rules';
 import { evaluateFrontendRules } from './rules/frontend-rules';
+import { evaluateComplianceRules } from './rules/compliance-rules';
 
 export interface CodeFile {
   path: string;
@@ -30,9 +31,9 @@ export interface ScanResult {
 export function stripComments(content: string): string {
   if (!content) return '';
   return content
-    .replace(/\/\*[\s\S]*?\*\//g, '') // Multi-line JS/TS comments
-    .replace(/<!--[\s\S]*?-->/g, '')  // HTML comments
-    .replace(/\/\/.*$/gm, '');        // Single-line JS/TS comments
+    .replace(/\/\*[\s\S]*?\*\//g, '')  // Multi-line JS/TS comments
+    .replace(/<!--[\s\S]*?-->/g, '')   // HTML comments
+    .replace(/(?<!:)\/\/.*$/gm, '');   // Single-line JS/TS comments (preserves http:// and https:// URLs)
 }
 
 /**
@@ -51,6 +52,8 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
 
     const secMatch = trimmed.match(/^SEC-?(\d+)$/i);
     const uiMatch = trimmed.match(/^UI-?(\d+)$/i);
+    const complMatch = trimmed.match(/^COMPL-?(\d+)$/i);
+    const ruleMatch = trimmed.match(/^RULE-?(\d+)$/i);
     const numMatch = trimmed.match(/^(\d+)$/);
 
     const upper = trimmed.toUpperCase();
@@ -78,11 +81,36 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
         ignoredRuleIds.add(num);
         ignoredRuleIds.add(num + 1000);
       }
+    } else if (complMatch) {
+      const num = parseInt(complMatch[1], 10);
+      if (!isNaN(num)) {
+        if (num >= 1 && num <= 6) {
+          ignoredRuleIds.add(2000 + num);
+          ignoredRuleIds.add(num);
+        } else if (num >= 2001 && num <= 2006) {
+          ignoredRuleIds.add(num);
+          ignoredRuleIds.add(num - 2000);
+        } else {
+          ignoredRuleIds.add(num);
+        }
+      }
+    } else if (ruleMatch) {
+      const num = parseInt(ruleMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(num);
+        if (num >= 2001 && num <= 2006) {
+          ignoredRuleIds.add(num - 2000);
+        }
+      }
     } else if (numMatch) {
       const num = parseInt(numMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(num);
-        ignoredRuleIds.add(num + 1000);
+        if (num >= 2001 && num <= 2006) {
+          ignoredRuleIds.add(num - 2000);
+        } else if (num < 1000) {
+          ignoredRuleIds.add(num + 1000);
+        }
       }
     } else {
       ignoredPaths.push(trimmed.toLowerCase());
@@ -223,6 +251,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     logs.push(`[${new Date().toLocaleTimeString()}] 📂 [File ${fileIndex}/${validFiles.length}] Inspecting ${file.path} (${lines.length} lines)...`);
     logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🔬 [Lexical Engine] Parsing Syntax Tokens, Cleaned Comment Strips & Heuristic Graphs...`);
     logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🛡️ [Security Clearance] Verifying OWASP Security & Secret Token Isolation Controls...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ ⚖️ [Regulatory Clearance] Auditing Privacy, Consent, ePrivacy & PCI-DSS Pre-Flight Gate...`);
     logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🎨 [Design Engine] Auditing UI/UX Design System & Micro-Interaction Rules...`);
     logs.push(`[${new Date().toLocaleTimeString()}]   └─ 🔍 [AI Pattern Audit] Checking AI Web Design Anti-Patterns & Component Trees...`);
 
@@ -231,7 +260,8 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       if (
         ignoredRuleIds.has(f.ruleId) ||
         (f.ruleId >= 1000 && ignoredRuleIds.has(f.ruleId - 1000)) ||
-        (f.ruleId < 1000 && ignoredRuleIds.has(f.ruleId + 1000))
+        (f.ruleId < 1000 && ignoredRuleIds.has(f.ruleId + 1000)) ||
+        (f.ruleId >= 2001 && f.ruleId <= 2006 && ignoredRuleIds.has(f.ruleId - 2000))
       ) {
         return;
       }
@@ -1264,9 +1294,18 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     }
     logs.push(...frontendResult.logs);
 
+    // Global Regulatory, Privacy & Legal Pre-Flight Gate (Rules 2001-2006)
+    const complianceCounter = { count: findingCounter };
+    const complianceResult = evaluateComplianceRules(file, lines, cleanContent, complianceCounter);
+    findingCounter = complianceCounter.count;
+    for (const cf of complianceResult.findings) {
+      addFinding(cf);
+    }
+    logs.push(...complianceResult.logs);
+
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {
-      logs.push(`[${new Date().toLocaleTimeString()}]   ✓ ${file.path}: Passed security clearance & UX quality gates cleanly (0 issues).`);
+      logs.push(`[${new Date().toLocaleTimeString()}]   ✓ ${file.path}: Passed security, compliance & UX quality gates cleanly (0 issues).`);
     } else {
       logs.push(`[${new Date().toLocaleTimeString()}]   ⚠️ ${file.path}: Detected ${fileFindingsCount} open finding(s)!`);
     }

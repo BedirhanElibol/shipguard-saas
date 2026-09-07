@@ -7,6 +7,7 @@ import { MOCK_PROJECTS, VIBEPOLISH_30_CATALOG, UI_RULES_CATALOG, AI_CLICHE_25_CA
 import { AppShell } from '@/components/layout/AppShell';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { SecurityAuditView } from '@/components/SecurityAuditView';
+import { ComplianceAuditView } from '@/components/ComplianceAuditView';
 import { VibePolishView } from '@/components/VibePolishView';
 import { VibeCareView } from '@/components/VibeCareView';
 import { RemediationQueueView } from '@/components/RemediationQueueView';
@@ -168,6 +169,13 @@ function DashboardContent() {
 
           {activeNav === 'security' && (
             <SecurityAuditView
+              findings={selectedProject.findings}
+              onInspectFinding={(f) => setInspectingFinding(f)}
+            />
+          )}
+
+          {activeNav === 'compliance' && (
+            <ComplianceAuditView
               findings={selectedProject.findings}
               onInspectFinding={(f) => setInspectingFinding(f)}
             />

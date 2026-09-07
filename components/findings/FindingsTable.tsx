@@ -23,12 +23,31 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [pillarFilter, setPillarFilter] = useState<string>('ALL');
   const [isBulkOpen, setIsBulkOpen] = useState(false);
+
+  const PILLAR_TABS = [
+    { id: 'ALL', label: 'All Findings' },
+    { id: 'SECURITY', label: 'Security' },
+    { id: 'LEGAL_COMPLIANCE', label: 'Legal & Privacy' },
+    { id: 'VIBEPOLISH', label: 'VibePolish UI' },
+  ];
+
+  const getPillarBadgeStyle = (type: string) => {
+    return type === 'LEGAL_COMPLIANCE'
+      ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+      : type === 'SECURITY'
+      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+      : type === 'VIBEPOLISH'
+      ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
+      : 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+  };
 
   const resetFilters = () => {
     setSearchTerm('');
     setSeverityFilter('ALL');
     setStatusFilter('ALL');
+    setPillarFilter('ALL');
   };
 
   const filtered = findings.filter((f) => {
@@ -40,8 +59,9 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
     const matchesSeverity = severityFilter === 'ALL' || f.severity === severityFilter;
     const matchesStatus = statusFilter === 'ALL' || f.status === statusFilter;
+    const matchesPillar = pillarFilter === 'ALL' || f.type === pillarFilter;
 
-    return matchesSearch && matchesSeverity && matchesStatus;
+    return matchesSearch && matchesSeverity && matchesStatus && matchesPillar;
   });
 
   return (
@@ -108,6 +128,37 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
         </div>
       </div>
 
+      {/* Pillar Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-white/5">
+        {PILLAR_TABS.map((tab) => {
+          const isActive = pillarFilter === tab.id;
+          const count =
+            tab.id === 'ALL'
+              ? findings.length
+              : findings.filter((f) => f.type === tab.id).length;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setPillarFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? 'bg-white text-black font-extrabold shadow-sm'
+                  : 'bg-white/5 text-[#A1A1AA] hover:text-white hover:bg-white/10 border border-white/5'
+              }`}
+            >
+              <span>{tab.id === 'LEGAL_COMPLIANCE' ? '⚖️ ' + tab.label : tab.label}</span>
+              <span
+                className={`px-1.5 py-0.5 rounded text-[10px] ${
+                  isActive ? 'bg-black/15 text-black font-bold' : 'bg-white/10 text-[#EDEDED]'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Mobile Stacked Card View (block md:hidden) */}
       <div className="block md:hidden space-y-3">
         {filtered.length === 0 ? (
@@ -168,19 +219,28 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               className="p-4 rounded-xl bg-[#0A0A0A] border border-white/10 hover:border-white/10 transition-all flex flex-col gap-3 cursor-pointer active:scale-[0.99]"
             >
               <div className="flex items-center justify-between gap-2">
-                <span
-                  className={`badge ${
-                    item.severity === 'CRITICAL'
-                      ? 'badge-critical'
-                      : item.severity === 'HIGH'
-                      ? 'badge-high'
-                      : item.severity === 'MEDIUM'
-                      ? 'badge-medium'
-                      : 'badge-passed'
-                  }`}
-                >
-                  {item.severity}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`badge ${
+                      item.severity === 'CRITICAL'
+                        ? 'badge-critical'
+                        : item.severity === 'HIGH'
+                        ? 'badge-high'
+                        : item.severity === 'MEDIUM'
+                        ? 'badge-medium'
+                        : 'badge-passed'
+                    }`}
+                  >
+                    {item.severity}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[0.68rem] font-bold font-mono border ${getPillarBadgeStyle(
+                      item.type
+                    )}`}
+                  >
+                    {item.type === 'LEGAL_COMPLIANCE' ? '⚖️ Legal & Privacy' : item.type}
+                  </span>
+                </div>
                 <span
                   className={`px-2 py-0.5 rounded text-[0.68rem] font-bold ${
                     item.status === 'RESOLVED'
@@ -230,6 +290,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           <thead className="bg-[#0A0A0A] text-[#A1A1AA] uppercase font-mono font-bold border-b border-white/10">
             <tr>
               <th className="py-3 px-4">Severity</th>
+              <th className="py-3 px-4">Pillar</th>
               <th className="py-3 px-4">Finding Title</th>
               <th className="py-3 px-4">Category</th>
               <th className="py-3 px-4">Affected Area</th>
@@ -240,7 +301,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           <tbody className="divide-y divide-white/5">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-10 text-center">
+                <td colSpan={7} className="py-10 text-center">
                   {findings.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center">
@@ -313,6 +374,17 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                       }`}
                     >
                       {item.severity}
+                    </span>
+                  </td>
+
+                  {/* Pillar Badge */}
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[0.68rem] font-bold font-mono border ${getPillarBadgeStyle(
+                        item.type
+                      )}`}
+                    >
+                      {item.type === 'LEGAL_COMPLIANCE' ? '⚖️ Legal & Privacy' : item.type}
                     </span>
                   </td>
 

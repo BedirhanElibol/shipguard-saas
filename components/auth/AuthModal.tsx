@@ -130,6 +130,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleInitiateOAuth = async (provider: 'github' | 'google') => {
     setError('');
     setSuccessMsg('');
+
+    if (provider === 'google') {
+      setError('Google ile giriş henüz Supabase üzerinde yapılandırılmamıştır. Lütfen GitHub veya E-posta adresiniz ile giriş yapınız.');
+      return;
+    }
+
     setLoadingTarget(provider);
 
     // Auto-unlock safety timer: unlocks if user aborts or stays on page
@@ -258,7 +264,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 22.3 12 22.3z"
                     />
                   </svg>
-                  <span>{loadingTarget === 'google' ? 'Connecting to Google...' : 'Continue with Google'}</span>
+                  <span>Continue with Google</span>
+                  <span className="text-[10px] text-amber-400/80 font-mono font-normal ml-auto">(Setup Required)</span>
                 </button>
               </div>
 

@@ -17,8 +17,11 @@ export function useDashboardState() {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [inspectingFinding, setInspectingFinding] = useState<Finding | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
-  const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>('signin');
+  const authParam = searchParams.get('auth');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(Boolean(authParam));
+  const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>(
+    authParam === 'signup' ? 'signup' : 'signin'
+  );
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
 
   useEffect(() => {

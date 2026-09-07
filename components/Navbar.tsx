@@ -80,6 +80,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
             )}
 
             <a
+              href="/dashboard?auth=signin"
+              className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-[#EDEDED] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+            >
+              Sign In
+            </a>
+
+            <a
               href="#contact"
               className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm"
             >
@@ -124,6 +131,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
             </nav>
 
             <div className="mt-12 flex flex-col gap-4">
+              <a
+                href="/dashboard?auth=signin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center"
+              >
+                Sign In / Register
+              </a>
+
               {onToggleDashboard && (
                 <button
                   onClick={() => {

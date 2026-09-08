@@ -21,6 +21,7 @@ import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
 import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter } from 'next/navigation';
+import { ShieldCheck, Sparkles, Plus } from 'lucide-react';
 
 export default function DashboardPage() {
   return (
@@ -94,7 +95,66 @@ function DashboardContent() {
   };
 
   if (projects.length === 0) {
-    return <div className="p-8 text-center text-xs text-[#A1A1AA]">No projects found. EmptyState active.</div>;
+    const handleRestoreDemoShowcase = () => {
+      const demoProject = MOCK_PROJECTS[0];
+      setProjects([demoProject]);
+      persistProjectsList([demoProject]);
+      handleSelectProject(demoProject);
+    };
+
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center p-4 sm:p-6">
+        <div className="max-w-md w-full bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center shadow-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5 shadow-inner">
+            <ShieldCheck size={28} />
+          </div>
+
+          <h2 className="text-xl font-extrabold text-white tracking-tight mb-2">
+            No Projects Connected
+          </h2>
+
+          <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed mb-6">
+            Connect your GitHub repository to audit deployment readiness against OWASP security, performance, and UI quality standards, or explore with our interactive showcase.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <button
+              onClick={handleRestoreDemoShowcase}
+              className="btn btn-primary flex-1 py-2.5 px-4 rounded-xl text-xs font-bold font-mono bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Sparkles size={14} />
+              <span>Load Demo Showcase</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const newProj: Project = {
+                  id: `proj-${Date.now()}`,
+                  name: 'My New Application',
+                  repoUrl: 'https://github.com/example/repo',
+                  framework: 'Next.js 15',
+                  providers: ['Vercel', 'PostgreSQL'],
+                  lastScanAt: 'Never audited',
+                  readinessScore: 100,
+                  gateStatus: 'PASSED',
+                  criticalCount: 0,
+                  highCount: 0,
+                  mediumCount: 0,
+                  lowCount: 0,
+                  uiClicheCount: 0,
+                  findings: []
+                };
+                handleAddNewProject(newProj);
+              }}
+              className="btn btn-secondary flex-1 py-2.5 px-4 rounded-xl text-xs font-bold font-mono border-white/10 text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+            >
+              <Plus size={14} />
+              <span>Connect Your First Project</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -164,6 +224,11 @@ function DashboardContent() {
               onInspectFinding={(f) => setInspectingFinding(f)}
               onNavigatePillar={(p) => setActiveNav(p)}
               onLoadDemoFindings={handleLoadDemoFindings}
+              user={user}
+              onOpenAuth={(mode) => {
+                setAuthInitialMode(mode);
+                setIsAuthModalOpen(true);
+              }}
             />
           )}
 

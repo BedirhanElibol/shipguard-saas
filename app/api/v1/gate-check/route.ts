@@ -8,6 +8,7 @@ import { dispatchWebhookAlerts } from '@/lib/notifications';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GateCheckRequestSchema, validateRequestBody } from '@/lib/validations/api-schemas';
 import { logger } from '@/lib/logger';
+import { canAccessLocalAudit } from '@/lib/env-config';
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,6 +60,18 @@ export async function POST(req: NextRequest) {
           timestamp: new Date().toISOString()
         },
         { status: 400 }
+      );
+    }
+
+    if (rawRepoUrl.toLowerCase() === 'local' && !canAccessLocalAudit()) {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          gateStatus: 'FAILED',
+          error: 'Local workspace self-audit is restricted to local development environments.',
+          timestamp: new Date().toISOString()
+        },
+        { status: 403 }
       );
     }
 

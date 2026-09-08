@@ -6,6 +6,7 @@ import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engi
 import { UserProfile } from '@/components/auth/AuthModal';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
 import { purgeShipguardStorage, safeSetStorageItem } from '@/lib/storage';
+import { canAccessLocalAudit } from '@/lib/env-config';
 import { useSearchParams } from 'next/navigation';
 
 export function useDashboardState() {
@@ -27,18 +28,28 @@ export function useDashboardState() {
   useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
-        const CURRENT_DATA_VERSION = 'v6_local_self_audit_clean';
+        const CURRENT_DATA_VERSION = 'v7_showcase_guest_mode_clean';
         const savedVersion = localStorage.getItem('shipguard_data_version');
+        const allowedLocal = canAccessLocalAudit();
+
+        // Helper to obtain default projects sanitized for current environment
+        const getBaseProjects = () =>
+          allowedLocal
+            ? MOCK_PROJECTS
+            : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self');
 
         if (savedVersion !== CURRENT_DATA_VERSION) {
           safeSetStorageItem('shipguard_data_version', CURRENT_DATA_VERSION);
           localStorage.removeItem('shipguard_projects');
-          setProjects(MOCK_PROJECTS);
+          localStorage.removeItem('shipguard_selected_project_id');
+          const cleanProjects = getBaseProjects();
+          setProjects(cleanProjects);
           setSelectedProject(MOCK_PROJECTS[0]);
+          safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
           return;
         }
 
-        let currentProjects = MOCK_PROJECTS;
+        let currentProjects = getBaseProjects();
         const savedProjectsStr = localStorage.getItem('shipguard_projects');
         if (savedProjectsStr) {
           try {
@@ -50,22 +61,48 @@ export function useDashboardState() {
                 }
                 return p;
               });
-              setProjects(currentProjects);
             }
           } catch (jsonErr) {
             console.warn('[ShipGuard Storage] Corrupted shipguard_projects in localStorage; resetting to default.', jsonErr);
             localStorage.removeItem('shipguard_projects');
-            setProjects(MOCK_PROJECTS);
+            currentProjects = getBaseProjects();
           }
         }
 
-        const savedSelectedId = localStorage.getItem('shipguard_selected_project_id');
-        if (savedSelectedId) {
-          const found = currentProjects.find((p) => p.id === savedSelectedId);
-          if (found) {
-            setSelectedProject(found);
+        // Environment isolation: Filter out local self-audit project if not permitted
+        if (!allowedLocal) {
+          currentProjects = currentProjects.filter(
+            (p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self'
+          );
+          if (currentProjects.length === 0) {
+            currentProjects = getBaseProjects();
           }
         }
+
+        setProjects(currentProjects);
+
+        const savedSelectedId = localStorage.getItem('shipguard_selected_project_id');
+        let chosenProject = MOCK_PROJECTS[0];
+
+        if (savedSelectedId) {
+          const isStaleLocal = savedSelectedId === 'proj-shipguard-self';
+          const found = currentProjects.find((p) => p.id === savedSelectedId);
+
+          if (!allowedLocal && (isStaleLocal || found?.repoUrl === 'local')) {
+            // Auto-heal: Reset selected project to clean showcase default (proj-saas-starter)
+            chosenProject = MOCK_PROJECTS[0];
+            safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+          } else if (found) {
+            chosenProject = found;
+          } else {
+            chosenProject = MOCK_PROJECTS[0];
+            safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+          }
+        } else {
+          safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+        }
+
+        setSelectedProject(chosenProject);
 
         let savedUserStr = localStorage.getItem('shipguard_user');
         if (!savedUserStr && typeof document !== 'undefined') {
@@ -195,7 +232,10 @@ export function useDashboardState() {
 
   const persistProjectsList = (updated: Project[]) => {
     try {
-      const lightweight = updated.map((p) => ({
+      const sanitized = canAccessLocalAudit()
+        ? updated
+        : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self');
+      const lightweight = sanitized.map((p) => ({
         ...p,
         findings: p.findings.slice(0, 60).map((f) => ({
           ...f,
@@ -206,7 +246,10 @@ export function useDashboardState() {
       safeSetStorageItem('shipguard_projects', JSON.stringify(lightweight), selectedProject.id);
     } catch {
       try {
-        const ultraCompact = updated.map((p) => ({
+        const sanitized = canAccessLocalAudit()
+          ? updated
+          : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self');
+        const ultraCompact = sanitized.map((p) => ({
           ...p,
           findings: p.findings.slice(0, 20).map((f) => ({
             id: f.id,
@@ -226,6 +269,11 @@ export function useDashboardState() {
   };
 
   const handleSelectProject = (p: Project) => {
+    if (!canAccessLocalAudit() && (p.repoUrl === 'local' || p.id === 'proj-shipguard-self')) {
+      setSelectedProject(MOCK_PROJECTS[0]);
+      safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+      return;
+    }
     setSelectedProject(p);
     safeSetStorageItem('shipguard_selected_project_id', p.id);
   };

@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Project } from '@/data/schema';
+import { MOCK_PROJECTS } from '@/data/mockData';
 import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap } from 'lucide-react';
 import { NewProjectModal } from '@/components/projects/NewProjectModal';
 
@@ -64,45 +65,47 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             type="button"
             onClick={() => {
               const p: Project = {
-                id: 'proj-preset-self',
-                name: 'ShipGuard SaaS (Self Audit)',
-                repoUrl: 'local',
-                framework: 'Next.js 15',
-                providers: ['Supabase', 'Vercel', 'Tailwind v4'],
-                lastScanAt: 'Ready for Audit',
-                readinessScore: 100,
+                id: 'proj-preset-nextjs',
+                name: 'Next.js 15 SaaS Starter',
+                repoUrl: 'https://github.com/vercel/next.js',
+                previewUrl: 'https://demo.shipguard.dev',
+                framework: 'Next.js 15 + Tailwind',
+                providers: ['PostgreSQL', 'Stripe', 'Vercel', 'Tailwind v4'],
+                lastScanAt: 'Just now',
+                readinessScore: 88,
                 gateStatus: 'PASSED',
                 criticalCount: 0,
-                highCount: 0,
-                mediumCount: 0,
-                lowCount: 0,
-                uiClicheCount: 0,
-                findings: []
+                highCount: 2,
+                mediumCount: 2,
+                lowCount: 2,
+                uiClicheCount: 2,
+                findings: MOCK_PROJECTS[0]?.findings || []
               };
               onAddNewProject(p);
               onSelectProject(p);
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
           >
-            <span>ShipGuard (Self Audit)</span>
+            <span>Next.js 15 SaaS Starter</span>
           </button>
 
           <button
             type="button"
             onClick={() => {
               const p: Project = {
-                id: `proj-preset-mobile`,
-                name: 'React Native Mobile App (Demo)',
-                repoUrl: 'https://github.com/facebook/react-native',
-                framework: 'React Native + Expo',
-                providers: ['PostgreSQL', 'Vercel', 'Firebase'],
-                lastScanAt: 'Just now',
-                readinessScore: 100,
+                id: 'proj-preset-fastapi',
+                name: 'FastAPI REST Boilerplate',
+                repoUrl: 'https://github.com/tiangolo/fastapi',
+                previewUrl: 'https://fastapi.tiangolo.com',
+                framework: 'FastAPI (Python)',
+                providers: ['Python 3.12', 'Docker', 'PostgreSQL', 'GitHub Actions'],
+                lastScanAt: 'Ready for Audit',
+                readinessScore: 92,
                 gateStatus: 'PASSED',
                 criticalCount: 0,
-                highCount: 0,
-                mediumCount: 0,
-                lowCount: 0,
+                highCount: 1,
+                mediumCount: 1,
+                lowCount: 1,
                 uiClicheCount: 0,
                 findings: []
               };
@@ -111,7 +114,35 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
           >
-            <span>Mobile App Template</span>
+            <span>FastAPI REST Boilerplate</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const p: Project = {
+                id: 'proj-preset-supabase',
+                name: 'Supabase Fullstack Template',
+                repoUrl: 'https://github.com/supabase/supabase',
+                previewUrl: 'https://supabase.com',
+                framework: 'Next.js + Supabase',
+                providers: ['Supabase Auth', 'PostgreSQL RLS', 'Edge Functions', 'Vercel'],
+                lastScanAt: 'Ready for Audit',
+                readinessScore: 95,
+                gateStatus: 'PASSED',
+                criticalCount: 0,
+                highCount: 0,
+                mediumCount: 1,
+                lowCount: 1,
+                uiClicheCount: 0,
+                findings: []
+              };
+              onAddNewProject(p);
+              onSelectProject(p);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
+          >
+            <span>Supabase Fullstack Template</span>
           </button>
         </div>
       </div>

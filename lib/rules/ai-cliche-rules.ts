@@ -64,11 +64,11 @@ export function evaluateAiClicheRules(
   if (
     /hero|landing/i.test(file.path) &&
     (
-      (/Get Started|Hemen Başla|Start Free/i.test(cleanContent) && /Watch Demo|Demo İzle|Learn More|Daha Fazla/i.test(cleanContent)) ||
+      (/Get Started|Start Free/i.test(cleanContent) && /Watch Demo|Learn More/i.test(cleanContent)) ||
       (/btn-primary|variant.*primary/i.test(cleanContent) && /btn-secondary|btn-outline|variant.*outline|variant.*secondary/i.test(cleanContent))
     )
   ) {
-    const matchLineIdx = lines.findIndex(l => /Get Started|Hemen Başla|Start Free|Watch Demo|Demo İzle/i.test(l));
+    const matchLineIdx = lines.findIndex(l => /Get Started|Start Free|Watch Demo/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,
@@ -93,8 +93,8 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-03: "No Credit Card Required" Micro-Copy Cliché
-  if (/no credit card|kredi kartı gerek|no card required/i.test(cleanContent)) {
-    const matchLineIdx = lines.findIndex(l => /no credit card|kredi kartı gerek|no card required/i.test(l));
+  if (/no credit card|no card required/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => /no credit card|no card required/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,
@@ -198,7 +198,7 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-07: Fabricated Brand Logos (Nexora, Vertexa, Lumina)
-  if (/trusted by|güveniyor|as seen on/i.test(cleanContent) &&
+  if (/trusted by|as seen on/i.test(cleanContent) &&
       /Nexora|Vertexa|Lumina|Quantiq|Acme|TechCorp|CloudSoft|DataPulse|SynergyAI|CyberVault/i.test(cleanContent)) {
     const matchLineIdx = lines.findIndex(l => /Nexora|Vertexa|Lumina|Quantiq|Acme|TechCorp/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -253,7 +253,7 @@ export function evaluateAiClicheRules(
 
   // CLICHE-09: Overlapping Stock Avatar Social Proof
   if (/-space-x|avatar.*group|stacked.*avatar|overlapping.*avatar/i.test(cleanContent) &&
-      /\d+[\+,.]?\d*\s*(user|kullanıcı|people|joined|katıldı)/i.test(cleanContent)) {
+      /\d+[\+,.]?\d*\s*(user|people|joined|customers)/i.test(cleanContent)) {
     const matchLineIdx = lines.findIndex(l => /-space-x|avatar.*group|stacked.*avatar/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -280,8 +280,8 @@ export function evaluateAiClicheRules(
 
   // CLICHE-10: Fabricated Vanity Metrics (10,000+ Users, 99.9% Uptime, 24/7)
   if (
-    (/10[,.]?000\+?\s*(user|kullanıcı|customer)/i.test(cleanContent) && /99\.?9%\s*(uptime|availability)/i.test(cleanContent)) ||
-    (/10[,.]?000\+/i.test(cleanContent) && /24\/7/i.test(cleanContent) && /uptime|destek|support/i.test(cleanContent))
+    (/10[,.]?000\+?\s*(user|customer)/i.test(cleanContent) && /99\.?9%\s*(uptime|availability)/i.test(cleanContent)) ||
+    (/10[,.]?000\+/i.test(cleanContent) && /24\/7/i.test(cleanContent) && /uptime|support/i.test(cleanContent))
   ) {
     const matchLineIdx = lines.findIndex(l => /10[,.]?000\+|99\.?9%|24\/7/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -336,12 +336,12 @@ export function evaluateAiClicheRules(
 
   // CLICHE-12: Forced 1-2-3 Step "How It Works" Pattern
   if (
-    /how it works|nasıl çalışır/i.test(cleanContent) &&
-    /step.*1|adım.*1|sign.*up|kaydol/i.test(cleanContent) &&
-    /step.*2|adım.*2|connect|bağla/i.test(cleanContent) &&
-    /step.*3|adım.*3|start|başla/i.test(cleanContent)
+    /how it works/i.test(cleanContent) &&
+    /step.*1|sign.*up/i.test(cleanContent) &&
+    /step.*2|connect/i.test(cleanContent) &&
+    /step.*3|start/i.test(cleanContent)
   ) {
-    const matchLineIdx = lines.findIndex(l => /how it works|nasıl çalışır/i.test(l));
+    const matchLineIdx = lines.findIndex(l => /how it works/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,
@@ -367,7 +367,7 @@ export function evaluateAiClicheRules(
 
   // CLICHE-13: Generic FAQ Accordion with Plus Icons
   if (/accordion|faq/i.test(cleanContent) &&
-      (/how does it work|güvenli mi|is it secure|can i cancel/i.test(cleanContent) || /nasıl çalışır.*soru/i.test(cleanContent))) {
+      (/how does it work|is it secure|can i cancel/i.test(cleanContent))) {
     const matchLineIdx = lines.findIndex(l => /accordion|faq/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -393,9 +393,9 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-14: Dark Closing CTA Banner ("Ready to get started?")
-  if (/ready to (get started|start|begin)|bugün başlamaya|hazır mısın/i.test(cleanContent) &&
+  if (/ready to (get started|start|begin)/i.test(cleanContent) &&
       /bg-(black|gray-900|slate-900|zinc-900)|bg-\[#0/i.test(cleanContent)) {
-    const matchLineIdx = lines.findIndex(l => /ready to|hazır mısın|bugün başla/i.test(l));
+    const matchLineIdx = lines.findIndex(l => /ready to/i.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,

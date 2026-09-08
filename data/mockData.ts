@@ -468,23 +468,145 @@ export const UI_RULES_CATALOG: UiRule[] = [
   { id: 1028, code: 'UI-SEO-01', title: 'Social OpenGraph & Semantic Metadata', category: 'SEO & Social Meta', clichePattern: 'Missing OpenGraph/Twitter Card social preview metadata in layout.tsx/page.tsx, or multiple duplicate <h1> headings', whyAiDoesIt: 'Omitting complete Next.js Metadata objects or repeating <h1> tags across multiple component sections', shipguardSolution: 'Export comprehensive Next.js Metadata with openGraph and twitter cards, and restrict pages to a single semantic <h1>.' }
 ];
 
+export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
+  {
+    id: 'showcase-sec-08',
+    ruleId: 8,
+    type: 'SECURITY',
+    title: 'CORS Policy Wildcard Domain in API routes',
+    severity: 'HIGH',
+    category: 'Network & CORS',
+    filePath: 'app/api/v1/auth/route.ts',
+    lineRange: 'Lines 14-18',
+    snippet: 'response.headers.set("Access-Control-Allow-Origin", "*");\nresponse.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");',
+    reproductionSteps: [
+      'Dispatched preflight OPTIONS request from external origin (https://attacker-domain.com).',
+      'Server returned "Access-Control-Allow-Origin: *" permitting unauthenticated cross-origin requests to API endpoints.',
+      'Violates OWASP A05:2021 Security Misconfiguration standards.'
+    ],
+    remediationPrompt: 'Replace wildcard CORS header with explicit origin allowlist in middleware.ts or next.config.ts. Allow only approved production domains (process.env.NEXT_PUBLIC_APP_URL) and reject untrusted cross-origin requests.',
+    status: 'OPEN',
+    owner: 'Security Architect',
+    falsePositive: false
+  },
+  {
+    id: 'showcase-ui-a11y-01',
+    ruleId: 1026,
+    type: 'VIBEPOLISH',
+    title: 'Form Input Missing Accessible Label / Focus Ring',
+    severity: 'HIGH',
+    category: 'Accessibility (WCAG)',
+    filePath: 'components/auth/LoginForm.tsx',
+    lineRange: 'Lines 42-46',
+    snippet: '<input\n  type="email"\n  className="w-full bg-zinc-900 border border-zinc-800 rounded-md py-2 px-3 outline-none"\n  placeholder="name@work.com"\n/>',
+    reproductionSteps: [
+      'Executed keyboard navigation through form inputs using Tab key.',
+      'Focus state is invisible due to "outline-none" without replacement focus-visible ring styles.',
+      'Screen reader accessibility tree inspection revealed missing <label> or aria-label attribute.'
+    ],
+    remediationPrompt: 'Add an accessible <label htmlFor="email"> or aria-label="Work Email Address" attribute. Replace "outline-none" with "focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none" to meet WCAG 2.1 AA keyboard focus criteria.',
+    status: 'OPEN',
+    owner: 'Frontend Specialist',
+    falsePositive: false
+  },
+  {
+    id: 'showcase-compl-03',
+    ruleId: 2003,
+    type: 'LEGAL_COMPLIANCE',
+    title: 'Cookie Consent Banner Equal Decline Choice',
+    severity: 'MEDIUM',
+    category: 'Consent & Tracking',
+    filePath: 'components/compliance/CookieConsentBanner.tsx',
+    lineRange: 'Lines 28-34',
+    snippet: '<div className="flex gap-3 items-center">\n  <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold">Accept All</button>\n  <button className="text-zinc-500 text-xs hover:underline">Customize in Settings</button>\n</div>',
+    reproductionSteps: [
+      'Navigated to site in incognito session to inspect first-party cookie banner.',
+      'Detected dark pattern: prominent "Accept All" CTA but decline option buried under multi-click customization links.',
+      'Violates EDPB & CNIL equal choice guidelines requiring 1-click decline parity.'
+    ],
+    remediationPrompt: 'Provide dual, symmetrical action buttons with equal visual contrast: "Accept All" and "Reject Non-Essential". Ensure users can decline tracking with a single click without opening nested configuration panels.',
+    status: 'OPEN',
+    owner: 'Compliance Officer',
+    falsePositive: false
+  },
+  {
+    id: 'showcase-ui-perf-01',
+    ruleId: 1027,
+    type: 'VIBEPOLISH',
+    title: 'Unoptimized Raw <img> Tag (Next.js Image recommendation)',
+    severity: 'MEDIUM',
+    category: 'Performance & CWV',
+    filePath: 'components/marketing/HeroSection.tsx',
+    lineRange: 'Lines 58-62',
+    snippet: '<img\n  src="/assets/dashboard-mockup.png"\n  alt="SaaS Platform Interface"\n  className="w-full h-auto rounded-xl shadow-2xl"\n/>',
+    reproductionSteps: [
+      'Audited Core Web Vitals (CWV) on hero section.',
+      'Identified raw HTML <img> element loading a 2.4MB uncompressed PNG without Next.js automatic WebP/AVIF format conversion, responsive srcSet, or layout shift dimensions.'
+    ],
+    remediationPrompt: 'Replace raw <img> with Next.js <Image src="/assets/dashboard-mockup.png" alt="SaaS Platform Interface" width={1200} height={675} priority placeholder="blur" /> to eliminate layout shifts (CLS) and enable automated modern format compression.',
+    status: 'OPEN',
+    owner: 'Frontend Specialist',
+    falsePositive: false
+  },
+  {
+    id: 'showcase-cliche-01',
+    ruleId: 201,
+    type: 'VIBEPOLISH',
+    title: 'Monochromatic Dark Token Palette Harmony',
+    severity: 'LOW',
+    category: 'AI Cliché & Layout',
+    filePath: 'tailwind.config.ts',
+    lineRange: 'Lines 18-24',
+    snippet: 'colors: {\n  background: "#000000",\n  card: "#18181b",\n  border: "rgba(255, 255, 255, 0.15)"\n}',
+    reproductionSteps: [
+      'Inspected dark token definitions across component surfaces.',
+      'Detected pure black #000000 backdrop causing stark contrast vibration against pure white text without mid-tone elevation layers.',
+      'Violates visual hierarchy guidelines for enterprise SaaS dashboards.'
+    ],
+    remediationPrompt: 'Adopt layered neutral tokens: bg-canvas (#09090B), bg-surface (#121215), and bg-card (#18181B) with muted border-white/10 to create harmonious depth and eliminate high-contrast eye fatigue.',
+    status: 'OPEN',
+    owner: 'UI/UX Designer',
+    falsePositive: false
+  },
+  {
+    id: 'showcase-cliche-22',
+    ruleId: 222,
+    type: 'VIBEPOLISH',
+    title: 'Pastel Square Icon Container Replacement',
+    severity: 'LOW',
+    category: 'AI Cliché & Visual',
+    filePath: 'components/features/FeatureCard.tsx',
+    lineRange: 'Lines 12-16',
+    snippet: '<div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">\n  <Sparkles className="w-6 h-6" />\n</div>',
+    reproductionSteps: [
+      'Inspected marketing feature cards.',
+      'Detected repetitive formulaic pastel rounded square icon containers wrapping generic Lucide icons.',
+      'Triggers CLICHE-22 anti-pattern for AI-generated template styling.'
+    ],
+    remediationPrompt: 'Replace pastel icon boxes with authentic micro-UI snippets, interactive metric indicators, or subtle border-embedded monochrome icons (e.g. bg-white/5 border border-white/10 text-white) to elevate enterprise credibility.',
+    status: 'OPEN',
+    owner: 'UI/UX Designer',
+    falsePositive: false
+  }
+];
+
 export const MOCK_PROJECTS: Project[] = [
   {
     id: 'proj-saas-starter',
-    name: 'Next.js 15 SaaS Starter (Demo)',
+    name: 'Next.js 15 SaaS Starter (Demo Showcase)',
     repoUrl: 'https://github.com/vercel/next.js',
     previewUrl: 'https://demo.shipguard.dev',
     framework: 'Next.js 15 + Tailwind',
     providers: ['PostgreSQL', 'Stripe', 'Vercel', 'Tailwind v4'],
     lastScanAt: 'Just now',
-    readinessScore: 100,
+    readinessScore: 88,
     gateStatus: 'PASSED',
     criticalCount: 0,
-    highCount: 0,
-    mediumCount: 0,
-    lowCount: 0,
-    uiClicheCount: 0,
-    findings: []
+    highCount: 2,
+    mediumCount: 2,
+    lowCount: 2,
+    uiClicheCount: 2,
+    findings: SHOWCASE_DEMO_FINDINGS
   },
   {
     id: 'proj-shipguard-self',
@@ -617,120 +739,6 @@ export const COMPLIANCE_RULES_CATALOG: ComplianceRule[] = [
   }
 ];
 
-export const DEMO_AUDIT_FINDINGS: Finding[] = [
-  {
-    id: 'demo-finding-1',
-    ruleId: 1,
-    type: 'SECURITY',
-    title: 'Exposed Stripe Secret Key in Client Bundle',
-    severity: 'CRITICAL',
-    category: 'Secret Isolation',
-    filePath: 'components/checkout/StripeCheckoutModal.tsx',
-    lineRange: 'Line 24-25',
-    snippet: 'const stripeSecret = "sk_live_51M394x928103921EXPOSED";',
-    reproductionSteps: [
-      'Scanned client-side JavaScript chunk bundles.',
-      'Identified plain-text live Stripe secret token sk_live_.'
-    ],
-    remediationPrompt: 'Extract hardcoded Stripe API secret into server-only environment variable STRIPE_SECRET_KEY and reference via process.env without client exposure.',
-    status: 'OPEN',
-    owner: 'Security Architect',
-    falsePositive: false
-  },
-  {
-    id: 'demo-finding-2',
-    ruleId: 3,
-    type: 'SECURITY',
-    title: 'Permissive Row Level Security (RLS) Policy',
-    severity: 'CRITICAL',
-    category: 'Database',
-    filePath: 'supabase/migrations/20260824_users.sql',
-    lineRange: 'Line 14',
-    snippet: 'CREATE POLICY "Allow All" ON public.users FOR ALL USING (true);',
-    reproductionSteps: [
-      'Inspected PostgreSQL RLS policy definitions.',
-      'Detected USING (true) allowing public read/write access to user records.'
-    ],
-    remediationPrompt: 'Refactor Supabase RLS policy to enforce auth.uid() = user_id for SELECT, INSERT, and UPDATE queries.',
-    status: 'OPEN',
-    owner: 'Backend Team',
-    falsePositive: false
-  },
-  {
-    id: 'demo-finding-3',
-    ruleId: 8,
-    type: 'SECURITY',
-    title: 'Wildcard CORS (*) Header Configured',
-    severity: 'HIGH',
-    category: 'Network & CORS',
-    filePath: 'app/api/v1/proxy/route.ts',
-    lineRange: 'Line 32',
-    snippet: 'headers.set("Access-Control-Allow-Origin", "*");',
-    reproductionSteps: [
-      'Analyzed API route CORS headers.',
-      'Identified wildcard origin allowing cross-origin requests from any domain.'
-    ],
-    remediationPrompt: 'Restrict Access-Control-Allow-Origin to authorized production domains specified in environment variables.',
-    status: 'OPEN',
-    owner: 'DevOps Lead',
-    falsePositive: false
-  },
-  {
-    id: 'demo-finding-4',
-    ruleId: 16,
-    type: 'VIBEPOLISH',
-    title: 'Non-Responsive Data Table Overflow on Mobile',
-    severity: 'MEDIUM',
-    category: 'Responsive Design',
-    filePath: 'components/findings/FindingsTable.tsx',
-    lineRange: 'Line 97',
-    snippet: '<table className="w-full text-left">',
-    reproductionSteps: [
-      'Tested viewport width below 768px.',
-      'Table horizontally overflowed viewport without card collapse.'
-    ],
-    remediationPrompt: 'Implement responsive stacked card renderer (block md:hidden) for mobile viewports to prevent viewport clipping.',
-    status: 'OPEN',
-    owner: 'Frontend Specialist',
-    falsePositive: false
-  },
-  {
-    id: 'demo-finding-5',
-    ruleId: 2002,
-    type: 'LEGAL_COMPLIANCE',
-    title: 'Unconsented Meta Pixel & GA4 Script Injection in Root Layout',
-    severity: 'CRITICAL',
-    category: 'Consent & Tracking',
-    filePath: 'app/layout.tsx',
-    lineRange: 'Lines 12-18',
-    snippet: '<Script src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" />',
-    reproductionSteps: [
-      'Inspected client network waterfall on initial application load.',
-      'Detected immediate HTTP POST beacon to graph.facebook.com prior to any cookie consent interaction.'
-    ],
-    remediationPrompt: 'Wrap third-party analytics and tracking scripts in a consent-gated wrapper component that loads scripts only after explicit user opt-in.',
-    status: 'OPEN',
-    owner: 'Compliance Officer',
-    falsePositive: false
-  },
-  {
-    id: 'demo-finding-6',
-    ruleId: 2001,
-    type: 'LEGAL_COMPLIANCE',
-    title: 'Missing Privacy Policy & Dead Legal Links in Footer',
-    severity: 'HIGH',
-    category: 'Transparency & Notice',
-    filePath: 'components/Footer.tsx',
-    lineRange: 'Lines 45-48',
-    snippet: '<a href="#" className="text-zinc-500">Privacy Policy</a>',
-    reproductionSteps: [
-      'Scanned application footer and authentication modal anchor targets.',
-      'Detected dead anchor links (href="#") for required statutory legal disclosures.'
-    ],
-    remediationPrompt: 'Deploy dedicated /privacy and /terms routes and update anchor elements to use Next.js <Link href="/privacy"> and <Link href="/terms">.',
-    status: 'OPEN',
-    owner: 'Legal Engineering',
-    falsePositive: false
-  }
-];
+export const DEMO_AUDIT_FINDINGS: Finding[] = SHOWCASE_DEMO_FINDINGS;
+
 

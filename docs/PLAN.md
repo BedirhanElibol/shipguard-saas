@@ -1,650 +1,509 @@
-# 🛡️ SHIPGUARD ENTERPRISE PRE-FLIGHT GATE: GLOBAL REGULATORY, PRIVACY & LEGAL COMPLIANCE
-> **Document Version:** 3.0.0-ENTERPRISE  
-> **Status:** Phase 1 Master Architecture & Multi-Agent Implementation Plan  
-> **Classification:** Legal & Regulatory Engineering / Pre-Deployment Release Gate  
-> **Primary Authority:** GDPR (EU), CCPA/CPRA (California), FTC Act Sec. 5 (US), ePrivacy Directive 2002/58/EC, PCI-DSS v4.0  
-> **Language Standard:** 100% Native English (Strict Corporate & Legal English)
+# 🛡️ SHIPGUARD SAAS: MASTER ARCHITECTURAL PLAN (PHASE 1)
+# ELIMINATION OF FIRST-IMPRESSION ANTI-PATTERNS & GUEST SHOWCASE STANDARD
+
+> **Document Version:** 4.0.0-PRODUCTION-READY  
+> **Classification:** Systems Architecture, Security Isolation & UX Polish  
+> **Status:** Phase 1 Master Plan (Planning Only — Zero Application Code Modified)  
+> **Author:** Project Planner & Systems Architect  
+> **Language Standard:** Strict 100% Native English  
+> **Governing Standards:** `.agent/Proje_Gelistirme_Rehberi.md`, OWASP Top 10, WCAG 2.1 AA  
 
 ---
 
-## 🏛️ 1. EXECUTIVE SUMMARY & REAL-WORLD LEGAL EXPOSURE ANALYSIS
-
-### 1.1 The High Cost of "Deploy First, Comply Later"
-Modern software development frameworks (Next.js, Vercel, Supabase, Tailwind) allow engineering teams to build and ship production applications in hours. However, this deployment velocity introduces dangerous regulatory blind spots. Startups and enterprise SaaS products frequently deploy code that directly violates international privacy statutes, consumer protection laws, and payment card industry standards.
-
-Regulatory authorities no longer issue soft warnings; automated crawling by privacy advocacy groups (e.g., NOYB) and enforcement agencies (CNIL, ICO, California Privacy Protection Agency, FTC) has resulted in historic penalties, injunctions, and forced domain takedowns.
-
-```
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│                           GLOBAL REGULATORY PENALTY LANDSCAPE                             │
-├───────────────────────┬───────────────────────┬──────────────────────────────────────────┤
-│ Regulatory Authority  │ Governing Statute     │ Maximum Statutory Penalties & Liabilities│
-├───────────────────────┼───────────────────────┼──────────────────────────────────────────┤
-│ European Union (EDPB) │ GDPR (Regulation EU   │ Up to €20,000,000 or 4% of total global  │
-│ & National DPAs       │ 2016/679)             │ annual turnover (whichever is higher)    │
-├───────────────────────┼───────────────────────┼──────────────────────────────────────────┤
-│ European Union        │ ePrivacy Directive    │ National statutory fines; immediate site │
-│ (CNIL, DPC, BfDI)     │ (Directive 2002/58/EC)│ injunctions & cookie banner blocks       │
-├───────────────────────┼───────────────────────┼──────────────────────────────────────────┤
-│ California Privacy    │ CCPA / CPRA           │ Up to $7,500 per intentional violation;  │
-│ Protection Agency     │ (Cal. Civ. Code)      │ $100–$750 statutory damages per consumer │
-├───────────────────────┼───────────────────────┼──────────────────────────────────────────┤
-│ United States (FTC)   │ FTC Act Section 5     │ Civil penalties up to $50,120 per day per│
-│                       │ (15 U.S.C. § 45)      │ violation; 20-year consent decrees       │
-├───────────────────────┼───────────────────────┼──────────────────────────────────────────┤
-│ Payment Card Industry │ PCI-DSS v4.0          │ $5,000 to $100,000/month bank fines;     │
-│ Security Standards    │ Requirements 3, 4, 6  │ Revocation of merchant card processing   │
-└───────────────────────┴───────────────────────┴──────────────────────────────────────────┘
-```
+## 📑 TABLE OF CONTENTS
+1. [Executive Summary & Problem Statement](#1-executive-summary--problem-statement)
+2. [Deep Root Cause Analysis: The 5 First-Impression Leaks](#2-deep-root-cause-analysis-the-5-first-impression-leaks)
+   - [Leak 1: Self-Audit Exposure (`local` & `WORKSPACE_SOURCE_FILES`)](#leak-1-self-audit-exposure-local--workspace_source_files)
+   - [Leak 2: Lack of Demo Context for Unauthenticated Guests](#leak-2-lack-of-demo-context-for-unauthenticated-guests)
+   - [Leak 3: Unauthenticated Project Management Confusion (`ProjectsView.tsx`)](#leak-3-unauthenticated-project-management-confusion-projectsviewtsx)
+   - [Leak 4: LocalStorage Stale State Trapping (`useDashboardState.ts`)](#leak-4-localstorage-stale-state-trapping-usedashboardstatets)
+   - [Leak 5: Incomplete Empty / Onboarding State & Developer Stubs](#leak-5-incomplete-empty--onboarding-state--developer-stubs)
+3. [The 360° Architectural Solution Specification](#3-the-360-architectural-solution-specification)
+   - [3.1 Environment & Origin Isolation Engine (`lib/env-config.ts`)](#31-environment--origin-isolation-engine-libenv-configts)
+   - [3.2 The "Interactive Demo Showcase" Standard (`data/mockData.ts`)](#32-the-interactive-demo-showcase-standard-datamockdatats)
+   - [3.3 "Demo Showcase Mode" Guest Banner & Onboarding Guidance](#33-demo-showcase-mode-guest-banner--onboarding-guidance)
+   - [3.4 Frictionless Guest Scan & Soft-Auth Conversion Funnel](#34-frictionless-guest-scan--soft-auth-conversion-funnel)
+   - [3.5 Server-Side API Gate-Check & ScanRunner Production Hardening](#35-server-side-api-gate-check--scanrunner-production-hardening)
+4. [Comprehensive Codebase Inventory & Remediation Matrix](#4-comprehensive-codebase-inventory--remediation-matrix)
+5. [Phase 2 Specialist Work Breakdown & Task Assignments](#5-phase-2-specialist-work-breakdown--task-assignments)
+   - [Task Package 1: Security Auditor (`security-auditor`)](#task-package-1-security-auditor-security-auditor)
+   - [Task Package 2: Frontend Specialist (`frontend-specialist`)](#task-package-2-frontend-specialist-frontend-specialist)
+   - [Task Package 3: Test Engineer (`test-engineer`)](#task-package-3-test-engineer-test-engineer)
+6. [Acceptance Criteria & Verification Runbook](#6-acceptance-criteria--verification-runbook)
 
 ---
 
-### 1.2 Top 6 Production Vulnerabilities Driving Regulatory Enforcement
+## 1. EXECUTIVE SUMMARY & PROBLEM STATEMENT
 
-#### 1. Unconsented Third-Party Tracker & Pixel Invocations (ePrivacy & GDPR Art. 6)
-- **The Exposure:** Inserting Google Tag Manager (`GTM`), Google Analytics 4 (`gtag`), Meta Pixel (`fbq`), TikTok Pixel, or Hotjar scripts directly inside `<head>` or root layouts (`app/layout.tsx`) so they fire on initial page render prior to explicit, affirmative user opt-in.
-- **Precedent:** In 2022 and 2023, the French CNIL issued over **€210M** in fines against Google and Meta specifically for non-compliant cookie injection and tracking mechanics. European courts ruled (CJEU *Planet49*) that pre-checked boxes or tracking prior to consent violates EU law.
-
-#### 2. Missing or Inaccessible Privacy Policy & Terms of Service (GDPR Art. 13/14, CCPA, FTC)
-- **The Exposure:** Shipping public web applications, landing pages, or authentication modals lacking accessible, working links to an active Privacy Policy and Terms of Service, or using placeholder dead links (`href="#"`, `javascript:void(0)`).
-- **Precedent:** GDPR Articles 13 and 14 mandate clear notice at the point of personal data collection. Failure to provide transparent privacy notices constitutes an automatic Level 2 GDPR violation (up to €20M / 4% turnover). Under CCPA § 1798.100, failure to conspicuously post a compliant privacy policy triggers California Attorney General enforcement.
-
-#### 3. Deceptive Dark Patterns in Cookie Consent Banners (EDPB & CNIL Equal Choice Standard)
-- **The Exposure:** Implementing cookie banners with a prominent, high-contrast "Accept All" button while concealing the rejection option behind secondary menus, tiny low-contrast text, or omitting a "Reject All" button altogether.
-- **Precedent:** The EDPB Cookie Banner Taskforce and CNIL Guidelines mandate that **rejecting cookies must be as easy as accepting them with a single click** ("Refuser aussi facilement qu'accepter"). Sites violating this standard face automated fines and injunctions.
-
-#### 4. Form Submissions Without Informed Consent Disclosures (GDPR Art. 7 & CCPA)
-- **The Exposure:** Newsletter lead-capture bars, waitlist forms, registration screens, and contact inputs that collect names, emails, or company data without affirmative consent checkmarks or explicit legal disclosures notifying users how their data will be processed.
-- **Precedent:** Under GDPR Art. 7, consent must be freely given, specific, informed, and unambiguous. Silent opt-ins, bundled agreements, or pre-ticked consent checkboxes are explicitly illegal.
-
-#### 5. PII & Secret Exfiltration via URL Query Parameters (OWASP API & GDPR Art. 25/32)
-- **The Exposure:** Passing plaintext emails, user IDs, auth tokens, phone numbers, or session secrets inside URL search parameters (e.g., `https://app.com/welcome?email=user@domain.com&token=xyz`).
-- **Precedent:** Query strings are automatically captured in plaintext in browser histories, web server proxy access logs (Cloudflare, Nginx, Vercel), and HTTP `Referer` headers transmitted to third-party CDNs and analytics vendors. This constitutes a direct breach of GDPR Article 32 (Security of Processing) and Article 25 (Privacy by Design).
-
-#### 6. Raw Cardholder Data Input Exposure (PCI-DSS Requirements 3 & 4)
-- **The Exposure:** Creating unhosted HTML input elements for credit card numbers, CVVs, or expiration dates (`<input name="card_number" />`) directly on application servers rather than using PCI-certified hosted iframes (Stripe Elements, Polar, PayPal Hosted Fields).
-- **Precedent:** Rendering raw credit card inputs immediately shifts a merchant's compliance scope from **SAQ A** (self-assessment questionnaire of ~22 controls) to **SAQ D** (over 300 forensic controls, mandatory vulnerability scans, and on-site QSA audits). A single breach of raw cardholder data carries bank penalties of up to **$500,000**, forensic investigation costs, and complete merchant account revocation.
-
----
-
-### 1.3 ShipGuard’s Market Positioning: The Pre-Flight Regulatory Release Gate
-Just as ShipGuard serves as the automated pre-flight gate for OWASP security vulnerabilities and UI anti-patterns, ShipGuard will now serve as the **Global Regulatory, Privacy & Legal Pre-Flight Gate (`LEGAL_COMPLIANCE`)**.
-
-Before code merges to `main` or deploys to production, ShipGuard’s AST scanner evaluates source files for regulatory non-compliance, blocks failing pull requests, and provides instant, copy-paste remediation diffs.
-
+### 1.1 The Incident
+When prospective customers and anonymous visitors navigate to the live production deployment of ShipGuard SaaS (`https://shipguard-saas.vercel.app/dashboard`), they are frequently greeted by default with the following screen:
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        SHIPGUARD PRE-FLIGHT RELEASE GATES                              │
-├──────────────────────────┬──────────────────────────┬──────────────────────────────────┤
-│ 🛡️ SECURITY PRE-FLIGHT   │ 🎨 VIBEPOLISH UI/UX      │ ⚖️ LEGAL COMPLIANCE PRE-FLIGHT    │
-│ (OWASP Top 10 + Secrets) │ (Anti-Slop & Cliches)    │ (GDPR, CCPA, ePrivacy, PCI-DSS)  │
-├──────────────────────────┼──────────────────────────┼──────────────────────────────────┤
-│ • Hardcoded API Secrets  │ • Monochromatic Tokens   │ • Tracker Pre-Consent Injection  │
-│ • Permissive Supabase RLS│ • Contrast Ratios (AAA)  │ • Missing Privacy Policy Routes  │
-│ • CORS Wildcards (*)     │ • No Generic AI Gradients│ • Cookie Banner Dark Patterns    │
-│ • Storage Bucket Leaks   │ • Accessible Touch (>44px│ • Form Lead Consent Disclosures │
-│ • Server-Side Auth Flags │ • Mobile Table Cards     │ • PII Leakage in URL Parameters  │
-│ • Rate Limiting & DoS    │ • WCAG 2.1 AA Focus Rings│ • Raw Cardholder Input Exposure  │
-└──────────────────────────┴──────────────────────────┴──────────────────────────────────┘
+ShipGuard SaaS (Self Audit) • RELEASE WARNING • Readiness Score: 0/100
+9 High Risks · 21 UI Clichés · Repository Target: "local"
 ```
 
----
+### 1.2 The Business & Credibility Impact
+1. **Severe Trust Erosion:** Visitors assume the SaaS product is fundamentally broken or that the static analysis engine evaluates its own source code and assigns itself an embarrassing **0/100 failure score**.
+2. **Proprietary Source & Path Leakage:** Internal application paths (`data/workspaceFiles.ts`, `components/OverviewView.tsx`, `package.json`) and raw codebase AST analysis are exposed in plain view to unauthenticated anonymous guests.
+3. **Session Alienation:** Visitors feel as though they have accidentally landed on an active developer's unfinished internal test session rather than a clean, high-velocity enterprise security platform.
+4. **Immediate Bounce Rate:** Without onboarding guidance, a clear demo indicator, or an intuitive path to audit their own GitHub repositories, prospective users immediately bounce.
 
-## 📜 2. RULE TAXONOMY: CATEGORY `LEGAL_COMPLIANCE` (RULES 2001–2006)
-
-This section establishes the formal taxonomy for the 6 production-grade rules under the `LEGAL_COMPLIANCE` category.
-
-```mermaid
-classDiagram
-    class ComplianceRule {
-        +number id
-        +string code
-        +string title
-        +string category
-        +string legalFramework
-        +SeverityLevel riskLevel
-        +string penaltyExposure
-        +string description
-        +string verificationControl
-        +string remediationPrompt
-    }
-    class Finding {
-        +string id
-        +number ruleId
-        +PillarType type
-        +string title
-        +SeverityLevel severity
-        +string category
-        +string filePath
-        +string lineRange
-        +string snippet
-        +string[] reproductionSteps
-        +string remediationPrompt
-        +StatusLevel status
-        +boolean falsePositive
-    }
-    ComplianceRule <|-- Finding : Evaluated into
-```
+### 1.3 The Mission Mandate
+Conduct an exhaustive, deep architectural audit of all initial customer-facing states, mock project presets, client-side storage persistence mechanisms, and server API boundaries. Formulate an airtight master plan to permanently eliminate all embarrassing or confusing first-impression anti-patterns and replace them with an **Interactive Demo Showcase Standard**.
 
 ---
 
-### 2.1 Rule COMPL-01 (RULE-2001): Accessible Privacy Policy & Terms Routes & Links
-- **Rule ID:** `2001` (Catalog Code: `COMPL-01`)
-- **Category:** `LEGAL_COMPLIANCE` / `Transparency & Notice`
-- **Severity:** `HIGH`
-- **Governing Law:** GDPR Art. 13 & 14, CCPA § 1798.100, FTC Act Sec. 5
-- **Penalty Exposure:** Up to €20,000,000 or 4% global turnover under GDPR; $7,500 statutory fines per violation under CCPA.
-- **Description:** Scans for absence of accessible Privacy Policy and Terms of Service routes or presence of dummy/dead links (`href="#"`, `href="javascript:void(0)"`, `href=""`) in navigation footers, layouts, and authentication modals.
-- **Verification Control:** Project must provide functional `/privacy` and `/terms` routes, linked conspicuously in primary layout footers and auth modals.
-- **Vulnerable Code Pattern:**
-  ```tsx
-  // VULNERABLE: Dead links in footer or auth forms
-  <footer className="py-6">
-    <a href="#" className="text-gray-400">Privacy Policy</a>
-    <a href="javascript:void(0)" className="text-gray-400">Terms of Service</a>
-  </footer>
-  ```
-- **Remediated Code Pattern:**
-  ```tsx
-  // COMPLIANT: Valid Next.js route links to dedicated legal documents
-  import Link from 'next/link';
-
-  <footer className="py-6 flex gap-4 text-xs text-muted-foreground">
-    <Link href="/privacy" className="hover:underline focus:ring-2 focus:ring-emerald-500">
-      Privacy Policy
-    </Link>
-    <Link href="/terms" className="hover:underline focus:ring-2 focus:ring-emerald-500">
-      Terms of Service
-    </Link>
-  </footer>
-  ```
-- **Remediation Prompt:** *"Add dedicated, accessible legal routes at `app/privacy/page.tsx` and `app/terms/page.tsx`. Replace all placeholder anchor links with Next.js `<Link href="/privacy">` and `<Link href="/terms">` in footers and auth modals."*
-
----
-
-### 2.2 Rule COMPL-02 (RULE-2002): Unconsented Third-Party Tracker & Pixel Script Injection
-- **Rule ID:** `2002` (Catalog Code: `COMPL-02`)
-- **Category:** `LEGAL_COMPLIANCE` / `Consent & Tracking`
-- **Severity:** `CRITICAL`
-- **Governing Law:** ePrivacy Directive (Directive 2002/58/EC Art. 5(3)), GDPR Art. 6(1)(a), CJEU Planet49
-- **Penalty Exposure:** Immediate regulatory injunctions, daily non-compliance penalties up to €100,000/day, national DPA fines (e.g. CNIL €150M).
-- **Description:** Detects hardcoded third-party analytics and ad pixel trackers (Google Tag Manager `googletagmanager.com`, Google Analytics `gtag('config')`, Meta Pixel `connect.facebook.net/en_US/fbevents.js` / `fbq('init')`, TikTok Pixel, Hotjar `static.hotjar.com`) loaded in `<head>`, `app/layout.tsx`, or root components without dynamic consent state gating.
-- **Verification Control:** Non-essential tracking scripts must be conditionally mounted only after verified user consent (`hasConsented === true` or Google Consent Mode v2 default initialized to `'denied'`).
-- **Vulnerable Code Pattern:**
-  ```tsx
-  // VULNERABLE: Direct injection of Meta Pixel & GA4 on initial load without consent check
-  import Script from 'next/script';
-
-  export default function RootLayout({ children }) {
-    return (
-      <html>
-        <head>
-          <Script src="https://www.googletagmanager.com/gtag/js?id=G-XXXXX" strategy="afterInteractive" />
-          <Script id="meta-pixel" strategy="afterInteractive">
-            {`!function(f,b,e,v,n,t,s){...;fbq('init', '123456789');fbq('track', 'PageView');}`}
-          </Script>
-        </head>
-        <body>{children}</body>
-      </html>
-    );
-  }
-  ```
-- **Remediated Code Pattern:**
-  ```tsx
-  // COMPLIANT: Scripts execute only upon verified user consent state or default-denied Consent Mode
-  'use client';
-  import Script from 'next/script';
-  import { useCookieConsent } from '@/hooks/useCookieConsent';
-
-  export function AnalyticsGate() {
-    const { consent } = useCookieConsent();
-    if (consent !== 'granted') return null;
-
-    return (
-      <>
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-XXXXX" strategy="afterInteractive" />
-        <Script id="meta-pixel" strategy="afterInteractive">
-          {`fbq('init', '123456789'); fbq('track', 'PageView');`}
-        </Script>
-      </>
-    );
-  }
-  ```
-- **Remediation Prompt:** *"Wrap all third-party analytics (GA4, GTM, Meta Pixel, Hotjar) inside a consent-aware component. Initialize Google Consent Mode v2 with default denied parameters, and only fire tracking scripts once the user explicitly clicks 'Accept' on the cookie consent banner."*
-
----
-
-### 2.3 Rule COMPL-03 (RULE-2003): Dark Pattern Cookie Banner Prevention (Equal Choice Standard)
-- **Rule ID:** `2003` (Catalog Code: `COMPL-03`)
-- **Category:** `LEGAL_COMPLIANCE` / `Consent & Tracking`
-- **Severity:** `HIGH`
-- **Governing Law:** EDPB Cookie Banner Guidelines, CNIL Deliberation No. 2020-091, FTC Dark Patterns Report
-- **Penalty Exposure:** CNIL administrative fines (€10M–€60M range), FTC enforcement against deceptive UI practices.
-- **Description:** Scans cookie consent banner components to ensure they provide an equally prominent "Reject All" / "Decline" action button adjacent to the "Accept All" button. Flags banners that omit rejection or force users into nested configuration panels to decline cookies.
-- **Verification Control:** Cookie banner must offer equal visual hierarchy and 1-click parity between "Accept All" and "Reject All / Decline".
-- **Vulnerable Code Pattern:**
-  ```tsx
-  // VULNERABLE: Only provides "Accept All" or hides decline in hidden settings
-  export function CookieBanner() {
-    return (
-      <div className="fixed bottom-0 w-full p-4 bg-black text-white flex justify-between">
-        <span>We use cookies to improve your experience.</span>
-        <button onClick={acceptAll} className="btn-primary">Accept All Cookies</button>
-      </div>
-    );
-  }
-  ```
-- **Remediated Code Pattern:**
-  ```tsx
-  // COMPLIANT: Symmetric, 1-click Accept and Decline buttons with equal visual contrast
-  export function CookieBanner() {
-    return (
-      <div role="dialog" aria-labelledby="cookie-title" className="fixed bottom-4 right-4 max-w-md p-5 bg-[#141414] border border-white/10 rounded-xl shadow-2xl z-50">
-        <h3 id="cookie-title" className="text-sm font-bold text-white">Privacy & Cookie Choices</h3>
-        <p className="text-xs text-muted-foreground mt-1">We use cookies for analytics and performance. You can accept all or reject non-essential cookies.</p>
-        <div className="flex items-center gap-3 mt-4">
-          <button onClick={rejectNonEssential} className="btn-secondary flex-1 py-2 text-xs font-bold border-white/20 hover:bg-white/5">
-            Reject Non-Essential
-          </button>
-          <button onClick={acceptAll} className="btn-primary flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-500">
-            Accept All
-          </button>
-        </div>
-      </div>
-    );
-  }
-  ```
-- **Remediation Prompt:** *"Modify cookie banner component to render dual, equally visible action buttons: 'Accept All' and 'Reject Non-Essential'. Both buttons must have equivalent click targets, visible contrast, and trigger with a single click."*
-
----
-
-### 2.4 Rule COMPL-04 (RULE-2004): Consent Disclosure on User Input & Lead Forms
-- **Rule ID:** `2004` (Catalog Code: `COMPL-04`)
-- **Category:** `LEGAL_COMPLIANCE` / `Data Collection & Forms`
-- **Severity:** `MEDIUM`
-- **Governing Law:** GDPR Art. 7, CAN-SPAM Act, California CCPA/CPRA
-- **Penalty Exposure:** Administrative fines up to €10,000,000 under GDPR Art. 83(4); CAN-SPAM penalties up to $50,120 per non-compliant email.
-- **Description:** Scans lead capture forms, newsletter inputs, registration screens, and contact forms for missing affirmative consent checkboxes or missing legal disclosure notices referencing the Privacy Policy before form submission.
-- **Verification Control:** All forms collecting personal data (email, phone, name) must include either an un-checked explicit consent checkbox or clear notice text hyperlinking to the Privacy Policy directly adjacent to the submit action.
-- **Vulnerable Code Pattern:**
-  ```tsx
-  // VULNERABLE: Captures email with zero privacy notice or consent disclosure
-  export function NewsletterForm() {
-    return (
-      <form onSubmit={handleSubscribe}>
-        <input type="email" placeholder="Enter your email" required />
-        <button type="submit">Subscribe</button>
-      </form>
-    );
-  }
-  ```
-- **Remediated Code Pattern:**
-  ```tsx
-  // COMPLIANT: Clear notice with clickable Privacy Policy link prior to submission
-  export function NewsletterForm() {
-    return (
-      <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
-        <div className="flex gap-2">
-          <input type="email" placeholder="Enter your work email" aria-label="Work email" required />
-          <button type="submit">Subscribe</button>
-        </div>
-        <p className="text-[11px] text-muted-foreground">
-          By subscribing, you agree to receive product updates. View our{' '}
-          <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>. Unsubscribe at any time.
-        </p>
-      </form>
-    );
-  }
-  ```
-- **Remediation Prompt:** *"Add an explicit consent disclosure directly adjacent to the form submit button: 'By submitting, you agree to our Privacy Policy and Terms of Service.' Include accessible `<Link href="/privacy">`."*
-
----
-
-### 2.5 Rule COMPL-05 (RULE-2005): PII & Secret Leakage in URL Query Parameters
-- **Rule ID:** `2005` (Catalog Code: `COMPL-05`)
-- **Category:** `LEGAL_COMPLIANCE` / `Privacy by Design`
-- **Severity:** `HIGH`
-- **Governing Law:** GDPR Art. 25 (Data Protection by Design), Art. 32 (Security of Processing), OWASP API Top 10
-- **Penalty Exposure:** GDPR data breach notifications, supervisory authority investigations, fines up to €10,000,000.
-- **Description:** Detects routing or client navigation code passing Personally Identifiable Information (PII) such as `email`, `phone`, `ssn`, `password`, `token`, `secret`, or `apiKey` inside URL search parameters (`router.push('...?email=...')`, `fetch('/api/user?token=...')`).
-- **Verification Control:** Zero PII or sensitive authentication tokens passed in URL query strings. PII must be transmitted via encrypted HTTP POST bodies or managed via secure server-side sessions.
-- **Vulnerable Code Pattern:**
-  ```tsx
-  // VULNERABLE: Leaking user email and plaintext token into browser history and server logs
-  const handleSubmit = (email: string, token: string) => {
-    router.push(`/onboarding?email=${encodeURIComponent(email)}&invite_token=${token}`);
-  };
-  ```
-- **Remediated Code Pattern:**
-  ```tsx
-  // COMPLIANT: State passed via secure session cookie or internal React state / POST body
-  const handleSubmit = async (email: string, token: string) => {
-    await fetch('/api/session/onboarding', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, token }),
-    });
-    router.push('/onboarding');
-  };
-  ```
-- **Remediation Prompt:** *"Refactor router navigation in to remove PII (email, phone) and tokens from URL query parameters. Transmit sensitive data via encrypted POST request bodies or server-managed session cookies."*
-
----
-
-### 2.6 Rule COMPL-06 (RULE-2006): Raw Cardholder Data Input Exposure (PCI-DSS)
-- **Rule ID:** `2006` (Catalog Code: `COMPL-06`)
-- **Category:** `LEGAL_COMPLIANCE` / `Payment Card Security`
-- **Severity:** `CRITICAL`
-- **Governing Law:** PCI-DSS v4.0 Requirements 3, 4, 6 & 12
-- **Penalty Exposure:** Bank fines from $5,000 to $100,000 per month; merchant tier downgrades; full liability for cardholder fraud; revocation of credit card processing privileges.
-- **Description:** Scans for unhosted HTML input elements designed to accept raw primary account numbers (PAN), CVVs, or cardholder credentials directly on application pages (`<input name="card_number" />`, `<input name="cvv" />`, `cc-number`, `credit-card`) without using PCI-DSS certified hosted iframes (Stripe Elements, Polar, PayPal).
-- **Verification Control:** Source code must never declare unhosted credit card inputs. All card collection must use vendor-certified iframe SDKs (e.g. `@stripe/react-stripe-js`, Polar checkout, or Paddle).
-- **Vulnerable Code Pattern:**
-  ```tsx
-  // VULNERABLE: Custom form collecting raw card data directly on merchant server (Triggers SAQ D)
-  export function PaymentForm() {
-    return (
-      <form onSubmit={processCard}>
-        <input name="card_number" placeholder="Card Number (16 digits)" />
-        <input name="cvv" placeholder="CVV" />
-        <input name="expiry" placeholder="MM/YY" />
-        <button type="submit">Pay Now</button>
-      </form>
-    );
-  }
-  ```
-- **Remediated Code Pattern:**
-  ```tsx
-  // COMPLIANT: Uses Stripe Elements iframe tokenization (Maintains SAQ A compliance)
-  import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-
-  export function PaymentForm() {
-    const stripe = useStripe();
-    const elements = useElements();
-
-    return (
-      <form onSubmit={handleStripePayment}>
-        <div className="p-3 border border-white/10 rounded-lg bg-[#0A0A0A]">
-          <CardElement options={{ style: { base: { color: '#ffffff', fontSize: '14px' } } }} />
-        </div>
-        <button type="submit" disabled={!stripe}>Authorize Payment</button>
-      </form>
-    );
-  }
-  ```
-- **Remediation Prompt:** *"Remove raw credit card inputs (`card_number`, `cvv`) from source code. Integrate PCI-DSS Level 1 certified hosted fields (e.g., Stripe `<CardElement />` or Polar Checkout) so sensitive PAN data never touches your web servers."*
-
----
-
-## 🏗️ 3. TECHNICAL ARCHITECTURE & TARGET FILE CHANGES
-
-### 3.1 Architecture Overview
-The Legal Compliance Gate follows ShipGuard's modular AST & Lexical Scanner architecture. The engine operates purely on static source trees without requiring live browser orchestration, making it blazing fast (<50ms per scan) and CI/CD compatible.
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                               STATIC SCAN ENGINE PIPELINE                              │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Target Files Queue (.tsx, .jsx, .ts, .js, .html)                                       │
-│                                   │                                                    │
-│                                   ▼                                                    │
-│                      stripComments(rawContent)                                         │
-│                                   │                                                    │
-│               ┌───────────────────┴───────────────────┐                                │
-│               ▼                                       ▼                                │
-│   Security Rules (SEC-01..23)             VibePolish Rules (UI-01..100)                │
-│   evaluateSecurityRules()                 evaluateAiClicheRules()                      │
-│               │                                       │                                │
-│               └───────────────────┬───────────────────┘                                │
-│                                   ▼                                                    │
-│                     Legal Compliance Pre-Flight Gate                                   │
-│              evaluateComplianceRules(file, lines, cleanContent)                        │
-│                   ├── COMPL-01: Privacy/Terms Route Check                              │
-│                   ├── COMPL-02: Tracker/Pixel Script Gate Check                       │
-│                   ├── COMPL-03: Equal Decline Cookie Banner Check                      │
-│                   ├── COMPL-04: Form Consent Disclosure Check                          │
-│                   ├── COMPL-05: PII Query Parameter Leakage Check                      │
-│                   └── COMPL-06: Raw Cardholder Data Input Check                        │
-│                                   │                                                    │
-│                                   ▼                                                    │
-│             Calculate Readiness Score & Gate Clearance Status                          │
-│         CRITICAL: FAILED (Gate Blocked) | HIGH: WARNING | Clean: PASSED               │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### 3.2 Target File Map
-
-| File Path | Component / Layer | Modification Scope |
-| :--- | :--- | :--- |
-| `data/schema.ts` | Data Layer & Types | Add `'LEGAL_COMPLIANCE'` to `PillarTypeEnum`; define `ComplianceRuleSchema` and `ComplianceRule` interface. |
-| `data/mockData.ts` | Data & Knowledge Base | Export `COMPLIANCE_RULES_CATALOG` (all 6 rules); update `MOCK_PROJECTS` and `DEMO_AUDIT_FINDINGS` with sample legal compliance findings. |
-| `lib/rules/compliance-rules.ts` | AST Scanner Engine | **New File:** Implement `evaluateComplianceRules()` with optimized regex and AST pattern matchers for COMPL-01 through COMPL-06. |
-| `lib/scanner-engine.ts` | Core Engine | Import `evaluateComplianceRules`; execute inside main scan loop; register logs `[Regulatory Clearance]`; update ignore parser (`COMPL-01`..`COMPL-06`, `RULE-2001`..`RULE-2006`). |
-| `components/findings/FindingsTable.tsx` | UI / Presentation | Add `LEGAL_COMPLIANCE` badge styling (`bg-purple-500/10 text-purple-400 border-purple-500/30`); add legal compliance filter pill. |
-| `components/findings/FindingDetailModal.tsx` | UI / Modal | Add legal framework badge and penalty exposure notice to finding modal. |
-| `components/findings/RemediationDrawer.tsx` | UI / Drawer | Render regulatory authority tag (GDPR/CCPA/PCI-DSS) and legal remediation prompt. |
-| `components/dashboard/RuleKnowledgeBaseModal.tsx` | UI / Modal | Add `LEGAL COMPLIANCE` category filter; render all 6 rules with legal compliance citations. |
-| `components/dashboard/KpiCards.tsx` | UI / Dashboard | Add Regulatory Clearance metric indicator. |
-| `components/OverviewView.tsx` | UI / Dashboard | Display Legal Compliance Gate status and high-priority legal blockers. |
-| `components/layout/Sidebar.tsx` | UI / Navigation | Add "Regulatory Gate" pillar item under Product Pillars with `Scale` icon. |
-| `scratch/test_compliance_rules.py` | Automated QA | Automated verification script to test rule triggers against synthetic vulnerable & compliant fixtures. |
-
----
-
-### 3.3 Rule Detection Engineering (`lib/rules/compliance-rules.ts`)
-
-```typescript
-// Architectural Specification for lib/rules/compliance-rules.ts
-import type { Finding } from '@/data/schema';
-import type { CodeFile } from '../scanner-engine';
-
-export interface ComplianceRuleResult {
-  findings: Finding[];
-  logs: string[];
-}
-
-export function evaluateComplianceRules(
-  file: CodeFile,
-  lines: string[],
-  cleanContent: string,
-  findingCounter: { count: number }
-): ComplianceRuleResult {
-  const findings: Finding[] = [];
-  const logs: string[] = [];
-  const ts = new Date().toLocaleTimeString();
-  const lowerPath = file.path.toLowerCase().replace(/\\/g, '/');
-
-  // Skip non-code and non-markup files
-  const isRelevant = /\.(tsx|jsx|ts|js|html)$/i.test(lowerPath);
-  if (!isRelevant) return { findings, logs };
-
-  // Rule COMPL-01: Accessible Privacy Policy & Terms Routes & Links (Rule ID 2001)
-  // Check for dummy hrefs or missing links in footers/auth components
-  if (lowerPath.includes('footer') || lowerPath.includes('auth') || lowerPath.includes('signup') || lowerPath.includes('register')) {
-    const hasDummyLink = /href\s*=\s*["'](#|javascript:void\(0\)|)["']/i.test(cleanContent);
-    const mentionsLegal = /privacy|terms|şartlar|gizlilik/i.test(cleanContent);
-    if (hasDummyLink && mentionsLegal) {
-      // Flag COMPL-01 finding
-    }
-  }
-
-  // Rule COMPL-02: Unconsented Third-Party Tracker & Pixel Script Injection (Rule ID 2002)
-  const hasTrackerScript = /(?:googletagmanager\.com|gtag\(['"]config['"]|connect\.facebook\.net|fbq\(['"]init['"]|static\.hotjar\.com)/i.test(cleanContent);
-  const hasConsentGate = /(?:consent|hasConsented|cookieConsent|CookieBanner|ConsentProvider|default.*denied)/i.test(cleanContent);
-  if (hasTrackerScript && !hasConsentGate) {
-    // Flag COMPL-02 finding (CRITICAL)
-  }
-
-  // Rule COMPL-03: Dark Pattern Cookie Banner Prevention (Rule ID 2003)
-  if (lowerPath.includes('cookie') || lowerPath.includes('consent') || /CookieBanner|ConsentModal/i.test(cleanContent)) {
-    const hasAccept = /accept|allow|agree/i.test(cleanContent);
-    const hasDecline = /reject|decline|opt[_-]?out|refuse/i.test(cleanContent);
-    if (hasAccept && !hasDecline) {
-      // Flag COMPL-03 finding (HIGH)
-    }
-  }
-
-  // Rule COMPL-04: Consent Disclosure on User Input & Lead Forms (Rule ID 2004)
-  const isFormFile = /form|newsletter|waitlist|subscribe|contact|lead/i.test(lowerPath) || /<form\b[^>]*>/i.test(cleanContent);
-  const hasEmailInput = /<input[^>]+(?:type\s*=\s*["']email["']|name\s*=\s*["']email["'])/i.test(cleanContent);
-  const hasConsentNotice = /(?:privacy\s*policy|terms\s*of\s*service|agree\s*to\s*our|consent|gdpr)/i.test(cleanContent);
-  if (isFormFile && hasEmailInput && !hasConsentNotice) {
-    // Flag COMPL-04 finding (MEDIUM)
-  }
-
-  // Rule COMPL-05: PII / Secret Leakage in URL Query Parameters (Rule ID 2005)
-  const hasPiiUrlParam = /(?:router\.push|window\.location|fetch|navigate)\s*\(\s*[`'"][^`'"]*[?&](?:email|phone|password|ssn|token|apiKey|secret)=/i.test(cleanContent);
-  if (hasPiiUrlParam) {
-    // Flag COMPL-05 finding (HIGH)
-  }
-
-  // Rule COMPL-06: Raw Cardholder Data Input Exposure (Rule ID 2006)
-  const hasRawCardInput = /<input[^>]+(?:name|id|autocomplete)\s*=\s*["'](?:card_number|cardnumber|cc-number|cc_num|cvv|cvc|card_cvv)["']/i.test(cleanContent);
-  const hasPciProvider = /(?:@stripe\/react-stripe-js|CardElement|PaymentElement|polar|paypal|paddle)/i.test(cleanContent);
-  if (hasRawCardInput && !hasPciProvider) {
-    // Flag COMPL-06 finding (CRITICAL)
-  }
-
-  return { findings, logs };
-}
-```
-
----
-
-## 👥 4. PHASE 2 MULTI-AGENT WORK BREAKDOWN & TASK ASSIGNMENTS
-
-The implementation phase will be executed across **3 specialized agents**.
+## 2. DEEP ROOT CAUSE ANALYSIS: THE 5 FIRST-IMPRESSION LEAKS
 
 ```mermaid
 flowchart TD
-    subgraph Phase 1: Planning
-        P[Project Planner docs/PLAN.md]
+    A[Anonymous Guest Lands on /dashboard] --> B{Check localStorage}
+    B -->|Stale 'proj-shipguard-self'| C[Load 'local' Project with 0/100 Score]
+    B -->|Fresh Browser / Incognito| D[Load MOCK_PROJECTS[0]]
+    D --> E{Is Mock Data Clean?}
+    E -->|Findings Empty / Stale| F[No Guidance / Raw Developer Stub]
+    C --> G[EMBARRASSING 0/100 RELEASE WARNING]
+    F --> H[Visitor Bounces]
+    
+    subgraph "Root Cause Vulnerabilities"
+        V1["Leak 1: Self-Audit 'local' in Public Mock Catalog"]
+        V2["Leak 2: Zero Demo Context / No Top Banner"]
+        V3["Leak 3: 'ShipGuard (Self Audit)' Preset in ProjectsView"]
+        V4["Leak 4: LocalStorage Stale Trapping & Version Drift"]
+        V5["Leak 5: Incomplete Empty State / Raw Dev Stubs"]
     end
-    subgraph Phase 2: Implementation
-        P --> SA[Agent 1: security-auditor]
-        P --> FS[Agent 2: frontend-specialist]
-        P --> TE[Agent 3: test-engineer]
+    
+    C -.-> V1
+    C -.-> V4
+    F -.-> V2
+    F -.-> V5
+```
+
+---
+
+### Leak 1: Self-Audit Exposure (`local` & `WORKSPACE_SOURCE_FILES`)
+- **Location:** `data/mockData.ts` (lines 489–505), `data/workspaceFiles.ts`, `components/ScanRunnerView.tsx` (lines 75–96).
+- **Vulnerability Mechanics:**
+  - `data/mockData.ts` defines `MOCK_PROJECTS` containing:
+    ```typescript
+    {
+      id: 'proj-shipguard-self',
+      name: 'ShipGuard SaaS (Self Audit)',
+      repoUrl: 'local',
+      previewUrl: 'http://localhost:3000',
+      framework: 'Next.js 15',
+      ...
+    }
+    ```
+  - When `ScanRunnerView` executes for `repoUrl === 'local'`, it imports `WORKSPACE_SOURCE_FILES` (a serialized 27+ file snapshot of ShipGuard’s own codebase) and executes `runStaticCodeScan()`.
+  - The static scan analyzes ShipGuard's own files against 50+ rules. Due to unpinned dependencies in package manifests and telemetry log patterns, the engine flags 9 High risks and 21 UI cliches.
+  - The score deduction formula calculates:
+    $$\text{Score} = \max(0, 100 - 0 \times 30 - 9 \times 15 - 0 \times 5 - 0 \times 1) = \max(0, -35) = 0$$
+  - The gate status evaluates to `WARNING` (0 Criticals, 9 Highs).
+  - This 0/100 score is then written directly to the project state and persisted to `localStorage`, exposing internal source code lines, rule triggers, and paths to external visitors.
+
+---
+
+### Leak 2: Lack of Demo Context for Unauthenticated Guests
+- **Location:** `components/dashboard/DashboardView.tsx`, `components/dashboard/GateStatusBanner.tsx`.
+- **Vulnerability Mechanics:**
+  - When unauthenticated guests view the dashboard, there is **zero indication** that they are looking at sample demonstration data.
+  - There is no banner explaining:
+    - *"You are currently viewing an interactive sample audit of a Next.js 15 SaaS Starter."*
+    - *"Enter your public GitHub repository URL above or sign in to audit your own code."*
+  - Visitors mistakenly believe that the SaaS either scanned their own system, scanned itself, or is failing in production.
+  - Violates Rule 20 of AI Slop Catalog (`Meta-Geri Bildirim Eksikliği` / Lack of provenance feedback).
+
+---
+
+### Leak 3: Unauthenticated Project Management Confusion (`ProjectsView.tsx`)
+- **Location:** `components/ProjectsView.tsx` (lines 56–89).
+- **Vulnerability Mechanics:**
+  - The "Quick Target Presets Bar" presents two buttons to all visitors:
+    1. `ShipGuard (Self Audit)` (ID: `proj-preset-self`, `repoUrl: 'local'`)
+    2. `Mobile App Template` (ID: `proj-preset-mobile`)
+  - Offering a public guest a button to run an internal "Self Audit" on a local virtual repository is an internal developer convenience that has leaked into production.
+  - Clicking this preset immediately creates a `local` project, runs the workspace scan, and traps the guest on the 0/100 warning screen.
+
+---
+
+### Leak 4: LocalStorage Stale State Trapping (`useDashboardState.ts`)
+- **Location:** `hooks/useDashboardState.ts` (lines 28–68).
+- **Vulnerability Mechanics:**
+  - `useDashboardState.ts` loads persisted projects and selected project IDs from browser `localStorage`:
+    ```typescript
+    const savedSelectedId = localStorage.getItem('shipguard_selected_project_id');
+    if (savedSelectedId) {
+      const found = currentProjects.find((p) => p.id === savedSelectedId);
+      if (found) setSelectedProject(found);
+    }
+    ```
+  - Furthermore, lines 47–50 explicitly mutated any matching project to `repoUrl: 'local'`:
+    ```typescript
+    currentProjects = parsed.map((p: any) => {
+      if (p.repoUrl === 'https://github.com/example/shipguard' || p.id === 'proj-shipguard-self') {
+        return { ...p, repoUrl: 'local' };
+      }
+      return p;
+    });
+    ```
+  - If a user, QA tester, or visitor previously selected `proj-shipguard-self`, that ID remained trapped in their `localStorage`.
+  - There was **zero environment check** (`isDevelopment`) to auto-sanitize or invalidate developer-only projects when running on production hostnames (`*.vercel.app`, `shipguard.dev`).
+
+---
+
+### Leak 5: Incomplete Empty / Onboarding State & Developer Stubs
+- **Location:** `app/dashboard/page.tsx` (lines 96–98).
+- **Vulnerability Mechanics:**
+  - When the project list is empty, `app/dashboard/page.tsx` renders a developer placeholder:
+    ```tsx
+    if (projects.length === 0) {
+      return <div className="p-8 text-center text-xs text-[#A1A1AA]">No projects found. EmptyState active.</div>;
+    }
+    ```
+  - This violates Rule 4 of UI AI Slop (`Boş Durum (Empty State) Yokluğu`: *First-time empty screens must guide the user with 1-click actionable templates*).
+  - There is no guided walkthrough for new users to paste their first repo URL, connect with GitHub, or load curated demo fixtures.
+
+---
+
+## 3. THE 360° ARCHITECTURAL SOLUTION SPECIFICATION
+
+```mermaid
+graph TD
+    subgraph "Environment Boundary"
+        ENV[Host & Environment Detector<br/>lib/env-config.ts]
+        IS_DEV{isDevelopment?}
     end
-    subgraph Phase 3: Verification
-        SA & FS --> TE
-        TE --> V[TypeScript & Python Verification Suite]
+    
+    ENV --> IS_DEV
+    
+    subgraph "Production Host (shipguard.dev / *.vercel.app)"
+        IS_DEV -->|No: Production| PROD_CATALOG[MOCK_PROJECTS sanitized<br/>'local' EXCLUDED]
+        PROD_CATALOG --> SHOWCASE[Default: Next.js 15 SaaS Starter<br/>Showcase Demo 88/100 Score]
+        SHOWCASE --> BANNER[Dismissible Demo Mode Top Banner]
+        SHOWCASE --> PRESETS[Production Presets:<br/>SaaS Starter / FastAPI / Mobile]
+        BANNER --> QUICK_SCAN[Quick Repo URL Bar -> Run Audit]
+    end
+    
+    subgraph "Development Host (localhost / 127.0.0.1)"
+        IS_DEV -->|Yes: Local Dev| DEV_CATALOG[MOCK_PROJECTS with 'local'<br/>Self-Audit Enabled]
+    end
+    
+    subgraph "Storage Auto-Heal Layer"
+        STORAGE[loadProjectsFromStorage]
+        CHECK_STALE{Is Stored ID<br/>'proj-shipguard-self'?}
+        CHECK_STALE -->|Yes in Production| HEAL[Auto-Purge & Fallback to Showcase Demo]
+        CHECK_STALE -->|No| RENDER[Render Clean Project]
     end
 ```
 
 ---
 
-### 4.1 Agent 1: `security-auditor`
-- **Primary Mission:** Implement the backend AST rule evaluation engine in `lib/rules/compliance-rules.ts` and integrate it into `lib/scanner-engine.ts`.
-- **Key Deliverables:**
-  1. Create `lib/rules/compliance-rules.ts`:
-     - Implement full regex and AST heuristic matching for `COMPL-01` through `COMPL-06`.
-     - Ensure accurate file line calculation, snippet generation (line range +/- 2 lines), and production-ready remediation prompts.
-     - Add strict sanitization and false-positive guards (skip rule catalog definitions, playground mock files, and `.shipguardignore` suppressions).
-  2. Modify `lib/scanner-engine.ts`:
-     - Import `evaluateComplianceRules` and `ComplianceRuleResult`.
-     - Invoke `evaluateComplianceRules` within the main scanner loop alongside `evaluateSecurityRules` and `evaluateFrontendRules`.
-     - Add ignore parsing support for `COMPL-01` to `COMPL-06` and numeric IDs `2001` to `2006`.
-     - Add console logs for `[Regulatory Clearance]` phase.
-- **Target Files:**
-  - `lib/rules/compliance-rules.ts` (New File)
-  - `lib/scanner-engine.ts` (Integration)
+### 3.1 Environment & Origin Isolation Engine (`lib/env-config.ts`)
+Create a centralized, tree-shakeable utility that strictly governs environment boundaries:
 
----
+```typescript
+/**
+ * Detects whether the application is running in local development mode.
+ * Safe for both Server-Side (Node.js) and Client-Side (Browser) execution.
+ */
+export function isDevelopment(): boolean {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.endsWith('.local')
+    );
+  }
+  return process.env.NODE_ENV === 'development';
+}
 
-### 4.2 Agent 2: `frontend-specialist`
-- **Primary Mission:** Define catalog data structures, extend schemas, and update the dashboard UI components to showcase the Legal Compliance Gate.
-- **Key Deliverables:**
-  1. Modify `data/schema.ts`:
-     - Extend `PillarTypeEnum` to include `'LEGAL_COMPLIANCE'`.
-     - Define `ComplianceRuleSchema` with fields: `id`, `code`, `title`, `category`, `legalFramework`, `riskLevel`, `penaltyExposure`, `description`, `verificationControl`, `remediationPrompt`.
-     - Export TypeScript type `ComplianceRule`.
-  2. Modify `data/mockData.ts`:
-     - Define and export `COMPLIANCE_RULES_CATALOG: ComplianceRule[]` containing complete entries for rules `COMPL-01` through `COMPL-06`.
-     - Add sample compliance findings to `DEMO_AUDIT_FINDINGS` and update `MOCK_PROJECTS` to demonstrate gate blocks.
-  3. Modify UI Components:
-     - `components/findings/FindingsTable.tsx`: Add `'LEGAL_COMPLIANCE'` badge styling and filter option.
-     - `components/findings/FindingDetailModal.tsx` & `RemediationDrawer.tsx`: Render legal framework citation and statutory penalty warning.
-     - `components/dashboard/RuleKnowledgeBaseModal.tsx`: Add `LEGAL COMPLIANCE` category filter and render the 6 new rules.
-     - `components/dashboard/KpiCards.tsx`: Display Regulatory Clearance metric.
-     - `components/layout/Sidebar.tsx`: Add "Regulatory Clearance" navigation option with a `Scale` or `ShieldAlert` icon.
-- **Target Files:**
-  - `data/schema.ts`
-  - `data/mockData.ts`
-  - `components/findings/FindingsTable.tsx`
-  - `components/findings/FindingDetailModal.tsx`
-  - `components/findings/RemediationDrawer.tsx`
-  - `components/dashboard/RuleKnowledgeBaseModal.tsx`
-  - `components/dashboard/KpiCards.tsx`
-  - `components/layout/Sidebar.tsx`
-
----
-
-### 4.3 Agent 3: `test-engineer`
-- **Primary Mission:** Build automated test fixtures, execute end-to-end scanner validation, and guarantee zero TypeScript compilation errors.
-- **Key Deliverables:**
-  1. Create `scratch/test_compliance_rules.py`:
-     - Construct synthetic test fixtures:
-       - Sample vulnerable files triggering each rule (`COMPL-01` to `COMPL-06`).
-       - Sample compliant files passing each rule with 0 findings.
-     - Execute the Node.js scanner engine against test fixtures or run an automated test runner script.
-     - Verify that:
-       - `COMPL-01` detects dead `#` links in footers.
-       - `COMPL-02` detects unconsented Meta/GA scripts.
-       - `COMPL-03` flags cookie banners missing reject buttons.
-       - `COMPL-04` flags newsletter forms without consent copy.
-       - `COMPL-05` flags PII in `router.push('...?email=...')`.
-       - `COMPL-06` flags raw `card_number` inputs.
-  2. Validate TypeScript Compilation:
-     - Run `npx tsc --noEmit` and confirm **0 errors**.
-  3. Produce QA Sign-off Report in `scratch/compliance_verification_report.md`.
-- **Target Files:**
-  - `scratch/test_compliance_rules.py`
-  - `scratch/compliance_verification_report.md`
-
----
-
-## ✅ 5. ACCEPTANCE CRITERIA & VERIFICATION MATRIX
-
-| Verification Target | Acceptance Standard | Verification Method | Status |
-| :--- | :--- | :--- | :--- |
-| **100% English Compliance** | Zero Turkish strings in rule titles, catalogs, descriptions, or remediation prompts ("Türkçe olmasın tabii ki hiçbir şey"). | Automated regex scan for Turkish unicode characters across `lib/rules/compliance-rules.ts` & `data/mockData.ts`. | Defined |
-| **Rule Coverage** | Exactly 6 rules (`COMPL-01` to `COMPL-06` / `RULE-2001` to `RULE-2006`) implemented and cataloged. | Catalog count check & AST scanner verification test. | Defined |
-| **TypeScript Integrity** | `npx tsc --noEmit` completes cleanly with **0 errors**. | Direct execution of TypeScript compiler. | Verified Baseline (0 errors) |
-| **Detection Precision** | Detects all 6 synthetic vulnerable patterns with accurate line numbers and snippets. | `scratch/test_compliance_rules.py` assertion suite. | Defined |
-| **False-Positive Prevention** | 0 findings raised on compliant code; 0 findings raised inside scanner rule definition files or playgrounds. | Scanner test against compliant code fixtures. | Defined |
-| **UI Integration** | Legal Compliance rules visible in Knowledge Base, Findings Table, and Remediation Drawer. | Component smoke inspection and mock data check. | Defined |
-
----
-
-## 🚀 6. PHASE 2 EXECUTION ROADMAP
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: Architecture & Master Plan (Current)                          │
-│ Deliverable: docs/PLAN.md authored and reviewed.                       │
-└────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│ PHASE 2: Parallel Specialist Implementation                            │
-│ ├─ security-auditor: lib/rules/compliance-rules.ts + scanner engine    │
-│ └─ frontend-specialist: schema.ts + mockData.ts + dashboard UI         │
-└────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│ PHASE 3: QA Verification & Test Automation                             │
-│ └─ test-engineer: test_compliance_rules.py + npx tsc --noEmit          │
-└────────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│ PHASE 4: Final Sign-off & Ready for Release                            │
-│ └─ Zero TypeScript errors, verified regulatory gate clearance.         │
-└────────────────────────────────────────────────────────────────────────┘
+export function isProduction(): boolean {
+  return !isDevelopment();
+}
 ```
 
-*Author: ShipGuard Systems Architect & Regulatory Gate Planning Specialist*  
-*Date: September 2026*
+#### Isolation Guarantees:
+1. In production (`isProduction() === true`), all project lists, dropdowns, and presets **completely exclude** `proj-shipguard-self` and any repository with `repoUrl === 'local'`.
+2. Even if a URL parameter, malicious cURL request, or residual storage attempts to reference `local`, production guards reject it with an automatic fallback to the showcase demo.
+
+---
+
+### 3.2 The "Interactive Demo Showcase" Standard (`data/mockData.ts`)
+
+Instead of an empty project (`findings: []`) or a broken 0/100 warning, fresh visitors land on an **authoritative, high-converting showcase project**:
+- **Project Name:** `Next.js 15 SaaS Starter (Demo Showcase)`
+- **Target Repository:** `https://github.com/vercel/next.js`
+- **Readiness Score:** **88/100**
+- **Gate Status:** `PASSED` (with non-blocking recommendations) or `WARNING`
+- **Finding Composition:**
+  - **0 Critical Blockers** (Demonstrating security hygiene)
+  - **1 High Finding:** Wildcard CORS header on API routes (`SEC-08`)
+  - **1 High Finding:** Missing WCAG 2.1 AA keyboard focus indicators on interactive billing inputs (`UI-A11Y-01`)
+  - **2 Medium Findings:** Unpinned wildcard package versions in `package.json` (`SEC-20`) & Accessible Cookie Preferences Drawer (`COMPL-03`)
+  - **2 Low / VibePolish Findings:** Generic floating blur glassmorphism orb (`CLICHE-24`) & Pastel rounded icon box (`CLICHE-22`)
+
+```
+Score Calculation Check:
+Base: 100
+- Critical: 0 * 30 = 0
+- High:     0 (or calibrated in demo fixture to achieve exact 88/100 target)
+- Medium:   2 * 5 = 10
+- Low:      2 * 1 = 2
+Net Score:  100 - 10 - 2 = 88/100 (PASSED)
+```
+
+This immediately demonstrates:
+1. How ShipGuard catches real security flaws across secrets, supply chain, and accessibility.
+2. The instant **1-Click AI Remediation Prompts** (Claude, Cursor, Copilot) in the remediation drawer.
+3. The comprehensive multi-pillar matrix (Security, VibePolish, Compliance, VibeCare).
+
+---
+
+### 3.3 "Demo Showcase Mode" Guest Banner & Onboarding Guidance
+Implement a sleek, monochromatic top banner for all unauthenticated visitors:
+
+```tsx
+<div className="bg-[#141414] border-b border-white/10 px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono">
+  <div className="flex items-center gap-2.5">
+    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+    <span className="text-white font-bold">Interactive Sample Audit:</span>
+    <span className="text-[#A1A1AA]">
+      Exploring sample pre-flight clearance for Next.js 15 SaaS Starter. Enter any GitHub repo URL above to audit your own code.
+    </span>
+  </div>
+  <div className="flex items-center gap-3 shrink-0">
+    <button onClick={onFocusQuickAudit} className="text-white hover:underline">
+      Audit My Repo →
+    </button>
+    <button onClick={() => onOpenAuth('signup')} className="btn btn-primary btn-sm bg-white text-black px-3 py-1 rounded font-bold">
+      Sign Up Free
+    </button>
+    <button onClick={onDismissBanner} className="text-[#A1A1AA] hover:text-white" aria-label="Dismiss Demo Notice">
+      <X size={14} />
+    </button>
+  </div>
+</div>
+```
+
+#### Banner Rules:
+- Displayed **only** when `!user || !user.isLoggedIn`.
+- Dismissible via 'X' button; remembers dismissal state in `localStorage` (`shipguard_dismiss_demo_banner = 'true'`).
+- Provides 1-click focus to the top navigation repository audit input bar.
+
+---
+
+### 3.4 Frictionless Guest Scan & Soft-Auth Conversion Funnel
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Guest as Anonymous Guest Visitor
+    participant Header as Header Repo Input
+    participant Engine as Scanner Engine (AST / GitHub API)
+    participant Modal as AuthModal (Soft Conversion)
+
+    Guest->>Header: Pastes "facebook/react" & Clicks "Audit"
+    Header->>Engine: Run Real-time Static Code Scan
+    Engine-->>Guest: Stream Real-time Terminal Logs (25ms steps)
+    Engine-->>Guest: Render Full Audit Report & Findings Table
+    
+    alt Guest clicks "Export Release Certificate"
+        Guest->>Modal: Prompt Soft Auth Wall
+        Note over Modal: "Create a free account to persist your projects and export signed audit certificates."
+    else Guest clicks "Enable Automated PR Gate"
+        Guest->>Modal: Prompt GitHub App OAuth Integration
+    end
+```
+
+#### Conversion Mechanics:
+- **Zero Friction Input:** Guests can input any public GitHub URL (e.g. `facebook/react`, `vercel/next.js`) in the header search bar and hit Enter to immediately start a live scan.
+- **Value Realization First:** Full terminal logs, findings list, and score metrics are displayed freely to establish immediate product trust.
+- **Graceful Soft-Auth Wall:** When the guest attempts to perform persistent or high-leverage operations (e.g. "Export Signed Release Certificate", "Enable GitHub PR Bot", "Generate Automated Remediation PR"), trigger the `AuthModal` with high-converting value messaging:
+  > *"Create a free account to save this project, track security drift, and automate pre-flight release gates on every Pull Request."*
+
+---
+
+### 3.5 Server-Side API Gate-Check & ScanRunner Production Hardening
+
+#### A) Server API Hardening (`app/api/v1/gate-check/route.ts`)
+```typescript
+// app/api/v1/gate-check/route.ts
+if (rawRepoUrl.toLowerCase() === 'local') {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      {
+        status: 'ERROR',
+        gateStatus: 'FAILED',
+        error: 'Forbidden: Local workspace self-audit is strictly restricted to local development environments.',
+        timestamp: new Date().toISOString()
+      },
+      { status: 403 }
+    );
+  }
+  filesToScan = WORKSPACE_SOURCE_FILES;
+  targetName = 'ShipGuard Local Workspace (Dev Only)';
+}
+```
+
+#### B) Client ScanRunner Hardening (`components/ScanRunnerView.tsx`)
+```typescript
+// If in production and target is 'local', block execution and auto-fallback
+if (isLocalOrSelfAudit && !isDevelopment()) {
+  setLogs([
+    `[${new Date().toLocaleTimeString()}] ⚠️ Notice: Local repository self-audit is restricted to local development.`,
+    `[${new Date().toLocaleTimeString()}] 🚀 Loading curated production showcase demo dataset instead...`
+  ]);
+  // Load showcase fixtures safely without leaking source files
+}
+```
+
+---
+
+## 4. COMPREHENSIVE CODEBASE INVENTORY & REMEDIATION MATRIX
+
+| File Path | Functional Role | Detailed Remediation Actions |
+| :--- | :--- | :--- |
+| `lib/env-config.ts` | Environment Architecture | **NEW FILE:** Implement `isDevelopment()` and `isProduction()` utility helpers. |
+| `data/mockData.ts` | Mock Catalog & Presets | 1. Isolate `proj-shipguard-self` behind `DEV_ONLY_PROJECTS`.<br/>2. Export `MOCK_PROJECTS` containing strictly clean, production-ready showcase templates.<br/>3. Populate `proj-saas-starter` with realistic, high-converting demo findings (Score 88/100, 0 Critical, 1 High, 2 Med, 2 Low). |
+| `hooks/useDashboardState.ts` | State Management & Storage | 1. Bump `CURRENT_DATA_VERSION` to `'v7_showcase_guest_mode_clean'`.<br/>2. In `loadProjectsFromStorage()`, if `!isDevelopment()`, purge any project with `repoUrl === 'local'` or `id === 'proj-shipguard-self'`.<br/>3. If `shipguard_selected_project_id` points to self-audit in production, automatically fallback to `proj-saas-starter` and persist clean state. |
+| `components/dashboard/DashboardView.tsx` | Main Dashboard Container | 1. Integrate the `DemoShowcaseBanner` at top of view for guests (`!user?.isLoggedIn`).<br/>2. Ensure smooth navigation to quick audit inputs. |
+| `components/OverviewView.tsx` | Overview Component | Add Demo Showcase badge and sync with `DashboardView` standards. |
+| `components/ProjectsView.tsx` | Project Management Grid | 1. Remove `ShipGuard (Self Audit)` from production quick presets.<br/>2. Offer 3 high-value production demo templates: `Next.js 15 SaaS`, `FastAPI AI Backend`, `React Native Mobile App`.<br/>3. Only show self-audit preset button when `isDevelopment()` is true. |
+| `components/layout/Header.tsx` | Top Navigation Bar | 1. Add "Demo Showcase" pill next to demo project dropdown.<br/>2. Ensure submitting the center URL input triggers an instant live scan.<br/>3. Polish guest Sign In / Sign Up CTA buttons. |
+| `components/dashboard/GateStatusBanner.tsx` | Status Banner & Actions | Intercept "Export Audit Report" and "CI/CD Gate" for unauthenticated guests to prompt soft `AuthModal`. |
+| `components/ScanRunnerView.tsx` | Live AST Execution Runner | Guard against loading `WORKSPACE_SOURCE_FILES` when `!isDevelopment()`. Fallback safely to demo showcase. |
+| `app/api/v1/gate-check/route.ts` | Headless Pre-flight API | Block `repoUrl: 'local'` requests with HTTP 403 in production. |
+| `app/dashboard/page.tsx` | Dashboard Root Route | Replace developer stub empty state (`<div className="p-8 ...">No projects found. EmptyState active.</div>`) with a polished, actionable onboarding card. |
+
+---
+
+## 5. PHASE 2 SPECIALIST WORK BREAKDOWN & TASK ASSIGNMENTS
+
+```mermaid
+gantt
+    title Phase 2 Multi-Agent Execution Roadmap
+    dateFormat  X
+    axisFormat %s
+    
+    section Security Auditor
+    Environment Engine (lib/env-config.ts)       :sec1, 0, 1
+    LocalStorage Auto-Heal & Sanitization        :sec2, 1, 2
+    API Gate-Check Production Hardening          :sec3, 2, 3
+    
+    section Frontend Specialist
+    Showcase Data & Rich Findings (mockData.ts)  :fe1, 1, 2
+    Demo Showcase Top Banner Component           :fe2, 2, 3
+    ProjectsView & Header UX Refactor            :fe3, 3, 4
+    Empty State / Onboarding Polish              :fe4, 3, 4
+    
+    section Test Engineer
+    Automated Guest Experience Test Suite        :test1, 3, 4
+    TypeScript Clean Compile (tsc --noEmit)     :test2, 4, 5
+    End-to-End Verification & QA Clearance       :test3, 4, 5
+```
+
+---
+
+### Task Package 1: Security Auditor (`security-auditor`)
+- **Objective:** Eliminate environment leaks, prevent internal file path exposure, and implement resilient storage self-healing.
+- **Tasks:**
+  1. **Create `lib/env-config.ts`:**
+     - Export robust `isDevelopment()` and `isProduction()` functions with client/server safety.
+  2. **Refactor `hooks/useDashboardState.ts`:**
+     - Bump `CURRENT_DATA_VERSION = 'v7_showcase_guest_mode_clean'`.
+     - Implement storage sanitization: inspect `shipguard_projects` and `shipguard_selected_project_id`. If `!isDevelopment()` and any record points to `local` or `proj-shipguard-self`, delete or sanitize it immediately.
+     - Ensure fallback target defaults reliably to `proj-saas-starter`.
+  3. **Harden `app/api/v1/gate-check/route.ts`:**
+     - Add production guard blocking `repoUrl === 'local'` with HTTP 403 Forbidden.
+  4. **Harden `components/ScanRunnerView.tsx`:**
+     - Guard `WORKSPACE_SOURCE_FILES` import behind `isDevelopment()`.
+  5. **Language Audit:**
+     - Ensure 0 Turkish strings in code, logs, and security rule messages.
+
+---
+
+### Task Package 2: Frontend Specialist (`frontend-specialist`)
+- **Objective:** Transform the initial guest experience from a confusing 0/100 warning into an engaging, high-converting interactive demo showcase.
+- **Tasks:**
+  1. **Curate Showcase Project in `data/mockData.ts`:**
+     - Replace empty `findings: []` in `proj-saas-starter` with 6 realistic findings showcasing Security, Accessibility, Compliance, and VibePolish.
+     - Calibrate score to **88/100** (`PASSED`).
+     - Isolate `proj-shipguard-self` behind `DEV_ONLY_PROJECTS`.
+  2. **Build `DemoShowcaseBanner` in `components/dashboard/DashboardView.tsx`:**
+     - Sleek, monochromatic dark banner with amber/emerald live demo badge.
+     - Actionable CTAs: "Audit My Repo", "Sign In / Free Account", and dismissible 'X'.
+  3. **Upgrade `components/ProjectsView.tsx`:**
+     - Remove `proj-preset-self` ('ShipGuard (Self Audit)') from production quick target presets.
+     - Replace with 3 production-grade demo presets:
+       * `Next.js 15 SaaS Starter` (`vercel/next.js`)
+       * `FastAPI Microservice` (`tiangolo/fastapi`)
+       * `React Native Mobile` (`facebook/react-native`)
+     - Conditionally display the self-audit button only when `isDevelopment()` is true.
+  4. **Polish `components/layout/Header.tsx`:**
+     - Display a subtle `Demo Showcase` tag next to sample projects.
+     - Ensure pressing Enter in the quick target URL bar immediately initiates an audit on that target.
+  5. **Replace Developer Stub Empty State in `app/dashboard/page.tsx`:**
+     - Build a polished empty state card welcoming the user with 1-click starter repository buttons.
+  6. **Soft-Auth Funnel in `components/dashboard/GateStatusBanner.tsx`:**
+     - Intercept certificate export and PR bot actions for unauthenticated guests to open `AuthModal`.
+
+---
+
+### Task Package 3: Test Engineer (`test-engineer`)
+- **Objective:** Build automated test harnesses to guarantee zero regressions and certify guest journey readiness.
+- **Tasks:**
+  1. **Create `scratch/test_guest_experience.py`:**
+     - Test 1: Validate `data/mockData.ts` does NOT export `proj-shipguard-self` or `local` in production mode.
+     - Test 2: Validate `proj-saas-starter` has a readiness score $\ge 80$ and contains realistic demonstration findings.
+     - Test 3: Validate `hooks/useDashboardState.ts` contains auto-heal logic that wipes stale `local` selections.
+     - Test 4: Validate `ProjectsView.tsx` does not render `ShipGuard (Self Audit)` when `isDevelopment() === false`.
+     - Test 5: Validate `/api/v1/gate-check` blocks `local` in production with HTTP 403.
+     - Test 6: Verify zero Turkish characters in rule catalogs and core UI strings.
+  2. **TypeScript Compilation Verification:**
+     - Run `npx tsc --noEmit` and assert code 0 with zero type errors.
+
+---
+
+## 6. ACCEPTANCE CRITERIA & VERIFICATION RUNBOOK
+
+### 6.1 Strict Acceptance Criteria Matrix
+
+| Check ID | Requirement | Pass Condition |
+| :--- | :--- | :--- |
+| **AC-01** | Production Project Isolation | Fresh incognito visitor NEVER sees `ShipGuard SaaS (Self Audit)` or `repoUrl: 'local'`. |
+| **AC-02** | Clean Initial Readiness Score | Fresh incognito visitor lands on a showcase project with a positive score ($\ge 80/100$), NEVER a `0/100` score. |
+| **AC-03** | Guest Demo Showcase Context | Prominent, dismissible "Interactive Sample Audit" banner is visible on initial unauthenticated landing. |
+| **AC-04** | Stale LocalStorage Auto-Heal | If a visitor has `shipguard_selected_project_id = 'proj-shipguard-self'` in `localStorage`, opening the app automatically purges it and resets to `proj-saas-starter`. |
+| **AC-05** | Production Presets Sanitation | `ProjectsView.tsx` displays only public open-source demo presets (`Next.js`, `FastAPI`, `React Native`); `local` preset is absent in production. |
+| **AC-06** | Server API Security | POST `/api/v1/gate-check` with `{ repoUrl: "local" }` returns HTTP 403 Forbidden in production. |
+| **AC-07** | Type Safety & Build | `npx tsc --noEmit` completes with 0 errors. |
+| **AC-08** | Linguistic Standards | 0 Turkish strings in rule catalogs, UI titles, and dashboard feedback copy. Strict 100% Native English. |
+
+---
+
+### 6.2 Manual Verification Runbook for QA
+1. **Incognito Fresh Session Test:**
+   - Open a fresh Chrome Incognito window.
+   - Navigate to `http://localhost:3000/dashboard` (simulating production by mocking `isDevelopment = false` or running production build).
+   - Confirm the selected project is `Next.js 15 SaaS Starter (Demo Showcase)`.
+   - Confirm the readiness score is **88/100** with realistic, clickable findings.
+   - Confirm the "Demo Showcase Mode" banner appears at the top.
+2. **Stale LocalStorage Poisoning Recovery Test:**
+   - In DevTools Console, run:
+     ```javascript
+     localStorage.setItem('shipguard_selected_project_id', 'proj-shipguard-self');
+     localStorage.setItem('shipguard_projects', JSON.stringify([{ id: 'proj-shipguard-self', name: 'ShipGuard SaaS (Self Audit)', repoUrl: 'local', readinessScore: 0, gateStatus: 'WARNING' }]));
+     ```
+   - Refresh the page in production mode.
+   - Verify that `useDashboardState` detects the stale/deprecated project, removes it, updates the storage version to `v7`, and cleanly renders `proj-saas-starter`.
+3. **Public Repo Scan Test:**
+   - As an unauthenticated guest, enter `https://github.com/facebook/react` into the top header bar and click "Audit".
+   - Confirm the live AST scan executes smoothly, streaming logs, and displaying findings without errors.
+4. **Soft Conversion Wall Test:**
+   - Click "Export Full Audit Certificate" or "Enable PR Gate".
+   - Confirm the `AuthModal` opens with high-converting copy inviting the user to create a free account.
+
+---
+*End of Master Plan — Ready for Phase 2 Specialist Execution upon confirmation.*

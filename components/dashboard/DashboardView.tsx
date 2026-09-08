@@ -14,6 +14,7 @@ import { GeoIpTracker } from './GeoIpTracker';
 import { QuickChartWidget } from './QuickChartWidget';
 import { DashboardModals } from './DashboardModals';
 import { GateStatusBanner } from './GateStatusBanner';
+import { DemoShowcaseBanner } from '../OverviewView';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
 import confetti from 'canvas-confetti';
 import { Play, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, Zap, Download, GitCompare, Bell, Sliders, Award, BookOpen, Server, ShieldAlert, MoreVertical } from 'lucide-react';
@@ -24,6 +25,8 @@ interface DashboardViewProps {
   onInspectFinding: (f: Finding) => void;
   onNavigatePillar: (pillar: string) => void;
   onLoadDemoFindings?: (findings: Finding[]) => void;
+  user?: { isLoggedIn?: boolean } | null;
+  onOpenAuth?: (mode: 'signin' | 'signup') => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -32,6 +35,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onInspectFinding,
   onNavigatePillar,
   onLoadDemoFindings,
+  user,
+  onOpenAuth,
 }) => {
   const [copiedMaster, setCopiedMaster] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
@@ -163,6 +168,11 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
           </button>
         </div>
       </div>
+
+      {/* Interactive Demo Showcase Banner for Guests */}
+      {(!user || !user.isLoggedIn) && (
+        <DemoShowcaseBanner onOpenAuth={onOpenAuth} />
+      )}
 
       {/* Top Gate Status Banner */}
       <GateStatusBanner

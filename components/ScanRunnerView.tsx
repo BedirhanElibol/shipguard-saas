@@ -8,6 +8,7 @@ import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/l
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
 import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap } from 'lucide-react';
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
+import { canAccessLocalAudit } from '@/lib/env-config';
 
 interface ScanRunnerViewProps {
   project: Project;
@@ -85,6 +86,17 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       let filesToScan: CodeFile[] = [];
 
       if (isLocalOrSelfAudit) {
+        if (!canAccessLocalAudit()) {
+          if (!isCancelled) {
+            setLogs([
+              `[${new Date().toLocaleTimeString()}] ⛔ Local workspace self-audit is available only in local development.`,
+              `[${new Date().toLocaleTimeString()}] 💡 Please select a public GitHub repository or live URL target to audit.`
+            ]);
+          }
+          setIsFinished(true);
+          return;
+        }
+
         const { WORKSPACE_SOURCE_FILES } = await import('@/data/workspaceFiles');
         filesToScan = WORKSPACE_SOURCE_FILES;
         setQueuedFilesCount(filesToScan.length);
@@ -314,7 +326,13 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 {isFinished ? 'Audit Execution Status:' : 'Currently Inspecting File:'}
               </div>
               <div className="text-xs font-mono font-bold mt-0.5 truncate text-white">
-                {isFinished ? `✅ All ${queuedFilesCount} Source Files Inspected & Verified` : currentFileName}
+                {isFinished
+                  ? scanResult
+                    ? `✅ All ${queuedFilesCount} Source Files Inspected & Verified`
+                    : (project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
+                    ? '⛔ Local workspace self-audit is available only in local development.'
+                    : '⚠️ Audit Terminated'
+                  : currentFileName}
               </div>
             </div>
           </div>
@@ -352,41 +370,75 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
       {/* Complete Action Banner & Button */}
       {isFinished && (
-        <div className="bg-[#141414] border border-white/10 rounded-xl p-6 bg-[#141414] border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl animate-fade-in">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 size={24} className="text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-extrabold text-white uppercase tracking-wider">
-                  AST CLEARANCE SCAN COMPLETE
-                </span>
-                <span className={`px-2 py-0.5 rounded text-[0.65rem] font-bold ${
-                  scanResult?.gateStatus === 'FAILED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/5 text-white border border-white/10'
-                }`}>
-                  GATE: {scanResult?.gateStatus || 'PASSED'}
-                </span>
-                <span className="text-[0.65rem] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded  font-mono">
-                  Auto-opening report in {countdownSeconds}s...
-                </span>
+        <div className="bg-[#141414] border border-white/10 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl animate-fade-in">
+          {scanResult ? (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 size={24} className="text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-extrabold text-white uppercase tracking-wider">
+                      AST CLEARANCE SCAN COMPLETE
+                    </span>
+                    <span className={`px-2 py-0.5 rounded text-[0.65rem] font-bold ${
+                      scanResult.gateStatus === 'FAILED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/5 text-white border border-white/10'
+                    }`}>
+                      GATE: {scanResult.gateStatus}
+                    </span>
+                    <span className="text-[0.65rem] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded font-mono">
+                      Auto-opening report in {countdownSeconds}s...
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-[#EDEDED] mt-0.5">
+                    Audited {queuedFilesCount} files · Found {scanResult.findings.length} security &amp; UX issues (Readiness Score: {scanResult.score}/100)
+                  </p>
+                </div>
               </div>
-              <p className="text-sm font-bold text-[#EDEDED] mt-0.5">
-                Audited {queuedFilesCount} files · Found {scanResult?.findings.length || 0} security &amp; UX issues (Readiness Score: {scanResult?.score || 100}/100)
-              </p>
-            </div>
-          </div>
 
-          <button
-            className="btn btn-primary px-8 py-4 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all"
-            onClick={() => {
-              hasCompletedRef.current = true;
-              onCompleteScanRef.current(scanResult || undefined);
-            }}
-          >
-            <CheckCircle2 size={18} />
-            <span>View Full Audit Report ({scanResult?.findings.length || 0} Issues)</span>
-          </button>
+              <button
+                className="btn btn-primary px-8 py-4 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all"
+                onClick={() => {
+                  hasCompletedRef.current = true;
+                  onCompleteScanRef.current(scanResult);
+                }}
+              >
+                <CheckCircle2 size={18} />
+                <span>View Full Audit Report ({scanResult.findings.length} Issues)</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-red-400 font-bold text-lg font-mono">!</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-extrabold text-red-400 uppercase tracking-wider">
+                      AUDIT RESTRICTED
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-[#EDEDED] mt-0.5">
+                    {(project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
+                      ? 'Local workspace self-audit is available only in local development.'
+                      : 'Audit execution was stopped before completion.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                className="btn btn-secondary px-6 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 border border-white/10 hover:bg-white/10 text-white transition-all font-mono"
+                onClick={() => {
+                  hasCompletedRef.current = true;
+                  onCompleteScanRef.current();
+                }}
+              >
+                <span>Return to Dashboard</span>
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

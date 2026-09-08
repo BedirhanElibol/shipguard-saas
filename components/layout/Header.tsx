@@ -63,12 +63,15 @@ export const Header: React.FC<HeaderProps> = ({
   const handleTargetUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cleaned = sanitizeTargetUrl(activeTargetUrl);
-    if (cleaned && cleaned !== selectedProject.repoUrl) {
-      onSelectProject({
-        ...selectedProject,
-        repoUrl: cleaned,
-        name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || selectedProject.name
-      });
+    if (cleaned) {
+      if (cleaned !== selectedProject.repoUrl) {
+        onSelectProject({
+          ...selectedProject,
+          repoUrl: cleaned,
+          name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || selectedProject.name
+        });
+      }
+      onTriggerScan();
     }
   };
 
@@ -117,6 +120,12 @@ export const Header: React.FC<HeaderProps> = ({
               ))}
             </select>
 
+            {selectedProject.id === 'proj-saas-starter' && (!user || !user.isLoggedIn) && (
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shrink-0">
+                Demo Showcase
+              </span>
+            )}
+
             <button
               onClick={() => setIsGithubModalOpen(true)}
               className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors shrink-0"
@@ -134,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Target repository or deployment URL"
             value={activeTargetUrl}
             onChange={(e) => setActiveTargetUrl(e.target.value)}
-            placeholder="Target GitHub repo or deployment URL..."
+            placeholder="Enter GitHub repo URL (e.g. org/repo)..."
             className="w-full bg-[#141414] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-[#EDEDED] outline-none focus:border-white/30"
           />
         </form>

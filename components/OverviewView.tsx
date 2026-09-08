@@ -1,25 +1,114 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Project, Finding } from '@/data/schema';
-import { ShieldCheck, Palette, Layers, Activity, AlertTriangle, ArrowRight, Play, Copy, CheckCircle2 } from 'lucide-react';
-import { useState } from 'react';
+import { ShieldCheck, Palette, Layers, Activity, AlertTriangle, ArrowRight, Play, Copy, CheckCircle2, Sparkles, X } from 'lucide-react';
+
+export interface DemoShowcaseBannerProps {
+  onFocusQuickAudit?: () => void;
+  onOpenAuth?: (mode: 'signin' | 'signup') => void;
+  onDismiss?: () => void;
+}
+
+export const DemoShowcaseBanner: React.FC<DemoShowcaseBannerProps> = ({
+  onFocusQuickAudit,
+  onOpenAuth,
+  onDismiss,
+}) => {
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  if (isDismissed) return null;
+
+  const handleAuditClick = () => {
+    if (onFocusQuickAudit) {
+      onFocusQuickAudit();
+    } else {
+      const input = document.querySelector('input[aria-label="Target repository or deployment URL"]') as HTMLInputElement | null;
+      if (input) {
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+
+  const handleClose = () => {
+    setIsDismissed(true);
+    onDismiss?.();
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-950/40 via-[#141414] to-[#141414] p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400">
+          <Sparkles size={20} />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 tracking-wider uppercase">
+              INTERACTIVE DEMO PREVIEW
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-zinc-300 max-w-2xl leading-relaxed m-0">
+            You are exploring a sample pre-flight audit for <strong className="text-white font-semibold">Next.js 15 SaaS Starter</strong>. Enter any GitHub repository URL above or connect your GitHub account to run automated clearance gates on your own code.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+        <button
+          type="button"
+          onClick={handleAuditClick}
+          className="btn btn-secondary text-xs font-mono font-bold px-3 py-1.5 rounded-lg border-white/10 hover:bg-white/5 text-white flex items-center gap-1.5 transition-colors"
+        >
+          <span>Audit Your Repository</span>
+          <ArrowRight size={13} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenAuth?.('signup')}
+          className="btn btn-primary text-xs font-mono font-bold px-3.5 py-1.5 rounded-lg bg-white text-black hover:bg-neutral-200 transition-colors shadow-sm"
+        >
+          Sign Up Free
+        </button>
+
+        <button
+          type="button"
+          onClick={handleClose}
+          className="p-1.5 rounded-lg text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-colors shrink-0"
+          aria-label="Dismiss Demo Preview Banner"
+        >
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 interface OverviewViewProps {
   project: Project;
   onTriggerScan: () => void;
   onInspectFinding: (f: Finding) => void;
   onNavigateTab: (tab: unknown) => void;
+  user?: { isLoggedIn?: boolean } | null;
+  onOpenAuth?: (mode: 'signin' | 'signup') => void;
+  onFocusQuickAudit?: () => void;
 }
 
 export const OverviewView: React.FC<OverviewViewProps> = ({
   project,
   onTriggerScan,
   onInspectFinding,
-  onNavigateTab
+  onNavigateTab,
+  user,
+  onOpenAuth,
+  onFocusQuickAudit,
 }) => {
   const [copiedMaster, setCopiedMaster] = useState(false);
+  const [isDemoBannerDismissed, setIsDemoBannerDismissed] = useState(false);
+
+  const isGuest = !user || !user.isLoggedIn;
 
   const openFindings = project.findings.filter(f => f.status === 'OPEN');
   const criticals = openFindings.filter(f => f.severity === 'CRITICAL');
@@ -43,6 +132,15 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* Interactive Demo Showcase Banner for Guests */}
+      {isGuest && !isDemoBannerDismissed && (
+        <DemoShowcaseBanner
+          onFocusQuickAudit={onFocusQuickAudit}
+          onOpenAuth={onOpenAuth}
+          onDismiss={() => setIsDemoBannerDismissed(true)}
+        />
+      )}
+
       {/* Top Banner / Gate Status Card */}
       <div className="bg-[#141414] border border-white/10 rounded-xl" style={{
         padding: '24px 32px',

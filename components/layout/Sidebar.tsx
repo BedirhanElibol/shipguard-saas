@@ -16,7 +16,9 @@ import {
   LogIn,
   X,
   ShieldAlert,
-  Scale
+  Scale,
+  Database,
+  Terminal
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 
@@ -48,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const pillarNav = [
     { id: 'security', label: 'Security Pre-Flight', icon: ShieldCheck },
     { id: 'compliance', label: 'Legal & Privacy Gate', icon: Scale },
+    { id: 'infra', label: 'Infra & Database Gate', icon: Database },
     { id: 'vibepolish', label: 'Design & UX Polish', icon: Palette },
     { id: 'aicliche', label: 'AI Anti-Pattern Audit', icon: Palette },
     { id: 'aimaster', label: 'Master Quality Matrix', icon: Layers },
@@ -55,6 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const managementNav = [
+    { id: 'cicd', label: 'CI/CD & CLI Automation', icon: Terminal },
     { id: 'remediation', label: 'Remediation Queue', icon: CheckSquare },
     { id: 'checkout', label: 'Billing & Tiers', icon: CreditCard },
     { id: 'settings', label: 'Security Policies', icon: Settings },

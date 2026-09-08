@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const SeverityEnum = z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'PASSED']);
 export const StatusEnum = z.enum(['OPEN', 'ACCEPTED_RISK', 'RESOLVED']);
 export const GateStatusEnum = z.enum(['PASSED', 'FAILED', 'WARNING']);
-export const PillarTypeEnum = z.enum(['SECURITY', 'VIBEPOLISH', 'VIBECARE', 'LEGAL_COMPLIANCE']);
+export const PillarTypeEnum = z.enum(['SECURITY', 'VIBEPOLISH', 'VIBECARE', 'LEGAL_COMPLIANCE', 'INFRA_DATABASE']);
 
 export const FindingSchema = z.object({
   id: z.string(),
@@ -18,6 +18,7 @@ export const FindingSchema = z.object({
   snippet: z.string(),
   reproductionSteps: z.array(z.string()),
   remediationPrompt: z.string(),
+  diffPatch: z.string().optional(),
   status: StatusEnum,
   owner: z.string().optional(),
   falsePositive: z.boolean().default(false),
@@ -77,6 +78,19 @@ export const ComplianceRuleSchema = z.object({
   remediationPrompt: z.string(),
 });
 
+export const InfraRuleSchema = z.object({
+  id: z.number(),
+  code: z.string(),
+  title: z.string(),
+  category: z.string(),
+  targetStack: z.string(),
+  riskLevel: SeverityEnum,
+  description: z.string(),
+  verificationControl: z.string(),
+  remediationPrompt: z.string(),
+  sampleDiff: z.string().optional(),
+});
+
 export type SeverityLevel = z.infer<typeof SeverityEnum>;
 export type StatusLevel = z.infer<typeof StatusEnum>;
 export type GateStatusLevel = z.infer<typeof GateStatusEnum>;
@@ -86,4 +100,5 @@ export type Project = z.infer<typeof ProjectSchema>;
 export type SecurityRule = z.infer<typeof SecurityRuleSchema>;
 export type UiRule = z.infer<typeof UiRuleSchema>;
 export type ComplianceRule = z.infer<typeof ComplianceRuleSchema>;
+export type InfraRule = z.infer<typeof InfraRuleSchema>;
 

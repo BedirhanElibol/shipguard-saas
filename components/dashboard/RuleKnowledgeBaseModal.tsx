@@ -4,7 +4,34 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, BookOpen, Search, ShieldCheck, Zap, ExternalLink, AlertTriangle } from 'lucide-react';
-import { COMPLIANCE_RULES_CATALOG } from '@/data/mockData';
+import { COMPLIANCE_RULES_CATALOG, INFRA_RULES_CATALOG } from '@/data/mockData';
+
+const INFRA_SNIPPETS: Record<string, { vulnerable: string; remediated: string }> = {
+  'INFRA-01': {
+    vulnerable: `CREATE TABLE users (\n  id UUID PRIMARY KEY,\n  email TEXT\n);`,
+    remediated: `CREATE TABLE users (\n  id UUID PRIMARY KEY,\n  email TEXT\n);\nALTER TABLE users ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "User isolation" ON users FOR ALL USING (auth.uid() = id);`
+  },
+  'INFRA-02': {
+    vulnerable: `FROM node:20-alpine\nWORKDIR /app\nEXPOSE 3000\nCMD ["node", "server.js"]`,
+    remediated: `FROM node:20-alpine\nWORKDIR /app\nUSER node\nEXPOSE 3000\nCMD ["node", "server.js"]`
+  },
+  'INFRA-03': {
+    vulnerable: `const dbUri = "postgres://admin:pass@db.internal:5432/main";`,
+    remediated: `const dbUri = process.env.DATABASE_URL;\nif (!dbUri) throw new Error("Missing DATABASE_URL");`
+  },
+  'INFRA-04': {
+    vulnerable: `res.setHeader('Access-Control-Allow-Origin', '*');`,
+    remediated: `const allowed = [process.env.NEXT_PUBLIC_APP_URL];\nif (allowed.includes(req.headers.origin)) res.setHeader('Access-Control-Allow-Origin', req.headers.origin);`
+  },
+  'INFRA-05': {
+    vulnerable: `export async function GET() {\n  return Response.json({ status: 'ok', debug: true, env: process.env });\n}`,
+    remediated: `export async function GET() {\n  if (process.env.NODE_ENV === 'production') return new Response(null, { status: 404 });\n  return Response.json({ status: 'ok' });\n}`
+  },
+  'INFRA-06': {
+    vulnerable: `'use server';\nexport async function update(data: any) {\n  await db.update(data);\n}`,
+    remediated: `'use server';\nimport { z } from 'zod';\nconst Schema = z.object({ id: z.string(), name: z.string().max(100) });\nexport async function update(data: any) {\n  const valid = Schema.parse(data);\n  await db.update(valid);\n}`
+  }
+};
 
 interface RuleKnowledgeBaseModalProps {
   isOpen: boolean;
@@ -137,7 +164,19 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
     remediatedSnippet: COMPLIANCE_SNIPPETS[cr.code]?.remediated || `// Remediated code for ${cr.code}`
   }));
 
-  const kbRules = [...baseKbRules, ...complianceKbRules];
+  const infraKbRules = INFRA_RULES_CATALOG.map((ir) => ({
+    id: ir.code,
+    title: ir.title,
+    category: 'INFRA & CLOUD',
+    severity: ir.riskLevel,
+    compliance: ir.targetStack,
+    penaltyExposure: 'Infrastructure exposure & privilege escalation risk',
+    description: ir.description,
+    vulnerableSnippet: INFRA_SNIPPETS[ir.code]?.vulnerable || `// Vulnerable pattern for ${ir.code}`,
+    remediatedSnippet: INFRA_SNIPPETS[ir.code]?.remediated || `// Remediated code for ${ir.code}`
+  }));
+
+  const kbRules = [...baseKbRules, ...complianceKbRules, ...infraKbRules];
 
   if (!isOpen) return null;
 
@@ -200,7 +239,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto">
-              {['ALL', 'SECURITY', 'LEGAL COMPLIANCE', 'VIBEPOLISH'].map((cat) => (
+              {['ALL', 'SECURITY', 'LEGAL COMPLIANCE', 'INFRA & CLOUD', 'VIBEPOLISH'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
@@ -210,7 +249,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
                       : 'bg-white/5 text-[#94A3B8] border-white/10 hover:text-white'
                   }`}
                 >
-                  {cat === 'LEGAL COMPLIANCE' ? '⚖️ LEGAL & PRIVACY' : cat}
+                  {cat === 'LEGAL COMPLIANCE' ? '⚖️ LEGAL & PRIVACY' : cat === 'INFRA & CLOUD' ? '🗄️ INFRA & DB' : cat}
                 </button>
               ))}
             </div>
@@ -236,6 +275,12 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
                       <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
                         <span>⚖️</span>
                         <span>LEGAL GATE</span>
+                      </span>
+                    )}
+                    {rule.category === 'INFRA & CLOUD' && (
+                      <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1">
+                        <span>🗄️</span>
+                        <span>INFRA &amp; DB</span>
                       </span>
                     )}
                     <span

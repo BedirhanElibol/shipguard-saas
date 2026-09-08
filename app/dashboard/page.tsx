@@ -8,6 +8,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { SecurityAuditView } from '@/components/SecurityAuditView';
 import { ComplianceAuditView } from '@/components/ComplianceAuditView';
+import { InfraAuditView } from '@/components/InfraAuditView';
+import { CicdAutomationView } from '@/components/CicdAutomationView';
 import { VibePolishView } from '@/components/VibePolishView';
 import { VibeCareView } from '@/components/VibeCareView';
 import { RemediationQueueView } from '@/components/RemediationQueueView';
@@ -246,6 +248,13 @@ function DashboardContent() {
             />
           )}
 
+          {activeNav === 'infra' && (
+            <InfraAuditView
+              findings={selectedProject.findings}
+              onInspectFinding={(f) => setInspectingFinding(f)}
+            />
+          )}
+
           {activeNav === 'vibepolish' && (
             <VibePolishView
               rules={VIBEPOLISH_30_CATALOG}
@@ -271,6 +280,10 @@ function DashboardContent() {
           )}
 
           {activeNav === 'vibecare' && <VibeCareView project={selectedProject} />}
+
+          {activeNav === 'cicd' && (
+            <CicdAutomationView projectName={selectedProject.name} />
+          )}
 
           {activeNav === 'remediation' && (
             <RemediationQueueView

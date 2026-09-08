@@ -1,5 +1,5 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
-import { Project, Finding, SecurityRule, UiRule, ComplianceRule, ComplianceRuleSchema } from './schema';
+import { Project, Finding, SecurityRule, UiRule, ComplianceRule, ComplianceRuleSchema, InfraRule } from './schema';
 
 export const SECURITY_RULES_CATALOG: SecurityRule[] = [
   {
@@ -470,6 +470,27 @@ export const UI_RULES_CATALOG: UiRule[] = [
 
 export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
   {
+    id: 'showcase-infra-01',
+    ruleId: 3001,
+    type: 'INFRA_DATABASE',
+    title: 'PostgreSQL/Supabase Table "organizations" Missing Row Level Security (RLS)',
+    severity: 'HIGH',
+    category: 'Database Security',
+    filePath: 'supabase/migrations/20250101_init.sql',
+    lineRange: 'Lines 12-16',
+    snippet: 'CREATE TABLE public.organizations (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  name TEXT NOT NULL,\n  billing_email TEXT\n);',
+    reproductionSteps: [
+      'Reviewed database migration file "supabase/migrations/20250101_init.sql".',
+      'Table "organizations" defined without "ALTER TABLE ... ENABLE ROW LEVEL SECURITY;".',
+      'Anonymous PostgREST client can query sensitive tenant records if default grant permissions are left unrestricted.'
+    ],
+    remediationPrompt: 'Enable RLS immediately on "organizations":\nALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Tenants can only read own organization" ON public.organizations FOR SELECT TO authenticated USING (auth.uid() = owner_id);',
+    diffPatch: '--- a/supabase/migrations/20250101_init.sql\n+++ b/supabase/migrations/20250101_init.sql\n@@ -12,4 +12,7 @@\n CREATE TABLE public.organizations (\n   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n   name TEXT NOT NULL,\n   billing_email TEXT\n );\n+\n+-- Enforce Row Level Security (RLS)\n+ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;\n+CREATE POLICY "Tenant isolation" ON public.organizations FOR ALL TO authenticated USING (auth.uid() = owner_id);',
+    status: 'OPEN',
+    owner: 'Database Lead',
+    falsePositive: false
+  },
+  {
     id: 'showcase-sec-08',
     ruleId: 8,
     type: 'SECURITY',
@@ -485,6 +506,7 @@ export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
       'Violates OWASP A05:2021 Security Misconfiguration standards.'
     ],
     remediationPrompt: 'Replace wildcard CORS header with explicit origin allowlist in middleware.ts or next.config.ts. Allow only approved production domains (process.env.NEXT_PUBLIC_APP_URL) and reject untrusted cross-origin requests.',
+    diffPatch: '--- a/app/api/v1/auth/route.ts\n+++ b/app/api/v1/auth/route.ts\n@@ -14,2 +14,3 @@\n- response.headers.set("Access-Control-Allow-Origin", "*");\n+ const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://app.shipguard.dev";\n+ response.headers.set("Access-Control-Allow-Origin", allowedOrigin);',
     status: 'OPEN',
     owner: 'Security Architect',
     falsePositive: false
@@ -505,6 +527,7 @@ export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
       'Screen reader accessibility tree inspection revealed missing <label> or aria-label attribute.'
     ],
     remediationPrompt: 'Add an accessible <label htmlFor="email"> or aria-label="Work Email Address" attribute. Replace "outline-none" with "focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none" to meet WCAG 2.1 AA keyboard focus criteria.',
+    diffPatch: '--- a/components/auth/LoginForm.tsx\n+++ b/components/auth/LoginForm.tsx\n@@ -42,3 +42,4 @@\n+ <label htmlFor="email" className="block text-xs font-mono text-zinc-400 mb-1">Work Email</label>\n  <input\n+   id="email"\n    type="email"\n-   className="w-full bg-zinc-900 border border-zinc-800 rounded-md py-2 px-3 outline-none"\n+   className="w-full bg-zinc-900 border border-zinc-800 rounded-md py-2 px-3 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"',
     status: 'OPEN',
     owner: 'Frontend Specialist',
     falsePositive: false
@@ -525,6 +548,7 @@ export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
       'Violates EDPB & CNIL equal choice guidelines requiring 1-click decline parity.'
     ],
     remediationPrompt: 'Provide dual, symmetrical action buttons with equal visual contrast: "Accept All" and "Reject Non-Essential". Ensure users can decline tracking with a single click without opening nested configuration panels.',
+    diffPatch: '--- a/components/compliance/CookieConsentBanner.tsx\n+++ b/components/compliance/CookieConsentBanner.tsx\n@@ -28,3 +28,4 @@\n  <div className="flex gap-3 items-center">\n    <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold">Accept All</button>\n-   <button className="text-zinc-500 text-xs hover:underline">Customize in Settings</button>\n+   <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg font-bold">Reject Non-Essential</button>\n  </div>',
     status: 'OPEN',
     owner: 'Compliance Officer',
     falsePositive: false
@@ -544,6 +568,7 @@ export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
       'Identified raw HTML <img> element loading a 2.4MB uncompressed PNG without Next.js automatic WebP/AVIF format conversion, responsive srcSet, or layout shift dimensions.'
     ],
     remediationPrompt: 'Replace raw <img> with Next.js <Image src="/assets/dashboard-mockup.png" alt="SaaS Platform Interface" width={1200} height={675} priority placeholder="blur" /> to eliminate layout shifts (CLS) and enable automated modern format compression.',
+    diffPatch: '--- a/components/marketing/HeroSection.tsx\n+++ b/components/marketing/HeroSection.tsx\n@@ -58,3 +58,3 @@\n- <img src="/assets/dashboard-mockup.png" alt="SaaS Platform Interface" className="w-full h-auto rounded-xl shadow-2xl" />\n+ <Image src="/assets/dashboard-mockup.png" alt="SaaS Platform Interface" width={1200} height={675} priority className="w-full h-auto rounded-xl shadow-2xl" />',
     status: 'OPEN',
     owner: 'Frontend Specialist',
     falsePositive: false
@@ -564,6 +589,7 @@ export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
       'Violates visual hierarchy guidelines for enterprise SaaS dashboards.'
     ],
     remediationPrompt: 'Adopt layered neutral tokens: bg-canvas (#09090B), bg-surface (#121215), and bg-card (#18181B) with muted border-white/10 to create harmonious depth and eliminate high-contrast eye fatigue.',
+    diffPatch: '--- a/tailwind.config.ts\n+++ b/tailwind.config.ts\n@@ -18,3 +18,3 @@\n  colors: {\n-   background: "#000000",\n+   background: "#09090B",\n    card: "#18181b",',
     status: 'OPEN',
     owner: 'UI/UX Designer',
     falsePositive: false
@@ -584,6 +610,7 @@ export const SHOWCASE_DEMO_FINDINGS: Finding[] = [
       'Triggers CLICHE-22 anti-pattern for AI-generated template styling.'
     ],
     remediationPrompt: 'Replace pastel icon boxes with authentic micro-UI snippets, interactive metric indicators, or subtle border-embedded monochrome icons (e.g. bg-white/5 border border-white/10 text-white) to elevate enterprise credibility.',
+    diffPatch: '--- a/components/features/FeatureCard.tsx\n+++ b/components/features/FeatureCard.tsx\n@@ -12,3 +12,3 @@\n- <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">\n+ <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 text-emerald-400 flex items-center justify-center">',
     status: 'OPEN',
     owner: 'UI/UX Designer',
     falsePositive: false
@@ -736,6 +763,81 @@ export const COMPLIANCE_RULES_CATALOG: ComplianceRule[] = [
     description: 'Scans for unhosted HTML input elements designed to accept raw primary account numbers (PAN), CVVs, or cardholder credentials directly on application pages without PCI-certified hosted iframes.',
     verificationControl: 'Source code must never declare unhosted credit card inputs. All card collection must use vendor-certified iframe SDKs (Stripe Elements, Polar, PayPal).',
     remediationPrompt: 'Remove raw credit card inputs (card_number, cvv) from source code. Integrate PCI-DSS Level 1 certified hosted fields (e.g., Stripe <CardElement /> or Polar Checkout) so sensitive PAN data never touches your web servers.'
+  }
+];
+
+export const INFRA_RULES_CATALOG: InfraRule[] = [
+  {
+    id: 3001,
+    code: 'INFRA-01',
+    title: 'Supabase & PostgreSQL Missing Row Level Security (RLS)',
+    category: 'Database Security',
+    targetStack: 'Supabase / PostgreSQL',
+    riskLevel: 'CRITICAL',
+    description: 'Scans SQL migrations and table definitions for tables created without Row Level Security (RLS) enabled. Unprotected tables permit anonymous PostgREST clients to perform arbitrary read/write queries.',
+    verificationControl: 'All public schema tables must execute "ALTER TABLE <name> ENABLE ROW LEVEL SECURITY;" followed by explicit tenant-isolation policies.',
+    remediationPrompt: 'Enable RLS immediately:\nALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Tenant isolation" ON <table_name> FOR ALL TO authenticated USING (auth.uid() = user_id);',
+    sampleDiff: '--- a/supabase/migrations/01_schema.sql\n+++ b/supabase/migrations/01_schema.sql\n@@ -10,3 +10,6 @@\n CREATE TABLE users (\n   id UUID PRIMARY KEY,\n   email TEXT\n );\n+ALTER TABLE users ENABLE ROW LEVEL SECURITY;\n+CREATE POLICY "User isolation" ON users FOR ALL USING (auth.uid() = id);'
+  },
+  {
+    id: 3002,
+    code: 'INFRA-02',
+    title: 'Dockerfile Root User Execution (Privilege Escalation Risk)',
+    category: 'Container Security',
+    targetStack: 'Docker / Kubernetes',
+    riskLevel: 'HIGH',
+    description: 'Scans Dockerfile and container deployment specs for missing unprivileged user declarations. Running containers as root leaves host machines exposed to container breakout exploits.',
+    verificationControl: 'Dockerfile must declare an explicit non-root user (USER node / USER 1001) before CMD or ENTRYPOINT directives.',
+    remediationPrompt: 'Declare an unprivileged user before the final container entrypoint:\nRUN addgroup -S appgroup && adduser -S appuser -G appgroup\nUSER appuser',
+    sampleDiff: '--- a/Dockerfile\n+++ b/Dockerfile\n@@ -18,2 +18,4 @@\n WORKDIR /app\n+USER node\n EXPOSE 3000\n CMD ["node", "server.js"]'
+  },
+  {
+    id: 3003,
+    code: 'INFRA-03',
+    title: 'Plaintext Database Connection String with Credentials',
+    category: 'Secrets & Cloud',
+    targetStack: 'Node / Next.js / Python',
+    riskLevel: 'CRITICAL',
+    description: 'Detects hardcoded database connection strings containing embedded usernames, passwords, and host addresses (postgres://, mongodb+srv://, redis://) outside environment variable files.',
+    verificationControl: 'All database connection URIs must be sourced from runtime environment variables (process.env.DATABASE_URL) and never committed to source repositories.',
+    remediationPrompt: 'Extract connection strings into server-side environment variables:\nconst pool = new Pool({ connectionString: process.env.DATABASE_URL });',
+    sampleDiff: '--- a/lib/db.ts\n+++ b/lib/db.ts\n@@ -3,1 +3,1 @@\n- const dbUri = "postgres://admin:p@ss123@db.prod.internal:5432/main";\n+ const dbUri = process.env.DATABASE_URL;'
+  },
+  {
+    id: 3004,
+    code: 'INFRA-04',
+    title: 'Permissive Wildcard CORS Configuration in Middleware',
+    category: 'API & Network',
+    targetStack: 'Next.js / Express / Fastify',
+    riskLevel: 'HIGH',
+    description: 'Detects wildcard "Access-Control-Allow-Origin: *" headers configured on authenticated API route handlers or global middleware, permitting malicious websites to make cross-origin API calls.',
+    verificationControl: 'API CORS headers must validate the request origin against an explicit whitelist of trusted frontend domains.',
+    remediationPrompt: 'Replace wildcard CORS headers with an origin whitelist:\nconst allowedOrigins = [process.env.NEXT_PUBLIC_APP_URL];\nif (allowedOrigins.includes(req.headers.origin)) res.setHeader("Access-Control-Allow-Origin", req.headers.origin);',
+    sampleDiff: '--- a/middleware.ts\n+++ b/middleware.ts\n@@ -12,1 +12,3 @@\n- response.headers.set("Access-Control-Allow-Origin", "*");\n+ const origin = request.headers.get("origin");\n+ if (origin && allowedOrigins.includes(origin)) response.headers.set("Access-Control-Allow-Origin", origin);'
+  },
+  {
+    id: 3005,
+    code: 'INFRA-05',
+    title: 'Unprotected Production Debug / Profiler / Swagger Endpoints',
+    category: 'Infra Hardening',
+    targetStack: 'Next.js / Node.js / FastAPI',
+    riskLevel: 'MEDIUM',
+    description: 'Detects route handlers exposing internal telemetry, environment variables, Swagger UI, or debugging endpoints (/api/debug, /api/health/verbose) in production environments without authorization guards.',
+    verificationControl: 'Debug and telemetry endpoints must be disabled in production or strictly restricted to verified administrative users.',
+    remediationPrompt: 'Wrap debugging and profiling endpoints with environment guards:\nif (process.env.NODE_ENV === "production") return new Response("Not Found", { status: 404 });',
+    sampleDiff: '--- a/app/api/debug/route.ts\n+++ b/app/api/debug/route.ts\n@@ -1,3 +1,6 @@\n export async function GET() {\n+  if (process.env.NODE_ENV === "production") {\n+    return new Response(null, { status: 404 });\n+  }\n   return Response.json({ status: "ok", memory: process.memoryUsage() });\n }'
+  },
+  {
+    id: 3006,
+    code: 'INFRA-06',
+    title: 'Next.js Server Action Mutation Lacks Schema Validation Guard',
+    category: 'Next.js Security',
+    targetStack: 'Next.js 14/15 App Router',
+    riskLevel: 'HIGH',
+    description: 'Detects "use server" Server Action mutation functions performing direct database writes without input validation (Zod schema .parse / .safeParse), exposing internal mutations to arbitrary payloads.',
+    verificationControl: 'All Server Actions accepting client-submitted parameters must validate inputs with a strict Zod schema before database persistence.',
+    remediationPrompt: 'Enforce schema parsing inside Server Action before database execution:\nconst validated = FormSchema.parse(inputData);\nawait db.insert(validated);',
+    sampleDiff: '--- a/app/actions.ts\n+++ b/app/actions.ts\n@@ -4,3 +4,5 @@\n export async function updateProfile(data: any) {\n+  const validated = ProfileSchema.parse(data);\n-  await db.update(data);\n+  await db.update(validated);\n }'
   }
 ];
 

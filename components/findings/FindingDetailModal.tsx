@@ -53,7 +53,9 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
   const cleanTitle = sanitizeContent(finding.title);
   const cleanSteps = (finding.reproductionSteps || []).map(sanitizeContent);
 
-  const diffText = `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${cleanSnippet}\n+ // REMEDIATION: ${cleanPrompt}`;
+  const diffText =
+    finding.diffPatch ||
+    `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${cleanSnippet}\n+ // REMEDIATION: ${cleanPrompt}`;
 
   const copyDiff = () => {
     navigator.clipboard.writeText(diffText);
@@ -104,6 +106,12 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                 <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
                   <span>⚖️</span>
                   <span>Legal &amp; Privacy Gate</span>
+                </span>
+              )}
+              {finding.type === 'INFRA_DATABASE' && (
+                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
+                  <span>🗄️</span>
+                  <span>Infra &amp; Database Gate</span>
                 </span>
               )}
               <span className="text-xs font-mono text-zinc-400 font-bold">
@@ -236,22 +244,48 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
             ) : (
               <div className="bg-[#141414] border border-white/10 rounded-xl overflow-hidden font-mono text-xs">
                 <div className="p-3 space-y-1 overflow-x-auto text-[0.73rem] leading-relaxed">
-                  <div className="text-zinc-400 select-none">--- a/{finding.filePath}</div>
-                  <div className="text-zinc-400 select-none">+++ b/{finding.filePath}</div>
-                  <div className="text-zinc-500 select-none">@@ -{finding.lineRange} +{finding.lineRange} @@</div>
-                  {cleanSnippet.split('\n').map((line, idx) => (
-                    <div
-                      key={`del-${idx}`}
-                      className="bg-red-500/15 text-red-300 px-2 py-0.5 rounded border-l-2 border-red-500 flex items-start gap-2 font-mono"
-                    >
-                      <span className="text-red-400 select-none">-</span>
-                      <span className="whitespace-pre">{line}</span>
-                    </div>
-                  ))}
-                  <div className="bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded border-l-2 border-emerald-500 flex items-start gap-2 font-mono">
-                    <span className="text-emerald-400 select-none">+</span>
-                    <span className="whitespace-pre">// REMEDIATION: {cleanPrompt}</span>
-                  </div>
+                  {finding.diffPatch ? (
+                    finding.diffPatch.split('\n').map((dLine, idx) => {
+                      const isAdd = dLine.startsWith('+') && !dLine.startsWith('+++');
+                      const isDel = dLine.startsWith('-') && !dLine.startsWith('---');
+                      const isHdr = dLine.startsWith('@@') || dLine.startsWith('---') || dLine.startsWith('+++');
+                      return (
+                        <div
+                          key={`patch-${idx}`}
+                          className={`px-2 py-0.5 rounded font-mono ${
+                            isAdd
+                              ? 'bg-emerald-500/15 text-emerald-300 border-l-2 border-emerald-500'
+                              : isDel
+                              ? 'bg-red-500/15 text-red-300 border-l-2 border-red-500'
+                              : isHdr
+                              ? 'text-zinc-500 font-bold select-none'
+                              : 'text-zinc-300'
+                          }`}
+                        >
+                          <span className="whitespace-pre">{dLine}</span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <>
+                      <div className="text-zinc-400 select-none">--- a/{finding.filePath}</div>
+                      <div className="text-zinc-400 select-none">+++ b/{finding.filePath}</div>
+                      <div className="text-zinc-500 select-none">@@ -{finding.lineRange} +{finding.lineRange} @@</div>
+                      {cleanSnippet.split('\n').map((line, idx) => (
+                        <div
+                          key={`del-${idx}`}
+                          className="bg-red-500/15 text-red-300 px-2 py-0.5 rounded border-l-2 border-red-500 flex items-start gap-2 font-mono"
+                        >
+                          <span className="text-red-400 select-none">-</span>
+                          <span className="whitespace-pre">{line}</span>
+                        </div>
+                      ))}
+                      <div className="bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded border-l-2 border-emerald-500 flex items-start gap-2 font-mono">
+                        <span className="text-emerald-400 select-none">+</span>
+                        <span className="whitespace-pre">// REMEDIATION: {cleanPrompt}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -263,6 +297,14 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                 <div className="leading-relaxed">
                   <span className="font-bold text-amber-400">Legal &amp; Regulatory Pre-Flight Gate:</span>{' '}
                   This finding flags non-compliance with statutory privacy or payment standards (GDPR, ePrivacy, CCPA, PCI-DSS). Remediate before deploying to production.
+                </div>
+              </div>
+            ) : finding.type === 'INFRA_DATABASE' ? (
+              <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
+                <span className="text-cyan-400 select-none text-base leading-none shrink-0 mt-0.5">🗄️</span>
+                <div className="leading-relaxed">
+                  <span className="font-bold text-cyan-400">Infrastructure &amp; Database Gate:</span>{' '}
+                  This finding detects cloud configuration or database exposure (Supabase RLS, Docker privileges, DB secrets, CORS). Apply the unified patch to secure your release.
                 </div>
               </div>
             ) : (

@@ -30,12 +30,15 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
     { id: 'ALL', label: 'All Findings' },
     { id: 'SECURITY', label: 'Security' },
     { id: 'LEGAL_COMPLIANCE', label: 'Legal & Privacy' },
+    { id: 'INFRA_DATABASE', label: 'Infra & DB' },
     { id: 'VIBEPOLISH', label: 'VibePolish UI' },
   ];
 
   const getPillarBadgeStyle = (type: string) => {
     return type === 'LEGAL_COMPLIANCE'
       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+      : type === 'INFRA_DATABASE'
+      ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
       : type === 'SECURITY'
       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
       : type === 'VIBEPOLISH'

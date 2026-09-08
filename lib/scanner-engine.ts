@@ -5,6 +5,7 @@ import { evaluateAiClicheRules } from './rules/ai-cliche-rules';
 import { evaluateSecurityRules } from './rules/security-rules';
 import { evaluateFrontendRules } from './rules/frontend-rules';
 import { evaluateComplianceRules } from './rules/compliance-rules';
+import { evaluateInfraRules } from './rules/infra-rules';
 
 export interface CodeFile {
   path: string;
@@ -53,6 +54,7 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
     const secMatch = trimmed.match(/^SEC-?(\d+)$/i);
     const uiMatch = trimmed.match(/^UI-?(\d+)$/i);
     const complMatch = trimmed.match(/^COMPL-?(\d+)$/i);
+    const infraMatch = trimmed.match(/^INFRA-?(\d+)$/i);
     const ruleMatch = trimmed.match(/^RULE-?(\d+)$/i);
     const numMatch = trimmed.match(/^(\d+)$/);
 
@@ -94,12 +96,27 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
           ignoredRuleIds.add(num);
         }
       }
+    } else if (infraMatch) {
+      const num = parseInt(infraMatch[1], 10);
+      if (!isNaN(num)) {
+        if (num >= 1 && num <= 6) {
+          ignoredRuleIds.add(3000 + num);
+          ignoredRuleIds.add(num);
+        } else if (num >= 3001 && num <= 3006) {
+          ignoredRuleIds.add(num);
+          ignoredRuleIds.add(num - 3000);
+        } else {
+          ignoredRuleIds.add(num);
+        }
+      }
     } else if (ruleMatch) {
       const num = parseInt(ruleMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(num);
         if (num >= 2001 && num <= 2006) {
           ignoredRuleIds.add(num - 2000);
+        } else if (num >= 3001 && num <= 3006) {
+          ignoredRuleIds.add(num - 3000);
         }
       }
     } else if (numMatch) {
@@ -108,6 +125,8 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
         ignoredRuleIds.add(num);
         if (num >= 2001 && num <= 2006) {
           ignoredRuleIds.add(num - 2000);
+        } else if (num >= 3001 && num <= 3006) {
+          ignoredRuleIds.add(num - 3000);
         } else if (num < 1000) {
           ignoredRuleIds.add(num + 1000);
         }
@@ -395,9 +414,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     for (const logItem of secResult.logs) {
-      if (!logs.includes(logItem)) {
-        logs.push(logItem);
-      }
+      if (!logs.includes(logItem)) logs.push(logItem);
     }
 
     // Live Web Deployment Security Header Rules: Parse missingSecurityHeaders from JSON
@@ -1295,6 +1312,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     logs.push(...frontendResult.logs);
 
     // Global Regulatory, Privacy & Legal Pre-Flight Gate (Rules 2001-2006)
+    // Global Regulatory, Privacy & Legal Pre-Flight Gate (Rules 2001-2006)
     const complianceCounter = { count: findingCounter };
     const complianceResult = evaluateComplianceRules(file, lines, cleanContent, complianceCounter);
     findingCounter = complianceCounter.count;
@@ -1302,6 +1320,15 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       addFinding(cf);
     }
     logs.push(...complianceResult.logs);
+
+    // Infrastructure, Cloud & Database Security Engine (Rules 3001-3006)
+    const infraCounter = { count: findingCounter };
+    const infraResult = evaluateInfraRules(file, lines, cleanContent, infraCounter);
+    findingCounter = infraCounter.count;
+    for (const inf of infraResult.findings) {
+      addFinding(inf);
+    }
+    logs.push(...infraResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

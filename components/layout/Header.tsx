@@ -65,11 +65,27 @@ export const Header: React.FC<HeaderProps> = ({
     const cleaned = sanitizeTargetUrl(activeTargetUrl);
     if (cleaned) {
       if (cleaned !== selectedProject.repoUrl) {
-        onSelectProject({
-          ...selectedProject,
+        const newProject: Project = {
+          id: `proj-${Date.now()}`,
+          name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || 'Imported Repository',
           repoUrl: cleaned,
-          name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || selectedProject.name
-        });
+          framework: 'Next.js 15',
+          providers: ['GitHub'],
+          lastScanAt: 'Never audited',
+          readinessScore: 100,
+          gateStatus: 'PASSED',
+          criticalCount: 0,
+          highCount: 0,
+          mediumCount: 0,
+          lowCount: 0,
+          uiClicheCount: 0,
+          findings: []
+        };
+        if (onAddNewProject) {
+          onAddNewProject(newProject);
+        } else {
+          onSelectProject(newProject);
+        }
       }
       onTriggerScan();
     }

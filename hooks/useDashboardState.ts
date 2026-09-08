@@ -26,6 +26,16 @@ export function useDashboardState() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    const nav = searchParams.get('nav');
+    if (nav) setActiveNav(nav);
+    const auth = searchParams.get('auth');
+    if (auth === 'signin' || auth === 'signup') {
+      setAuthInitialMode(auth);
+      setIsAuthModalOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
         const CURRENT_DATA_VERSION = 'v7_showcase_guest_mode_clean';
@@ -159,8 +169,8 @@ export function useDashboardState() {
           try { currentUserObj = JSON.parse(rawUser); } catch {}
         }
 
-        const userEmail = currentUserObj?.email || 'bedirelibol7@gmail.com';
-        const userName = currentUserObj?.name || 'Bedirhan Elibol';
+        const userEmail = currentUserObj?.email || 'subscriber@shipguard.dev';
+        const userName = currentUserObj?.name || 'Pro Subscriber';
         const upgradedUser: UserProfile = {
           name: userName,
           email: userEmail,

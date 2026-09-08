@@ -77,10 +77,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         project.repoUrl === 'local' ||
         project.repoUrl.toLowerCase() === 'local' ||
         project.id === 'proj-shipguard-self' ||
-        project.id === 'proj-preset-self' ||
-        project.name.toLowerCase().includes('self audit') ||
-        project.name.toLowerCase().includes('shipguard') ||
-        ['proj-nexus', 'proj-synthflow', 'proj-aura'].includes(project.id);
+        project.id === 'proj-preset-self';
       const isWebTarget = isValidWebUrl(project.repoUrl);
 
       let filesToScan: CodeFile[] = [];

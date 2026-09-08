@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { MOCK_PROJECTS } from '@/data/mockData';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
+import { purgeShipguardStorage } from '@/lib/storage';
 
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
@@ -59,7 +60,7 @@ function CheckoutPageContent() {
       onSignOut={() => {
         setUser(null);
         try {
-          localStorage.removeItem('shipguard_user');
+          purgeShipguardStorage(true);
           if (typeof document !== 'undefined') {
             document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
           }

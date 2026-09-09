@@ -60,6 +60,61 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
   const [profileSaved, setProfileSaved] = useState(false);
 
+  // Subscription Sync State
+  const [isSyncingSub, setIsSyncingSub] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
+    status: 'idle',
+    message: '',
+  });
+
+  const handleSyncSubscription = async () => {
+    if (!user?.email) return;
+    setIsSyncingSub(true);
+    setSyncFeedback({ status: 'idle', message: '' });
+    try {
+      const res = await fetch('/api/v1/subscription/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.active && (data.tier === 'Pro' || data.tier === 'Enterprise')) {
+          const updatedUser: UserProfile = {
+            ...user,
+            tier: data.tier,
+          };
+          if (onUpdateUser) {
+            onUpdateUser(updatedUser);
+          }
+          localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+          setSyncFeedback({
+            status: 'success',
+            message: `✓ Active ${data.tier} subscription confirmed and synced!`,
+          });
+        } else {
+          setSyncFeedback({
+            status: 'error',
+            message: `No active Polar subscription found for ${user.email}.`,
+          });
+        }
+      } else {
+        setSyncFeedback({
+          status: 'error',
+          message: 'Unable to reach subscription verification service.',
+        });
+      }
+    } catch {
+      setSyncFeedback({
+        status: 'error',
+        message: 'Network error checking subscription status.',
+      });
+    } finally {
+      setIsSyncingSub(false);
+      setTimeout(() => setSyncFeedback({ status: 'idle', message: '' }), 6000);
+    }
+  };
+
   // License Key Activation State
   const [licenseInput, setLicenseInput] = useState('');
   const [licenseFeedback, setLicenseFeedback] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
@@ -340,26 +395,53 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               </div>
             </div>
 
-            {/* Plan Switcher / Upgrade Button */}
+            {/* Plan Switcher / Upgrade Button & Subscription Sync */}
             <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
               <span className="text-xs text-[#A1A1AA]">
-                For higher release gate limits and live CI/CD webhook integrations:
+                Purchased on Polar or need to verify your active plan?
               </span>
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenCheckout) {
-                    onOpenCheckout();
-                  } else {
-                    router.push('/checkout');
-                  }
-                }}
-                className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
-              >
-                <Zap size={14} className="fill-black" />
-                <span>Upgrade Plan</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {isAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={handleSyncSubscription}
+                    disabled={isSyncingSub}
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    {isSyncingSub ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin text-emerald-400" />
+                        <span>Checking...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck size={14} className="text-emerald-400" />
+                        <span>Sync Subscription</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenCheckout) {
+                      onOpenCheckout();
+                    } else {
+                      router.push('/checkout');
+                    }
+                  }}
+                  className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+                >
+                  <Zap size={14} className="fill-black" />
+                  <span>Upgrade Plan</span>
+                </button>
+              </div>
             </div>
+            {syncFeedback.message && (
+              <div className={`text-xs font-mono p-3 rounded-xl border ${syncFeedback.status === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
+                {syncFeedback.message}
+              </div>
+            )}
           </div>
 
           {/* Profile Details & Avatar Preview */}

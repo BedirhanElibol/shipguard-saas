@@ -165,23 +165,64 @@ export function useDashboardState() {
 
     loadProjectsFromStorage();
 
-    // Verify Polar checkout server-side if checkout_id is present
+    // 1. Verify Polar checkout server-side if returning from payment
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : searchParams;
-    const checkoutId = urlParams.get('checkout_id') || urlParams.get('checkoutId');
+    const checkoutId = urlParams.get('checkout_id') || urlParams.get('checkoutId') || urlParams.get('session_id');
+
     if (checkoutId) {
-      // Server-side verification will be handled by /api/v1/verify-checkout
-      // For now, just clean the URL params without auto-upgrading
-      if (typeof window !== 'undefined') {
-        const cleanUrl = new URL(window.location.href);
-        cleanUrl.searchParams.delete('checkout_id');
-        cleanUrl.searchParams.delete('checkoutId');
-        cleanUrl.searchParams.delete('success');
-        cleanUrl.searchParams.delete('status');
-        cleanUrl.searchParams.delete('restore');
-        cleanUrl.searchParams.delete('pro');
-        cleanUrl.searchParams.delete('user');
-        window.history.replaceState({}, '', cleanUrl.toString());
-      }
+      const verifyCheckoutReturn = async (cid: string) => {
+        try {
+          const currentSavedUser = localStorage.getItem('zelsis_user');
+          const parsed = currentSavedUser ? JSON.parse(currentSavedUser) : null;
+          const userEmail = parsed?.email || null;
+
+          const res = await fetch('/api/v1/verify-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ checkoutId: cid, email: userEmail }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.verified && (data.tier === 'Pro' || data.tier === 'Enterprise')) {
+              const upgradedTier = data.tier;
+              setUser((prev) => {
+                const updated: UserProfile = {
+                  ...(prev || {
+                    name: 'Pro Subscriber',
+                    email: data.email || userEmail || 'subscriber@zelsis.com',
+                    isLoggedIn: true,
+                  }),
+                  tier: upgradedTier,
+                  isLoggedIn: true,
+                };
+                localStorage.setItem('zelsis_user', JSON.stringify(updated));
+                if (typeof document !== 'undefined') {
+                  document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(updated))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
+                }
+                return updated;
+              });
+              localStorage.setItem('zelsis_license_key', `ZS-PRO-2026-VERIFIED-${cid.slice(-8).toUpperCase()}`);
+            }
+          }
+        } catch (err) {
+          console.warn('[Zelsis Checkout] Verification call error:', err);
+        } finally {
+          if (typeof window !== 'undefined') {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('checkout_id');
+            cleanUrl.searchParams.delete('checkoutId');
+            cleanUrl.searchParams.delete('session_id');
+            cleanUrl.searchParams.delete('success');
+            cleanUrl.searchParams.delete('status');
+            cleanUrl.searchParams.delete('restore');
+            cleanUrl.searchParams.delete('pro');
+            cleanUrl.searchParams.delete('user');
+            window.history.replaceState({}, '', cleanUrl.toString());
+          }
+        }
+      };
+      verifyCheckoutReturn(checkoutId);
     }
 
     const handleStorageChange = (e: StorageEvent) => {
@@ -200,17 +241,52 @@ export function useDashboardState() {
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Sync active Supabase OAuth session if present
+    // 2. Sync active Supabase OAuth session with automatic Subscription Sync
     const syncSupabaseSession = async () => {
       try {
         const { user: supabaseUser } = await supabaseGetSession();
         if (supabaseUser) {
           const email = (supabaseUser.email || '').toLowerCase().trim();
-          setUser(supabaseUser);
-          localStorage.setItem('zelsis_user', JSON.stringify(supabaseUser));
+
+          // Tier preservation: Check if user already has verified Pro tier in local storage or license
+          let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = supabaseUser.tier || 'Free';
+          const savedUserStr = localStorage.getItem('zelsis_user');
+          if (savedUserStr) {
+            try {
+              const localParsed = JSON.parse(savedUserStr);
+              if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
+                resolvedTier = localParsed.tier;
+              }
+            } catch {}
+          }
+
+          // If still Free, query the subscription sync API in background
+          if (resolvedTier === 'Free' && email) {
+            try {
+              const syncRes = await fetch('/api/v1/subscription/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+              });
+              if (syncRes.ok) {
+                const syncData = await syncRes.json();
+                if (syncData.active && (syncData.tier === 'Pro' || syncData.tier === 'Enterprise')) {
+                  resolvedTier = syncData.tier;
+                }
+              }
+            } catch {}
+          }
+
+          const mergedUser: UserProfile = {
+            ...supabaseUser,
+            tier: resolvedTier,
+          };
+
+          setUser(mergedUser);
+          localStorage.setItem('zelsis_user', JSON.stringify(mergedUser));
           localStorage.removeItem('shipguard_user');
           if (typeof document !== 'undefined') {
-            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(supabaseUser))}; path=/; max-age=2592000; SameSite=Lax`;
+            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(mergedUser))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
           }
         }
       } catch (err) {
@@ -219,14 +295,48 @@ export function useDashboardState() {
     };
     syncSupabaseSession();
 
+    // 3. Supabase Auth State Listener with Pro Tier Protection
     const supabase = getSupabase();
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (supabase) {
-      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
-          setUser(profile);
-          localStorage.setItem('zelsis_user', JSON.stringify(profile));
+          let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = profile.tier || 'Free';
+
+          const savedUserStr = localStorage.getItem('zelsis_user');
+          if (savedUserStr) {
+            try {
+              const localParsed = JSON.parse(savedUserStr);
+              if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
+                resolvedTier = localParsed.tier;
+              }
+            } catch {}
+          }
+
+          if (resolvedTier === 'Free' && profile.email) {
+            try {
+              const syncRes = await fetch('/api/v1/subscription/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: profile.email }),
+              });
+              if (syncRes.ok) {
+                const syncData = await syncRes.json();
+                if (syncData.active && (syncData.tier === 'Pro' || syncData.tier === 'Enterprise')) {
+                  resolvedTier = syncData.tier;
+                }
+              }
+            } catch {}
+          }
+
+          const mergedProfile: UserProfile = {
+            ...profile,
+            tier: resolvedTier,
+          };
+
+          setUser(mergedProfile);
+          localStorage.setItem('zelsis_user', JSON.stringify(mergedProfile));
           localStorage.removeItem('shipguard_user');
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

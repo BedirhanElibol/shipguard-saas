@@ -10,7 +10,7 @@ function CallbackHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState<string>('Verifying GitHub identity...');
+  const [message, setMessage] = useState<string>('Verifying authentication credentials...');
 
   useEffect(() => {
     let isMounted = true;
@@ -82,7 +82,7 @@ function CallbackHandler() {
           setTimeout(() => {
             if (isMounted && status === 'loading') {
               setStatus('error');
-              setMessage('Session timed out or GitHub authorization could not be completed.');
+              setMessage('Session timed out or authorization could not be completed.');
             }
           }, 6000);
         }

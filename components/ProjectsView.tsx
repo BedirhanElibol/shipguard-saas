@@ -4,8 +4,9 @@
 import React, { useState } from 'react';
 import { Project } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
-import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap } from 'lucide-react';
+import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap, Lock, Sparkles, X } from 'lucide-react';
 import { NewProjectModal } from '@/components/projects/NewProjectModal';
+import { UserProfile } from '@/components/auth/AuthModal';
 
 interface ProjectsViewProps {
   projects: Project[];
@@ -13,6 +14,8 @@ interface ProjectsViewProps {
   onAddNewProject: (p: Project) => void;
   onTriggerScan: () => void;
   onDeleteProject?: (id: string) => void;
+  user?: UserProfile | null;
+  onOpenCheckout?: () => void;
 }
 
 export const ProjectsView: React.FC<ProjectsViewProps> = ({
@@ -20,9 +23,26 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
   onSelectProject,
   onAddNewProject,
   onTriggerScan,
-  onDeleteProject
+  onDeleteProject,
+  user,
+  onOpenCheckout
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
+
+  const isFree = !user || user.tier === 'Free';
+  const customProjects = projects.filter(
+    (p) => !p.id.startsWith('proj-preset') && p.id !== 'proj-shipguard-self' && p.id !== 'proj-saas-starter'
+  );
+  const isAtFreeLimit = isFree && customProjects.length >= 1;
+
+  const handleConnectClick = () => {
+    if (isAtFreeLimit) {
+      setIsQuotaModalOpen(true);
+    } else {
+      setIsModalOpen(true);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,8 +64,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           </div>
 
           <button
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm bg-white text-black hover:bg-neutral-200 shadow-lg transition-all duration-200 shrink-0"
-            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm bg-white text-black hover:bg-neutral-200 shadow-lg transition-all duration-200 shrink-0 cursor-pointer"
+            onClick={handleConnectClick}
           >
             <Plus size={18} strokeWidth={2.5} />
             <span>Connect New AI App</span>
@@ -269,6 +289,61 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         onClose={() => setIsModalOpen(false)}
         onAddNewProject={onAddNewProject}
       />
+
+      {/* Free Tier Project Limit Modal */}
+      {isQuotaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-[#141414] border border-white/20 rounded-2xl w-full max-w-md p-6 sm:p-8 flex flex-col gap-5 shadow-2xl relative">
+            <button
+              onClick={() => setIsQuotaModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-[#71717A] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+              <Lock size={22} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                  Quota Limit: 1/1 Project
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-white">
+                Free Tier Project Limit Reached
+              </h2>
+              <p className="text-xs text-[#A1A1AA] leading-relaxed mt-1">
+                The Free plan supports up to <strong>1 active custom repository</strong>. Upgrade to <strong>Zelsis Pro</strong> for unlimited connected AI repositories, automated GitHub PR release gates, and Claude auto-remediations.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsQuotaModalOpen(false);
+                  if (onOpenCheckout) {
+                    onOpenCheckout();
+                  }
+                }}
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
+              >
+                <Sparkles size={14} />
+                <span>Upgrade to Pro ($19/mo)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsQuotaModalOpen(false)}
+                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

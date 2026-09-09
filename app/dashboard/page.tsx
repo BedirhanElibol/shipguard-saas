@@ -24,6 +24,7 @@ import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Sparkles, Plus } from 'lucide-react';
+import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
 
 export default function DashboardPage() {
   return (
@@ -187,123 +188,147 @@ function DashboardContent() {
         }
       }}
     >
-      {isScanning ? (
-        <ScanRunnerView
-          project={selectedProject}
-          onCompleteScan={(result) => {
-            if (result) {
-              const updatedProject: Project = {
-                ...selectedProject,
-                readinessScore: result.score,
-                gateStatus: result.gateStatus,
-                criticalCount: result.criticalCount,
-                highCount: result.highCount,
-                mediumCount: result.mediumCount,
-                lowCount: result.lowCount,
-                uiClicheCount: result.uiClicheCount,
-                findings: result.findings,
-                lastScanAt: new Date().toLocaleString()
-              };
-              setSelectedProject(updatedProject);
-              setProjects((prev) => {
-                const updatedList = prev.map((p) =>
-                  p.id === selectedProject.id ? updatedProject : p
-                );
-                persistProjectsList(updatedList);
-                return updatedList;
-              });
-            }
-            setIsScanning(false);
-            setActiveNav('dashboard');
-          }}
-        />
-      ) : (
-        <>
-          {activeNav === 'dashboard' && (
-            <DashboardView
-              project={selectedProject}
-              onTriggerScan={() => setIsScanning(true)}
-              onInspectFinding={(f) => setInspectingFinding(f)}
-              onNavigatePillar={(p) => setActiveNav(p)}
-              onLoadDemoFindings={handleLoadDemoFindings}
-              user={user}
-              onOpenAuth={(mode) => {
-                setAuthInitialMode(mode);
-                setIsAuthModalOpen(true);
-              }}
-            />
-          )}
+      <div className="flex flex-col gap-6 w-full">
+        <LifecycleBanner user={user} />
+        {isScanning ? (
+          <ScanRunnerView
+            project={selectedProject}
+            onCompleteScan={(result) => {
+              if (result) {
+                const updatedProject: Project = {
+                  ...selectedProject,
+                  readinessScore: result.score,
+                  gateStatus: result.gateStatus,
+                  criticalCount: result.criticalCount,
+                  highCount: result.highCount,
+                  mediumCount: result.mediumCount,
+                  lowCount: result.lowCount,
+                  uiClicheCount: result.uiClicheCount,
+                  findings: result.findings,
+                  lastScanAt: new Date().toLocaleString()
+                };
+                setSelectedProject(updatedProject);
+                setProjects((prev) => {
+                  const updatedList = prev.map((p) =>
+                    p.id === selectedProject.id ? updatedProject : p
+                  );
+                  persistProjectsList(updatedList);
+                  return updatedList;
+                });
+              }
+              setIsScanning(false);
+              setActiveNav('dashboard');
+            }}
+          />
+        ) : (
+          <>
+            {activeNav === 'dashboard' && (
+              <DashboardView
+                project={selectedProject}
+                onTriggerScan={() => setIsScanning(true)}
+                onInspectFinding={(f) => setInspectingFinding(f)}
+                onNavigatePillar={(p) => setActiveNav(p)}
+                onLoadDemoFindings={handleLoadDemoFindings}
+                user={user}
+                onOpenAuth={(mode) => {
+                  setAuthInitialMode(mode);
+                  setIsAuthModalOpen(true);
+                }}
+              />
+            )}
 
-          {activeNav === 'security' && (
-            <SecurityAuditView
-              findings={selectedProject.findings}
-              onInspectFinding={(f) => setInspectingFinding(f)}
-            />
-          )}
+            {activeNav === 'security' && (
+              <SecurityAuditView
+                findings={selectedProject.findings}
+                onInspectFinding={(f) => setInspectingFinding(f)}
+              />
+            )}
 
-          {activeNav === 'compliance' && (
-            <ComplianceAuditView
-              findings={selectedProject.findings}
-              onInspectFinding={(f) => setInspectingFinding(f)}
-            />
-          )}
+            {activeNav === 'compliance' && (
+              <ComplianceAuditView
+                findings={selectedProject.findings}
+                onInspectFinding={(f) => setInspectingFinding(f)}
+              />
+            )}
 
-          {activeNav === 'infra' && (
-            <InfraAuditView
-              findings={selectedProject.findings}
-              onInspectFinding={(f) => setInspectingFinding(f)}
-            />
-          )}
+            {activeNav === 'infra' && (
+              <InfraAuditView
+                findings={selectedProject.findings}
+                onInspectFinding={(f) => setInspectingFinding(f)}
+              />
+            )}
 
-          {activeNav === 'vibepolish' && (
-            <VibePolishView
-              rules={VIBEPOLISH_30_CATALOG}
-              title="Design & UX Polish Matrix"
-              description="Automated design system audit evaluating visual hierarchy, responsive layout shifts, micro-interactions, color contrasts, and accessibility standards."
-            />
-          )}
+            {activeNav === 'vibepolish' && (
+              <VibePolishView
+                rules={VIBEPOLISH_30_CATALOG}
+                title="Design & UX Polish Matrix"
+                description="Automated design system audit evaluating visual hierarchy, responsive layout shifts, micro-interactions, color contrasts, and accessibility standards."
+              />
+            )}
 
-          {activeNav === 'aicliche' && (
-            <VibePolishView
-              rules={AI_CLICHE_25_CATALOG}
-              title="AI Anti-Pattern & Cliché Detector"
-              description="Deep pattern analysis scanning for AI-generated design anti-patterns, generic layout locks, non-standard component trees, and trust-eroding visual tropes."
-            />
-          )}
+            {activeNav === 'aicliche' && (
+              <VibePolishView
+                rules={AI_CLICHE_25_CATALOG}
+                title="AI Anti-Pattern & Cliché Detector"
+                description="Deep pattern analysis scanning for AI-generated design anti-patterns, generic layout locks, non-standard component trees, and trust-eroding visual tropes."
+              />
+            )}
 
-          {activeNav === 'aimaster' && (
-            <VibePolishView
-              rules={UI_RULES_CATALOG}
-              title="Master Quality & Resilience Matrix"
-              description="Full-stack architecture audit covering OWASP top vulnerabilities, RAG retrieval leakage, agent execution boundaries, token cost governance, and production SLA metrics."
-            />
-          )}
+            {activeNav === 'aimaster' && (
+              <VibePolishView
+                rules={UI_RULES_CATALOG}
+                title="Master Quality & Resilience Matrix"
+                description="Full-stack architecture audit covering OWASP top vulnerabilities, RAG retrieval leakage, agent execution boundaries, token cost governance, and production SLA metrics."
+              />
+            )}
 
-          {activeNav === 'vibecare' && <VibeCareView project={selectedProject} />}
+            {activeNav === 'vibecare' && (
+              <VibeCareView
+                project={selectedProject}
+                user={user}
+                onOpenCheckout={() => {
+                  if (!user || !user.isLoggedIn) {
+                    setAuthInitialMode('signup');
+                    setIsAuthModalOpen(true);
+                  } else {
+                    setIsCheckoutOpen(true);
+                  }
+                }}
+              />
+            )}
 
-          {activeNav === 'cicd' && (
-            <CicdAutomationView projectName={selectedProject.name} />
-          )}
+            {activeNav === 'cicd' && (
+              <CicdAutomationView projectName={selectedProject.name} />
+            )}
 
-          {activeNav === 'remediation' && (
-            <RemediationQueueView
-              projects={projects}
-              onInspectFinding={(f) => setInspectingFinding(f)}
-              onToggleResolveFinding={handleToggleResolveFinding}
-            />
-          )}
+            {activeNav === 'remediation' && (
+              <RemediationQueueView
+                projects={projects}
+                onInspectFinding={(f) => setInspectingFinding(f)}
+                onToggleResolveFinding={handleToggleResolveFinding}
+              />
+            )}
 
-          {activeNav === 'projects' && (
-            <ProjectsView
-              projects={projects}
-              onSelectProject={(p) => {
-                handleSelectProject(p);
-                setActiveNav('dashboard');
-              }}
-              onAddNewProject={handleAddNewProject}
-              onTriggerScan={() => setIsScanning(true)}
-            />
-          )}
+            {activeNav === 'projects' && (
+              <ProjectsView
+                projects={projects}
+                onSelectProject={(p) => {
+                  handleSelectProject(p);
+                  setActiveNav('dashboard');
+                }}
+                onAddNewProject={handleAddNewProject}
+                onTriggerScan={() => setIsScanning(true)}
+                user={user}
+                onOpenCheckout={() => {
+                  if (!user || !user.isLoggedIn) {
+                    setAuthInitialMode('signup');
+                    setIsAuthModalOpen(true);
+                  } else {
+                    setIsCheckoutOpen(true);
+                  }
+                }}
+              />
+            )}
 
           {activeNav === 'scans' && (
             <ScanHistoryView
@@ -367,6 +392,7 @@ function DashboardContent() {
           )}
         </>
       )}
+      </div>
 
       {/* Slide-out Remediation Drawer */}
       <RemediationDrawer

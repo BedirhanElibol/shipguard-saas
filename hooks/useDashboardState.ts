@@ -157,11 +157,44 @@ export function useDashboardState() {
                 isLoggedIn: Boolean(parsedUser.isLoggedIn),
                 emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true,
                 expiresAt,
+                status: parsedUser.status || 'active',
+                gracePeriodUntil: parsedUser.gracePeriodUntil,
+                lastVerifiedAt: parsedUser.lastVerifiedAt || Date.now(),
               };
               setUser(activeUser);
               localStorage.setItem('zelsis_user', JSON.stringify(activeUser));
               if (typeof document !== 'undefined') {
                 document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(activeUser))}; path=/; max-age=2592000; SameSite=Lax`;
+              }
+
+              // 3. Lazy Background Revalidation (Every 12 hours)
+              const lastVerified = parsedUser.lastVerifiedAt || 0;
+              if (email && (Date.now() - lastVerified > 12 * 60 * 60 * 1000)) {
+                fetch('/api/v1/subscription/sync', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email }),
+                })
+                  .then((res) => res.ok ? res.json() : null)
+                  .then((data) => {
+                    if (data) {
+                      setUser((prev) => {
+                        if (!prev || prev.email.toLowerCase() !== email) return prev;
+                        const syncTier = data.active && (data.tier === 'Pro' || data.tier === 'Enterprise') ? data.tier : 'Free';
+                        const updated: UserProfile = {
+                          ...prev,
+                          tier: syncTier,
+                          expiresAt: data.expiresAt || prev.expiresAt,
+                          status: data.status || (data.active ? 'active' : 'canceled'),
+                          gracePeriodUntil: data.gracePeriodUntil,
+                          lastVerifiedAt: Date.now(),
+                        };
+                        localStorage.setItem('zelsis_user', JSON.stringify(updated));
+                        return updated;
+                      });
+                    }
+                  })
+                  .catch(() => {});
               }
             }
           } catch (jsonErr) {
@@ -240,14 +273,28 @@ export function useDashboardState() {
     }
 
     const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'zelsis_user' || e.key === 'shipguard_user') {
+        try {
+          if (e.newValue) {
+            const parsed = JSON.parse(e.newValue);
+            if (parsed && parsed.isLoggedIn) {
+              setUser(parsed);
+            } else {
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+          }
+        } catch {
+          setUser(null);
+        }
+      }
       if (
         !e.key ||
         e.key === 'zelsis_projects' ||
         e.key === 'zelsis_selected_project_id' ||
-        e.key === 'zelsis_user' ||
         e.key === 'shipguard_projects' ||
-        e.key === 'shipguard_selected_project_id' ||
-        e.key === 'shipguard_user'
+        e.key === 'shipguard_selected_project_id'
       ) {
         loadProjectsFromStorage();
       }
@@ -264,6 +311,10 @@ export function useDashboardState() {
 
           // Tier preservation: Check if user already has verified Pro tier in local storage or license
           let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = supabaseUser.tier || 'Free';
+          let savedExpiresAt: string | undefined = undefined;
+          let savedStatus: 'active' | 'past_due' | 'canceled' = 'active';
+          let savedGracePeriod: string | undefined = undefined;
+
           const savedUserStr = localStorage.getItem('zelsis_user');
           if (savedUserStr) {
             try {
@@ -271,6 +322,9 @@ export function useDashboardState() {
               if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
                 resolvedTier = localParsed.tier;
               }
+              savedExpiresAt = localParsed?.expiresAt;
+              savedStatus = localParsed?.status || 'active';
+              savedGracePeriod = localParsed?.gracePeriodUntil;
             } catch {}
           }
 
@@ -286,6 +340,9 @@ export function useDashboardState() {
                 const syncData = await syncRes.json();
                 if (syncData.active && (syncData.tier === 'Pro' || syncData.tier === 'Enterprise')) {
                   resolvedTier = syncData.tier;
+                  savedExpiresAt = syncData.expiresAt;
+                  savedStatus = syncData.status || 'active';
+                  savedGracePeriod = syncData.gracePeriodUntil;
                 }
               }
             } catch {}
@@ -294,7 +351,10 @@ export function useDashboardState() {
           const mergedUser: UserProfile = {
             ...supabaseUser,
             tier: resolvedTier,
-            expiresAt: (supabaseUser as any).expiresAt || (savedUserStr ? JSON.parse(savedUserStr).expiresAt : undefined),
+            expiresAt: (supabaseUser as any).expiresAt || savedExpiresAt,
+            status: savedStatus,
+            gracePeriodUntil: savedGracePeriod,
+            lastVerifiedAt: Date.now(),
           };
 
           setUser(mergedUser);

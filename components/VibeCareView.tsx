@@ -4,15 +4,19 @@
 import React from 'react';
 import { Project } from '@/data/schema';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
-import { Activity, ShieldCheck, DollarSign, RefreshCw, Server, CheckCircle2, Download } from 'lucide-react';
+import { Activity, ShieldCheck, DollarSign, RefreshCw, Server, CheckCircle2, Download, Lock, Sparkles, X } from 'lucide-react';
+import { UserProfile } from '@/components/auth/AuthModal';
 
 interface VibeCareViewProps {
   project?: Project;
+  user?: UserProfile | null;
+  onOpenCheckout?: () => void;
 }
 
-export const VibeCareView: React.FC<VibeCareViewProps> = ({ project }) => {
+export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpenCheckout }) => {
   const [cveStatus, setCveStatus] = React.useState<string>('128 total npm packages audited. Last automated scan 2 hours ago.');
   const [cveAuditing, setCveAuditing] = React.useState<boolean>(false);
+  const [showPdfGateModal, setShowPdfGateModal] = React.useState<boolean>(false);
 
   const [backupStatus, setBackupStatus] = React.useState<string>('Disaster Recovery (DR) restoration test passed cleanly.');
   const [backupTesting, setBackupTesting] = React.useState<boolean>(false);
@@ -23,6 +27,11 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project }) => {
   const [spendAlertMsg, setSpendAlertMsg] = React.useState<string | null>(null);
 
   const handleExportPdf = () => {
+    const isFree = !user || user.tier === 'Free';
+    if (isFree) {
+      setShowPdfGateModal(true);
+      return;
+    }
     if (project) {
       generateAuditPdfReport(project);
     }
@@ -228,6 +237,61 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project }) => {
           </button>
         </div>
       </div>
+
+      {/* PDF Export Upgrade Gate Modal */}
+      {showPdfGateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-[#141414] border border-white/20 rounded-2xl w-full max-w-md p-6 sm:p-8 flex flex-col gap-5 shadow-2xl relative">
+            <button
+              onClick={() => setShowPdfGateModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-[#71717A] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+              <Lock size={22} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                  Pro Feature
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-white">
+                White-Label PDF Audit Certificate
+              </h2>
+              <p className="text-xs text-[#A1A1AA] leading-relaxed mt-1">
+                Exporting client-ready PDF Release Certificates and compliance audit summaries requires a <strong>Zelsis Pro</strong> or <strong>Enterprise</strong> subscription.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPdfGateModal(false);
+                  if (onOpenCheckout) {
+                    onOpenCheckout();
+                  }
+                }}
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
+              >
+                <Sparkles size={14} />
+                <span>Upgrade to Pro ($19/mo)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPdfGateModal(false)}
+                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

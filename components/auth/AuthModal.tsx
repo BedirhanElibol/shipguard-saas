@@ -16,6 +16,9 @@ export interface UserProfile {
   emailVerified?: boolean;
   expiresAt?: string;
   billingCycle?: 'monthly' | 'annual';
+  status?: 'active' | 'past_due' | 'canceled' | 'trialing';
+  gracePeriodUntil?: string;
+  lastVerifiedAt?: number;
 }
 
 interface AuthModalProps {

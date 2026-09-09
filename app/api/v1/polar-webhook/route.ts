@@ -8,9 +8,12 @@ const HANDLED_EVENTS = [
   'subscription.created',
   'subscription.updated', 
   'subscription.active',
+  'subscription.uncanceled',
   'subscription.canceled',
   'subscription.revoked',
+  'subscription.past_due',
   'order.created',
+  'order.refunded',
 ];
 
 export async function POST(req: NextRequest) {
@@ -48,16 +51,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, error: 'No customer email' }, { status: 200 });
     }
 
-    // Determine tier based on event
-    let tier: string = 'Free';
-    if (['subscription.created', 'subscription.updated', 'subscription.active', 'order.created'].includes(eventType)) {
-      const productName = data?.product?.name?.toLowerCase() || '';
+    // Determine tier and subscription status based on event
+    let tier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
+    let status: 'active' | 'past_due' | 'canceled' = 'canceled';
+    const currentPeriodEnd = data?.current_period_end || data?.subscription?.current_period_end || null;
+
+    if (['subscription.created', 'subscription.updated', 'subscription.active', 'subscription.uncanceled', 'order.created'].includes(eventType)) {
+      const productName = (data?.product?.name || data?.subscription?.product?.name || '').toLowerCase();
       tier = productName.includes('enterprise') || productName.includes('suite') ? 'Enterprise' : 'Pro';
-    } else if (['subscription.canceled', 'subscription.revoked'].includes(eventType)) {
+      status = 'active';
+    } else if (['subscription.past_due'].includes(eventType)) {
+      // Grace period: preserve Pro/Enterprise tier during the 3-day grace period
+      const productName = (data?.product?.name || data?.subscription?.product?.name || '').toLowerCase();
+      tier = productName.includes('enterprise') || productName.includes('suite') ? 'Enterprise' : 'Pro';
+      status = 'past_due';
+    } else if (['subscription.canceled', 'subscription.revoked', 'order.refunded'].includes(eventType)) {
       tier = 'Free';
+      status = 'canceled';
     }
 
-    // Update Supabase profile if service role key is available
+    // Update Supabase profile and subscription records if service role key is available
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     
@@ -72,7 +85,7 @@ export async function POST(req: NextRequest) {
       );
 
       if (matchedUser) {
-        // Update profile tier
+        // Update profiles table
         const { error: profileError } = await adminClient
           .from('profiles')
           .update({ tier, updated_at: new Date().toISOString() })
@@ -81,12 +94,25 @@ export async function POST(req: NextRequest) {
         if (profileError) {
           logger.warn(`[Polar Webhook] Profile update failed: ${profileError.message}`);
         } else {
-          logger.info(`[Polar Webhook] Updated ${customerEmail} tier to ${tier}`);
+          logger.info(`[Polar Webhook] Updated ${customerEmail} tier to ${tier} (status: ${status})`);
+        }
+
+        // Upsert subscriptions record
+        try {
+          await adminClient.from('subscriptions').upsert({
+            user_id: matchedUser.id,
+            plan_tier: tier.toLowerCase(),
+            status,
+            current_period_end: currentPeriodEnd,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+        } catch (subErr: any) {
+          logger.warn('[Polar Webhook] Subscriptions table update warning:', subErr?.message);
         }
 
         // Update user metadata
         await adminClient.auth.admin.updateUserById(matchedUser.id, {
-          user_metadata: { tier }
+          user_metadata: { tier, subscriptionStatus: status }
         });
       } else {
         logger.warn(`[Polar Webhook] No user found for email: ${customerEmail}`);

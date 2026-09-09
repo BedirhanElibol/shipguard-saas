@@ -3,7 +3,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, ArrowLeft, RotateCcw } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   error: Error & { digest?: string };
@@ -33,6 +33,19 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
       window.location.reload();
     } else {
       reset();
+    }
+  };
+
+  const handleResetCache = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('zelsis_projects');
+        localStorage.removeItem('zelsis_selected_project_id');
+        localStorage.removeItem('shipguard_projects');
+        localStorage.removeItem('shipguard_selected_project_id');
+        sessionStorage.clear();
+      } catch {}
+      window.location.href = '/dashboard';
     }
   };
 
@@ -86,15 +99,24 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
           <button
             onClick={handleRetry}
             onKeyDown={(e) => { if (e.key === 'Enter') handleRetry(); }}
-            className="btn btn-primary py-2.5 px-5 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2"
+            className="btn btn-primary py-2.5 px-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
           >
             <RefreshCw size={14} />
             <span>Try Again</span>
           </button>
 
+          <button
+            onClick={handleResetCache}
+            className="btn btn-secondary py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-amber-300 border-amber-500/30 hover:bg-amber-500/10 cursor-pointer"
+            title="Purge corrupted local data and reset to demo showcase"
+          >
+            <RotateCcw size={14} />
+            <span>Reset Cache</span>
+          </button>
+
           <a
             href="/dashboard"
-            className="btn btn-secondary py-2.5 px-5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+            className="btn btn-secondary py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
           >
             <Home size={14} />
             <span>Dashboard</span>

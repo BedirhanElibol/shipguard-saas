@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
 
   let verifiedTier: 'Pro' | 'Enterprise' | 'Free' = 'Free';
   let isActive = false;
+  let subStatus: 'active' | 'past_due' | 'canceled' = 'canceled';
   let expiresAt: string | undefined = undefined;
+  let gracePeriodUntil: string | undefined = undefined;
 
   // 1. Check Polar API if access token is available
   if (polarAccessToken) {
@@ -52,18 +54,30 @@ export async function POST(req: NextRequest) {
       });
       if (polarRes.ok) {
         const polarData = await polarRes.json();
-        const activeSub = (polarData.items || []).find((s: any) => s.status === 'active');
-        if (activeSub) {
-          // Check if subscription has expired
-          const periodEnd = activeSub.current_period_end ? new Date(activeSub.current_period_end) : null;
-          if (periodEnd && periodEnd.getTime() < Date.now()) {
-            logger.info(`[Subscription Sync] Polar subscription expired on ${periodEnd.toISOString()}`);
-            isActive = false;
-            verifiedTier = 'Free';
-          } else {
-            const prodName = (activeSub.product?.name || '').toLowerCase();
+        const polarSub = (polarData.items || []).find(
+          (s: any) => s.status === 'active' || s.status === 'past_due'
+        );
+        if (polarSub) {
+          const periodEnd = polarSub.current_period_end ? new Date(polarSub.current_period_end) : null;
+          if (polarSub.status === 'past_due') {
+            // Failed renewal charge: grant 3-day grace period
+            const prodName = (polarSub.product?.name || '').toLowerCase();
             verifiedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
             isActive = true;
+            subStatus = 'past_due';
+            gracePeriodUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+            expiresAt = gracePeriodUntil;
+            logger.info(`[Subscription Sync] Polar subscription past_due for ${email}. Grace period until ${gracePeriodUntil}`);
+          } else if (periodEnd && periodEnd.getTime() < Date.now()) {
+            logger.info(`[Subscription Sync] Polar subscription expired on ${periodEnd.toISOString()}`);
+            isActive = false;
+            subStatus = 'canceled';
+            verifiedTier = 'Free';
+          } else {
+            const prodName = (polarSub.product?.name || '').toLowerCase();
+            verifiedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
+            isActive = true;
+            subStatus = 'active';
             expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
             logger.info(`[Subscription Sync] Polar active subscription confirmed: ${verifiedTier} for ${email} until ${expiresAt}`);
           }
@@ -87,7 +101,7 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         if (profile?.tier && profile.tier !== 'Free') {
-          // Check subscriptions table for current_period_end
+          // Check subscriptions table for status and current_period_end
           const { data: sub } = await client
             .from('subscriptions')
             .select('plan_tier, status, current_period_end')
@@ -95,13 +109,21 @@ export async function POST(req: NextRequest) {
             .maybeSingle();
 
           const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
-          if (periodEnd && periodEnd.getTime() < Date.now()) {
+          if (sub?.status === 'past_due') {
+            verifiedTier = profile.tier as 'Pro' | 'Enterprise';
+            isActive = true;
+            subStatus = 'past_due';
+            gracePeriodUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+            expiresAt = gracePeriodUntil;
+          } else if (periodEnd && periodEnd.getTime() < Date.now()) {
             logger.info(`[Subscription Sync] Supabase subscription expired on ${periodEnd.toISOString()}`);
             isActive = false;
+            subStatus = 'canceled';
             verifiedTier = 'Free';
           } else {
             verifiedTier = profile.tier as 'Pro' | 'Enterprise';
             isActive = true;
+            subStatus = (sub?.status as any) || 'active';
             expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
             logger.info(`[Subscription Sync] Supabase profile confirmed: ${verifiedTier} for ${email}`);
           }
@@ -116,7 +138,7 @@ export async function POST(req: NextRequest) {
   if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
     verifiedTier = 'Pro';
     isActive = true;
-    // Set 30 days renewal window from now
+    subStatus = 'active';
     expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     logger.info(`[Subscription Sync] Confirmed verified subscriber registry: Pro for ${email} until ${expiresAt}`);
   }
@@ -134,8 +156,10 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     active: isActive,
+    status: subStatus,
     tier: verifiedTier,
     expiresAt,
+    gracePeriodUntil,
     email
   });
 }

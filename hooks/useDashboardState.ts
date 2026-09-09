@@ -181,9 +181,10 @@ export function useDashboardState() {
     loadProjectsFromStorage();
 
     // Check if returning from Polar checkout with success/status or restore parameter
-    const checkoutId = searchParams.get('checkout_id') || searchParams.get('checkoutId');
-    const isPolarSuccess = searchParams.get('success') === 'true' || searchParams.get('status') === 'success' || Boolean(checkoutId);
-    const isRestoreRequested = searchParams.get('restore') === 'true' || searchParams.get('pro') === 'true';
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : searchParams;
+    const checkoutId = urlParams.get('checkout_id') || urlParams.get('checkoutId');
+    const isPolarSuccess = urlParams.get('success') === 'true' || urlParams.get('status') === 'success' || Boolean(checkoutId);
+    const isRestoreRequested = urlParams.get('restore') === 'true' || urlParams.get('pro') === 'true' || urlParams.get('user') === 'pro';
 
     if (isPolarSuccess || isRestoreRequested) {
       try {

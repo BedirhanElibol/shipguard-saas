@@ -14,10 +14,14 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS grace_period_until TIMESTAM
 ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS grace_period_until TIMESTAMPTZ;
 ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS polar_subscription_id TEXT;
 
--- 3. Create index for fast subscriber lookups
+-- 3. Extend pillar_type enum for Legal Compliance and Database Infrastructure
+ALTER TYPE pillar_type ADD VALUE IF NOT EXISTS 'LEGAL_COMPLIANCE';
+ALTER TYPE pillar_type ADD VALUE IF NOT EXISTS 'INFRA_DATABASE';
+
+-- 4. Create index for fast subscriber lookups
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(status);
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 
--- 4. Confirmation output
+-- 5. Confirmation output
 SELECT 'Production schema patch applied successfully.' AS result;

@@ -14,6 +14,8 @@ export interface UserProfile {
   tier: 'Free' | 'Pro' | 'Enterprise';
   isLoggedIn: boolean;
   emailVerified?: boolean;
+  expiresAt?: string;
+  billingCycle?: 'monthly' | 'annual';
 }
 
 interface AuthModalProps {

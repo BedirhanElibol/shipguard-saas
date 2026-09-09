@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 
 interface CheckoutViewProps {
@@ -127,8 +127,31 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const pricePerMonth = isAnnual ? selectedPlan.priceAnnual : selectedPlan.priceMonthly;
   const annualTotal = Number((pricePerMonth * 12).toFixed(2));
   const subtotal = Number((isAnnual ? annualTotal : pricePerMonth).toFixed(2));
-  const tax = 0;
   const total = subtotal;
+
+  const isProSubscriber = currentUser?.tier === 'Pro';
+  const isEnterpriseSubscriber = currentUser?.tier === 'Enterprise';
+  const isSelectedPlanPro = selectedPlan.id === 'zelsis-core';
+  const isSelectedPlanEnterprise = selectedPlan.id === 'vibecare';
+
+  const isAlreadySubscribedToSelectedPlan =
+    (isProSubscriber && isSelectedPlanPro) ||
+    (isEnterpriseSubscriber && (isSelectedPlanPro || isSelectedPlanEnterprise));
+
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return 'Active (Renews Monthly)';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return 'Active (Renews Monthly)';
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Active (Renews Monthly)';
+    }
+  };
 
   const handleSimulateSandbox = (e: React.FormEvent) => {
     e.preventDefault();
@@ -342,7 +365,43 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       Instant 3D Secure checkout managed by Polar Software, Inc. Official VAT tax invoice and subscription activated immediately.
                     </p>
 
-                    {isAuthenticated ? (
+                    {isAlreadySubscribedToSelectedPlan ? (
+                      <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 size={18} className="text-emerald-400" />
+                            <span className="text-sm font-extrabold text-white">Active Plan: {selectedPlan.name}</span>
+                          </div>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            CURRENT TIER
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#CBD5E1] leading-relaxed">
+                          Your account currently has active clearance for <strong>{selectedPlan.name}</strong>. {currentUser?.expiresAt ? `Valid / renews on: ${formatDate(currentUser.expiresAt)}.` : 'Active monthly subscription.'} You do not need to re-purchase this plan.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+                          <a
+                            href="https://polar.sh/purchases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto min-h-[40px] px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <ExternalLink size={14} />
+                            <span>Manage at Polar</span>
+                          </a>
+                          {isProSubscriber && isSelectedPlanPro && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedPlanId('vibecare')}
+                              className="w-full sm:w-auto min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-black font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                            >
+                              <Zap size={14} className="fill-black" />
+                              <span>Upgrade to Enterprise ($49/mo)</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : isAuthenticated ? (
                       <a
                         href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
                         target="_blank"
@@ -350,7 +409,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         className="btn btn-primary min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
                       >
                         <Lock size={14} />
-                        <span>Pay Securely with Polar (${selectedPlan.priceMonthly.toFixed(2)}/mo)</span>
+                        <span>{isProSubscriber && isSelectedPlanEnterprise ? 'Upgrade to Enterprise' : 'Pay Securely with Polar'} (${selectedPlan.priceMonthly.toFixed(2)}/mo)</span>
                       </a>
                     ) : (
                       <div className="flex flex-col gap-2">
@@ -367,7 +426,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         </span>
                       </div>
                     )}
-                    {isAnnual && isAuthenticated && (
+                    {isAnnual && isAuthenticated && !isAlreadySubscribedToSelectedPlan && (
                       <p className="text-[10px] text-white/60 font-mono text-center -mt-2">
                         Polar online checkout bills monthly (${selectedPlan.priceMonthly.toFixed(2)}/mo). Cancel anytime in 1-click.
                       </p>
@@ -395,9 +454,9 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     <button
                       type="button"
                       onClick={handleSimulateSandbox}
-                      disabled={!isAuthenticated}
+                      disabled={!isAuthenticated || isAlreadySubscribedToSelectedPlan}
                       className={`min-h-[44px] py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border transition-all font-mono ${
-                        !isAuthenticated
+                        !isAuthenticated || isAlreadySubscribedToSelectedPlan
                           ? 'border-white/10 bg-white/5 text-[#71717A] cursor-not-allowed opacity-60'
                           : 'btn btn-secondary border-white/20 hover:bg-white/10 text-white cursor-pointer'
                       }`}
@@ -405,6 +464,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       <span>
                         {!isAuthenticated
                           ? 'Sign In Required for Instant Upgrade'
+                          : isAlreadySubscribedToSelectedPlan
+                          ? `Already Active: ${selectedPlan.name}`
                           : `Simulate Instant Upgrade (${selectedPlan.name})`}
                       </span>
                     </button>

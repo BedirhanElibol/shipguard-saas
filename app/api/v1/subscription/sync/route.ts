@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
 
   let verifiedTier: 'Pro' | 'Enterprise' | 'Free' = 'Free';
   let isActive = false;
+  let expiresAt: string | undefined = undefined;
 
   // 1. Check Polar API if access token is available
   if (polarAccessToken) {
@@ -53,10 +54,19 @@ export async function POST(req: NextRequest) {
         const polarData = await polarRes.json();
         const activeSub = (polarData.items || []).find((s: any) => s.status === 'active');
         if (activeSub) {
-          const prodName = (activeSub.product?.name || '').toLowerCase();
-          verifiedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
-          isActive = true;
-          logger.info(`[Subscription Sync] Polar active subscription confirmed: ${verifiedTier} for ${email}`);
+          // Check if subscription has expired
+          const periodEnd = activeSub.current_period_end ? new Date(activeSub.current_period_end) : null;
+          if (periodEnd && periodEnd.getTime() < Date.now()) {
+            logger.info(`[Subscription Sync] Polar subscription expired on ${periodEnd.toISOString()}`);
+            isActive = false;
+            verifiedTier = 'Free';
+          } else {
+            const prodName = (activeSub.product?.name || '').toLowerCase();
+            verifiedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
+            isActive = true;
+            expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            logger.info(`[Subscription Sync] Polar active subscription confirmed: ${verifiedTier} for ${email} until ${expiresAt}`);
+          }
         }
       }
     } catch (err: any) {
@@ -77,20 +87,23 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         if (profile?.tier && profile.tier !== 'Free') {
-          verifiedTier = profile.tier as 'Pro' | 'Enterprise';
-          isActive = true;
-          logger.info(`[Subscription Sync] Supabase profile confirmed: ${verifiedTier} for ${email}`);
-        } else {
-          // Check subscriptions table
+          // Check subscriptions table for current_period_end
           const { data: sub } = await client
             .from('subscriptions')
-            .select('plan_tier, status')
+            .select('plan_tier, status, current_period_end')
             .eq('user_id', profile?.id || '')
             .maybeSingle();
 
-          if (sub?.status === 'active' && sub?.plan_tier) {
-            verifiedTier = sub.plan_tier === 'enterprise' ? 'Enterprise' : 'Pro';
+          const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
+          if (periodEnd && periodEnd.getTime() < Date.now()) {
+            logger.info(`[Subscription Sync] Supabase subscription expired on ${periodEnd.toISOString()}`);
+            isActive = false;
+            verifiedTier = 'Free';
+          } else {
+            verifiedTier = profile.tier as 'Pro' | 'Enterprise';
             isActive = true;
+            expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            logger.info(`[Subscription Sync] Supabase profile confirmed: ${verifiedTier} for ${email}`);
           }
         }
       } catch (err: any) {
@@ -103,11 +116,13 @@ export async function POST(req: NextRequest) {
   if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
     verifiedTier = 'Pro';
     isActive = true;
-    logger.info(`[Subscription Sync] Confirmed verified subscriber registry: Pro for ${email}`);
+    // Set 30 days renewal window from now
+    expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    logger.info(`[Subscription Sync] Confirmed verified subscriber registry: Pro for ${email} until ${expiresAt}`);
   }
 
-  // 4. If verified active, sync to Supabase profile if service role is present
-  if (isActive && serviceRoleKey) {
+  // 4. Update Supabase profile if service role is present
+  if (serviceRoleKey) {
     try {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
       await adminClient
@@ -120,6 +135,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     active: isActive,
     tier: verifiedTier,
+    expiresAt,
     email
   });
 }

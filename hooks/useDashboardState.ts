@@ -136,14 +136,27 @@ export function useDashboardState() {
             const parsedUser = JSON.parse(savedUserStr);
             if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
               const email = (parsedUser.email || '').toLowerCase().trim();
-              const resolvedTier = parsedUser.tier || 'Free';
+              let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = parsedUser.tier || 'Free';
+              let expiresAt: string | undefined = parsedUser.expiresAt;
+
+              // Expiry Check: If subscription validity period ended, automatically downgrade to Free
+              if (resolvedTier !== 'Free' && expiresAt) {
+                const expiryTime = new Date(expiresAt).getTime();
+                if (!isNaN(expiryTime) && Date.now() > expiryTime) {
+                  console.info('[Zelsis Subscription] Subscription expired on', expiresAt, '- downgrading to Free tier.');
+                  resolvedTier = 'Free';
+                  expiresAt = undefined;
+                }
+              }
+
               const activeUser: UserProfile = {
                 name: parsedUser.name || 'User',
                 email: parsedUser.email || '',
                 avatarUrl: parsedUser.avatarUrl || undefined,
                 tier: resolvedTier,
                 isLoggedIn: Boolean(parsedUser.isLoggedIn),
-                emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true
+                emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true,
+                expiresAt,
               };
               setUser(activeUser);
               localStorage.setItem('zelsis_user', JSON.stringify(activeUser));
@@ -195,6 +208,7 @@ export function useDashboardState() {
                   }),
                   tier: upgradedTier,
                   isLoggedIn: true,
+                  expiresAt: data.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                 };
                 localStorage.setItem('zelsis_user', JSON.stringify(updated));
                 if (typeof document !== 'undefined') {
@@ -280,6 +294,7 @@ export function useDashboardState() {
           const mergedUser: UserProfile = {
             ...supabaseUser,
             tier: resolvedTier,
+            expiresAt: (supabaseUser as any).expiresAt || (savedUserStr ? JSON.parse(savedUserStr).expiresAt : undefined),
           };
 
           setUser(mergedUser);

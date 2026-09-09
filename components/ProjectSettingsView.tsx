@@ -21,7 +21,9 @@ import {
   Zap,
   Check,
   User,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  ExternalLink
 } from 'lucide-react';
 import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -83,19 +85,34 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
           const updatedUser: UserProfile = {
             ...user,
             tier: data.tier,
+            expiresAt: data.expiresAt || user.expiresAt,
+            billingCycle: data.billingCycle || user.billingCycle,
+          };
+          if (onUpdateUser) {
+            onUpdateUser(updatedUser);
+          }
+          localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+          const dateStr = data.expiresAt
+            ? new Date(data.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Active';
+          setSyncFeedback({
+            status: 'success',
+            message: `✓ Active ${data.tier} subscription confirmed! Renews / valid until: ${dateStr}`,
+          });
+        } else {
+          // If subscription ended or inactive, auto-downgrade to Free
+          const updatedUser: UserProfile = {
+            ...user,
+            tier: 'Free',
+            expiresAt: undefined,
           };
           if (onUpdateUser) {
             onUpdateUser(updatedUser);
           }
           localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
           setSyncFeedback({
-            status: 'success',
-            message: `✓ Active ${data.tier} subscription confirmed and synced!`,
-          });
-        } else {
-          setSyncFeedback({
             status: 'error',
-            message: `No active Polar subscription found for ${user.email}.`,
+            message: `No active Polar subscription found for ${user.email}. Account reverted to Free Tier.`,
           });
         }
       } else {
@@ -356,13 +373,33 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   <span className="text-[10px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
                     Current Plan
                   </span>
-                  <div className="text-base font-extrabold text-white">
-                    {user?.tier === 'Pro'
-                      ? 'Pro Plan (Advanced Audit)'
-                      : user?.tier === 'Enterprise'
-                      ? 'Enterprise Plan'
-                      : 'Free Tier'}
+                  <div className="text-base font-extrabold text-white flex items-center gap-2">
+                    <span>
+                      {user?.tier === 'Pro'
+                        ? 'Pro Plan (Advanced Audit)'
+                        : user?.tier === 'Enterprise'
+                        ? 'Enterprise Plan'
+                        : 'Free Tier'}
+                    </span>
+                    {user?.tier && user.tier !== 'Free' && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                        ACTIVE
+                      </span>
+                    )}
                   </div>
+                  {user?.tier && user.tier !== 'Free' && (
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-[#A1A1AA]">
+                      <Calendar size={13} className="text-emerald-400 shrink-0" />
+                      <span>
+                        Renews / Valid until:{' '}
+                        <strong className="text-white font-mono">
+                          {user?.expiresAt
+                            ? new Date(user.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : 'Monthly Active'}
+                        </strong>
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
                   {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$49 / mo' : '$0 / Lifetime'}
@@ -421,20 +458,58 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                     )}
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onOpenCheckout) {
-                      onOpenCheckout();
-                    } else {
-                      router.push('/checkout');
-                    }
-                  }}
-                  className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
-                >
-                  <Zap size={14} className="fill-black" />
-                  <span>Upgrade Plan</span>
-                </button>
+                {user?.tier === 'Pro' ? (
+                  <>
+                    <a
+                      href="https://polar.sh/purchases"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <ExternalLink size={13} />
+                      <span>Manage at Polar</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onOpenCheckout) {
+                          onOpenCheckout();
+                        } else {
+                          router.push('/checkout');
+                        }
+                      }}
+                      className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+                    >
+                      <Zap size={14} className="fill-black" />
+                      <span>Upgrade to Enterprise ($49/mo)</span>
+                    </button>
+                  </>
+                ) : user?.tier === 'Enterprise' ? (
+                  <a
+                    href="https://polar.sh/purchases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <ExternalLink size={13} />
+                    <span>Manage Subscription at Polar</span>
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onOpenCheckout) {
+                        onOpenCheckout();
+                      } else {
+                        router.push('/checkout');
+                      }
+                    }}
+                    className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+                  >
+                    <Zap size={14} className="fill-black" />
+                    <span>Upgrade to Pro ($19/mo)</span>
+                  </button>
+                )}
               </div>
             </div>
             {syncFeedback.message && (

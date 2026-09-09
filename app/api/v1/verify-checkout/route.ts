@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
     verified: isVerified,
     status: isVerified ? 'confirmed' : 'pending',
     tier: isVerified ? resolvedTier : 'Free',
+    expiresAt: isVerified ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : undefined,
     email: customerEmail
   });
 }

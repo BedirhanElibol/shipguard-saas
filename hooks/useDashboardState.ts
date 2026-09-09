@@ -51,14 +51,15 @@ export function useDashboardState() {
         if (savedVersion !== CURRENT_DATA_VERSION) {
           safeSetStorageItem('zelsis_data_version', CURRENT_DATA_VERSION);
           localStorage.removeItem('shipguard_data_version');
-          localStorage.removeItem('zelsis_projects');
           localStorage.removeItem('shipguard_projects');
-          localStorage.removeItem('zelsis_selected_project_id');
           localStorage.removeItem('shipguard_selected_project_id');
-          const cleanProjects = getBaseProjects();
-          setProjects(cleanProjects);
-          setSelectedProject(MOCK_PROJECTS[0]);
-          safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
+          // Preserve existing projects; only reset if no zelsis projects are saved
+          if (!localStorage.getItem('zelsis_projects')) {
+            const cleanProjects = getBaseProjects();
+            setProjects(cleanProjects);
+            setSelectedProject(MOCK_PROJECTS[0]);
+            safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
+          }
         }
 
         let currentProjects = getBaseProjects();

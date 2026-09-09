@@ -91,17 +91,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark notranslate" translate="no" suppressHydrationWarning>
       <head>
-        <title>Zelsis | Automated Codebase Security &amp; Release Gate</title>
-        <meta name="description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
-        <meta property="og:title" content="Zelsis | Automated Codebase Security &amp; Release Gate" />
-        <meta property="og:description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://zelsis.com" />
-        <link rel="canonical" href="https://zelsis.com" />
         {/* Fontshare CDN for Satoshi Font */}
-        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.ico?v=2" />
-        <link rel="apple-touch-icon" href="/favicon.png?v=2" />
+        <link
+          rel="preconnect"
+          href="https://api.fontshare.com"
+          crossOrigin="anonymous"
+        />
         <link
           href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap"
           rel="stylesheet"

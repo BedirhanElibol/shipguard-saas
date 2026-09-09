@@ -165,16 +165,67 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
     setTimeout(() => setSaved(false), 2500);
   };
 
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExportData = async () => {
+    if (!isAuthenticated || !user) return;
+    setIsExporting(true);
+    try {
+      const exportData = {
+        exportVersion: '1.0',
+        exportedAt: new Date().toISOString(),
+        framework: ['GDPR Article 20 (Right to Data Portability)', 'KVKK Madde 11'],
+        user: {
+          name: user.name,
+          email: user.email,
+          tier: user.tier,
+        },
+        activeProject: {
+          name: project.name,
+          repoUrl: project.repoUrl,
+          gateStatus: project.gateStatus,
+          readinessScore: project.readinessScore,
+          findingsCount: project.findings?.length || 0,
+        },
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `zelsis-privacy-export-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[GDPR Export] Failed to export data:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleExecutePurge = async () => {
     if (confirmationInput !== 'DELETE' || !hasConfirmedCheckbox) return;
 
     setIsPurging(true);
 
     try {
-      // 1. Sign out of active Supabase session
+      // 1. Server-side deletion API call for full GDPR/KVKK erasure
+      if (isAuthenticated && user?.email) {
+        try {
+          await fetch('/api/v1/user/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirmation: 'DELETE', email: user.email })
+          });
+        } catch (apiErr) {
+          console.warn('[GDPR Erasure] Server-side deletion notice:', apiErr);
+        }
+      }
+
+      // 2. Sign out of active Supabase session
       await supabaseSignOut().catch(() => {});
 
-      // 2. Cascade wipe all stored/local Zelsis data (including dynamic webhook keys)
+      // 3. Cascade wipe all stored/local Zelsis data
       purgeZelsisStorage(false);
 
       // 3. Trigger parent callback if provided
@@ -591,19 +642,32 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setConfirmationInput('');
-              setHasConfirmedCheckbox(false);
-              setPurgeSuccess(false);
-              setIsDeleteModalOpen(true);
-            }}
-            className="min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-red-100 text-xs font-bold flex items-center justify-center gap-2 transition-colors shrink-0 cursor-pointer"
-          >
-            <Trash2 size={15} />
-            <span>{isAuthenticated ? 'Delete Account & Wipe Data' : 'Clear Local Cache & Wipe Scans'}</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shrink-0 cursor-pointer"
+              >
+                <Save size={14} />
+                <span>{isExporting ? 'Exporting...' : 'Export Data (GDPR Art. 20)'}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmationInput('');
+                setHasConfirmedCheckbox(false);
+                setPurgeSuccess(false);
+                setIsDeleteModalOpen(true);
+              }}
+              className="min-h-[44px] min-w-[44px] px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 hover:text-red-100 text-xs font-bold flex items-center justify-center gap-2 transition-colors shrink-0 cursor-pointer"
+            >
+              <Trash2 size={15} />
+              <span>{isAuthenticated ? 'Delete Account & Wipe Data' : 'Clear Local Cache & Wipe Scans'}</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -127,7 +127,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const pricePerMonth = isAnnual ? selectedPlan.priceAnnual : selectedPlan.priceMonthly;
   const annualTotal = Number((pricePerMonth * 12).toFixed(2));
   const subtotal = Number((isAnnual ? annualTotal : pricePerMonth).toFixed(2));
-  const tax = Number((subtotal * 0.18).toFixed(2));
+  const tax = Number((subtotal * 0.20).toFixed(2));
   const total = Number((subtotal + tax).toFixed(2));
 
   const handleSimulateSandbox = (e: React.FormEvent) => {
@@ -137,7 +137,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       return;
     }
     const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-    const key = generateLicenseKey(selectedPlanId, email || currentUser?.email || 'evaluator@agency.com');
+    const key = generateLicenseKey(selectedPlanId, email || currentUser?.email || 'developer@company.com');
     setActiveLicenseKey(key);
     activateUserTier(tier, key);
     setIsSubmitted(true);
@@ -274,7 +274,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       <input
                         id="email-input"
                         type="email"
-                        placeholder="alex@agency.com"
+                        placeholder="user@company.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -489,7 +489,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   <span className="font-mono text-white">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[#A1A1AA]">
-                  <span>Estimated VAT / Tax (18%):</span>
+                  <span>Estimated VAT / Tax (20% KDV):</span>
                   <span className="font-mono">${tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-white/10 text-sm font-extrabold text-white">

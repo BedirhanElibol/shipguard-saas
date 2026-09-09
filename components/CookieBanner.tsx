@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Cookie, X } from 'lucide-react';
 
 export const CookieBanner: React.FC = () => {
@@ -37,7 +38,7 @@ export const CookieBanner: React.FC = () => {
               <Cookie size={16} />
             </div>
             <div className="text-xs font-bold text-[#FAFAFA]">
-              Cookie Consent Preferences
+              Cookie Preferences &amp; Privacy
             </div>
           </div>
           <button
@@ -50,19 +51,26 @@ export const CookieBanner: React.FC = () => {
         </div>
 
         <p className="text-xs text-[#94A3B8] leading-relaxed">
-          We use functional cookies to maintain your active audit session and security preferences. No invasive tracking cookies are used.
+          We use strictly essential cookies for secure authentication and active security scan state. No invasive third-party tracking or advertising cookies are utilized. Read our{' '}
+          <Link href="/cerez-politikasi" className="text-emerald-400 hover:underline">
+            Cookie Policy
+          </Link>{' '}
+          and{' '}
+          <Link href="/kvkk" className="text-emerald-400 hover:underline">
+            KVKK Notice
+          </Link>.
         </p>
 
         <div className="flex items-center gap-2 pt-1">
           <button
             onClick={handleAccept}
-            className="flex-1 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0A0A0A] bg-white hover:bg-neutral-200 transition-colors shadow-sm"
+            className="flex-1 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#0A0A0A] bg-white hover:bg-neutral-200 transition-colors shadow-sm cursor-pointer"
           >
             Accept Essential Cookies
           </button>
           <button
             onClick={handleDecline}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#A1A1AA] hover:text-white bg-[#141414] hover:bg-white/10 border border-white/10 transition-colors"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-[#A1A1AA] hover:text-white bg-[#141414] hover:bg-white/10 border border-white/10 transition-colors cursor-pointer"
           >
             Decline
           </button>

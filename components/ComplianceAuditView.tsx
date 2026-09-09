@@ -57,7 +57,7 @@ export const ComplianceAuditView: React.FC<ComplianceAuditViewProps> = ({
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] m-0">
-                ShipGuard Legal, Privacy &amp; Regulatory Pre-Flight Gate
+                Zelsis Legal, Privacy &amp; Regulatory Pre-Flight Gate
               </h1>
               <span className="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-widest">
                 GDPR · CCPA · ePrivacy Directive · FTC Act · PCI-DSS v4.0

@@ -23,10 +23,10 @@ export const BadgeGeneratorModal: React.FC<BadgeGeneratorModalProps> = ({
   const score = project.readinessScore ?? 100;
   const status = project.gateStatus ?? 'PASSED';
 
-  const badgeApiUrl = `https://shipguard.dev/api/v1/badge?status=${status}&score=${score}&label=ShipGuard%20Gate`;
+  const badgeApiUrl = `https://zelsis.com/api/v1/badge?status=${status}&score=${score}&label=Zelsis%20Gate`;
 
-  const markdownSnippet = `[![ShipGuard Release Gate](${badgeApiUrl})](https://shipguard.dev)`;
-  const htmlSnippet = `<a href="https://shipguard.dev"><img src="${badgeApiUrl}" alt="ShipGuard Release Gate Status" /></a>`;
+  const markdownSnippet = `[![Zelsis Release Gate](${badgeApiUrl})](https://zelsis.com)`;
+  const htmlSnippet = `<a href="https://zelsis.com"><img src="${badgeApiUrl}" alt="Zelsis Release Gate Status" /></a>`;
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -60,7 +60,7 @@ export const BadgeGeneratorModal: React.FC<BadgeGeneratorModalProps> = ({
           <div className="p-6 rounded-xl bg-[#0A0A0A] border border-white/10 flex items-center justify-center">
             {/* SVG Inline Preview */}
             <div className="inline-flex items-center rounded-lg bg-[#141414] border border-white/10 p-1 font-mono text-xs">
-              <span className="px-3 py-1 font-bold text-white bg-[#0A0A0A] rounded-md">ShipGuard Gate</span>
+              <span className="px-3 py-1 font-bold text-white bg-[#0A0A0A] rounded-md">Zelsis Gate</span>
               <span className={`px-3 py-1 font-extrabold text-[#021A12] rounded-md ml-1 ${status === 'PASSED' ? 'bg-[#10B981]' : status === 'WARNING' ? 'bg-[#F59E0B]' : 'bg-[#EF4444]'}`}>
                 {status} {score}%
               </span>

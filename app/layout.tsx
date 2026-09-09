@@ -13,7 +13,7 @@ export const viewport: Viewport = {
 function getMetadataBase(): URL {
   const raw = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   if (!raw || typeof raw !== 'string' || !raw.trim()) {
-    return new URL('https://shipguard.dev');
+    return new URL('https://zelsis.com');
   }
   const trimmed = raw.trim();
   const withProtocol = trimmed.startsWith('http://') || trimmed.startsWith('https://')
@@ -22,20 +22,20 @@ function getMetadataBase(): URL {
   try {
     return new URL(withProtocol);
   } catch {
-    return new URL('https://shipguard.dev');
+    return new URL('https://zelsis.com');
   }
 }
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: {
-    default: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
-    template: '%s | ShipGuard',
+    default: 'Zelsis | Automated Codebase Security & Release Gate',
+    template: '%s | Zelsis',
   },
   description:
     'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
   keywords: [
-    'ShipGuard',
+    'Zelsis',
     'Release Gate',
     'Security Audit',
     'OWASP Security',
@@ -47,17 +47,17 @@ export const metadata: Metadata = {
     canonical: './',
   },
   openGraph: {
-    title: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
+    title: 'Zelsis | Automated Codebase Security & Release Gate',
     description:
       'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
-    url: 'https://shipguard.dev',
-    siteName: 'ShipGuard',
+    url: 'https://zelsis.com',
+    siteName: 'Zelsis',
     images: [
       {
-        url: '/shipguard-logo.png',
+        url: '/zelsis-logo.svg',
         width: 1200,
         height: 630,
-        alt: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
+        alt: 'Zelsis | Automated Codebase Security & Release Gate',
       },
     ],
     locale: 'en_US',
@@ -65,15 +65,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ShipGuard | AI Codebase Security Clearance & Release Gate',
+    title: 'Zelsis | Automated Codebase Security & Release Gate',
     description:
       'Prove your application is secure, polished, and ready for production before launch.',
-    images: ['/shipguard-logo.png'],
+    images: ['/zelsis-logo.svg'],
   },
   icons: {
-    icon: '/shipguard-logo.png',
-    shortcut: '/shipguard-logo.png',
-    apple: '/shipguard-logo.png',
+    icon: '/zelsis-logo.svg',
+    shortcut: '/zelsis-logo.svg',
+    apple: '/zelsis-logo.svg',
   },
   manifest: '/manifest.webmanifest',
 };
@@ -88,16 +88,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark notranslate" translate="no" suppressHydrationWarning>
       <head>
-        <title>ShipGuard | AI Codebase Security Clearance &amp; Release Gate</title>
+        <title>Zelsis | Automated Codebase Security &amp; Release Gate</title>
         <meta name="description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
-        <meta property="og:title" content="ShipGuard | AI Codebase Security Clearance &amp; Release Gate" />
+        <meta property="og:title" content="Zelsis | Automated Codebase Security &amp; Release Gate" />
         <meta property="og:description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://shipguard.dev" />
-        <link rel="canonical" href="https://shipguard.dev" />
+        <meta property="og:url" content="https://zelsis.com" />
+        <link rel="canonical" href="https://zelsis.com" />
         {/* Fontshare CDN for Satoshi Font */}
-        <link rel="icon" href="/shipguard-logo.png" type="image/png" />
-        <link rel="shortcut icon" href="/shipguard-logo.png" type="image/png" />
+        <link rel="icon" href="/zelsis-logo.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/zelsis-logo.svg" type="image/svg+xml" />
         <link
           href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap"
           rel="stylesheet"

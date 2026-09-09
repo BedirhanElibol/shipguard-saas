@@ -9,7 +9,7 @@ export default function NotFound() {
       <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs font-mono text-[#A1A1AA]">
         <Link href="/" className="hover:text-white transition-colors flex items-center gap-1">
           <Home size={13} />
-          <span>ShipGuard</span>
+          <span>Zelsis</span>
         </Link>
         <ChevronRight size={12} className="text-[#52525B]" />
         <Link href="/dashboard" className="hover:text-white transition-colors">
@@ -62,7 +62,7 @@ export default function NotFound() {
         <div className="w-full border-t border-white/10 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-[#A1A1AA] gap-2">
           <div className="flex items-center gap-1.5 text-white/80 font-mono text-[0.7rem]">
             <ShieldCheck size={14} className="text-emerald-400" />
-            <span>ShipGuard Gate System Online</span>
+            <span>Zelsis Gate System Online</span>
           </div>
 
           <Link

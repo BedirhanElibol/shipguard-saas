@@ -76,6 +76,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       const isLocalOrSelfAudit =
         project.repoUrl === 'local' ||
         project.repoUrl.toLowerCase() === 'local' ||
+        project.id === 'proj-zelsis-self' ||
         project.id === 'proj-shipguard-self' ||
         project.id === 'proj-preset-self';
       const isWebTarget = isValidWebUrl(project.repoUrl);
@@ -207,7 +208,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           const pct = Math.min(100, Math.round((currentIdx / realLogs.length) * 100));
           setProgress(pct);
           if (typeof document !== 'undefined') {
-            document.title = `(${pct}%) ShipGuard Audit | ${project.name}`;
+            document.title = `(${pct}%) Zelsis Audit | ${project.name}`;
           }
         } else {
           if (intervalRef.current) clearInterval(intervalRef.current);
@@ -226,7 +227,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           if (typeof document !== 'undefined') {
             document.title = `✅ Audit Complete | ${project.name}`;
             if (document.hidden && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-              new Notification(`🚀 ShipGuard Audit Completed: ${project.name}`, {
+              new Notification(`🚀 Zelsis Audit Completed: ${project.name}`, {
                 body: `Release Gate Audit finished successfully with readiness score ${result.score}/100.`,
                 icon: '/favicon.ico'
               });
@@ -242,7 +243,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       isCancelled = true;
       controller.abort();
       if (typeof document !== 'undefined') {
-        document.title = 'ShipGuard | Release Gate SaaS';
+        document.title = 'Zelsis | Release Gate SaaS';
       }
       if (intervalRef.current) {
         clearInterval(intervalRef.current);

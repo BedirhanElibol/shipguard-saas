@@ -5,7 +5,7 @@ import { MOCK_PROJECTS } from '@/data/mockData';
 import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engine';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
-import { purgeShipguardStorage, safeSetStorageItem } from '@/lib/storage';
+import { purgeZelsisStorage, safeSetStorageItem } from '@/lib/storage';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { useSearchParams } from 'next/navigation';
 
@@ -38,42 +38,46 @@ export function useDashboardState() {
   useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
-        const CURRENT_DATA_VERSION = 'v7_showcase_guest_mode_clean';
-        const savedVersion = localStorage.getItem('shipguard_data_version');
+        const CURRENT_DATA_VERSION = 'v8_zelsis_rebrand_clean';
+        const savedVersion = localStorage.getItem('zelsis_data_version') || localStorage.getItem('shipguard_data_version');
         const allowedLocal = canAccessLocalAudit();
 
         // Helper to obtain default projects sanitized for current environment
         const getBaseProjects = () =>
           allowedLocal
             ? MOCK_PROJECTS
-            : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self');
+            : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
 
         if (savedVersion !== CURRENT_DATA_VERSION) {
-          safeSetStorageItem('shipguard_data_version', CURRENT_DATA_VERSION);
+          safeSetStorageItem('zelsis_data_version', CURRENT_DATA_VERSION);
+          localStorage.removeItem('shipguard_data_version');
+          localStorage.removeItem('zelsis_projects');
           localStorage.removeItem('shipguard_projects');
+          localStorage.removeItem('zelsis_selected_project_id');
           localStorage.removeItem('shipguard_selected_project_id');
           const cleanProjects = getBaseProjects();
           setProjects(cleanProjects);
           setSelectedProject(MOCK_PROJECTS[0]);
-          safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+          safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
           return;
         }
 
         let currentProjects = getBaseProjects();
-        const savedProjectsStr = localStorage.getItem('shipguard_projects');
+        const savedProjectsStr = localStorage.getItem('zelsis_projects') || localStorage.getItem('shipguard_projects');
         if (savedProjectsStr) {
           try {
             const parsed = JSON.parse(savedProjectsStr);
             if (Array.isArray(parsed) && parsed.length > 0) {
               currentProjects = parsed.map((p: any) => {
-                if (p.repoUrl === 'https://github.com/example/shipguard' || p.id === 'proj-shipguard-self') {
+                if (p.repoUrl === 'https://github.com/example/shipguard' || p.id === 'proj-zelsis-self' || p.id === 'proj-shipguard-self') {
                   return { ...p, repoUrl: 'local' };
                 }
                 return p;
               });
             }
           } catch (jsonErr) {
-            console.warn('[ShipGuard Storage] Corrupted shipguard_projects in localStorage; resetting to default.', jsonErr);
+            console.warn('[Zelsis Storage] Corrupted projects in localStorage; resetting to default.', jsonErr);
+            localStorage.removeItem('zelsis_projects');
             localStorage.removeItem('shipguard_projects');
             currentProjects = getBaseProjects();
           }
@@ -82,7 +86,7 @@ export function useDashboardState() {
         // Environment isolation: Filter out local self-audit project if not permitted
         if (!allowedLocal) {
           currentProjects = currentProjects.filter(
-            (p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self'
+            (p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self'
           );
           if (currentProjects.length === 0) {
             currentProjects = getBaseProjects();
@@ -91,36 +95,36 @@ export function useDashboardState() {
 
         setProjects(currentProjects);
 
-        const savedSelectedId = localStorage.getItem('shipguard_selected_project_id');
+        const savedSelectedId = localStorage.getItem('zelsis_selected_project_id') || localStorage.getItem('shipguard_selected_project_id');
         let chosenProject = MOCK_PROJECTS[0];
 
         if (savedSelectedId) {
-          const isStaleLocal = savedSelectedId === 'proj-shipguard-self';
+          const isStaleLocal = savedSelectedId === 'proj-zelsis-self' || savedSelectedId === 'proj-shipguard-self';
           const found = currentProjects.find((p) => p.id === savedSelectedId);
 
           if (!allowedLocal && (isStaleLocal || found?.repoUrl === 'local')) {
             // Auto-heal: Reset selected project to clean showcase default (proj-saas-starter)
             chosenProject = MOCK_PROJECTS[0];
-            safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+            safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
           } else if (found) {
             chosenProject = found;
           } else {
             chosenProject = MOCK_PROJECTS[0];
-            safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+            safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
           }
         } else {
-          safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+          safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
         }
 
         setSelectedProject(chosenProject);
 
-        let savedUserStr = localStorage.getItem('shipguard_user');
+        let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
         if (!savedUserStr && typeof document !== 'undefined') {
-          const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
-          if (match && match[2]) {
+          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+          if (match && match[3]) {
             try {
-              savedUserStr = decodeURIComponent(match[2]);
-              localStorage.setItem('shipguard_user', savedUserStr);
+              savedUserStr = decodeURIComponent(match[3]);
+              localStorage.setItem('zelsis_user', savedUserStr);
             } catch {}
           }
         }
@@ -139,7 +143,8 @@ export function useDashboardState() {
               });
             }
           } catch (jsonErr) {
-            console.warn('[ShipGuard Storage] Corrupted shipguard_user in localStorage; clearing invalid session token.', jsonErr);
+            console.warn('[Zelsis Storage] Corrupted user session in localStorage; clearing.', jsonErr);
+            localStorage.removeItem('zelsis_user');
             localStorage.removeItem('shipguard_user');
             setUser(null);
           }
@@ -158,18 +163,18 @@ export function useDashboardState() {
     if (isPolarSuccess) {
       try {
         let currentUserObj: any = null;
-        let rawUser = localStorage.getItem('shipguard_user');
+        let rawUser = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
         if (!rawUser && typeof document !== 'undefined') {
-          const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
-          if (match && match[2]) {
-            rawUser = decodeURIComponent(match[2]);
+          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+          if (match && match[3]) {
+            rawUser = decodeURIComponent(match[3]);
           }
         }
         if (rawUser) {
           try { currentUserObj = JSON.parse(rawUser); } catch {}
         }
 
-        const userEmail = currentUserObj?.email || 'subscriber@shipguard.dev';
+        const userEmail = currentUserObj?.email || 'subscriber@zelsis.com';
         const userName = currentUserObj?.name || 'Pro Subscriber';
         const upgradedUser: UserProfile = {
           name: userName,
@@ -181,18 +186,28 @@ export function useDashboardState() {
         };
 
         setUser(upgradedUser);
-        localStorage.setItem('shipguard_user', JSON.stringify(upgradedUser));
+        localStorage.setItem('zelsis_user', JSON.stringify(upgradedUser));
+        localStorage.removeItem('shipguard_user');
         if (typeof document !== 'undefined') {
-          document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(upgradedUser))}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(upgradedUser))}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
         }
-        localStorage.setItem('shipguard_license_key', `SG-PRO-${Date.now().toString(36).toUpperCase()}`);
+        localStorage.setItem('zelsis_license_key', `ZS-PRO-${Date.now().toString(36).toUpperCase()}`);
       } catch (err) {
         console.warn('[Polar Auto-Upgrade] Notice:', err);
       }
     }
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (!e.key || e.key === 'shipguard_projects' || e.key === 'shipguard_selected_project_id' || e.key === 'shipguard_user') {
+      if (
+        !e.key ||
+        e.key === 'zelsis_projects' ||
+        e.key === 'zelsis_selected_project_id' ||
+        e.key === 'zelsis_user' ||
+        e.key === 'shipguard_projects' ||
+        e.key === 'shipguard_selected_project_id' ||
+        e.key === 'shipguard_user'
+      ) {
         loadProjectsFromStorage();
       }
     };
@@ -205,13 +220,14 @@ export function useDashboardState() {
         const { user: supabaseUser } = await supabaseGetSession();
         if (supabaseUser) {
           setUser(supabaseUser);
-          localStorage.setItem('shipguard_user', JSON.stringify(supabaseUser));
+          localStorage.setItem('zelsis_user', JSON.stringify(supabaseUser));
+          localStorage.removeItem('shipguard_user');
           if (typeof document !== 'undefined') {
-            document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(supabaseUser))}; path=/; max-age=2592000; SameSite=Lax`;
+            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(supabaseUser))}; path=/; max-age=2592000; SameSite=Lax`;
           }
         }
       } catch (err) {
-        console.warn('[ShipGuard Auth] Session sync notice:', err);
+        console.warn('[Zelsis Auth] Session sync notice:', err);
       }
     };
     syncSupabaseSession();
@@ -223,9 +239,11 @@ export function useDashboardState() {
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
           setUser(profile);
-          localStorage.setItem('shipguard_user', JSON.stringify(profile));
+          localStorage.setItem('zelsis_user', JSON.stringify(profile));
+          localStorage.removeItem('shipguard_user');
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          localStorage.removeItem('zelsis_user');
           localStorage.removeItem('shipguard_user');
         }
       });
@@ -244,7 +262,7 @@ export function useDashboardState() {
     try {
       const sanitized = canAccessLocalAudit()
         ? updated
-        : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self');
+        : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
       const lightweight = sanitized.map((p) => ({
         ...p,
         findings: p.findings.slice(0, 60).map((f) => ({
@@ -253,12 +271,12 @@ export function useDashboardState() {
           reproductionSteps: Array.isArray(f.reproductionSteps) ? f.reproductionSteps.slice(0, 1) : []
         }))
       }));
-      safeSetStorageItem('shipguard_projects', JSON.stringify(lightweight), selectedProject.id);
+      safeSetStorageItem('zelsis_projects', JSON.stringify(lightweight), selectedProject.id);
     } catch {
       try {
         const sanitized = canAccessLocalAudit()
           ? updated
-          : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-shipguard-self');
+          : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
         const ultraCompact = sanitized.map((p) => ({
           ...p,
           findings: p.findings.slice(0, 20).map((f) => ({
@@ -271,21 +289,21 @@ export function useDashboardState() {
             status: f.status
           }))
         }));
-        safeSetStorageItem('shipguard_projects', JSON.stringify(ultraCompact), selectedProject.id);
+        safeSetStorageItem('zelsis_projects', JSON.stringify(ultraCompact), selectedProject.id);
       } catch {
-        console.warn('[ShipGuard Storage] Silent localStorage quota limit handled gracefully.');
+        console.warn('[Zelsis Storage] Silent localStorage quota limit handled gracefully.');
       }
     }
   };
 
   const handleSelectProject = (p: Project) => {
-    if (!canAccessLocalAudit() && (p.repoUrl === 'local' || p.id === 'proj-shipguard-self')) {
+    if (!canAccessLocalAudit() && (p.repoUrl === 'local' || p.id === 'proj-zelsis-self' || p.id === 'proj-shipguard-self')) {
       setSelectedProject(MOCK_PROJECTS[0]);
-      safeSetStorageItem('shipguard_selected_project_id', MOCK_PROJECTS[0].id);
+      safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
       return;
     }
     setSelectedProject(p);
-    safeSetStorageItem('shipguard_selected_project_id', p.id);
+    safeSetStorageItem('zelsis_selected_project_id', p.id);
   };
 
   const handleToggleResolveFinding = (findingId: string) => {
@@ -353,9 +371,11 @@ export function useDashboardState() {
         emailVerified: res.user?.emailVerified ?? false
       };
       setUser(newUser);
-      safeSetStorageItem('shipguard_user', JSON.stringify(newUser));
+      safeSetStorageItem('zelsis_user', JSON.stringify(newUser));
+      localStorage.removeItem('shipguard_user');
       if (typeof document !== 'undefined') {
-        document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(newUser))}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(newUser))}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
       }
     } else {
       const res = await supabaseSignIn(email, pass);
@@ -370,9 +390,11 @@ export function useDashboardState() {
         emailVerified: res.user?.emailVerified ?? true
       };
       setUser(loggedInUser);
-      safeSetStorageItem('shipguard_user', JSON.stringify(loggedInUser));
+      safeSetStorageItem('zelsis_user', JSON.stringify(loggedInUser));
+      localStorage.removeItem('shipguard_user');
       if (typeof document !== 'undefined') {
-        document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(loggedInUser))}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(loggedInUser))}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
       }
     }
   };
@@ -383,9 +405,10 @@ export function useDashboardState() {
         return null;
       }
       const updated: UserProfile = { ...prev, ...fields };
-      safeSetStorageItem('shipguard_user', JSON.stringify(updated));
+      safeSetStorageItem('zelsis_user', JSON.stringify(updated));
+      localStorage.removeItem('shipguard_user');
       if (typeof document !== 'undefined') {
-        document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(updated))}; path=/; max-age=2592000; SameSite=Lax`;
+        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(updated))}; path=/; max-age=2592000; SameSite=Lax`;
       }
       return updated;
     });
@@ -394,8 +417,9 @@ export function useDashboardState() {
   const handleSignOut = async () => {
     await supabaseSignOut().catch(() => {});
     setUser(null);
-    purgeShipguardStorage(true);
+    purgeZelsisStorage(true);
     if (typeof document !== 'undefined') {
+      document.cookie = 'zelsis_user=; path=/; max-age=0; SameSite=Lax';
       document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
     }
   };

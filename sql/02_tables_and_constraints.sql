@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SHIPGUARD B2B SAAS - CORE TABLES & CONSTRAINTS
+-- ZELSIS B2B SAAS - CORE TABLES & CONSTRAINTS
 -- File: sql/02_tables_and_constraints.sql
 -- ==============================================================================
 

@@ -13,7 +13,7 @@ interface NotificationSettingsModalProps {
   repoUrl: string;
 }
 
-export const NOTIFICATION_STORAGE_PREFIX = 'shipguard_webhooks_';
+export const NOTIFICATION_STORAGE_PREFIX = 'zelsis_webhooks_';
 
 export function getNotificationStorageKey(projectName: string): string {
   return `${NOTIFICATION_STORAGE_PREFIX}${projectName}`;
@@ -26,6 +26,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
   repoUrl
 }) => {
   const storageKey = getNotificationStorageKey(projectName);
+  const legacyStorageKey = `shipguard_webhooks_${projectName}`;
   const [slackUrl, setSlackUrl] = useState('');
   const [discordUrl, setDiscordUrl] = useState('');
   const [testStatus, setTestStatus] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
   React.useEffect(() => {
     if (isOpen && typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem(storageKey);
+        const saved = localStorage.getItem(storageKey) || localStorage.getItem(legacyStorageKey);
         if (saved) {
           const parsed = JSON.parse(saved);
           setSlackUrl(parsed.slackUrl || '');
@@ -45,7 +46,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
         console.warn('[NotificationSettings] Failed to parse saved webhook settings:', err);
       }
     }
-  }, [isOpen, storageKey]);
+  }, [isOpen, storageKey, legacyStorageKey]);
 
   if (!isOpen) return null;
 

@@ -6,7 +6,7 @@ import { escapeSvgText } from '@/lib/sanitize';
 
 /**
  * Hardened Dynamic SVG Shield Badge Generator Endpoint
- * Usage: GET /api/v1/badge?status=PASSED&score=98&label=ShipGuard
+ * Usage: GET /api/v1/badge?status=PASSED&score=98&label=Zelsis
  * Returns a secure, high-res SVG shield badge for GitHub README.md files.
  * Enforces Zod validation, sliding-window rate limiting, and strict XML/SVG escaping
  * to prevent SVG-based Cross-Site Scripting (XSS) and XML Entity Injection.

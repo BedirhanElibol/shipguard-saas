@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "ShipGuard AI - Autonomous Release Gate & Security Audit Platform",
+    "title": "Zelsis AI - Autonomous Release Gate & Security Audit Platform",
     "description": "AI-Powered Pre-Release Audit Gate & Code Hygiene Assurance Platform for Modern Software Teams."
   },
   "nav": {
@@ -19,7 +19,7 @@
     "cta_demo": "View Live Demo"
   },
   "about": {
-    "title": "WHY SHIPGUARD EXISTS",
+    "title": "WHY ZELSIS EXISTS",
     "subtitle": "Autonomous quality gates that safeguard software reliability, security, and developer productivity."
   },
   "contact": {
@@ -29,6 +29,6 @@
   },
   "featured": {
     "title": "SELECTED CASE STUDIES",
-    "subtitle": "Discover how ShipGuard AI prevents deployment incidents for high-velocity engineering teams."
+    "subtitle": "Discover how Zelsis AI prevents deployment incidents for high-velocity engineering teams."
   }
 }

@@ -1,4 +1,4 @@
-name: ShipGuard AI Release Gate Audit
+name: Zelsis AI Release Gate Audit
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ main, master, develop ]
 
 jobs:
-  shipguard-release-gate:
-    name: ShipGuard Production Pre-flight Audit
+  zelsis-release-gate:
+    name: Zelsis Production Pre-flight Audit
     runs-on: ubuntu-latest
 
     steps:
@@ -26,14 +26,14 @@ jobs:
           npm ci || npm install
           npx tsc --noEmit
 
-      - name: Trigger ShipGuard Release Gate API Audit
+      - name: Trigger Zelsis Release Gate API Audit
         env:
-          SHIPGUARD_API_URL: ${{ secrets.SHIPGUARD_API_URL || 'https://shipguard-saas.vercel.app/api/v1/gate-check' }}
+          ZELSIS_API_URL: ${{ secrets.ZELSIS_API_URL || 'https://zelsis-saas.vercel.app/api/v1/gate-check' }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          echo "🚀 Triggering ShipGuard Release Gate Audit for repository: ${{ github.repository }}..."
-          RESPONSE=$(curl -s -X POST "$SHIPGUARD_API_URL" \
+          echo "🚀 Triggering Zelsis Release Gate Audit for repository: ${{ github.repository }}..."
+          RESPONSE=$(curl -s -X POST "$ZELSIS_API_URL" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -d "{\"repoUrl\": \"${{ github.repository }}\", \"slackWebhookUrl\": \"$SLACK_WEBHOOK_URL\", \"discordWebhookUrl\": \"$DISCORD_WEBHOOK_URL\"}")
@@ -43,7 +43,7 @@ jobs:
           READINESS_SCORE=$(echo "$RESPONSE" | jq -r '.readinessScore // 0')
           
           echo "--------------------------------------------------"
-          echo "📊 ShipGuard Gate Status: $GATE_STATUS"
+          echo "📊 Zelsis Gate Status: $GATE_STATUS"
           echo "📊 Production Readiness Score: $READINESS_SCORE%"
           echo "--------------------------------------------------"
           

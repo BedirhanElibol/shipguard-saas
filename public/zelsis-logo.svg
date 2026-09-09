@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="#0A0A0A" />
+  <rect x="1" y="1" width="62" height="62" rx="13" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+  
+  <defs>
+    <linearGradient id="zGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="60%" stop-color="#EDEDED" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+  </defs>
+
+  <!-- Brackets -->
+  <path d="M 14 24 L 14 15 L 23 15" stroke="rgba(255,255,255,0.35)" stroke-width="2.5" stroke-linecap="round" />
+  <path d="M 50 40 L 50 49 L 41 49" stroke="rgba(255,255,255,0.35)" stroke-width="2.5" stroke-linecap="round" />
+
+  <!-- Geometric 'Z' Gate Glyph -->
+  <path d="M 18 19 L 46 19 L 20 45 L 46 45" stroke="url(#zGrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Precision Dots -->
+  <circle cx="41" cy="20" r="3" fill="#10B981" />
+  <circle cx="23" cy="44" r="3" fill="#10B981" />
+</svg>

@@ -21,6 +21,7 @@ import {
   Terminal
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
+import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 
 interface SidebarProps {
   activeNav: string;
@@ -250,10 +251,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <aside className="relative w-72 max-w-[85vw] bg-[#0E0E12] border-r border-white/10 p-5 flex flex-col justify-between shadow-2xl z-10 overflow-y-auto h-full animate-in slide-in-from-left duration-200">
             <div>
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="w-5 h-5 text-emerald-400" />
-                  <span className="font-mono font-bold text-sm text-white tracking-wider">SHIPGUARD</span>
-                </div>
+                <ZelsisLogo size="sm" />
                 <button
                   onClick={onCloseMobile}
                   className="p-1.5 rounded-lg text-[#A1A1AA] hover:text-white hover:bg-white/10 transition-colors"

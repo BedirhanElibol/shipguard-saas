@@ -26,7 +26,7 @@ import {
 import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { verifyLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
-import { purgeShipguardStorage } from '@/lib/storage';
+import { purgeZelsisStorage } from '@/lib/storage';
 
 interface ProjectSettingsViewProps {
   project: Project;
@@ -125,9 +125,10 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       onUpdateUser(updatedUser);
     }
     try {
-      localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
+      localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+      localStorage.removeItem('shipguard_user');
     } catch (err) {
-      console.warn('[ShipGuard Profile] Failed to persist user in storage:', err);
+      console.warn('[Zelsis Profile] Failed to persist user in storage:', err);
     }
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2500);
@@ -173,8 +174,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       // 1. Sign out of active Supabase session
       await supabaseSignOut().catch(() => {});
 
-      // 2. Cascade wipe all stored/local ShipGuard data (including dynamic webhook keys)
-      purgeShipguardStorage(false);
+      // 2. Cascade wipe all stored/local Zelsis data (including dynamic webhook keys)
+      purgeZelsisStorage(false);
 
       // 3. Trigger parent callback if provided
       if (onDeleteAccount) {
@@ -675,7 +676,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                     <ul className="space-y-1 list-disc list-inside text-[0.72rem] text-red-200/80">
                       {!isAuthenticated ? (
                         <>
-                          <li>Guest mode session and local browser cache (<code className="text-red-300">shipguard_*</code>).</li>
+                          <li>Guest mode session and local browser cache (<code className="text-red-300">zelsis_*</code>).</li>
                           <li>Locally saved project scans and vulnerability findings history on this device.</li>
                           <li>Temporary repository target configurations and local license state.</li>
                           <li>Note: No cloud account credentials exist to purge in Guest Mode.</li>
@@ -686,7 +687,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                           <li>All registered project repositories and custom scan settings.</li>
                           <li>Historical audit reports, gate matrices, and remediation logs.</li>
                           <li>Stored GitHub Personal Access Tokens (PAT) and webhook credentials.</li>
-                          <li>Local browser database and storage caches (<code className="text-red-300">shipguard_*</code>).</li>
+                          <li>Local browser database and storage caches (<code className="text-red-300">zelsis_*</code>).</li>
                         </>
                       )}
                     </ul>

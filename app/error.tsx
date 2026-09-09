@@ -15,11 +15,11 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
 
   useEffect(() => {
     // Log exception for debugging and telemetry
-    console.error('[ShipGuard Global Error Boundary]:', error);
+    console.error('[Zelsis Global Error Boundary]:', error);
 
     // Auto-recover from chunk load errors caused by new deployments
     if (isChunkError && typeof window !== 'undefined') {
-      const reloadKey = 'shipguard_chunk_reload';
+      const reloadKey = 'zelsis_chunk_reload';
       if (!sessionStorage.getItem(reloadKey)) {
         sessionStorage.setItem(reloadKey, 'true');
         window.location.reload();
@@ -29,7 +29,7 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
 
   const handleRetry = () => {
     if (isChunkError && typeof window !== 'undefined') {
-      sessionStorage.removeItem('shipguard_chunk_reload');
+      sessionStorage.removeItem('zelsis_chunk_reload');
       window.location.reload();
     } else {
       reset();

@@ -125,10 +125,10 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
 
                 <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '10px 12px', borderRadius: '8px' }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '0.05em' }}>
-                    ShipGuard Resolution:
+                    Zelsis Resolution:
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#6EE7B7' }}>
-                    {rule.shipguardSolution}
+                    {rule.zelsisSolution || (rule as any).shipguardSolution}
                   </div>
                 </div>
               </div>

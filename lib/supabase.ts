@@ -24,7 +24,7 @@ export const getSupabase = (): SupabaseClient | null => {
     try {
       supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
     } catch (err) {
-      console.warn('[ShipGuard Supabase] Failed to initialize Supabase client:', err);
+      console.warn('[Zelsis Supabase] Failed to initialize Supabase client:', err);
     }
   }
   return supabaseInstance;
@@ -154,7 +154,7 @@ export async function supabaseSignOut(): Promise<void> {
     try {
       await supabase.auth.signOut();
     } catch (err) {
-      console.warn('[ShipGuard Auth] Supabase sign out error:', err);
+      console.warn('[Zelsis Auth] Supabase sign out error:', err);
     }
   }
 }
@@ -185,7 +185,7 @@ export async function supabaseSignInWithOAuth(
   }
 
   try {
-    const defaultOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://shipguard-saas.vercel.app';
+    const defaultOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://zelsis.com';
     const finalRedirect = redirectTo || `${defaultOrigin}/auth/callback`;
 
     const { data, error } = await supabase.auth.signInWithOAuth({

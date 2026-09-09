@@ -1,4 +1,4 @@
--- ShipGuard v3.0 Production Database Schema & Row Level Security (RLS) Migration
+-- Zelsis v3.0 Production Database Schema & Row Level Security (RLS) Migration
 -- Target Engine: PostgreSQL / Supabase DB
 
 -- 1. Create Custom Enum Types

@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
 
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
-    'User-Agent': 'ShipGuard-Release-Gate-Scanner/4.0'
+    'User-Agent': 'Zelsis-Release-Gate-Scanner/4.0'
   };
 
   if (token) {
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
         (item: any) =>
           item.type === 'blob' &&
           typeof item.path === 'string' &&
-          (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)/i.test(item.path)) &&
+          (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|zelsisignore|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)/i.test(item.path)) &&
           !item.path.includes('node_modules') &&
           !item.path.includes('.next') &&
           !item.path.includes('.git') &&

@@ -208,7 +208,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
               </div>
               <div>
                 <h2 className="text-lg font-extrabold text-[#EDEDED]">
-                  ShipGuard Rule Knowledge Base &amp; Remediation Encyclopedia
+                  Zelsis Rule Knowledge Base &amp; Remediation Encyclopedia
                 </h2>
                 <p className="text-xs text-[#94A3B8]">
                   Interactive compliance references, threat models, and code remediation patterns

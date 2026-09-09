@@ -66,7 +66,7 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
     try {
       const res = await fetch(formattedUrl, {
         headers: {
-          'User-Agent': 'ShipGuard-Release-Gate-Scanner/3.5'
+          'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5'
         },
         signal: signal || AbortSignal.timeout(8000)
       });

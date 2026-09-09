@@ -7,7 +7,7 @@ export interface WebhookAlertConfig {
 }
 
 /**
- * Dispatches automated Slack & Discord webhook alerts when a ShipGuard Release Gate scan finishes.
+ * Dispatches automated Slack & Discord webhook alerts when a Zelsis Release Gate scan finishes.
  */
 export async function dispatchWebhookAlerts(
   projectName: string,
@@ -26,13 +26,13 @@ export async function dispatchWebhookAlerts(
   if (config.slackWebhookUrl) {
     try {
       const slackPayload = {
-        text: `${statusEmoji} *ShipGuard Release Gate Alert*: ${projectName} — *GATE ${result.gateStatus}* (Score: ${result.score}%)`,
+        text: `${statusEmoji} *Zelsis Release Gate Alert*: ${projectName} — *GATE ${result.gateStatus}* (Score: ${result.score}%)`,
         blocks: [
           {
             type: 'header',
             text: {
               type: 'plain_text',
-              text: `${statusEmoji} ShipGuard 3.0 Release Gate Audit: ${projectName}`
+              text: `${statusEmoji} Zelsis 3.0 Release Gate Audit: ${projectName}`
             }
           },
           {
@@ -83,8 +83,8 @@ export async function dispatchWebhookAlerts(
   if (config.discordWebhookUrl) {
     try {
       const discordPayload = {
-        username: 'ShipGuard Release Gate Bot',
-        avatar_url: 'https://shipguard-saas.vercel.app/icon.png',
+        username: 'Zelsis Release Gate Bot',
+        avatar_url: 'https://zelsis.com/zelsis-logo.svg',
         embeds: [
           {
             title: `${statusEmoji} Release Gate Audit: ${projectName} (${result.gateStatus})`,
@@ -98,7 +98,7 @@ export async function dispatchWebhookAlerts(
               { name: 'High Risk Vulnerabilities', value: `${result.highCount}`, inline: true }
             ],
             footer: {
-              text: `Target Endpoint: ${targetUrl} • ShipGuard 3.0 AI Gate`
+              text: `Target Endpoint: ${targetUrl} • Zelsis 3.0 AI Gate`
             },
             timestamp: new Date().toISOString()
           }

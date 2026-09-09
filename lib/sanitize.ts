@@ -1,6 +1,6 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
- * String and XML/SVG Sanitization Module for ShipGuard SaaS
+ * String and XML/SVG Sanitization Module for Zelsis SaaS
  * Prevents XML Injection, SVG-based Cross-Site Scripting (XSS),
  * and parameter tampering in SVG badges and API endpoints.
  */
@@ -67,4 +67,4 @@ export function escapeHtml(value: unknown): string {
   return escapeXml(value);
 }
 
-export { purgeShipguardStorage } from './storage';
+export { purgeZelsisStorage, purgeShipguardStorage } from './storage';

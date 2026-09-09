@@ -62,7 +62,8 @@ export const UiRuleSchema = z.object({
   category: z.string(),
   clichePattern: z.string(),
   whyAiDoesIt: z.string(),
-  shipguardSolution: z.string(),
+  zelsisSolution: z.string().optional(),
+  shipguardSolution: z.string().optional(),
 });
 
 export const ComplianceRuleSchema = z.object({

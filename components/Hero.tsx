@@ -130,7 +130,7 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
           transition={{ duration: 0.7, delay: 0.1 }}
           className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed mt-6 mb-8 font-sans"
         >
-          AI code generation is fast. Shipping without verification is reckless. ShipGuard evaluates security vulnerabilities, design hygiene, and production readiness before code merges.
+          AI code generation is fast. Shipping without verification is reckless. Zelsis evaluates security vulnerabilities, design hygiene, and production readiness before code merges.
         </motion.p>
 
         {/* Primary CTA */}
@@ -166,7 +166,7 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
               <span className="ml-2 text-xs font-mono font-bold text-white flex items-center gap-1.5">
                 <Code size={13} className="text-white" />
-                <span>SHIPGUARD CLEARANCE ENGINE // LIVE CODE AUDITOR</span>
+                <span>ZELSIS CLEARANCE ENGINE // LIVE CODE AUDITOR</span>
               </span>
             </div>
 

@@ -60,7 +60,7 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] m-0">
-                ShipGuard Infrastructure, Cloud &amp; Database Gate
+                Zelsis Infrastructure, Cloud &amp; Database Gate
               </h1>
               <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-widest">
                 Supabase RLS · Docker Security · Connection URIs · CORS · Server Actions

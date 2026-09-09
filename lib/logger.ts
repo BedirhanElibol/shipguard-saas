@@ -1,6 +1,6 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
- * Production Security Logger for ShipGuard SaaS
+ * Production Security Logger for Zelsis SaaS
  * Automatically redacts sensitive credentials, API keys, tokens, passwords, and PII
  * before emitting to stdout/stderr. Prevents accidental credential leaks in cloud logs.
  */
@@ -92,7 +92,7 @@ class SecurityLogger {
     const timestamp = new Date().toISOString();
     const cleanMsg = redactString(message);
     const cleanMeta = meta !== undefined ? ' ' + JSON.stringify(redactSensitiveData(meta)) : '';
-    return `[${timestamp}] [${level.toUpperCase()}] [ShipGuard]: ${cleanMsg}${cleanMeta}`;
+    return `[${timestamp}] [${level.toUpperCase()}] [Zelsis]: ${cleanMsg}${cleanMeta}`;
   }
 
   debug(message: string, meta?: unknown): void {

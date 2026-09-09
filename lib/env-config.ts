@@ -29,7 +29,7 @@ export function isProduction(): boolean {
 
 /**
  * Determines whether the local workspace self-audit feature can be accessed.
- * - In production environments (*.vercel.app or shipguard.dev), always returns false.
+ * - In production environments (*.vercel.app or zelsis.com), always returns false.
  * - In local development environments, returns true.
  * - Allows explicit test override via NEXT_PUBLIC_ALLOW_LOCAL_AUDIT === 'true' (except in production domains).
  */
@@ -39,6 +39,8 @@ export function canAccessLocalAudit(): boolean {
     // Explicit production domain check: Always block local audit in public production
     if (
       hostname.includes('vercel.app') ||
+      hostname === 'zelsis.com' ||
+      hostname.endsWith('.zelsis.com') ||
       hostname === 'shipguard.dev' ||
       hostname.endsWith('.shipguard.dev')
     ) {

@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SHIPGUARD B2B SAAS - INITIAL SEED DATA (FULL OWASP RULES CATALOG)
+-- ZELSIS B2B SAAS - INITIAL SEED DATA (FULL OWASP RULES CATALOG)
 -- File: sql/05_seed_data.sql
 -- Description: Complete OWASP reference security catalog seed script.
 -- ==============================================================================

@@ -32,7 +32,7 @@ export const CicdAutomationView: React.FC<CicdAutomationViewProps> = ({
         ? `--fail-on=warning --min-score=${minScore}`
         : '--fail-on=none';
 
-    return `name: ShipGuard Pre-Flight Release Gate
+    return `name: Zelsis Pre-Flight Release Gate
 
 on:
   pull_request:
@@ -45,8 +45,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  shipguard-audit:
-    name: 🛡️ ShipGuard Deployment Gate
+  zelsis-audit:
+    name: 🛡️ Zelsis Deployment Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -58,29 +58,29 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Run ShipGuard Pre-Flight Gate
+      - name: Run Zelsis Pre-Flight Gate
         env:
-          SHIPGUARD_API_TOKEN: \${{ secrets.SHIPGUARD_API_TOKEN }}
+          ZELSIS_API_TOKEN: \${{ secrets.ZELSIS_API_TOKEN }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx shipguard-ci ${failFlag} \\
+          npx zelsis audit ${failFlag} \\
             --project="${projectName}" \\
             --post-pr-comment=true \\
-            --output-report=shipguard-report.json
+            --output-report=zelsis-report.json
 
       - name: Upload Gate Audit Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: shipguard-release-scorecard
-          path: shipguard-report.json
+          name: zelsis-release-scorecard
+          path: zelsis-report.json
 `;
   };
 
-  const generateShipguardConfig = () => {
+  const generateZelsisConfig = () => {
     return JSON.stringify(
       {
-        $schema: 'https://shipguard.dev/schemas/v1/shipguardrc.json',
+        $schema: 'https://zelsis.com/schemas/v1/zelsisrc.json',
         projectName,
         minScoreThreshold: minScore,
         failStrategy: failThreshold,
@@ -125,7 +125,7 @@ jobs:
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] m-0">
-                ShipGuard CI/CD &amp; CLI Automation Hub
+                Zelsis CI/CD &amp; CLI Automation Hub
               </h1>
               <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-widest">
                 GitHub Actions · Git Hooks · Policy-as-Code · Automated PR Bot
@@ -230,7 +230,7 @@ jobs:
           <div>
             <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 m-0">
               <GitPullRequest size={16} className="text-emerald-400" />
-              <span>.github/workflows/shipguard.yml</span>
+              <span>.github/workflows/zelsis.yml</span>
             </h2>
             <span className="text-xs text-[#A1A1AA]">
               Drop this file into your repository to enforce pre-flight PR gates automatically.
@@ -256,7 +256,7 @@ jobs:
             </button>
 
             <button
-              onClick={() => downloadFile('shipguard.yml', generateGithubWorkflow())}
+              onClick={() => downloadFile('zelsis.yml', generateGithubWorkflow())}
               className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#EDEDED] text-xs font-mono transition-colors flex items-center gap-1.5"
             >
               <Download size={14} className="text-zinc-400" />
@@ -272,16 +272,16 @@ jobs:
 
       {/* Two Column Section: Policy as Code & Local CLI */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Policy as Code .shipguardrc.json */}
+        {/* Policy as Code .zelsisrc.json */}
         <div className="bg-[#141414] border border-white/10 rounded-xl p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-3 mb-3">
               <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 m-0">
                 <Settings2 size={16} className="text-cyan-400" />
-                <span>Policy as Code (.shipguardrc.json)</span>
+                <span>Policy as Code (.zelsisrc.json)</span>
               </h2>
               <button
-                onClick={() => copyToClipboard(generateShipguardConfig(), setCopiedConfig)}
+                onClick={() => copyToClipboard(generateZelsisConfig(), setCopiedConfig)}
                 className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[#EDEDED] text-xs font-mono transition-colors flex items-center gap-1"
               >
                 {copiedConfig ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
@@ -292,7 +292,7 @@ jobs:
               Standardize governance across your engineering team by checking in your custom gate requirements.
             </p>
             <div className="bg-black/60 border border-white/5 rounded-xl p-3.5 overflow-x-auto font-mono text-xs mb-4">
-              <pre className="text-cyan-300/90 leading-relaxed m-0">{generateShipguardConfig()}</pre>
+              <pre className="text-cyan-300/90 leading-relaxed m-0">{generateZelsisConfig()}</pre>
             </div>
           </div>
 
@@ -330,9 +330,9 @@ jobs:
                 1. Run Pre-Flight Audit in Terminal
               </span>
               <div className="flex items-center justify-between gap-2 font-mono text-xs text-emerald-400">
-                <code>npx shipguard-ci --fail-on=critical</code>
+                <code>npx zelsis audit --fail-on=critical</code>
                 <button
-                  onClick={() => copyToClipboard('npx shipguard-ci --fail-on=critical', setCopiedCli)}
+                  onClick={() => copyToClipboard('npx zelsis audit --fail-on=critical', setCopiedCli)}
                   className="p-1 hover:text-white transition-colors"
                   title="Copy CLI command"
                 >
@@ -346,7 +346,7 @@ jobs:
                 2. Install Git Pre-Commit Hook (Husky)
               </span>
               <pre className="font-mono text-xs text-zinc-300 leading-relaxed m-0 overflow-x-auto">
-{`npx husky add .husky/pre-commit "npx shipguard-ci --fail-on=critical"`}
+{`npx husky add .husky/pre-commit "npx zelsis audit --fail-on=critical"`}
               </pre>
             </div>
           </div>

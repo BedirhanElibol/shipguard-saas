@@ -7,6 +7,7 @@ import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, 
 import { UserProfile } from '@/components/auth/AuthModal';
 import { sanitizeTargetUrl } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
+import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 
 interface HeaderProps {
   projects: Project[];
@@ -106,6 +107,10 @@ export const Header: React.FC<HeaderProps> = ({
               <Menu size={20} />
             </button>
           )}
+
+          <a href="/" className="flex items-center group shrink-0" aria-label="Zelsis Home">
+            <ZelsisLogo size="sm" showWordmark={false} />
+          </a>
 
           {onNavigateLanding && (
             <button

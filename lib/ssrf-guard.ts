@@ -3,7 +3,7 @@ import dns from 'dns';
 import net from 'net';
 
 /**
- * Enterprise SSRF Defense Module for ShipGuard SaaS
+ * Enterprise SSRF Defense Module for Zelsis SaaS
  * Strictly blocks private RFC 1918 addresses, Link-Local metadata endpoints,
  * IPv6 loopbacks/ULAs, DNS rebinding, and dangerous internal service ports.
  */

@@ -40,7 +40,7 @@ function CallbackHandler() {
           setMessage('Verifying authorization code...');
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
-            console.warn('[ShipGuard OAuth] Code exchange warning:', exchangeError.message);
+            console.warn('[Zelsis OAuth] Code exchange warning:', exchangeError.message);
           }
         }
 
@@ -49,8 +49,10 @@ function CallbackHandler() {
 
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
+          localStorage.setItem('zelsis_user', JSON.stringify(profile));
           localStorage.setItem('shipguard_user', JSON.stringify(profile));
           if (typeof document !== 'undefined') {
+            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
             document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
           }
 
@@ -66,8 +68,10 @@ function CallbackHandler() {
           const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
             if (newSession && newSession.user && isMounted) {
               const profile = mapSupabaseUserToProfile(newSession.user);
+              localStorage.setItem('zelsis_user', JSON.stringify(profile));
               localStorage.setItem('shipguard_user', JSON.stringify(profile));
               if (typeof document !== 'undefined') {
+                document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
                 document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
               }
               setStatus('success');
@@ -87,7 +91,7 @@ function CallbackHandler() {
           }, 6000);
         }
       } catch (err: any) {
-        console.error('[ShipGuard OAuth] Callback error:', err);
+        console.error('[Zelsis OAuth] Callback error:', err);
         if (isMounted) {
           setStatus('error');
           setMessage(err?.message || 'An unexpected error occurred during authentication.');
@@ -112,7 +116,7 @@ function CallbackHandler() {
 
       <div className="flex items-center justify-center gap-2 mb-3">
         <Shield className="w-5 h-5 text-emerald-400" />
-        <span className="text-sm font-mono uppercase tracking-widest text-neutral-400">ShipGuard Auth</span>
+        <span className="text-sm font-mono uppercase tracking-widest text-neutral-400">Zelsis Auth</span>
       </div>
 
       <h1 className="text-xl font-bold text-white mb-2">

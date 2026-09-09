@@ -1,6 +1,6 @@
-# ShipGuard SQL Database Schema & Migration Suite
+# Zelsis SQL Database Schema & Migration Suite
 
-This directory contains the production-grade PostgreSQL / Supabase SQL schema definitions for the **ShipGuard AI Release Gate SaaS** platform.
+This directory contains the production-grade PostgreSQL / Supabase SQL schema definitions for the **Zelsis AI Release Gate SaaS** platform.
 
 ## 📁 File Directory Structure
 

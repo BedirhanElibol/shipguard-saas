@@ -33,7 +33,7 @@ export const BulkFixModal: React.FC<BulkFixModalProps> = ({
   const handleDownloadCombinedPatch = () => {
     const selectedFindings = openFindings.filter((f) => selectedIds.includes(f.id));
 
-    let patchContent = `# ShipGuard 3.0 Automated Multi-File Security & UI Remediations
+    let patchContent = `# Zelsis 3.0 Automated Multi-File Security & UI Remediations
 # Project: ${projectName}
 # Generated: ${new Date().toISOString()}
 # Total Remediations: ${selectedFindings.length}
@@ -56,7 +56,7 @@ export const BulkFixModal: React.FC<BulkFixModalProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `shipguard-remediation-patch-${projectName.toLowerCase().replace(/\s+/g, '-')}.patch`;
+    a.download = `zelsis-remediation-patch-${projectName.toLowerCase().replace(/\s+/g, '-')}.patch`;
     a.click();
     URL.revokeObjectURL(url);
   };

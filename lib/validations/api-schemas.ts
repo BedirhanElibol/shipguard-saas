@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { NextResponse } from 'next/server';
 
 /**
- * Strict Server-Side Validation Schemas for ShipGuard SaaS API Endpoints
+ * Strict Server-Side Validation Schemas for Zelsis SaaS API Endpoints
  * Prevents input tampering, injection, path traversal, and malicious payloads.
  */
 
@@ -94,8 +94,8 @@ export const BadgeQuerySchema = z.object({
   label: z
     .string()
     .optional()
-    .default('ShipGuard Gate')
-    .transform((val) => (val || 'ShipGuard Gate').slice(0, 40))
+    .default('Zelsis Gate')
+    .transform((val) => (val || 'Zelsis Gate').slice(0, 40))
 });
 
 /**

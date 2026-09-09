@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
     if (rawRepoUrl.toLowerCase() === 'local') {
       filesToScan = WORKSPACE_SOURCE_FILES;
-      targetName = 'ShipGuard Local Workspace';
+      targetName = 'Zelsis Local Workspace';
     } else if (isWebTarget) {
       logger.info(`[Gate Check] Initiating website audit for ${rawRepoUrl}`);
       const webData = await fetchWebsiteAuditData(rawRepoUrl);
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    service: 'ShipGuard 3.0 Release Gate API Engine',
+    service: 'Zelsis 3.0 Release Gate API Engine',
     status: 'HEALTHY',
     version: '3.0.0',
     documentation: 'Send POST requests with { repoUrl: string, githubToken?: string } to trigger automated release gate audits.'

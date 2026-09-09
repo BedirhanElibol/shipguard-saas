@@ -8,19 +8,21 @@ export const CookieBanner: React.FC = () => {
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('shipguard_cookie_consent');
+    const consent = localStorage.getItem('zelsis_cookie_consent') || localStorage.getItem('shipguard_cookie_consent');
     if (!consent) {
       setShowBanner(true);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('shipguard_cookie_consent', 'accepted');
+    localStorage.setItem('zelsis_cookie_consent', 'accepted');
+    localStorage.removeItem('shipguard_cookie_consent');
     setShowBanner(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('shipguard_cookie_consent', 'declined');
+    localStorage.setItem('zelsis_cookie_consent', 'declined');
+    localStorage.removeItem('shipguard_cookie_consent');
     setShowBanner(false);
   };
 

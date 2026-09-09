@@ -310,7 +310,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
                 <span className="text-emerald-400 select-none text-base leading-none shrink-0 mt-0.5">🛡️</span>
                 <div className="leading-relaxed">
-                  <span className="font-bold text-emerald-400">ShipGuard Advisor Notice:</span>{' '}
+                  <span className="font-bold text-emerald-400">Zelsis Advisor Notice:</span>{' '}
                   Remediation prompts are suggested guidelines. Always review code changes in your development environment before committing.
                 </div>
               </div>

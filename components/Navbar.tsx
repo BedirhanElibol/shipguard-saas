@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 
 interface NavbarProps {
   onToggleDashboard?: () => void;
@@ -41,13 +42,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2.5 group">
-            <div className="relative w-7 h-7 rounded-md overflow-hidden border border-white/10 bg-[#141414] flex items-center justify-center">
-              <img src="/shipguard-logo.png" alt="ShipGuard Logo" className="w-full h-full object-cover" />
-            </div>
-            <span className="text-sm font-bold text-white tracking-wider">
-              SHIP<span className="text-[#A1A1AA]">GUARD</span>
-            </span>
+          <a href="/" className="flex items-center group" aria-label="Zelsis Home">
+            <ZelsisLogo size="md" />
           </a>
 
           {/* Desktop Nav Links */}

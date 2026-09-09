@@ -5,7 +5,7 @@ import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'ShipGuard Privacy Policy, telemetry data handling, and zero codebase retention policy.',
+  description: 'Zelsis Privacy Policy, telemetry data handling, and zero codebase retention policy.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -36,14 +36,14 @@ export default function PrivacyPolicyPage() {
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">1. Overview</h2>
             <p>
-              ShipGuard ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how our AI Security Clearance &amp; Pre-flight Audit Matrix platform handles code inspection, telemetry, and user authentication data.
+              Zelsis ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how our AI Security Clearance &amp; Pre-flight Audit Matrix platform handles code inspection, telemetry, and user authentication data.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">2. Codebase Privacy &amp; Zero Retention</h2>
             <p>
-              Code snippets submitted for AST analysis in ShipGuard are processed ephemerally in memory to evaluate security rules and design system anti-patterns. We do not store, index, or train public AI models on your proprietary source code.
+              Code snippets submitted for AST analysis in Zelsis are processed ephemerally in memory to evaluate security rules and design system anti-patterns. We do not store, index, or train public AI models on your proprietary source code.
             </p>
           </section>
 
@@ -60,8 +60,8 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-base font-bold text-[#FFFFFF]">4. Contact Us</h2>
             <p>
               For privacy requests or KVKK/GDPR data removal inquiries, please contact our privacy desk at{' '}
-              <a href="mailto:privacy@shipguard.app" className="text-[#FFFFFF] underline underline-offset-4">
-                privacy@shipguard.app
+              <a href="mailto:privacy@zelsis.com" className="text-[#FFFFFF] underline underline-offset-4">
+                privacy@zelsis.com
               </a>.
             </p>
           </section>

@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 export const PricingPlanSchema = z.object({
-  id: z.enum(['shipguard-core', 'vibecare']),
+  id: z.enum(['zelsis-core', 'shipguard-core', 'vibecare', 'zelsis-suite']),
   name: z.string(),
   priceMonthly: z.number(),
   priceAnnual: z.number(),
@@ -15,10 +15,10 @@ export const PricingPlanSchema = z.object({
 
 export type PricingPlanItem = z.infer<typeof PricingPlanSchema>;
 
-export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
+export const ZELSIS_PRICING_PLANS: PricingPlanItem[] = [
   {
-    id: 'shipguard-core',
-    name: 'ShipGuard Pro',
+    id: 'zelsis-core',
+    name: 'Zelsis Pro',
     priceMonthly: 19,
     priceAnnual: 15,
     isPopular: true,
@@ -30,24 +30,26 @@ export const SHIPGUARD_PRICING_PLANS: PricingPlanItem[] = [
       'Unlimited connected AI applications',
       'Priority 24/7 SLA Guarantee',
     ],
-    buttonText: 'Select ShipGuard Pro',
+    buttonText: 'Select Zelsis Pro',
     polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC',
   },
   {
     id: 'vibecare',
-    name: 'ShipGuard Enterprise',
+    name: 'Zelsis Enterprise',
     priceMonthly: 49,
     priceAnnual: 39,
     isPopular: false,
     description: 'Long-term lifecycle monitoring, Dependency CVE drifts, Cloud & LLM cost alerts.',
     features: [
-      'Everything in ShipGuard Pro',
+      'Everything in Zelsis Pro',
       'LLM & Cloud Budget Guardrails ($50/80/100% caps)',
       'Automated Encrypted DR S3 Snapshots',
       'White-label Client Rescue PDF Audit Reports',
       'Dedicated Security Architect Consultation',
     ],
-    buttonText: 'Select ShipGuard Enterprise',
+    buttonText: 'Select Zelsis Enterprise',
     polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od',
   },
 ];
+
+export const SHIPGUARD_PRICING_PLANS = ZELSIS_PRICING_PLANS;

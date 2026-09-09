@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Global Edge Security Middleware for ShipGuard SaaS
+ * Global Edge Security Middleware for Zelsis SaaS
  * - Injects enterprise-grade security headers (HSTS, CSP, X-Frame-Options, etc.) across all routes
  * - Enforces Origin whitelist and CORS policy on /api/:path* endpoints
  * - Sanitizes client IP headers to prevent IP-spoofing rate limit bypass (VULN-10)
@@ -13,6 +13,8 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
+  'https://zelsis.com',
+  'https://zelsis-saas.vercel.app',
   'https://shipguard.dev',
   'https://shipguard-saas.vercel.app'
 ]);

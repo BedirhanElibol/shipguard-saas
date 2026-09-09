@@ -5,7 +5,7 @@ import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'ShipGuard Terms of Service, code verification conditions, and subscription billing agreements.',
+  description: 'Zelsis Terms of Service, code verification conditions, and subscription billing agreements.',
 };
 
 export default function TermsPage() {
@@ -36,21 +36,21 @@ export default function TermsPage() {
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">1. Terms Agreement</h2>
             <p>
-              By accessing or using the ShipGuard platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not access or use our services.
+              By accessing or using the Zelsis platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not access or use our services.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">2. Scope of Service</h2>
             <p>
-              ShipGuard provides automated security clearance checks, design system hygiene audits, and code verification tooling. Audit findings and prompts are provided for developer assistance and do not constitute formal legal or regulatory certification guarantees.
+              Zelsis provides automated security clearance checks, design system hygiene audits, and code verification tooling. Audit findings and prompts are provided for developer assistance and do not constitute formal legal or regulatory certification guarantees.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">3. Acceptable Use</h2>
             <p>
-              You agree not to use ShipGuard to scan unauthorized third-party repositories without explicit permission or attempt to bypass system rate limits and authentication boundaries.
+              You agree not to use Zelsis to scan unauthorized third-party repositories without explicit permission or attempt to bypass system rate limits and authentication boundaries.
             </p>
           </section>
 

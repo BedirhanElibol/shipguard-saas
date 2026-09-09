@@ -134,7 +134,7 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
           </div>
           <div>
             <span className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
-              ShipGuard Release Gate
+              Zelsis Release Gate
             </span>
             <p className="text-xs text-[#A1A1AA]">
               AST &amp; Web Deployment Audit Pipeline

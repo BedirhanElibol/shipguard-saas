@@ -28,7 +28,7 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3 border-b border-white/10 font-mono text-xs text-[#EDEDED] gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <Terminal size={16} className="text-white shrink-0" />
-          <span className="truncate text-[11px] sm:text-xs text-[#A1A1AA]">shipguard-ast-engine --scan --target {repoUrl}</span>
+          <span className="truncate text-[11px] sm:text-xs text-[#A1A1AA]">zelsis-ast-engine --scan --target {repoUrl}</span>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">

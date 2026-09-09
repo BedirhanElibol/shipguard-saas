@@ -6,7 +6,7 @@ import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
 import { logger } from '@/lib/logger';
 
 /**
- * Hardened ShipGuard Serverless Proxy Endpoint
+ * Hardened Zelsis Serverless Proxy Endpoint
  * Allows server-side website fetching for live web release gate audits
  * without browser CORS restrictions or reliance on unverified third-party proxies.
  * Includes strict SSRF protection against RFC 1918 CIDRs, loopbacks, cloud metadata,
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       logger.info(`[Proxy Fetch] Requesting verified target: ${currentUrl} (IP: ${preFlightCheck.resolvedIp || 'verified'})`);
       const res: Response = await fetch(currentUrl, {
         headers: {
-          'User-Agent': 'ShipGuard-Release-Gate-Scanner/4.0 (Enterprise Auditor)',
+          'User-Agent': 'Zelsis-Release-Gate-Scanner/4.0 (Enterprise Auditor)',
           Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         },
         redirect: 'manual',

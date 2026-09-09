@@ -97,7 +97,7 @@ export async function fetchGithubRepositoryData(
   const { owner, repo } = parsed;
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
-    'User-Agent': 'ShipGuard-AI-Release-Gate'
+    'User-Agent': 'Zelsis-AI-Release-Gate'
   };
 
   if (token) {
@@ -131,7 +131,7 @@ export async function fetchGithubRepositoryData(
         .filter(
           (item) =>
             item.type === 'blob' &&
-            (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)/i.test(item.path)) &&
+            (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|zelsisignore|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)/i.test(item.path)) &&
             !item.path.includes('node_modules') &&
             !item.path.includes('.next') &&
             !item.path.includes('.git') &&

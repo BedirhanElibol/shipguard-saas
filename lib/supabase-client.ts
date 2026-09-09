@@ -4,7 +4,7 @@ import { Project, Finding } from '@/data/schema';
 import { getSupabase } from './supabase';
 
 /**
- * Resilient Supabase Service Layer for ShipGuard Release Gate
+ * Resilient Supabase Service Layer for Zelsis Release Gate
  * Provides production DB persistence when environment variables exist,
  * with fallback support to client-side localStorage.
  * Attaches authenticated user JWT Bearer headers and user_id to comply with PostgreSQL RLS.

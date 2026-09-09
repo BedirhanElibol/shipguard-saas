@@ -19,7 +19,7 @@ export const About: React.FC = () => {
 
         {/* Manifesto Paragraph */}
         <div className="max-w-5xl text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-snug tracking-tight">
-          AI code generators allow rapid development. However, deploying without validation creates risk. ShipGuard verifies that your AI-generated application is secure, visually consistent, and production-ready.
+          AI code generators allow rapid development. However, deploying without validation creates risk. Zelsis verifies that your AI-generated application is secure, visually consistent, and production-ready.
         </div>
 
         {/* Core Pillars Grid */}

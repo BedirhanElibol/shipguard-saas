@@ -20,19 +20,19 @@ export const DeploymentManifestModal: React.FC<DeploymentManifestModalProps> = (
 
   if (!isOpen) return null;
 
-  const safeProjectName = (projectName ?? 'ShipGuard Project').toLowerCase().replace(/\s+/g, '-');
+  const safeProjectName = (projectName ?? 'Zelsis Project').toLowerCase().replace(/\s+/g, '-');
 
   const dockerComposeYaml = `version: '3.8'
 services:
-  shipguard-release-gate:
-    image: shipguard/release-gate:v3.0.0
-    container_name: shipguard-${safeProjectName}
+  zelsis-release-gate:
+    image: zelsis/release-gate:v3.0.0
+    container_name: zelsis-${safeProjectName}
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - SHIPGUARD_TARGET_URL=http://localhost:3000
+      - ZELSIS_TARGET_URL=http://localhost:3000
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/gate-check"]
@@ -43,21 +43,21 @@ services:
   const k8sHelmYaml = `apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shipguard-gate-${safeProjectName}
+  name: zelsis-gate-${safeProjectName}
   namespace: production
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: shipguard-gate
+      app: zelsis-gate
   template:
     metadata:
       labels:
-        app: shipguard-gate
+        app: zelsis-gate
     spec:
       containers:
       - name: release-gate
-        image: shipguard/release-gate:v3.0.0
+        image: zelsis/release-gate:v3.0.0
         ports:
         - containerPort: 3000
         resources:
@@ -104,7 +104,7 @@ spec:
                   Docker &amp; Kubernetes Deployment Manifest Exporter
                 </h2>
                 <p className="text-xs text-[#94A3B8]">
-                  Export production containerization manifests to run ShipGuard in private cloud or K8s clusters
+                  Export production containerization manifests to run Zelsis in private cloud or K8s clusters
                 </p>
               </div>
             </div>

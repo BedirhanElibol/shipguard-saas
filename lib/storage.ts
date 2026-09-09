@@ -1,22 +1,24 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
- * ShipGuard Local & Session Storage Utilities
+ * Zelsis Local & Session Storage Utilities
  * Manages privacy-respecting client state, session clearance, and GDPR/KVKK compliance.
  */
 
-export function purgeShipguardStorage(preserveScannedProjects: boolean = false): void {
+export function purgeZelsisStorage(preserveScannedProjects: boolean = false): void {
   if (typeof window === 'undefined') return;
   try {
     if (preserveScannedProjects) {
       // Cleanly clear all session tokens & user identity while preserving local project findings
+      localStorage.removeItem('zelsis_user');
+      localStorage.removeItem('zelsis_license_key');
       localStorage.removeItem('shipguard_user');
       localStorage.removeItem('shipguard_license_key');
     } else {
-      // Explicit GDPR Article 17 / KVKK account wipe: delete all shipguard_* keys including webhooks & projects
+      // Explicit GDPR Article 17 / KVKK account wipe: delete all zelsis_* and legacy shipguard_* keys
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('shipguard_')) {
+        if (key && (key.startsWith('zelsis_') || key.startsWith('shipguard_'))) {
           keysToRemove.push(key);
         }
       }
@@ -28,9 +30,11 @@ export function purgeShipguardStorage(preserveScannedProjects: boolean = false):
       }
     }
   } catch (err) {
-    console.warn('[ShipGuard Storage] Failed to purge storage:', err);
+    console.warn('[Zelsis Storage] Failed to purge storage:', err);
   }
 }
+
+export const purgeShipguardStorage = purgeZelsisStorage;
 
 /**
  * Safely writes to localStorage with automatic QuotaExceededError recovery.
@@ -49,9 +53,9 @@ export function safeSetStorageItem(key: string, value: string, activeProjectId?:
       err?.code === 1014;
 
     if (isQuota) {
-      console.warn('[ShipGuard Storage] QuotaExceededError encountered. Pruning non-active project scans...');
+      console.warn('[Zelsis Storage] QuotaExceededError encountered. Pruning non-active project scans...');
       try {
-        const savedProjects = localStorage.getItem('shipguard_projects');
+        const savedProjects = localStorage.getItem('zelsis_projects') || localStorage.getItem('shipguard_projects');
         if (savedProjects) {
           const parsed = JSON.parse(savedProjects);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -67,17 +71,17 @@ export function safeSetStorageItem(key: string, value: string, activeProjectId?:
                 findings: Array.isArray(p.findings) ? p.findings.slice(0, 5) : []
               };
             });
-            localStorage.setItem('shipguard_projects', JSON.stringify(pruned));
+            localStorage.setItem('zelsis_projects', JSON.stringify(pruned));
           }
         }
         localStorage.setItem(key, value);
         return true;
       } catch (pruneErr) {
-        console.error('[ShipGuard Storage] Failed to write even after pruning quota:', pruneErr);
+        console.error('[Zelsis Storage] Failed to write even after pruning quota:', pruneErr);
         return false;
       }
     }
-    console.warn('[ShipGuard Storage] Failed to write item to localStorage:', err);
+    console.warn('[Zelsis Storage] Failed to write item to localStorage:', err);
     return false;
   }
 }
@@ -92,7 +96,7 @@ export function safeGetStorageJson<T>(key: string, fallback: T): T {
     if (!item) return fallback;
     return JSON.parse(item) as T;
   } catch (err) {
-    console.warn(`[ShipGuard Storage] Malformed JSON in key "${key}". Cleaning up.`, err);
+    console.warn(`[Zelsis Storage] Malformed JSON in key "${key}". Cleaning up.`, err);
     try {
       localStorage.removeItem(key);
     } catch {

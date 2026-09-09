@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SHIPGUARD B2B SAAS - INDEXES & AUTOMATIC TRIGGERS
+-- ZELSIS B2B SAAS - INDEXES & AUTOMATIC TRIGGERS
 -- File: sql/03_indexes_and_triggers.sql
 -- ==============================================================================
 

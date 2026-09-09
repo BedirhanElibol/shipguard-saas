@@ -96,7 +96,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                 <button
                   onClick={() => {
                     onClose();
-                    router.push('/checkout?plan=shipguard-core&billing=annual');
+                    router.push('/checkout?plan=zelsis-core&billing=annual');
                   }}
                   className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
                 >

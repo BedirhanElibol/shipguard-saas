@@ -68,7 +68,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 id: 'proj-preset-nextjs',
                 name: 'Next.js 15 SaaS Starter',
                 repoUrl: 'https://github.com/vercel/next.js',
-                previewUrl: 'https://demo.shipguard.dev',
+                previewUrl: 'https://demo.zelsis.com',
                 framework: 'Next.js 15 + Tailwind',
                 providers: ['PostgreSQL', 'Stripe', 'Vercel', 'Tailwind v4'],
                 lastScanAt: 'Just now',

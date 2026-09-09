@@ -38,9 +38,9 @@ export function stripComments(content: string): string {
 }
 
 /**
- * Parses .shipguardignore file lines to filter out suppressed rule IDs or file paths.
+ * Parses .zelsisignore (or legacy .shipguardignore) file lines to filter out suppressed rule IDs or file paths.
  */
-export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: Set<number>; ignoredPaths: string[] } {
+export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<number>; ignoredPaths: string[] } {
   const ignoredRuleIds = new Set<number>();
   const ignoredPaths: string[] = [];
 
@@ -139,6 +139,8 @@ export function parseShipguardIgnore(ignoreContent: string): { ignoredRuleIds: S
   return { ignoredRuleIds, ignoredPaths };
 }
 
+export const parseShipguardIgnore = parseZelsisIgnore;
+
 /**
  * Real Static AST & Pattern Analysis Engine
  * Scans provided source files against Security Rules and VibePolish & AI Anti-Pattern rules.
@@ -147,15 +149,15 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   const findings: Finding[] = [];
   const logs: string[] = [];
 
-  // Parse .shipguardignore if present in file tree
-  const ignoreFile = files.find(f => f.path.endsWith('.shipguardignore'));
-  const { ignoredRuleIds, ignoredPaths } = parseShipguardIgnore(ignoreFile?.content || '');
+  // Parse .zelsisignore or .shipguardignore if present in file tree
+  const ignoreFile = files.find(f => f.path.endsWith('.zelsisignore') || f.path.endsWith('.shipguardignore'));
+  const { ignoredRuleIds, ignoredPaths } = parseZelsisIgnore(ignoreFile?.content || '');
 
-  logs.push(`[${new Date().toLocaleTimeString()}] 🚀 Initializing ShipGuard High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
+  logs.push(`[${new Date().toLocaleTimeString()}] 🚀 Initializing Zelsis High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
   logs.push(`[${new Date().toLocaleTimeString()}] 🌐 Target Repository: ${repoName}`);
 
   if (ignoredRuleIds.size > 0 || ignoredPaths.length > 0) {
-    logs.push(`[${new Date().toLocaleTimeString()}] 🛡️ .shipguardignore detected: Suppressing ${ignoredRuleIds.size} rules & ${ignoredPaths.length} path patterns.`);
+    logs.push(`[${new Date().toLocaleTimeString()}] 🛡️ .zelsisignore detected: Suppressing ${ignoredRuleIds.size} rules & ${ignoredPaths.length} path patterns.`);
   }
 
   const validFiles = files.filter((f) => {
@@ -243,7 +245,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           `Detected file size ${fileSizeKb}KB (> 500KB threshold).`,
           'Skipped static regex analysis to prevent regex event loop starvation.'
         ],
-        remediationPrompt: `Refactor or split ${file.path}, or add it to .shipguardignore if it is a bundled/generated artifact.`,
+        remediationPrompt: `Refactor or split ${file.path}, or add it to .zelsisignore if it is a bundled/generated artifact.`,
         status: 'OPEN',
         owner: 'Engineering Lead',
         falsePositive: false

@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SHIPGUARD B2B SAAS - POSTGRESQL EXTENSIONS & CUSTOM ENUM TYPES
+-- ZELSIS B2B SAAS - POSTGRESQL EXTENSIONS & CUSTOM ENUM TYPES
 -- File: sql/01_extensions_and_enums.sql
 -- ==============================================================================
 

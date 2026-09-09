@@ -6,13 +6,13 @@ import { AppShell } from '@/components/layout/AppShell';
 import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { MOCK_PROJECTS } from '@/data/mockData';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
-import { purgeShipguardStorage } from '@/lib/storage';
+import { purgeZelsisStorage, purgeShipguardStorage } from '@/lib/storage';
 
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const planId = searchParams.get('plan') || 'shipguard-core';
+  const planId = searchParams.get('plan') || 'zelsis-core';
   const billing = (searchParams.get('billing') || 'monthly') as 'annual' | 'monthly';
   const isSuccess = searchParams.get('success') === 'true';
 
@@ -22,11 +22,11 @@ function CheckoutPageContent() {
 
   useEffect(() => {
     try {
-      let savedUserStr = localStorage.getItem('shipguard_user');
+      let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
       if (!savedUserStr && typeof document !== 'undefined') {
-        const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
-        if (match && match[2]) {
-          savedUserStr = decodeURIComponent(match[2]);
+        const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+        if (match && match[3]) {
+          savedUserStr = decodeURIComponent(match[3]);
         }
       }
       if (savedUserStr) {
@@ -60,8 +60,9 @@ function CheckoutPageContent() {
       onSignOut={() => {
         setUser(null);
         try {
-          purgeShipguardStorage(true);
+          purgeZelsisStorage(true);
           if (typeof document !== 'undefined') {
+            document.cookie = 'zelsis_user=; path=/; max-age=0; SameSite=Lax';
             document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
           }
         } catch (e) {}
@@ -86,8 +87,10 @@ function CheckoutPageContent() {
         onLoginSuccess={(loggedUser) => {
           setUser(loggedUser);
           try {
+            localStorage.setItem('zelsis_user', JSON.stringify(loggedUser));
             localStorage.setItem('shipguard_user', JSON.stringify(loggedUser));
             if (typeof document !== 'undefined') {
+              document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(loggedUser))}; path=/; max-age=2592000; SameSite=Lax`;
               document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(loggedUser))}; path=/; max-age=2592000; SameSite=Lax`;
             }
           } catch (e) {}
@@ -102,7 +105,7 @@ export default function CheckoutPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-[#0A0A0A] text-[#EDEDED] font-mono text-xs flex items-center justify-center">
-        Loading ShipGuard B2B Checkout...
+        Loading Zelsis B2B Checkout...
       </div>
     }>
       <CheckoutPageContent />

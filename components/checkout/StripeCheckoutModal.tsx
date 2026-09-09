@@ -145,7 +145,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
               </motion.div>
               <h2 className="text-2xl font-extrabold text-[#EDEDED]">Payment Successful!</h2>
               <p className="text-sm text-[#A1A1AA] max-w-sm">
-                Your ShipGuard account has been upgraded to <span className="text-white font-bold">{selectedPlan} Tier</span>. Unlimited scans and advanced rules unlocked!
+                Your Zelsis account has been upgraded to <span className="text-white font-bold">{selectedPlan} Tier</span>. Unlimited scans and advanced rules unlocked!
               </p>
             </div>
           ) : (
@@ -157,7 +157,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                 </div>
                 <div>
                   <h2 className="text-lg font-extrabold text-[#EDEDED]">
-                    Upgrade ShipGuard SaaS Subscription
+                    Upgrade Zelsis SaaS Subscription
                   </h2>
                   <div className="text-xs text-[#A1A1AA]">
                     Secure Stripe Checkout · Cancel or switch anytime

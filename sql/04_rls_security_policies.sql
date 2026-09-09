@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SHIPGUARD B2B SAAS - MULTI-TENANT ROW LEVEL SECURITY (RLS) POLICIES
+-- ZELSIS B2B SAAS - MULTI-TENANT ROW LEVEL SECURITY (RLS) POLICIES
 -- File: sql/04_rls_security_policies.sql
 -- ==============================================================================
 

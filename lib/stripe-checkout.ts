@@ -1,5 +1,5 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
-import { SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
+import { ZELSIS_PRICING_PLANS, SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 
 export interface LicenseVerificationResult {
   valid: boolean;
@@ -15,7 +15,7 @@ export function generateLicenseKey(planId: string, email: string): string {
   const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
   const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
   
-  const prefix = planId === 'vibecare' ? 'SG-SUITE' : 'SG-PRO';
+  const prefix = planId === 'vibecare' || planId === 'zelsis-suite' ? 'ZS-SUITE' : 'ZS-PRO';
   return `${prefix}-2026-${cleanEmailHash}-${randomHex}-${timestamp}`;
 }
 
@@ -32,8 +32,8 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
   }
 
   const cleanKey = licenseKey.trim().toUpperCase();
-  const isEnterprise = cleanKey.startsWith('SG-SUITE');
-  const isPro = cleanKey.startsWith('SG-PRO') || cleanKey.startsWith('SG-CORE') || cleanKey.startsWith('SG-VIBE');
+  const isEnterprise = cleanKey.startsWith('ZS-SUITE') || cleanKey.startsWith('SG-SUITE');
+  const isPro = cleanKey.startsWith('ZS-PRO') || cleanKey.startsWith('ZS-CORE') || cleanKey.startsWith('SG-PRO') || cleanKey.startsWith('SG-CORE') || cleanKey.startsWith('SG-VIBE');
 
   if (!isEnterprise && !isPro && cleanKey.length < 16) {
     return {
@@ -47,8 +47,8 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
   }
 
   const tier: 'Pro' | 'Enterprise' = isEnterprise ? 'Enterprise' : 'Pro';
-  const planId = isEnterprise ? 'vibecare' : 'shipguard-core';
-  const planObj = SHIPGUARD_PRICING_PLANS.find((p) => p.id === planId);
+  const planId = isEnterprise ? 'vibecare' : 'zelsis-core';
+  const planObj = (ZELSIS_PRICING_PLANS || SHIPGUARD_PRICING_PLANS).find((p) => p.id === planId);
 
   const expiresDate = new Date();
   expiresDate.setFullYear(expiresDate.getFullYear() + 1);
@@ -57,7 +57,7 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
     valid: true,
     tier,
     planId,
-    planName: planObj?.name || (tier === 'Enterprise' ? 'ShipGuard Enterprise' : 'ShipGuard Pro'),
+    planName: planObj?.name || (tier === 'Enterprise' ? 'Zelsis Enterprise' : 'Zelsis Pro'),
     expiresAt: expiresDate.toISOString(),
     maxApplications: isEnterprise ? 999 : 99,
   };
@@ -66,13 +66,14 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
 export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: string): Promise<boolean> {
   try {
     if (licenseKey) {
+      localStorage.setItem('zelsis_license_key', licenseKey);
       localStorage.setItem('shipguard_license_key', licenseKey);
     }
-    let savedUserStr = localStorage.getItem('shipguard_user');
+    let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
     if (!savedUserStr && typeof document !== 'undefined') {
-      const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
-      if (match && match[2]) {
-        savedUserStr = decodeURIComponent(match[2]);
+      const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+      if (match && match[3]) {
+        savedUserStr = decodeURIComponent(match[3]);
       }
     }
     if (savedUserStr) {
@@ -80,14 +81,16 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
         const parsed = JSON.parse(savedUserStr);
         if (parsed && typeof parsed === 'object' && parsed.isLoggedIn) {
           const userObj = { ...parsed, tier: tier };
+          localStorage.setItem('zelsis_user', JSON.stringify(userObj));
           localStorage.setItem('shipguard_user', JSON.stringify(userObj));
           if (typeof document !== 'undefined') {
+            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
             document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
           }
           window.dispatchEvent(new Event('storage'));
         }
       } catch (err) {
-        console.warn('[ShipGuard Activation] Failed to parse user from storage:', err);
+        console.warn('[Zelsis Activation] Failed to parse user from storage:', err);
       }
     }
 
@@ -108,12 +111,12 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
         }
       }
     } catch (e: any) {
-      console.warn('[ShipGuard Activation] Supabase sync warning:', e?.message || e);
+      console.warn('[Zelsis Activation] Supabase sync warning:', e?.message || e);
     }
 
     return true;
   } catch (err) {
-    console.error('[ShipGuard Activation] Failed to activate tier:', err);
+    console.error('[Zelsis Activation] Failed to activate tier:', err);
     return false;
   }
 }

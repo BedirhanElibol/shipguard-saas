@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ShipGuard AI Release Gate',
-    short_name: 'ShipGuard',
+    name: 'Zelsis AI Release Gate',
+    short_name: 'Zelsis',
     description: 'Security Clearance & Design System Pre-flight Release Control for Next.js & LLM Codebases.',
     start_url: '/',
     display: 'standalone',
@@ -11,14 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#0D0D0D',
     icons: [
       {
-        src: '/shipguard-logo.png',
-        sizes: '192x192',
-        type: 'image/png',
-      },
-      {
-        src: '/shipguard-logo.png',
-        sizes: '512x512',
-        type: 'image/png',
+        src: '/zelsis-logo.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
       },
     ],
   };

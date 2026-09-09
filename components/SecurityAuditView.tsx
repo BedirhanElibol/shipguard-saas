@@ -42,7 +42,7 @@ export const SecurityAuditView: React.FC<SecurityAuditViewProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <ShieldCheck size={26} color="#10B981" />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#EDEDED', margin: 0 }}>
-            ShipGuard Security Pre-flight Taxonomy
+            Zelsis Security Pre-flight Taxonomy
           </h1>
         </div>
         <p style={{ fontSize: '0.875rem', color: '#A1A1AA', marginTop: '6px', maxWidth: '800px' }}>

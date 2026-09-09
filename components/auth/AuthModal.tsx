@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, User, Github, ArrowRight, CheckCircle2, KeyRound, AlertCircle } from 'lucide-react';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignInWithOAuth, isSupabaseConfigured } from '@/lib/supabase';
+import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 
 export interface UserProfile {
   name: string;
@@ -173,14 +174,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {/* Header & Logo */}
           <div className="flex flex-col items-center text-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center font-extrabold text-base shadow-lg mb-1 font-mono">
-              S
+            <div className="mb-1">
+              <ZelsisLogo size="lg" showWordmark={false} />
             </div>
             <h2 className="text-xl font-extrabold text-[#EDEDED]">
               {mode === 'signin'
-                ? 'Welcome Back to ShipGuard'
+                ? 'Welcome Back to Zelsis'
                 : mode === 'signup'
-                ? 'Create Your ShipGuard Account'
+                ? 'Create Your Zelsis Account'
                 : 'Reset Your Password'}
             </h2>
             <p className="text-xs text-[#A1A1AA] max-w-xs">
@@ -374,7 +375,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
           ) : (
             <div className="text-center text-[0.7rem] text-[#64748B]">
-              By signing in, you agree to ShipGuard Terms of Service &amp; Privacy Policy.
+              By signing in, you agree to Zelsis Terms of Service &amp; Privacy Policy.
             </div>
           )}
         </motion.div>

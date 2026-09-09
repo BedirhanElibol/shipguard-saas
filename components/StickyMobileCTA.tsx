@@ -34,7 +34,7 @@ export const StickyMobileCTA: React.FC<StickyMobileCTAProps> = ({ onOpenAudit })
           </div>
           <div className="truncate">
             <div className="text-xs font-extrabold text-[#FAFAFA] truncate">
-              ShipGuard Pre-Flight
+              Zelsis Pre-Flight
             </div>
             <div className="text-[10px] text-[#94A3B8] font-mono truncate">
               Instant Security Clearance

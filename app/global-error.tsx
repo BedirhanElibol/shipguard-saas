@@ -12,7 +12,7 @@ interface GlobalErrorProps {
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     // Log exception safely to console or monitoring telemetry
-    console.error('[ShipGuard Global Root Error Boundary]:', error);
+    console.error('[Zelsis Global Root Error Boundary]:', error);
   }, [error]);
 
   const handleRetry = () => {
@@ -28,7 +28,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <html lang="en" className="dark">
       <head>
-        <title>ShipGuard Release Gate - Application Error Encountered</title>
+        <title>Zelsis Release Gate - Application Error Encountered</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className="min-h-[100dvh] bg-[#0A0A0A] text-[#EDEDED] flex items-center justify-center p-4 sm:p-6 font-sans antialiased selection:bg-white/20 selection:text-white">
@@ -44,10 +44,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             </div>
             <div className="flex flex-col gap-1">
               <div className="text-[0.68rem] font-mono font-extrabold uppercase tracking-widest text-emerald-400">
-                ShipGuard Security &bull; Root Recovery Active
+                Zelsis Security &bull; Root Recovery Active
               </div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] tracking-tight leading-snug">
-                ShipGuard Release Gate - Application Error Encountered
+                Zelsis Release Gate - Application Error Encountered
               </h1>
             </div>
           </div>

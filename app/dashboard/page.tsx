@@ -314,7 +314,7 @@ function DashboardContent() {
 
           {activeNav === 'checkout' && (
             <CheckoutView
-              initialPlanId="shipguard-core"
+              initialPlanId="zelsis-core"
               initialBilling="monthly"
               onBackToPricing={() => setActiveNav('dashboard')}
               user={user}
@@ -382,9 +382,10 @@ function DashboardContent() {
         onLoginSuccess={(loggedUser) => {
           setUser(loggedUser);
           try {
+            localStorage.setItem('zelsis_user', JSON.stringify(loggedUser));
             localStorage.setItem('shipguard_user', JSON.stringify(loggedUser));
           } catch (e: unknown) {
-            console.warn('[ShipGuard Auth] Failed to persist user session:', e);
+            console.warn('[Zelsis Auth] Failed to persist user session:', e);
           }
         }}
         initialMode={authInitialMode}

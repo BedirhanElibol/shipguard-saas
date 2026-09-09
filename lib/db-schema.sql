@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SHIPGUARD AI RELEASE GATE SAAS - COMPLETE PRODUCTION POSTGRESQL / SUPABASE DDL
+-- ZELSIS AI RELEASE GATE SAAS - COMPLETE PRODUCTION POSTGRESQL / SUPABASE DDL
 -- File: lib/db-schema.sql
 -- Description: Fully detailed DDL SQL schema including Tables, Enums, Foreign Keys,
 --              Indexes, Triggers, RLS Multi-Tenant Policies & Seed Data.

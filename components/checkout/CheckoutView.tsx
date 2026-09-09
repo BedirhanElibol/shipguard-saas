@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
+import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
 import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
@@ -18,7 +18,7 @@ interface CheckoutViewProps {
 }
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({
-  initialPlanId = 'shipguard-core',
+  initialPlanId = 'zelsis-core',
   initialBilling = 'monthly',
   initialSuccess = false,
   onBackToPricing,
@@ -49,11 +49,11 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       setCurrentUser(user);
     } else {
       try {
-        let saved = localStorage.getItem('shipguard_user');
+        let saved = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
         if (!saved && typeof document !== 'undefined') {
-          const match = document.cookie.match(/(^|;)\s*shipguard_user=([^;]+)/);
-          if (match && match[2]) {
-            saved = decodeURIComponent(match[2]);
+          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+          if (match && match[3]) {
+            saved = decodeURIComponent(match[3]);
           }
         }
         if (saved) {
@@ -70,7 +70,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'shipguard_user') {
+      if (e.key === 'zelsis_user' || e.key === 'shipguard_user') {
         try {
           if (e.newValue) {
             const parsed = JSON.parse(e.newValue);
@@ -112,7 +112,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   useEffect(() => {
     if (initialSuccess) {
       const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-      const userEmail = currentUser?.email || 'customer@shipguard.app';
+      const userEmail = currentUser?.email || 'customer@zelsis.com';
       const key = generateLicenseKey(selectedPlanId, userEmail);
       setActiveLicenseKey(key);
       activateUserTier(tier, key);
@@ -121,8 +121,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   }, [initialSuccess, selectedPlanId, currentUser?.email]);
 
   const selectedPlan: PricingPlanItem =
-    SHIPGUARD_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
-    SHIPGUARD_PRICING_PLANS[0];
+    ZELSIS_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
+    ZELSIS_PRICING_PLANS[0];
 
   const pricePerMonth = isAnnual ? selectedPlan.priceAnnual : selectedPlan.priceMonthly;
   const annualTotal = Number((pricePerMonth * 12).toFixed(2));
@@ -390,7 +390,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       </span>
                     </div>
                     <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                      Evaluating ShipGuard for your agency or team? Simulate an instant subscription upgrade and generate a valid local license key without payment.
+                      Evaluating Zelsis for your agency or team? Simulate an instant subscription upgrade and generate a valid local license key without payment.
                     </p>
                     <button
                       type="button"
@@ -428,7 +428,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
               {/* Plan Switcher Pills */}
               <div className="flex items-center gap-1 bg-[#0A0A0A] p-1 rounded-xl border border-white/10">
-                {SHIPGUARD_PRICING_PLANS.map((plan) => (
+                {ZELSIS_PRICING_PLANS.map((plan) => (
                   <button
                     key={plan.id}
                     type="button"
@@ -529,7 +529,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           setCurrentUser(authedUser);
           setIsInternalAuthModalOpen(false);
           try {
-            localStorage.setItem('shipguard_user', JSON.stringify(authedUser));
+            localStorage.setItem('zelsis_user', JSON.stringify(authedUser));
+            localStorage.removeItem('shipguard_user');
           } catch (err) {
             console.warn('[CheckoutView] Failed to persist user session:', err);
           }

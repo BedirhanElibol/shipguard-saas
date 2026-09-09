@@ -42,8 +42,8 @@ jobs:
           npm run build
         env:
           NODE_ENV: production
-          NEXT_PUBLIC_APP_URL: https://shipguard-saas.vercel.app
-          PRODUCTION_CLIENT_URL: https://shipguard-saas.vercel.app
+          NEXT_PUBLIC_APP_URL: https://zelsis.com
+          PRODUCTION_CLIENT_URL: https://zelsis.com
 
       - name: Start Production Server in Background
         run: |

@@ -70,15 +70,28 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 3. Persist verified tier to Supabase profiles if possible
+  // 3. Persist verified tier to Supabase subscriptions and metadata if possible
   if (isVerified && customerEmail && serviceRoleKey) {
     try {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      await adminClient
-        .from('profiles')
-        .update({ tier: resolvedTier, updated_at: new Date().toISOString() })
-        .eq('email', customerEmail.toLowerCase().trim());
-      logger.info(`[Verify Checkout] Updated Supabase profile tier to ${resolvedTier} for ${customerEmail}`);
+      const { data: users } = await adminClient.auth.admin.listUsers();
+      const matched = users?.users?.find((u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase().trim());
+      if (matched) {
+        // Update user metadata in auth.users
+        await adminClient.auth.admin.updateUserById(matched.id, {
+          user_metadata: { tier: resolvedTier, subscriptionStatus: 'active' }
+        });
+
+        // Upsert subscriptions record
+        await adminClient.from('subscriptions').upsert({
+          user_id: matched.id,
+          plan_tier: resolvedTier,
+          status: 'active',
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+        logger.info(`[Verify Checkout] Persisted subscription tier to ${resolvedTier} for ${customerEmail}`);
+      }
     } catch (dbErr: any) {
       logger.warn('[Verify Checkout] Database update notice:', dbErr?.message);
     }

@@ -85,35 +85,41 @@ export async function POST(req: NextRequest) {
       );
 
       if (matchedUser) {
-        // Update profiles table
-        const { error: profileError } = await adminClient
-          .from('profiles')
-          .update({ tier, updated_at: new Date().toISOString() })
-          .eq('id', matchedUser.id);
+        const formattedTier: 'Free' | 'Pro' | 'Enterprise' =
+          tier === 'Enterprise' ? 'Enterprise' : (tier === 'Pro' ? 'Pro' : 'Free');
 
-        if (profileError) {
-          logger.warn(`[Polar Webhook] Profile update failed: ${profileError.message}`);
-        } else {
-          logger.info(`[Polar Webhook] Updated ${customerEmail} tier to ${tier} (status: ${status})`);
+        // 1. Update user metadata in auth.users
+        try {
+          await adminClient.auth.admin.updateUserById(matchedUser.id, {
+            user_metadata: { tier: formattedTier, subscriptionStatus: status }
+          });
+        } catch (authMetaErr: any) {
+          logger.warn('[Polar Webhook] User metadata update warning:', authMetaErr?.message);
         }
 
-        // Upsert subscriptions record
+        // 2. Upsert subscriptions record
         try {
           await adminClient.from('subscriptions').upsert({
             user_id: matchedUser.id,
-            plan_tier: tier.toLowerCase(),
+            plan_tier: formattedTier,
             status,
             current_period_end: currentPeriodEnd,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
+          logger.info(`[Polar Webhook] Upserted subscriptions for ${customerEmail} tier ${formattedTier} (status: ${status})`);
         } catch (subErr: any) {
           logger.warn('[Polar Webhook] Subscriptions table update warning:', subErr?.message);
         }
 
-        // Update user metadata
-        await adminClient.auth.admin.updateUserById(matchedUser.id, {
-          user_metadata: { tier, subscriptionStatus: status }
-        });
+        // 3. Update profiles table updated_at
+        try {
+          await adminClient
+            .from('profiles')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', matchedUser.id);
+        } catch (profileError: any) {
+          logger.warn(`[Polar Webhook] Profile update notice: ${profileError?.message}`);
+        }
       } else {
         logger.warn(`[Polar Webhook] No user found for email: ${customerEmail}`);
       }

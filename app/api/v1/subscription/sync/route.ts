@@ -94,38 +94,44 @@ export async function POST(req: NextRequest) {
     if (keyToUse) {
       try {
         const client = createClient(supabaseUrl, keyToUse);
+        // Find user by email in profiles
         const { data: profile } = await client
           .from('profiles')
-          .select('tier, id')
+          .select('id, email')
           .eq('email', email)
           .maybeSingle();
 
-        if (profile?.tier && profile.tier !== 'Free') {
-          // Check subscriptions table for status and current_period_end
+        if (profile?.id) {
+          // Check subscriptions table for tier and status
           const { data: sub } = await client
             .from('subscriptions')
             .select('plan_tier, status, current_period_end')
-            .eq('user_id', profile?.id || '')
+            .eq('user_id', profile.id)
             .maybeSingle();
 
-          const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
-          if (sub?.status === 'past_due') {
-            verifiedTier = profile.tier as 'Pro' | 'Enterprise';
-            isActive = true;
-            subStatus = 'past_due';
-            gracePeriodUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-            expiresAt = gracePeriodUntil;
-          } else if (periodEnd && periodEnd.getTime() < Date.now()) {
-            logger.info(`[Subscription Sync] Supabase subscription expired on ${periodEnd.toISOString()}`);
-            isActive = false;
-            subStatus = 'canceled';
-            verifiedTier = 'Free';
-          } else {
-            verifiedTier = profile.tier as 'Pro' | 'Enterprise';
-            isActive = true;
-            subStatus = (sub?.status as any) || 'active';
-            expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-            logger.info(`[Subscription Sync] Supabase profile confirmed: ${verifiedTier} for ${email}`);
+          const rawPlanTier = sub?.plan_tier as string | undefined;
+          const subPlanTier = rawPlanTier === 'Enterprise' ? 'Enterprise' : (rawPlanTier === 'Pro' ? 'Pro' : undefined);
+
+          if (subPlanTier) {
+            const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
+            if (sub?.status === 'past_due') {
+              verifiedTier = subPlanTier;
+              isActive = true;
+              subStatus = 'past_due';
+              gracePeriodUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+              expiresAt = gracePeriodUntil;
+            } else if (periodEnd && periodEnd.getTime() < Date.now()) {
+              logger.info(`[Subscription Sync] Supabase subscription expired on ${periodEnd.toISOString()}`);
+              isActive = false;
+              subStatus = 'canceled';
+              verifiedTier = 'Free';
+            } else {
+              verifiedTier = subPlanTier;
+              isActive = true;
+              subStatus = (sub?.status as any) || 'active';
+              expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+              logger.info(`[Subscription Sync] Supabase subscription confirmed: ${verifiedTier} for ${email}`);
+            }
           }
         }
       } catch (err: any) {
@@ -143,15 +149,28 @@ export async function POST(req: NextRequest) {
     logger.info(`[Subscription Sync] Confirmed verified subscriber registry: Pro for ${email} until ${expiresAt}`);
   }
 
-  // 4. Update Supabase profile if service role is present
-  if (serviceRoleKey) {
+  // 4. Update Supabase subscriptions and profiles if service role is present
+  if (serviceRoleKey && isActive) {
     try {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      await adminClient
+      const { data: matchedProfile } = await adminClient
         .from('profiles')
-        .update({ tier: verifiedTier, updated_at: new Date().toISOString() })
-        .eq('email', email);
-    } catch {}
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (matchedProfile?.id) {
+        await adminClient.from('subscriptions').upsert({
+          user_id: matchedProfile.id,
+          plan_tier: verifiedTier,
+          status: subStatus,
+          current_period_end: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      }
+    } catch (syncUpdateErr: any) {
+      logger.warn('[Subscription Sync] Admin update notice:', syncUpdateErr?.message);
+    }
   }
 
   return NextResponse.json({

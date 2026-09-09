@@ -10,6 +10,34 @@ import { GateCheckRequestSchema, validateRequestBody } from '@/lib/validations/a
 import { logger } from '@/lib/logger';
 import { canAccessLocalAudit } from '@/lib/env-config';
 
+function isAllowedWebhookUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    // Only allow HTTPS
+    if (parsed.protocol !== 'https:') return false;
+    // Block private/internal IPs
+    const hostname = parsed.hostname.toLowerCase();
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('172.') ||
+      hostname === '169.254.169.254' ||
+      hostname.endsWith('.internal') ||
+      hostname.endsWith('.local')
+    ) {
+      return false;
+    }
+    // Only allow known webhook domains
+    const allowedDomains = ['hooks.slack.com', 'discord.com', 'discordapp.com'];
+    return allowedDomains.some(d => hostname === d || hostname.endsWith('.' + d));
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Sliding-Window Rate Limiting (Max 20 audits per minute per IP)
@@ -98,6 +126,15 @@ export async function POST(req: NextRequest) {
     // Auto-dispatch webhook notifications if URLs provided
     const slackWebhookUrl = body.slackWebhookUrl || process.env.SLACK_WEBHOOK_URL;
     const discordWebhookUrl = body.discordWebhookUrl || process.env.DISCORD_WEBHOOK_URL;
+    
+    // Validate webhook URLs to prevent SSRF
+    if (slackWebhookUrl && !isAllowedWebhookUrl(slackWebhookUrl)) {
+      return NextResponse.json({ error: 'Invalid Slack webhook URL' }, { status: 400 });
+    }
+    if (discordWebhookUrl && !isAllowedWebhookUrl(discordWebhookUrl)) {
+      return NextResponse.json({ error: 'Invalid Discord webhook URL' }, { status: 400 });
+    }
+
     if (slackWebhookUrl || discordWebhookUrl) {
       dispatchWebhookAlerts(targetName, rawRepoUrl, result, { slackWebhookUrl, discordWebhookUrl }).catch((err) =>
         logger.warn('[Webhook Auto-dispatch Error]:', err?.message)

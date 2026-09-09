@@ -50,10 +50,8 @@ function CallbackHandler() {
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
           localStorage.setItem('zelsis_user', JSON.stringify(profile));
-          localStorage.setItem('shipguard_user', JSON.stringify(profile));
           if (typeof document !== 'undefined') {
-            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
-            document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
+            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
           }
 
           if (isMounted) {
@@ -69,10 +67,8 @@ function CallbackHandler() {
             if (newSession && newSession.user && isMounted) {
               const profile = mapSupabaseUserToProfile(newSession.user);
               localStorage.setItem('zelsis_user', JSON.stringify(profile));
-              localStorage.setItem('shipguard_user', JSON.stringify(profile));
               if (typeof document !== 'undefined') {
-                document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
-                document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax`;
+                document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
               }
               setStatus('success');
               setMessage('Sign in successful! Redirecting...');

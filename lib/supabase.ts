@@ -62,28 +62,7 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
   }
 }
 
-export function simulateOAuthProfile(provider: 'GitHub' | 'Google', customHandle?: string): UserProfile {
-  if (provider === 'GitHub') {
-    const handle = (customHandle && customHandle.trim()) || 'octocat';
-    return {
-      name: handle,
-      email: `${handle.toLowerCase()}@users.noreply.github.com`,
-      avatarUrl: `https://github.com/${handle}.png`,
-      tier: 'Free',
-      isLoggedIn: true,
-      emailVerified: true,
-    };
-  }
-  const name = (customHandle && customHandle.trim()) || 'Demo Developer';
-  return {
-    name,
-    email: `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-    tier: 'Free',
-    isLoggedIn: true,
-    emailVerified: true,
-  };
-}
+
 
 export async function supabaseSignUp(email: string, password: string, name: string): Promise<{ user: UserProfile | null; error: string | null; requiresVerification?: boolean }> {
   const supabase = getSupabase();
@@ -214,11 +193,15 @@ export async function supabaseGetSession(): Promise<{ user: UserProfile | null; 
   }
 
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) return { user: null, session: null, error: error.message };
-    if (!session || !session.user) return { user: null, session: null, error: null };
+    // Use getUser() for server-side JWT verification instead of getSession()
+    // getSession() reads from unverified local storage and can be forged
+    const { data: { user: verifiedUser }, error: userError } = await supabase.auth.getUser();
+    if (userError || !verifiedUser) {
+      return { user: null, session: null, error: userError?.message || null };
+    }
 
-    const profile = mapSupabaseUserToProfile(session.user);
+    const { data: { session } } = await supabase.auth.getSession();
+    const profile = mapSupabaseUserToProfile(verifiedUser);
     return { user: profile, session, error: null };
   } catch (err: any) {
     return { user: null, session: null, error: err?.message || 'Failed to fetch session' };

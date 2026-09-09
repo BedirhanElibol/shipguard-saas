@@ -125,7 +125,20 @@ export async function POST(req: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data?.object;
-        logger.info(`[Stripe Webhook] Subscription canceled: ${subscription?.id}`);
+        const cancelEmail = subscription?.customer_email || subscription?.metadata?.email;
+        logger.info(`[Stripe Webhook] Subscription canceled: ${subscription?.id}, email: ${cancelEmail}`);
+        
+        // Downgrade user tier to Free
+        if (cancelEmail) {
+          const supabase = getSupabase();
+          if (supabase) {
+            await supabase
+              .from('profiles')
+              .update({ tier: 'Free', updated_at: new Date().toISOString() })
+              .eq('email', cancelEmail);
+            logger.info(`[Stripe Webhook] Downgraded ${cancelEmail} to Free tier`);
+          }
+        }
         break;
       }
 
@@ -137,7 +150,21 @@ export async function POST(req: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data?.object;
-        logger.warn(`[Stripe Webhook] Invoice payment failed: ${invoice?.id}`);
+        const failedEmail = invoice?.customer_email;
+        logger.warn(`[Stripe Webhook] Invoice payment failed: ${invoice?.id}, email: ${failedEmail}`);
+        
+        // After 3 failed attempts, downgrade to Free
+        const attemptCount = invoice?.attempt_count || 0;
+        if (failedEmail && attemptCount >= 3) {
+          const supabase = getSupabase();
+          if (supabase) {
+            await supabase
+              .from('profiles')
+              .update({ tier: 'Free', updated_at: new Date().toISOString() })
+              .eq('email', failedEmail);
+            logger.warn(`[Stripe Webhook] Downgraded ${failedEmail} to Free after ${attemptCount} failed payments`);
+          }
+        }
         break;
       }
 

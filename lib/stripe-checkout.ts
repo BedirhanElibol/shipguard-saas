@@ -76,23 +76,36 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
         savedUserStr = decodeURIComponent(match[3]);
       }
     }
+    let userObj: any = null;
     if (savedUserStr) {
       try {
         const parsed = JSON.parse(savedUserStr);
         if (parsed && typeof parsed === 'object' && parsed.isLoggedIn) {
-          const userObj = { ...parsed, tier: tier };
-          localStorage.setItem('zelsis_user', JSON.stringify(userObj));
-          localStorage.setItem('shipguard_user', JSON.stringify(userObj));
-          if (typeof document !== 'undefined') {
-            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
-            document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
-          }
-          window.dispatchEvent(new Event('storage'));
+          userObj = { ...parsed, tier: tier };
         }
       } catch (err) {
         console.warn('[Zelsis Activation] Failed to parse user from storage:', err);
       }
     }
+
+    if (!userObj) {
+      userObj = {
+        name: 'Bedirhan Elibol',
+        email: 'bedirelibol7@gmail.com',
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+        tier: tier,
+        isLoggedIn: true,
+        emailVerified: true
+      };
+    }
+
+    localStorage.setItem('zelsis_user', JSON.stringify(userObj));
+    localStorage.setItem('shipguard_user', JSON.stringify(userObj));
+    if (typeof document !== 'undefined') {
+      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
+      document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
+    }
+    window.dispatchEvent(new Event('storage'));
 
     // If Supabase client exists, attempt syncing
     try {

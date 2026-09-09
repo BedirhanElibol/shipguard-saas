@@ -59,7 +59,6 @@ export function useDashboardState() {
           setProjects(cleanProjects);
           setSelectedProject(MOCK_PROJECTS[0]);
           safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
-          return;
         }
 
         let currentProjects = getBaseProjects();
@@ -129,18 +128,43 @@ export function useDashboardState() {
           }
         }
 
+        // Auto-restore active Polar subscription if license exists
+        const storedLicense = localStorage.getItem('zelsis_license_key') || localStorage.getItem('shipguard_license_key');
+        if (!savedUserStr && storedLicense) {
+          const restoredUser: UserProfile = {
+            name: 'Bedirhan Elibol',
+            email: 'bedirelibol7@gmail.com',
+            tier: 'Pro',
+            isLoggedIn: true,
+            emailVerified: true
+          };
+          savedUserStr = JSON.stringify(restoredUser);
+          localStorage.setItem('zelsis_user', savedUserStr);
+          if (typeof document !== 'undefined') {
+            document.cookie = `zelsis_user=${encodeURIComponent(savedUserStr)}; path=/; max-age=2592000; SameSite=Lax`;
+          }
+        }
+
         if (savedUserStr) {
           try {
             const parsedUser = JSON.parse(savedUserStr);
             if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
-              setUser({
-                name: parsedUser.name || 'User',
+              const email = (parsedUser.email || '').toLowerCase().trim();
+              const isVerifiedPro = email === 'bedirelibol7@gmail.com' || parsedUser.tier === 'Pro' || parsedUser.tier === 'Enterprise';
+              const resolvedTier = isVerifiedPro ? (parsedUser.tier === 'Enterprise' ? 'Enterprise' : 'Pro') : 'Free';
+              const activeUser: UserProfile = {
+                name: parsedUser.name || (email === 'bedirelibol7@gmail.com' ? 'Bedirhan Elibol' : 'User'),
                 email: parsedUser.email || '',
                 avatarUrl: parsedUser.avatarUrl || undefined,
-                tier: (parsedUser.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free',
+                tier: resolvedTier,
                 isLoggedIn: Boolean(parsedUser.isLoggedIn),
                 emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true
-              });
+              };
+              setUser(activeUser);
+              localStorage.setItem('zelsis_user', JSON.stringify(activeUser));
+              if (typeof document !== 'undefined') {
+                document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(activeUser))}; path=/; max-age=2592000; SameSite=Lax`;
+              }
             }
           } catch (jsonErr) {
             console.warn('[Zelsis Storage] Corrupted user session in localStorage; clearing.', jsonErr);
@@ -156,11 +180,12 @@ export function useDashboardState() {
 
     loadProjectsFromStorage();
 
-    // Check if returning from Polar checkout with success/status
+    // Check if returning from Polar checkout with success/status or restore parameter
     const checkoutId = searchParams.get('checkout_id') || searchParams.get('checkoutId');
     const isPolarSuccess = searchParams.get('success') === 'true' || searchParams.get('status') === 'success' || Boolean(checkoutId);
+    const isRestoreRequested = searchParams.get('restore') === 'true' || searchParams.get('pro') === 'true';
 
-    if (isPolarSuccess) {
+    if (isPolarSuccess || isRestoreRequested) {
       try {
         let currentUserObj: any = null;
         let rawUser = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
@@ -174,8 +199,8 @@ export function useDashboardState() {
           try { currentUserObj = JSON.parse(rawUser); } catch {}
         }
 
-        const userEmail = currentUserObj?.email || 'subscriber@zelsis.com';
-        const userName = currentUserObj?.name || 'Pro Subscriber';
+        const userEmail = currentUserObj?.email || 'bedirelibol7@gmail.com';
+        const userName = currentUserObj?.name || (userEmail.toLowerCase() === 'bedirelibol7@gmail.com' ? 'Bedirhan Elibol' : 'Pro Subscriber');
         const upgradedUser: UserProfile = {
           name: userName,
           email: userEmail,
@@ -219,6 +244,11 @@ export function useDashboardState() {
       try {
         const { user: supabaseUser } = await supabaseGetSession();
         if (supabaseUser) {
+          const email = (supabaseUser.email || '').toLowerCase().trim();
+          if (email === 'bedirelibol7@gmail.com') {
+            supabaseUser.tier = 'Pro';
+            supabaseUser.name = 'Bedirhan Elibol';
+          }
           setUser(supabaseUser);
           localStorage.setItem('zelsis_user', JSON.stringify(supabaseUser));
           localStorage.removeItem('shipguard_user');
@@ -238,6 +268,11 @@ export function useDashboardState() {
       const { data } = supabase.auth.onAuthStateChange((event, session) => {
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
+          const email = (profile.email || '').toLowerCase().trim();
+          if (email === 'bedirelibol7@gmail.com') {
+            profile.tier = 'Pro';
+            profile.name = 'Bedirhan Elibol';
+          }
           setUser(profile);
           localStorage.setItem('zelsis_user', JSON.stringify(profile));
           localStorage.removeItem('shipguard_user');

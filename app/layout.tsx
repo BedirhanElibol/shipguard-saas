@@ -71,9 +71,12 @@ export const metadata: Metadata = {
     images: ['/zelsis-logo.svg'],
   },
   icons: {
-    icon: '/zelsis-logo.svg',
-    shortcut: '/zelsis-logo.svg',
-    apple: '/zelsis-logo.svg',
+    icon: [
+      { url: '/favicon.svg?v=2', type: 'image/svg+xml' },
+      { url: '/favicon.ico?v=2', sizes: 'any' },
+    ],
+    shortcut: '/favicon.svg?v=2',
+    apple: '/favicon.png?v=2',
   },
   manifest: '/manifest.webmanifest',
 };
@@ -96,8 +99,9 @@ export default function RootLayout({
         <meta property="og:url" content="https://zelsis.com" />
         <link rel="canonical" href="https://zelsis.com" />
         {/* Fontshare CDN for Satoshi Font */}
-        <link rel="icon" href="/zelsis-logo.svg" type="image/svg+xml" />
-        <link rel="shortcut icon" href="/zelsis-logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico?v=2" />
+        <link rel="apple-touch-icon" href="/favicon.png?v=2" />
         <link
           href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap"
           rel="stylesheet"

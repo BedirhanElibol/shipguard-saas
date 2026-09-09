@@ -44,3 +44,4 @@ scratch/*.log
 
 # temporary extraction files
 .agent/extracted_*.txt
+patch-hostname.js

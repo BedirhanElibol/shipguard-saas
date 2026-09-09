@@ -66,9 +66,7 @@ export const Footer: React.FC = () => {
         <div className="flex flex-wrap gap-4 sm:gap-6">
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
           <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-          <a href="/kvkk" className="hover:text-white transition-colors">KVKK Aydınlatma Metni</a>
-          <a href="/cerez-politikasi" className="hover:text-white transition-colors">Çerez Politikası</a>
-          <a href="/mesafeli-satis" className="hover:text-white transition-colors">Mesafeli Satış</a>
+          <a href="/cookies" className="hover:text-white transition-colors">Cookie Policy</a>
         </div>
       </div>
     </footer>

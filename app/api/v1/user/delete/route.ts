@@ -72,7 +72,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Account and associated data successfully erased in compliance with GDPR Art. 17 / KVKK Madde 7.'
+      message: 'Account and associated data successfully erased in compliance with GDPR Art. 17 .'
     });
   } catch (err: any) {
     logger.error('[GDPR Erasure] Error during deletion:', err?.message);

@@ -1,11 +1,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShieldCheck, ArrowLeft, Globe, Lock, FileText } from 'lucide-react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy & Data Protection',
-  description: 'Zelsis Privacy Policy, GDPR & KVKK compliance, telemetry data handling, and zero codebase retention policy.',
+  description: 'Zelsis Global Privacy Policy, GDPR & CCPA compliance, telemetry data handling, and zero codebase retention policy.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -22,17 +22,17 @@ export default function PrivacyPolicyPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link
-              href="/kvkk"
-              className="text-xs font-mono text-emerald-400 hover:underline"
-            >
-              KVKK Aydınlatma Metni (TR)
-            </Link>
-            <span className="text-[#333]">•</span>
-            <Link
-              href="/cerez-politikasi"
+              href="/cookies"
               className="text-xs font-mono text-emerald-400 hover:underline"
             >
               Cookie Policy
+            </Link>
+            <span className="text-[#333]">•</span>
+            <Link
+              href="/terms"
+              className="text-xs font-mono text-emerald-400 hover:underline"
+            >
+              Terms of Service
             </Link>
           </div>
         </div>
@@ -45,73 +45,69 @@ export default function PrivacyPolicyPage() {
             </h1>
           </div>
           <p className="text-xs font-mono text-[#888888]">
-            Last Updated: September 10, 2026 // Compliant with GDPR (EU 2016/679) &amp; KVKK No. 6698
+            Last Updated: September 10, 2026 // Global Compliance (GDPR EU 2016/679 &amp; CCPA/CPRA)
           </p>
         </div>
 
         <div className="flex flex-col gap-6 text-xs sm:text-sm text-[#CCCCCC] leading-relaxed border-t border-[#262626] pt-6">
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">1. Data Controller Identity &amp; Scope</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">1. Data Controller &amp; Global Scope</h2>
             <p>
-              Zelsis (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the Zelsis Pre-Flight Release Gate SaaS platform. This Privacy Policy details how we process personal data in accordance with the General Data Protection Regulation (GDPR), the Turkish Law on the Protection of Personal Data (KVKK No. 6698), and applicable data protection legislation.
+              Zelsis (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the Zelsis Pre-Flight Release Gate SaaS platform. This Privacy Policy outlines our global data processing practices for international users, in full alignment with the European Union General Data Protection Regulation (GDPR), the California Consumer Privacy Act (CCPA/CPRA), and standard international data privacy principles.
             </p>
             <div className="bg-[#141414] border border-[#262626] rounded-xl p-3 text-xs font-mono text-[#AAAAAA] mt-1 space-y-0.5">
-              <div>Data Protection Officer: privacy@zelsis.com</div>
+              <div>Data Protection Office: privacy@zelsis.com</div>
               <div>General Inquiries: contact@zelsis.com</div>
-              <div>Registered Jurisdiction: Istanbul, Turkey</div>
             </div>
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">2. Codebase Privacy &amp; Zero Retention Architecture</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">2. Zero Codebase Retention Architecture</h2>
             <p>
-              Source code submitted for static analysis, secret scanning, and design cliché audits is evaluated ephemerally in serverless memory. <strong>We do not store, index, sell, or train public AI/LLM models on your proprietary source code.</strong> Once the AST rule evaluation finishes, in-memory buffers are flushed immediately.
+              Source code submitted for static security analysis, secret detection, and architectural hygiene checks is processed in ephemeral serverless execution environments. <strong>We never store, index, sell, or train public AI/LLM models on your proprietary source code.</strong> As soon as the AST evaluation completes, in-memory buffers are permanently purged.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">3. Categories of Personal Data Collected</h2>
             <ul className="list-disc list-inside space-y-1.5 text-[#AAAAAA]">
-              <li><strong>Identity &amp; Account Data:</strong> Name, email address, GitHub username, avatar URL (when authenticated via GitHub/OAuth).</li>
+              <li><strong>Account Credentials:</strong> Name, email address, GitHub username, avatar URL (when authenticated via GitHub OAuth).</li>
               <li><strong>Telemetry &amp; Audit Logs:</strong> Timestamps of security scans, pass/warning/failed clearance scores, rule violation counts.</li>
-              <li><strong>Technical Metadata:</strong> IP address, browser user-agent, session cookies (<code className="text-emerald-400">zelsis_user</code>).</li>
-              <li><strong>Billing Records:</strong> Subscription plan tier, license keys, and transaction references tokenized by certified payment gateways (Polar / Stripe). We never store raw credit card numbers.</li>
+              <li><strong>Technical Metadata:</strong> IP address, browser user-agent, secure session cookies (<code className="text-emerald-400">zelsis_user</code>).</li>
+              <li><strong>Billing Records:</strong> Subscription plan tier, license keys, and transaction identifiers tokenized by PCI-DSS Level 1 certified payment gateways (Polar / Stripe). We never process or store raw payment card credentials.</li>
             </ul>
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">4. Legal Grounds for Processing (GDPR Art. 6 / KVKK Art. 5)</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">4. Legal Grounds for Processing (GDPR Art. 6)</h2>
             <ul className="list-disc list-inside space-y-1 text-[#AAAAAA]">
-              <li><strong>Contractual Performance (Art. 6(1)(b)):</strong> Providing the SaaS service, executing scans, and managing user subscriptions.</li>
-              <li><strong>Legitimate Interests (Art. 6(1)(f)):</strong> Platform security, brute-force protection, and preventing service abuse.</li>
-              <li><strong>Legal Obligation (Art. 6(1)(c)):</strong> Compliance with statutory tax, invoicing, and digital commercial obligations.</li>
+              <li><strong>Contractual Performance:</strong> Providing automated release gate services, processing repository audits, and managing developer subscriptions.</li>
+              <li><strong>Legitimate Interests:</strong> Protecting platform security, preventing abuse or denial-of-service attacks, and optimizing scanner performance.</li>
+              <li><strong>Legal Compliance:</strong> Satisfying statutory taxation, financial accounting, and international reporting obligations.</li>
             </ul>
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">5. Cross-Border Data Transfers &amp; Subprocessors</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">5. Subprocessors &amp; Cloud Infrastructure</h2>
             <p>
-              Zelsis infrastructure is hosted on ISO 27001 / SOC 2 certified cloud providers: Supabase (Postgres managed on AWS EU/US) and Vercel Inc. (Edge network, USA). All cross-border transmissions are executed under Standard Contractual Clauses (SCCs) and explicit consent mechanisms.
+              Our infrastructure is hosted with SOC 2 / ISO 27001 certified cloud service providers: Supabase (managed Postgres on AWS) and Vercel Inc. (global edge network). Data transfers between services are encrypted using TLS 1.3 in transit and AES-256 at rest.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">6. Data Retention &amp; Right to Erasure (GDPR Art. 17 / KVKK Art. 7)</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">6. Data Subject Rights &amp; Erasure (GDPR Art. 17 / CCPA)</h2>
             <p>
-              Account data is retained for the duration of your active subscription. You can permanently delete your account and all associated telemetry at any time directly in your Project Settings dashboard or by sending an erasure request to{' '}
+              You maintain full rights to access, rectify, port, or permanently delete your account and all associated telemetry. You can execute permanent account destruction in your Project Settings dashboard (&quot;GDPR / CCPA Data Erasure&quot;) or submit a formal deletion request to{' '}
               <a href="mailto:privacy@zelsis.com" className="text-[#FFFFFF] underline underline-offset-4 font-mono">
                 privacy@zelsis.com
-              </a>. Server-side deletion cascades to all database records and authentication tables within 24 hours.
+              </a>.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">7. Contact &amp; Regulatory Inquiries</h2>
-            <p>
-              To exercise your rights (access, rectification, portability, erasure), please contact:
-            </p>
+            <h2 className="text-base font-bold text-[#FFFFFF]">7. Contact &amp; Inquiries</h2>
             <p className="font-mono text-xs text-emerald-400">
-              privacy@zelsis.com // Attn: Data Protection Officer
+              privacy@zelsis.com // Attn: Data Protection Desk
             </p>
           </section>
         </div>

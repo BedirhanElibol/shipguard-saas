@@ -173,7 +173,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       const exportData = {
         exportVersion: '1.0',
         exportedAt: new Date().toISOString(),
-        framework: ['GDPR Article 20 (Right to Data Portability)', 'KVKK Madde 11'],
+        framework: ['GDPR Article 20 (Right to Data Portability)', 'CCPA'],
         user: {
           name: user.name,
           email: user.email,
@@ -209,7 +209,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
     setIsPurging(true);
 
     try {
-      // 1. Server-side deletion API call for full GDPR/KVKK erasure
+      // 1. Server-side deletion API call for full GDPR/CCPA erasure
       if (isAuthenticated && user?.email) {
         try {
           await fetch('/api/v1/user/delete', {
@@ -616,7 +616,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
         </div>
       </form>
 
-      {/* Danger Zone: GDPR / KVKK Cascade Account Deletion */}
+      {/* Danger Zone: GDPR  Cascade Account Deletion */}
       <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 bg-[#180a0a]/60 border border-red-500/30 rounded-2xl flex flex-col gap-6 shadow-xl">
         <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
           <div className="flex items-start gap-3">
@@ -628,7 +628,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 <h2 className="text-base font-extrabold text-white">
                   {!isAuthenticated
                     ? 'Danger Zone: Clear Local Browser Cache & Scans'
-                    : 'Danger Zone: GDPR / KVKK Data Erasure'}
+                    : 'Danger Zone: GDPR  Data Erasure'}
                 </h2>
                 <span className="text-[0.65rem] font-extrabold uppercase tracking-wider bg-red-500/20 border border-red-500/40 text-red-300 px-2 py-0.5 rounded-full">
                   Irreversible
@@ -636,8 +636,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               </div>
               <p className="text-xs text-[#CBD5E1] mt-1.5 leading-relaxed max-w-2xl">
                 {isAuthenticated
-                  ? 'Exercise your Right to Erasure (GDPR Article 17 / KVKK Madde 7). Permanently destroy your account, wipe all registered repository audits, flush cached vulnerability findings, purge personal access credentials, and wipe local storage states.'
-                  : 'Exercise your Right to Erasure (GDPR Article 17 / KVKK Madde 7). As an unauthenticated guest, this action clears your local browser cache, registered repository audits, and scan history stored on this device.'}
+                  ? 'Exercise your Right to Erasure (GDPR Article 17 / CCPA). Permanently destroy your account, wipe all registered repository audits, flush cached vulnerability findings, purge personal access credentials, and wipe local storage states.'
+                  : 'Exercise your Right to Erasure (GDPR Article 17 / CCPA). As an unauthenticated guest, this action clears your local browser cache, registered repository audits, and scan history stored on this device.'}
               </p>
             </div>
           </div>
@@ -671,7 +671,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
         </div>
       </div>
 
-      {/* GDPR / KVKK Deletion Confirmation Modal */}
+      {/* GDPR  Deletion Confirmation Modal */}
       <AnimatePresence>
         {isDeleteModalOpen && (
           <div
@@ -706,7 +706,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   </h3>
                   <p className="text-xs text-[#A1A1AA] max-w-sm">
                     {isAuthenticated
-                      ? 'All account records, audits, tokens, and local cache have been erased in compliance with GDPR Art. 17 / KVKK Madde 7. Redirecting to home...'
+                      ? 'All account records, audits, tokens, and local cache have been erased in compliance with GDPR Art. 17 / CCPA. Redirecting to home...'
                       : 'All local scan data, cached repositories, and browser storage have been wiped. Redirecting to home...'}
                   </p>
                 </div>
@@ -726,7 +726,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       <p className="text-xs text-[#A1A1AA]">
                         {!isAuthenticated
                           ? 'Wipes local browser storage & scan history on this machine'
-                          : 'GDPR Article 17 / KVKK Madde 7 Right to Erasure'}
+                          : 'GDPR Article 17 / CCPA Right to Erasure'}
                       </p>
                     </div>
                   </div>

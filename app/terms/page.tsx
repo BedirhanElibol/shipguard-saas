@@ -1,11 +1,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShieldCheck, ArrowLeft, Scale, FileText } from 'lucide-react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Terms of Service & Conditions',
-  description: 'Zelsis Terms of Service, code verification conditions, liability limitations, and subscription billing agreements.',
+  description: 'Zelsis Terms of Service, code verification conditions, liability limitations, and global subscription billing agreements.',
 };
 
 export default function TermsPage() {
@@ -22,10 +22,10 @@ export default function TermsPage() {
           </Link>
           <div className="flex items-center gap-3">
             <Link
-              href="/mesafeli-satis"
+              href="/cookies"
               className="text-xs font-mono text-emerald-400 hover:underline"
             >
-              Mesafeli Satış Sözleşmesi (TR)
+              Cookie Policy
             </Link>
             <span className="text-[#333]">•</span>
             <Link
@@ -45,7 +45,7 @@ export default function TermsPage() {
             </h1>
           </div>
           <p className="text-xs font-mono text-[#888888]">
-            Last Updated: September 10, 2026 // Version 2.0.0
+            Last Updated: September 10, 2026 // Global SaaS Edition (Version 2.1.0)
           </p>
         </div>
 
@@ -65,22 +65,16 @@ export default function TermsPage() {
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">3. Subscriptions, Fees &amp; Digital Fulfillment</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">3. Subscriptions, Fees &amp; Taxes</h2>
             <p>
-              Access to premium rulesets, enterprise exports, and automated gates requires a paid subscription (Pro or Enterprise). Fees are billed in advance on a recurring monthly or annual basis. Turkish customers are subject to statutory 20% KDV.
-            </p>
-            <p className="text-[#AAAAAA] text-xs">
-              Pursuant to consumer protection regulations for digital SaaS goods delivered instantaneously upon payment, digital subscriptions cannot be returned once provisioned, except where mandated by applicable consumer law. For details, see our{' '}
-              <Link href="/mesafeli-satis" className="text-emerald-400 underline">
-                Mesafeli Satış Sözleşmesi
-              </Link>.
+              Access to premium rulesets, enterprise exports, and automated CI/CD gates requires an active subscription (Pro or Enterprise). Fees are billed in advance on a recurring monthly or annual basis via our merchant of record payment gateway (Polar / Stripe). Applicable taxes, VAT, or GST are determined based on your billing address and are processed in accordance with local regulations. Subscriptions are delivered immediately upon digital checkout.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">4. Acceptable Use &amp; Code Ownership</h2>
             <p>
-              You represent that you own or possess valid licensing rights for all repositories submitted to the scanner. You agree not to: (a) scan repositories without proper authorization; (b) reverse-engineer or attempt to extract source algorithms of the Zelsis scanner engine; or (c) probe, scan, or breach system boundaries or rate limit controls.
+              You represent that you own or possess valid licensing rights for all repositories submitted to the scanner. You agree not to: (a) scan repositories without proper authorization; (b) reverse-engineer or attempt to extract proprietary source algorithms of the Zelsis scanner engine; or (c) probe, scan, or breach system boundaries or rate limit controls.
             </p>
           </section>
 
@@ -97,21 +91,21 @@ export default function TermsPage() {
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">6. Termination &amp; Account Erasure</h2>
             <p>
-              You may terminate your account at any time via the Project Settings dashboard. We reserve the right to suspend or terminate accounts that violate acceptable use or attempt malicious exploitation of platform infrastructure.
+              You may cancel your subscription or terminate your account at any time via the Project Settings dashboard. We reserve the right to suspend or terminate accounts that violate acceptable use or attempt malicious exploitation of platform infrastructure.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">7. Governing Law &amp; Dispute Resolution</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">7. Governing Law &amp; Jurisdiction</h2>
             <p>
-              These Terms shall be governed by and construed in accordance with the laws of the Republic of Turkey, without giving effect to any principles of conflicts of law. Any dispute arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the Istanbul (Çağlayan) Courts and Execution Offices.
+              These Terms and any dispute arising out of or related to them shall be governed by and construed in accordance with the laws of the State of Delaware, United States, without giving effect to any choice or conflict of law provision. Any legal suit, action, or proceeding arising out of or related to these Terms shall be instituted exclusively in the federal or state courts located in Delaware.
             </p>
           </section>
 
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">8. Contact &amp; Notices</h2>
             <p className="font-mono text-xs text-emerald-400">
-              Legal Desk: legal@zelsis.com // General: contact@zelsis.com
+              Legal Inquiries: legal@zelsis.com // Support: contact@zelsis.com
             </p>
           </section>
         </div>

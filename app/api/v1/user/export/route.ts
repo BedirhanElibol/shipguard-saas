@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     const exportPayload = {
       exportVersion: '1.0',
       exportedAt: new Date().toISOString(),
-      complianceFramework: ['GDPR Article 20 (Right to Data Portability)', 'KVKK Madde 11'],
+      complianceFramework: ['GDPR Article 20 (Right to Data Portability)', 'CCPA / CPRA'],
       user: {
         id: user.id,
         email: user.email,

@@ -127,8 +127,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const pricePerMonth = isAnnual ? selectedPlan.priceAnnual : selectedPlan.priceMonthly;
   const annualTotal = Number((pricePerMonth * 12).toFixed(2));
   const subtotal = Number((isAnnual ? annualTotal : pricePerMonth).toFixed(2));
-  const tax = Number((subtotal * 0.20).toFixed(2));
-  const total = Number((subtotal + tax).toFixed(2));
+  const tax = 0;
+  const total = subtotal;
 
   const handleSimulateSandbox = (e: React.FormEvent) => {
     e.preventDefault();
@@ -489,8 +489,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   <span className="font-mono text-white">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[#A1A1AA]">
-                  <span>Estimated VAT / Tax (20% KDV):</span>
-                  <span className="font-mono">${tax.toFixed(2)}</span>
+                  <span>Estimated Tax / VAT:</span>
+                  <span className="font-mono text-[11px]">Calculated at Checkout</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-white/10 text-sm font-extrabold text-white">
                   <span>Total Due Today:</span>

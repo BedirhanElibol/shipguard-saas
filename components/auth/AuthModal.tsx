@@ -96,25 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    if (cleanEmail === 'bedirelibol7@gmail.com') {
-      const verifiedUser: UserProfile = {
-        name: 'Bedirhan Elibol',
-        email: 'bedirelibol7@gmail.com',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        tier: 'Pro',
-        isLoggedIn: true,
-        emailVerified: true
-      };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('zelsis_user', JSON.stringify(verifiedUser));
-        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(verifiedUser))}; path=/; max-age=2592000; SameSite=Lax`;
-        localStorage.setItem('zelsis_license_key', `ZS-PRO-${Date.now().toString(36).toUpperCase()}`);
-      }
-      onLoginSuccess(verifiedUser);
-      onClose();
-      return;
-    }
+
 
     if (mode === 'signup' && !name.trim()) {
       setError('Please enter your full name.');
@@ -166,24 +148,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           window.location.href = url;
           return;
         }
-        // Direct fallback for verified Google subscriber
+        // Google OAuth not available - show error
         clearTimeout(safetyTimer);
         setLoadingTarget(null);
-        const verifiedUser: UserProfile = {
-          name: 'Bedirhan Elibol',
-          email: 'bedirelibol7@gmail.com',
-          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-          tier: 'Pro',
-          isLoggedIn: true,
-          emailVerified: true
-        };
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('zelsis_user', JSON.stringify(verifiedUser));
-          document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(verifiedUser))}; path=/; max-age=2592000; SameSite=Lax`;
-          localStorage.setItem('zelsis_license_key', `ZS-PRO-${Date.now().toString(36).toUpperCase()}`);
-        }
-        onLoginSuccess(verifiedUser);
-        onClose();
+        setError(oauthError || 'Google authentication is not available at this time. Please use GitHub or email.');
         return;
       }
 
@@ -198,24 +166,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } catch (err: any) {
       clearTimeout(safetyTimer);
       setLoadingTarget(null);
-      if (provider === 'google') {
-        const verifiedUser: UserProfile = {
-          name: 'Bedirhan Elibol',
-          email: 'bedirelibol7@gmail.com',
-          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-          tier: 'Pro',
-          isLoggedIn: true,
-          emailVerified: true
-        };
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('zelsis_user', JSON.stringify(verifiedUser));
-          document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(verifiedUser))}; path=/; max-age=2592000; SameSite=Lax`;
-          localStorage.setItem('zelsis_license_key', `ZS-PRO-${Date.now().toString(36).toUpperCase()}`);
-        }
-        onLoginSuccess(verifiedUser);
-        onClose();
-        return;
-      }
+
       setError(err?.message || 'Authentication error occurred. Please try again.');
     }
   };
@@ -328,34 +279,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>{loadingTarget === 'google' ? 'Connecting to Google...' : 'Continue with Google'}</span>
                 </button>
 
-                {/* 1-Click Restore for Verified Polar Pro Member */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const verifiedUser: UserProfile = {
-                      name: 'Bedirhan Elibol',
-                      email: 'bedirelibol7@gmail.com',
-                      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-                      tier: 'Pro',
-                      isLoggedIn: true,
-                      emailVerified: true
-                    };
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('zelsis_user', JSON.stringify(verifiedUser));
-                      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(verifiedUser))}; path=/; max-age=2592000; SameSite=Lax`;
-                      localStorage.setItem('zelsis_license_key', `ZS-PRO-${Date.now().toString(36).toUpperCase()}`);
-                    }
-                    onLoginSuccess(verifiedUser);
-                    onClose();
-                  }}
-                  className="flex items-center justify-between p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300 hover:bg-blue-500/20 transition-all font-mono w-full cursor-pointer shadow-sm min-h-[44px]"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                    <span className="font-bold">Restore Polar Pro Membership</span>
-                  </div>
-                  <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-200 border border-blue-500/30">bedirelibol7@gmail.com</span>
-                </button>
+
               </div>
 
               <div className="flex items-center gap-3 my-1">
@@ -470,7 +394,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
           ) : (
             <div className="text-center text-[0.7rem] text-[#64748B]">
-              By signing in, you agree to Zelsis Terms of Service &amp; Privacy Policy.
+              By signing in, you agree to Zelsis{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">Terms of Service</a>
+              {' '}&amp;{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">Privacy Policy</a>.
             </div>
           )}
         </motion.div>

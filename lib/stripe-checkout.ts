@@ -32,20 +32,23 @@ export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult 
   }
 
   const cleanKey = licenseKey.trim().toUpperCase();
-  const isEnterprise = cleanKey.startsWith('ZS-SUITE') || cleanKey.startsWith('SG-SUITE');
-  const isPro = cleanKey.startsWith('ZS-PRO') || cleanKey.startsWith('ZS-CORE') || cleanKey.startsWith('SG-PRO') || cleanKey.startsWith('SG-CORE') || cleanKey.startsWith('SG-VIBE');
-
-  if (!isEnterprise && !isPro && cleanKey.length < 16) {
+  
+  // Validate key format: must be PREFIX-YEAR-XXXX-XXXX-XXXX
+  const validKeyPattern = /^(ZS|SG)-(SUITE|PRO|CORE|VIBE)-\d{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+  if (!validKeyPattern.test(cleanKey)) {
     return {
       valid: false,
       tier: 'Free',
       planId: 'none',
-      planName: 'Invalid License',
+      planName: 'Invalid License Format',
       expiresAt: 'N/A',
       maxApplications: 1,
     };
   }
 
+  // NOTE: Full license verification should be done server-side via /api/v1/verify-license
+  // This client-side check is only for format validation and UI display
+  const isEnterprise = cleanKey.startsWith('ZS-SUITE') || cleanKey.startsWith('SG-SUITE');
   const tier: 'Pro' | 'Enterprise' = isEnterprise ? 'Enterprise' : 'Pro';
   const planId = isEnterprise ? 'vibecare' : 'zelsis-core';
   const planObj = (ZELSIS_PRICING_PLANS || SHIPGUARD_PRICING_PLANS).find((p) => p.id === planId);
@@ -89,43 +92,20 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
     }
 
     if (!userObj) {
-      userObj = {
-        name: 'Bedirhan Elibol',
-        email: 'bedirelibol7@gmail.com',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        tier: tier,
-        isLoggedIn: true,
-        emailVerified: true
-      };
+      // No active session found - cannot activate tier without authenticated user
+      console.warn('[Zelsis Activation] No authenticated user session found. Tier activation requires login.');
+      return false;
     }
 
     localStorage.setItem('zelsis_user', JSON.stringify(userObj));
-    localStorage.setItem('shipguard_user', JSON.stringify(userObj));
     if (typeof document !== 'undefined') {
-      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
-      document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax`;
+      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
     }
     window.dispatchEvent(new Event('storage'));
 
-    // If Supabase client exists, attempt syncing
-    try {
-      const { getSupabase } = await import('@/lib/supabase');
-      const supabase = getSupabase();
-      if (supabase) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          await supabase.from('profiles').update({ tier }).eq('id', session.user.id);
-          await supabase.from('subscriptions').upsert({
-            user_id: session.user.id,
-            plan_tier: tier.toLowerCase(),
-            status: 'active',
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id' });
-        }
-      }
-    } catch (e: any) {
-      console.warn('[Zelsis Activation] Supabase sync warning:', e?.message || e);
-    }
+    // NOTE: Tier updates in Supabase should only be done via server-side webhook handlers
+    // Client-side tier activation is for local UI state only
+    // Server-side sync will be handled by /api/v1/polar-webhook
 
     return true;
   } catch (err) {

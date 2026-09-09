@@ -192,7 +192,11 @@ export async function supabaseSignInWithOAuth(
       provider,
       options: {
         redirectTo: finalRedirect,
-        scopes: provider === 'github' ? 'read:user user:email' : undefined
+        scopes: provider === 'github' ? 'read:user user:email' : undefined,
+        queryParams: provider === 'google' ? {
+          prompt: 'select_account',
+          access_type: 'offline'
+        } : undefined
       }
     });
 

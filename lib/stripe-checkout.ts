@@ -84,7 +84,13 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
       try {
         const parsed = JSON.parse(savedUserStr);
         if (parsed && typeof parsed === 'object' && parsed.isLoggedIn) {
-          userObj = { ...parsed, tier: tier };
+          const renewalDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          userObj = {
+            ...parsed,
+            tier: tier,
+            expiresAt: parsed.expiresAt || renewalDate,
+            subscriptionStatus: 'active',
+          };
         }
       } catch (err) {
         console.warn('[Zelsis Activation] Failed to parse user from storage:', err);

@@ -5,13 +5,24 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2 } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
+import { formatRenewalDate } from '@/lib/subscription-utils';
+
+function resolvePlanAlias(planId?: string): string {
+  if (!planId) return 'zelsis-core';
+  const clean = planId.toLowerCase().trim();
+  if (clean === 'enterprise' || clean === 'vibecare' || clean === 'zelsis-suite' || clean === 'suite') {
+    return 'vibecare';
+  }
+  return 'zelsis-core';
+}
 
 interface CheckoutViewProps {
   initialPlanId?: string;
   initialBilling?: 'annual' | 'monthly';
   initialSuccess?: boolean;
+  checkoutId?: string | null;
   onBackToPricing?: () => void;
   user?: UserProfile | null;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
@@ -21,13 +32,16 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   initialPlanId = 'zelsis-core',
   initialBilling = 'monthly',
   initialSuccess = false,
+  checkoutId = null,
   onBackToPricing,
   user,
   onOpenAuth,
 }) => {
   const router = useRouter();
-  const [selectedPlanId, setSelectedPlanId] = useState<string>(initialPlanId);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(() => resolvePlanAlias(initialPlanId));
   const [isAnnual, setIsAnnual] = useState<boolean>(initialBilling === 'annual');
+  const [isVerifying, setIsVerifying] = useState<boolean>(Boolean(checkoutId));
+  const [verificationError, setVerificationError] = useState<string | null>(null);
 
   // User Authentication State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(user ?? null);
@@ -110,15 +124,55 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   };
 
   useEffect(() => {
-    if (initialSuccess) {
-      const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-      const userEmail = currentUser?.email || 'customer@zelsis.com';
-      const key = generateLicenseKey(selectedPlanId, userEmail);
-      setActiveLicenseKey(key);
-      activateUserTier(tier, key);
-      setIsSubmitted(true);
+    if (initialPlanId) {
+      setSelectedPlanId(resolvePlanAlias(initialPlanId));
     }
-  }, [initialSuccess, selectedPlanId, currentUser?.email]);
+  }, [initialPlanId]);
+
+  // Server-side verification for returning Polar checkouts
+  useEffect(() => {
+    if (checkoutId) {
+      let isMounted = true;
+      setIsVerifying(true);
+      setVerificationError(null);
+
+      fetch('/api/v1/verify-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          checkoutId,
+          email: currentUser?.email || email || undefined,
+          planId: selectedPlanId,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!isMounted) return;
+          if (data.verified) {
+            const verifiedTier: 'Pro' | 'Enterprise' = data.tier === 'Enterprise' ? 'Enterprise' : 'Pro';
+            const userEmail = data.email || currentUser?.email || email || 'customer@zelsis.dev';
+            const key = generateLicenseKey(selectedPlanId, userEmail);
+            setActiveLicenseKey(key);
+            activateUserTier(verifiedTier, key);
+            setIsSubmitted(true);
+          } else {
+            setVerificationError(data.message || 'Polar checkout verification is pending or unconfirmed.');
+          }
+        })
+        .catch((err) => {
+          if (!isMounted) return;
+          console.warn('[CheckoutView] Verification request failed:', err);
+          setVerificationError('Unable to connect to checkout verification service.');
+        })
+        .finally(() => {
+          if (isMounted) setIsVerifying(false);
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [checkoutId, selectedPlanId, currentUser?.email, email]);
 
   const selectedPlan: PricingPlanItem =
     ZELSIS_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
@@ -140,16 +194,28 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
   const formatDate = (isoString?: string) => {
     if (!isoString) return 'Active (Renews Monthly)';
+    return formatRenewalDate(isoString);
+  };
+
+  const getPolarCheckoutUrl = () => {
+    const base =
+      selectedPlan.polarCheckoutUrl ||
+      (selectedPlan.id === 'vibecare'
+        ? 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od'
+        : 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC');
     try {
-      const d = new Date(isoString);
-      if (isNaN(d.getTime())) return 'Active (Renews Monthly)';
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
+      const url = new URL(base);
+      const targetEmail = (currentUser?.email || email || '').trim();
+      if (targetEmail) {
+        url.searchParams.set('customer_email', targetEmail);
+      }
+      const targetName = (currentUser?.name || fullName || '').trim();
+      if (targetName) {
+        url.searchParams.set('customer_name', targetName);
+      }
+      return url.toString();
     } catch {
-      return 'Active (Renews Monthly)';
+      return base;
     }
   };
 
@@ -183,6 +249,23 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           <span>256-BIT SSL ENCRYPTED B2B CHECKOUT</span>
         </div>
       </div>
+
+      {/* Checkout Verification Status Banner */}
+      {isVerifying && (
+        <div className="p-5 rounded-xl bg-white/5 border border-white/20 flex items-center justify-center gap-3 shadow-lg">
+          <Loader2 size={18} className="animate-spin text-emerald-400" />
+          <span className="text-xs font-mono font-bold text-white">
+            Verifying Polar 3D secure payment clearance...
+          </span>
+        </div>
+      )}
+
+      {verificationError && !isSubmitted && (
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-200 flex items-center gap-2.5 shadow-md">
+          <AlertCircle size={16} className="text-red-400 shrink-0" />
+          <span className="leading-relaxed">{verificationError}</span>
+        </div>
+      )}
 
       {/* Account Required Warning Card for Unauthenticated / Guest Users */}
       {!isAuthenticated && !isSubmitted && (
@@ -403,7 +486,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       </div>
                     ) : isAuthenticated ? (
                       <a
-                        href={selectedPlan.polarCheckoutUrl || 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'}
+                        href={getPolarCheckoutUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-primary min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"

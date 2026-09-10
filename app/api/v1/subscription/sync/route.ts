@@ -3,10 +3,13 @@ import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { createClient } from '@supabase/supabase-js';
 
-// Verified subscriber registry (e.g. Polar customer records confirmed via Polar sales dashboard)
-const VERIFIED_SUBSCRIBER_EMAILS = new Set([
-  'bedirelibol7@gmail.com',
-]);
+// Verified subscriber registry (configured via environment variables without hardcoded PII)
+const VERIFIED_SUBSCRIBER_EMAILS = new Set(
+  (process.env.VERIFIED_SUBSCRIBERS || process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+);
 
 export async function POST(req: NextRequest) {
   const rateLimit = await checkRateLimit(req, {

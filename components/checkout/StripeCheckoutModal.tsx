@@ -13,6 +13,7 @@ interface StripeCheckoutModalProps {
   user: UserProfile | null;
   onUpgradeSuccess: (newTier: 'Pro' | 'Enterprise') => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  initialPlan?: 'Pro' | 'Enterprise';
 }
 
 export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
@@ -20,10 +21,11 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
   onClose,
   user,
   onUpgradeSuccess,
-  onOpenAuth
+  onOpenAuth,
+  initialPlan = 'Pro',
 }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [selectedPlan, setSelectedPlan] = useState<'Pro' | 'Enterprise'>('Pro');
+  const [selectedPlan, setSelectedPlan] = useState<'Pro' | 'Enterprise'>(initialPlan);
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [expiry, setExpiry] = useState('12/28');
   const [cvc, setCvc] = useState('•••');
@@ -32,6 +34,12 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
 
   const isLoggedIn = Boolean(user && user.isLoggedIn);
+
+  React.useEffect(() => {
+    if (initialPlan) {
+      setSelectedPlan(initialPlan);
+    }
+  }, [initialPlan, isOpen]);
 
   React.useEffect(() => {
     if (user?.name) {
@@ -44,6 +52,25 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
   const proPrice = billingCycle === 'annual' ? '$15' : '$19';
   const enterprisePrice = billingCycle === 'annual' ? '$39' : '$49';
   const currentPrice = selectedPlan === 'Pro' ? proPrice : enterprisePrice;
+
+  const getPolarCheckoutUrl = () => {
+    const base =
+      selectedPlan === 'Enterprise'
+        ? 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od'
+        : 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC';
+    try {
+      const url = new URL(base);
+      if (user?.email) {
+        url.searchParams.set('customer_email', user.email.trim());
+      }
+      if (user?.name) {
+        url.searchParams.set('customer_name', user.name.trim());
+      }
+      return url.toString();
+    } catch {
+      return base;
+    }
+  };
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,11 +294,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   Supports Apple Pay, Google Pay, and all major cards. Instant Merchant of Record invoicing and immediate access.
                 </p>
                 <a
-                  href={
-                    selectedPlan === 'Enterprise'
-                      ? 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od'
-                      : 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC'
-                  }
+                  href={getPolarCheckoutUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-primary py-3 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md font-mono text-center cursor-pointer"

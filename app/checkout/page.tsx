@@ -8,13 +8,23 @@ import { MOCK_PROJECTS } from '@/data/mockData';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { purgeZelsisStorage, purgeShipguardStorage } from '@/lib/storage';
 
+function normalizePlanId(rawPlan: string | null): string {
+  if (!rawPlan) return 'zelsis-core';
+  const clean = rawPlan.toLowerCase().trim();
+  if (clean === 'enterprise' || clean === 'vibecare' || clean === 'zelsis-suite' || clean === 'suite') {
+    return 'vibecare';
+  }
+  return 'zelsis-core';
+}
+
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const planId = searchParams.get('plan') || 'zelsis-core';
+  const planId = normalizePlanId(searchParams.get('plan'));
   const billing = (searchParams.get('billing') || 'monthly') as 'annual' | 'monthly';
   const isSuccess = searchParams.get('success') === 'true';
+  const checkoutId = searchParams.get('checkout_id') || searchParams.get('checkoutId') || null;
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -72,6 +82,7 @@ function CheckoutPageContent() {
         initialPlanId={planId}
         initialBilling={billing}
         initialSuccess={isSuccess}
+        checkoutId={checkoutId}
         onBackToPricing={() => router.push('/#pricing')}
         user={user}
         onOpenAuth={(mode) => {

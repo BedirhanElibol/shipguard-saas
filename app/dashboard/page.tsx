@@ -1,7 +1,7 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Project, Finding } from '@/data/schema';
 import { MOCK_PROJECTS, VIBEPOLISH_30_CATALOG, UI_RULES_CATALOG, AI_CLICHE_25_CATALOG } from '@/data/mockData';
 import { AppShell } from '@/components/layout/AppShell';
@@ -61,6 +61,22 @@ function DashboardContent() {
     handleSignOut,
     handleUpdateUserProfile,
   } = useDashboardState();
+
+  const [checkoutInitialPlan, setCheckoutInitialPlan] = useState<'Pro' | 'Enterprise'>('Pro');
+
+  const handleOpenCheckoutModal = (requestedPlan?: 'Pro' | 'Enterprise') => {
+    if (requestedPlan) {
+      setCheckoutInitialPlan(requestedPlan);
+    } else {
+      setCheckoutInitialPlan(user?.tier === 'Pro' ? 'Enterprise' : 'Pro');
+    }
+    if (!user || !user.isLoggedIn) {
+      setAuthInitialMode('signup');
+      setIsAuthModalOpen(true);
+    } else {
+      setIsCheckoutOpen(true);
+    }
+  };
 
   const handleAddNewProject = (newP: Project) => {
     setProjects((prev) => {
@@ -179,14 +195,7 @@ function DashboardContent() {
         setIsAuthModalOpen(true);
       }}
       onSignOut={handleSignOut}
-      onOpenCheckout={() => {
-        if (!user || !user.isLoggedIn) {
-          setAuthInitialMode('signup');
-          setIsAuthModalOpen(true);
-        } else {
-          setIsCheckoutOpen(true);
-        }
-      }}
+      onOpenCheckout={() => handleOpenCheckoutModal()}
     >
       <div className="flex flex-col gap-6 w-full">
         <LifecycleBanner user={user} />
@@ -286,14 +295,7 @@ function DashboardContent() {
               <VibeCareView
                 project={selectedProject}
                 user={user}
-                onOpenCheckout={() => {
-                  if (!user || !user.isLoggedIn) {
-                    setAuthInitialMode('signup');
-                    setIsAuthModalOpen(true);
-                  } else {
-                    setIsCheckoutOpen(true);
-                  }
-                }}
+                onOpenCheckout={() => handleOpenCheckoutModal('Enterprise')}
               />
             )}
 
@@ -319,14 +321,7 @@ function DashboardContent() {
                 onAddNewProject={handleAddNewProject}
                 onTriggerScan={() => setIsScanning(true)}
                 user={user}
-                onOpenCheckout={() => {
-                  if (!user || !user.isLoggedIn) {
-                    setAuthInitialMode('signup');
-                    setIsAuthModalOpen(true);
-                  } else {
-                    setIsCheckoutOpen(true);
-                  }
-                }}
+                onOpenCheckout={() => handleOpenCheckoutModal()}
               />
             )}
 
@@ -339,7 +334,7 @@ function DashboardContent() {
 
           {activeNav === 'checkout' && (
             <CheckoutView
-              initialPlanId="zelsis-core"
+              initialPlanId={user?.tier === 'Pro' ? 'vibecare' : 'zelsis-core'}
               initialBilling="monthly"
               onBackToPricing={() => setActiveNav('dashboard')}
               user={user}
@@ -363,14 +358,7 @@ function DashboardContent() {
                   handleUpdateUserProfile(updatedUser);
                 }
               }}
-              onOpenCheckout={() => {
-                if (!user || !user.isLoggedIn) {
-                  setAuthInitialMode('signup');
-                  setIsAuthModalOpen(true);
-                } else {
-                  setIsCheckoutOpen(true);
-                }
-              }}
+              onOpenCheckout={handleOpenCheckoutModal}
               onSaveSettings={(updatedFields: Partial<Project>) => {
                 const updatedProject = { ...selectedProject, ...updatedFields };
                 setSelectedProject(updatedProject);
@@ -422,6 +410,7 @@ function DashboardContent() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         user={user}
+        initialPlan={checkoutInitialPlan}
         onOpenAuth={(mode) => {
           setIsCheckoutOpen(false);
           setAuthInitialMode(mode || 'signup');

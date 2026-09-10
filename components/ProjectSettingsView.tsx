@@ -37,7 +37,7 @@ interface ProjectSettingsViewProps {
   onDeleteAccount?: () => void;
   user?: UserProfile | null;
   onUpdateUser?: (updatedUser: UserProfile) => void;
-  onOpenCheckout?: () => void;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
 }
 
@@ -515,9 +515,9 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       type="button"
                       onClick={() => {
                         if (onOpenCheckout) {
-                          onOpenCheckout();
+                          onOpenCheckout('Enterprise');
                         } else {
-                          router.push('/checkout');
+                          router.push('/checkout?plan=enterprise');
                         }
                       }}
                       className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
@@ -541,9 +541,9 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                     type="button"
                     onClick={() => {
                       if (onOpenCheckout) {
-                        onOpenCheckout();
+                        onOpenCheckout('Pro');
                       } else {
-                        router.push('/checkout');
+                        router.push('/checkout?plan=pro');
                       }
                     }}
                     className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"

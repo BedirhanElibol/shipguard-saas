@@ -29,6 +29,21 @@ if (prodClientUrl) {
   }
 }
 
+const nextPublicUrl = process.env.NEXT_PUBLIC_APP_URL;
+if (nextPublicUrl) {
+  try {
+    const formatted = nextPublicUrl.startsWith('http') ? nextPublicUrl : `https://${nextPublicUrl}`;
+    ALLOWED_ORIGINS.add(new URL(formatted).origin);
+  } catch {}
+}
+
+const vercelUrl = process.env.VERCEL_URL;
+if (vercelUrl) {
+  try {
+    ALLOWED_ORIGINS.add(new URL(`https://${vercelUrl}`).origin);
+  } catch {}
+}
+
 /**
  * Injects OWASP Top 10 recommended global security headers
  */

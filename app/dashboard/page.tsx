@@ -391,10 +391,27 @@ function DashboardContent() {
 
       {/* Authentication Modal */}
       <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        isOpen={isAuthModalOpen && !user?.isLoggedIn}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          if (typeof window !== 'undefined') {
+            const cleanUrl = new URL(window.location.href);
+            if (cleanUrl.searchParams.has('auth')) {
+              cleanUrl.searchParams.delete('auth');
+              window.history.replaceState({}, '', cleanUrl.toString());
+            }
+          }
+        }}
         onLoginSuccess={(loggedUser) => {
           setUser(loggedUser);
+          setIsAuthModalOpen(false);
+          if (typeof window !== 'undefined') {
+            const cleanUrl = new URL(window.location.href);
+            if (cleanUrl.searchParams.has('auth')) {
+              cleanUrl.searchParams.delete('auth');
+              window.history.replaceState({}, '', cleanUrl.toString());
+            }
+          }
           try {
             localStorage.setItem('zelsis_user', JSON.stringify(loggedUser));
             localStorage.setItem('shipguard_user', JSON.stringify(loggedUser));

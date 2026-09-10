@@ -19,7 +19,18 @@ export function useDashboardState() {
   const [inspectingFinding, setInspectingFinding] = useState<Finding | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const authParam = searchParams.get('auth');
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(Boolean(authParam));
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
+    if (!authParam) return false;
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p && p.isLoggedIn) return false;
+      }
+    } catch {}
+    return true;
+  });
   const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>(
     authParam === 'signup' ? 'signup' : 'signin'
   );
@@ -30,10 +41,29 @@ export function useDashboardState() {
     if (nav) setActiveNav(nav);
     const auth = searchParams.get('auth');
     if (auth === 'signin' || auth === 'signup') {
-      setAuthInitialMode(auth);
-      setIsAuthModalOpen(true);
+      const isCurrentLoggedIn = Boolean(user?.isLoggedIn);
+      const isSavedLoggedIn = typeof window !== 'undefined' && (() => {
+        try {
+          const s = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+          return s ? JSON.parse(s)?.isLoggedIn : false;
+        } catch { return false; }
+      })();
+
+      if (isCurrentLoggedIn || isSavedLoggedIn) {
+        setIsAuthModalOpen(false);
+        if (typeof window !== 'undefined') {
+          const cleanUrl = new URL(window.location.href);
+          if (cleanUrl.searchParams.has('auth')) {
+            cleanUrl.searchParams.delete('auth');
+            window.history.replaceState({}, '', cleanUrl.toString());
+          }
+        }
+      } else {
+        setAuthInitialMode(auth);
+        setIsAuthModalOpen(true);
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, user]);
 
   useEffect(() => {
     const loadProjectsFromStorage = () => {
@@ -162,6 +192,12 @@ export function useDashboardState() {
                 lastVerifiedAt: parsedUser.lastVerifiedAt || Date.now(),
               };
               setUser(activeUser);
+              setIsAuthModalOpen(false);
+              if (typeof window !== 'undefined' && window.location.search.includes('auth=')) {
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('auth');
+                window.history.replaceState({}, '', cleanUrl.toString());
+              }
               localStorage.setItem('zelsis_user', JSON.stringify(activeUser));
               if (typeof document !== 'undefined') {
                 document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(activeUser))}; path=/; max-age=2592000; SameSite=Lax`;

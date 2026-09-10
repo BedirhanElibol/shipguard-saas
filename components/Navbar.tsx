@@ -5,15 +5,51 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
+import { UserProfile } from '@/components/auth/AuthModal';
 
 interface NavbarProps {
   onToggleDashboard?: () => void;
   showDashboard?: boolean;
+  user?: UserProfile | null;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard, user }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(user || null);
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setCurrentUser(user);
+      return;
+    }
+
+    const loadUser = () => {
+      try {
+        let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+        if (!savedUserStr && typeof document !== 'undefined') {
+          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+          if (match && match[3]) {
+            savedUserStr = decodeURIComponent(match[3]);
+          }
+        }
+        if (savedUserStr) {
+          const parsed = JSON.parse(savedUserStr);
+          if (parsed && parsed.isLoggedIn) {
+            setCurrentUser(parsed);
+            return;
+          }
+        }
+        setCurrentUser(null);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+
+    loadUser();
+    window.addEventListener('storage', loadUser);
+    return () => window.removeEventListener('storage', loadUser);
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,12 +111,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
               </button>
             )}
 
-            <a
-              href="/dashboard?auth=signin"
-              className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-[#EDEDED] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-            >
-              Sign In
-            </a>
+            {currentUser && currentUser.isLoggedIn ? (
+              <a
+                href="/dashboard"
+                className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all flex items-center gap-1.5"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Dashboard ({currentUser.name.split(' ')[0] || 'Account'})</span>
+              </a>
+            ) : (
+              <a
+                href="/dashboard?auth=signin"
+                className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-[#EDEDED] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+              >
+                Sign In
+              </a>
+            )}
 
             <a
               href="#contact"
@@ -127,13 +173,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
             </nav>
 
             <div className="mt-12 flex flex-col gap-4">
-              <a
-                href="/dashboard?auth=signin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center"
-              >
-                Sign In / Register
-              </a>
+              {currentUser && currentUser.isLoggedIn ? (
+                <a
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center border-emerald-500/30 text-emerald-400 flex items-center justify-center gap-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Go to Dashboard ({currentUser.name.split(' ')[0] || 'Account'})</span>
+                </a>
+              ) : (
+                <a
+                  href="/dashboard?auth=signin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center"
+                >
+                  Sign In / Register
+                </a>
+              )}
 
               {onToggleDashboard && (
                 <button

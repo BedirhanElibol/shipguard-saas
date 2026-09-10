@@ -1,7 +1,7 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -43,6 +43,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen = false,
   onCloseMobile
 }) => {
+  useEffect(() => {
+    if (!isMobileOpen || !onCloseMobile) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseMobile();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileOpen, onCloseMobile]);
+
   const mainNav = [
     { id: 'dashboard', label: 'Overview Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Connected Projects', icon: FolderGit2 },

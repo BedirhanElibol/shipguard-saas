@@ -1,7 +1,7 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, Download, CheckCircle2, Code } from 'lucide-react';
 import { Finding } from '@/data/schema';
@@ -21,6 +21,14 @@ export const BulkFixModal: React.FC<BulkFixModalProps> = ({
 }) => {
   const openFindings = findings.filter((f) => f.status === 'OPEN');
   const [selectedIds, setSelectedIds] = useState<string[]>(openFindings.map((f) => f.id));
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -63,7 +71,10 @@ export const BulkFixModal: React.FC<BulkFixModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 ">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

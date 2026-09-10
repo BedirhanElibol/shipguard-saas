@@ -1,7 +1,7 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Project } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
 import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap, Lock, Sparkles, X } from 'lucide-react';
@@ -29,6 +29,14 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isQuotaModalOpen) setIsQuotaModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isQuotaModalOpen]);
 
   const isFree = !user || user.tier === 'Free';
   const customProjects = projects.filter(
@@ -292,7 +300,10 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
       {/* Free Tier Project Limit Modal */}
       {isQuotaModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={(e) => { if (e.target === e.currentTarget) setIsQuotaModalOpen(false); }}
+        >
           <div className="bg-[#141414] border border-white/20 rounded-2xl w-full max-w-md p-6 sm:p-8 flex flex-col gap-5 shadow-2xl relative">
             <button
               onClick={() => setIsQuotaModalOpen(false)}

@@ -1,7 +1,7 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Project } from '@/data/schema';
 import { FolderGit2, X, Globe } from 'lucide-react';
 import { isValidGithubUrl, sanitizeTargetUrl } from '@/lib/github-api';
@@ -28,6 +28,14 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
   const [framework, setFramework] = useState<string>('Auto-Detect');
   const [githubToken, setGithubToken] = useState<string>('');
   const [urlError, setUrlError] = useState<string>('');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -87,7 +95,10 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-lg p-6 sm:p-8 relative shadow-lg">
         <button
           onClick={onClose}

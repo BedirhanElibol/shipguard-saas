@@ -66,11 +66,21 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
     return () => clearInterval(timer);
   }, [isFinished]);
 
+  // 4. Auto-navigate to Full Audit Report when countdown reaches 0
+  useEffect(() => {
+    if (!isFinished || !scanResult) return;
+    if (countdownSeconds === 0 && !hasCompletedRef.current) {
+      hasCompletedRef.current = true;
+      onCompleteScanRef.current(scanResult);
+    }
+  }, [countdownSeconds, isFinished, scanResult]);
+
   useEffect(() => {
     let isCancelled = false;
     const controller = new AbortController();
     abortControllerRef.current = controller;
     hasCompletedRef.current = false;
+    setCountdownSeconds(3);
 
     async function executeLiveScan() {
       const isLocalOrSelfAudit =
@@ -215,14 +225,6 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           intervalRef.current = null;
           setProgress(100);
           setIsFinished(true);
-
-          // Auto-navigate to Full Audit Report after 2.5 seconds if user hasn't clicked
-          setTimeout(() => {
-            if (!hasCompletedRef.current) {
-              hasCompletedRef.current = true;
-              onCompleteScanRef.current(result);
-            }
-          }, 2500);
 
           if (typeof document !== 'undefined') {
             document.title = `✅ Audit Complete | ${project.name}`;

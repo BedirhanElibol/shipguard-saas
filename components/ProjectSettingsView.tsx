@@ -878,6 +878,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             role="dialog"
             aria-modal="true"
             aria-labelledby="gdpr-delete-modal-title"
+            onClick={(e) => { if (e.target === e.currentTarget) setIsDeleteModalOpen(false); }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 15 }}

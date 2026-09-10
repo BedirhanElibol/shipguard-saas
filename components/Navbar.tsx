@@ -59,6 +59,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
   const navLinks = [
     { label: 'Features', href: '#services' },
     { label: 'Case Studies', href: '#work' },
@@ -155,6 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className="fixed inset-0 z-40 bg-[#0A0A0A] flex flex-col justify-center px-8 py-20 md:hidden"
+            onClick={(e) => { if (e.target === e.currentTarget) setMobileMenuOpen(false); }}
           >
             <nav className="flex flex-col gap-6">
               {navLinks.map((link, idx) => (

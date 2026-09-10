@@ -1,85 +1,82 @@
-# 🕵️‍♂️ SHIPGUARD / ZELSIS: AUTONOMOUS USER-JOURNEY SIMULATION & FLAW ERADICATION MASTER PLAN
-## Version 9.0.0 — Comprehensive Multi-Agent State-Machine Audit & Flaw Prevention
+# 🕵️‍♂️ SHIPGUARD / ZELSIS: COMPREHENSIVE INTERACTION, MODAL TRAP & STATE-MACHINE AUDIT MASTER PLAN
+## Version 10.0.0 — Comprehensive Flaw Eradication & Interactive Resilience
 
-> **Document Version:** 9.0.0-AUTONOMOUS-JOURNEY-SIMULATION  
+> **Document Version:** 10.0.0-INTERACTION-TRAP-ERADICATION  
 > **Status:** Phase 1 Master Architecture Plan (Sequential Planning Checkpoint)  
-> **Target User Query:** "/orchestrate neden bunları tek tek ben buluyorum"  
-> **Author:** Project Planner & Systems Architect  
+> **Target User Query:** "/orchestrate find these types of bugs"  
+> **Author:** Master Orchestrator & Systems Architect  
 > **Language Standard:** Strict 100% Native English in code, documentation, and technical specs  
-> **Compliance Standard:** .agent/Proje_Gelistirme_Rehberi.md (Zero AI Slop, WCAG 2.2 AA Accessibility, OWASP Top 10 Security Hardening)
+> **Compliance Standard:** .agent/Project_Development_Guide.md (Zero AI Slop, WCAG 2.2 AA Accessibility, OWASP Top 10 Security Hardening)
 
 ---
 
-## 1. Root Cause Analysis: Why Did the User Have to Find These Manually?
+## 1. Forensic Audit: Discovered Interaction Bugs & Traps
 
-### 1.1 The Static-Verification Gap
-Previous verification suites focused on **unit-level and static structural criteria**:
-- Did TypeScript compile (`npx tsc --noEmit`)? -> YES (0 errors)
-- Did Next.js build all routes (`npm run build`)? -> YES (24/24 static/server routes)
-- Did all endpoints return HTTP 200 OK? -> YES (all routes OK)
+Through systematic AST analysis and state-machine inspection across all 24 routes and 45 components, we have identified **10 specific interaction bugs and traps** belonging to the exact same class of multi-step human interaction defects:
 
-**The Defect:** Static tests and HTTP status checks do NOT simulate **human state-transition journeys** across multiple routes over time. For example:
-- *Step 1:* User logs in on `/dashboard` -> state stored in `localStorage`.
-- *Step 2:* User navigates to `/` (Landing). Does the landing header recognize the user? (Previously NO, it showed static "Sign In").
-- *Step 3:* User clicks "Sign In" from the landing page. It navigates to `/dashboard?auth=signin`.
-- *Step 4:* Does the dashboard notice the user is already logged in? (Previously NO, it opened the sign-in modal over the active session).
-- *Step 5:* Is the URL query parameter cleaned up? (Previously NO, it lingered indefinitely).
+### 1.1 Modal & Drawer Traps (Missing Backdrop Click & Escape Dismissal)
+1. **`components/layout/ConnectTargetModal.tsx`**:
+   - *Bug:* The repository/target URL connection modal lacks backdrop click dismissal (`onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}`) and lacks a `keydown` Escape listener. Users clicking outside or pressing Escape are trapped.
+2. **`components/findings/BulkFixModal.tsx`**:
+   - *Bug:* The unified patch generator modal lacks backdrop click dismissal and lacks a `keydown` Escape listener.
+3. **`components/FeaturedWork.tsx`**:
+   - *Bug:* The case study preview modal on the landing page has an Escape listener but is missing the backdrop click dismissal handler on the outer overlay.
+4. **`components/ProjectsView.tsx`**:
+   - *Bug:* `isQuotaModalOpen` (Free Tier Project Limit Reached) modal has NO backdrop click handler and NO Escape key listener.
+5. **`components/VibeCareView.tsx`**:
+   - *Bug:* `showPdfGateModal` (White-Label PDF Certificate Gate) modal has NO backdrop click handler and NO Escape key listener.
+6. **`components/ProjectSettingsView.tsx`**:
+   - *Bug:* `isDeleteModalOpen` (GDPR Data Deletion Confirmation) modal has an Escape listener but is missing the backdrop click dismissal handler on the outer overlay.
+7. **`components/layout/Sidebar.tsx`**:
+   - *Bug:* Mobile drawer navigation menu has backdrop click, but lacks a window `Escape` key dismissal listener.
+8. **`components/Navbar.tsx`**:
+   - *Bug:* Mobile menu overlay on the landing page lacks a window `Escape` key dismissal listener.
+9. **`components/layout/Header.tsx`**:
+   - *Bug:* User Profile dropdown menu listens for `mousedown` outside, but lacks an `Escape` key listener for keyboard accessibility.
 
-### 1.2 The Paradigm Shift: Autonomous User-Journey Simulation
-We will no longer rely solely on build/static tests. We are implementing an **Autonomous User-Journey State-Machine Simulation** where agents programmatically traverse, stress-test, and validate all possible user flows, ensuring that zero interaction bugs reach the user.
+### 1.2 Countdown / Timer Deadlock in ScanRunnerView
+10. **`components/ScanRunnerView.tsx`**:
+    - *Bug:* After a scan completes, the banner displays `"Auto-opening report in {countdownSeconds}s..."` and counts down 3 -> 2 -> 1 -> 0. However, when `countdownSeconds === 0`, no effect actually invokes `onCompleteScanRef.current(scanResult)`. The UI remains stuck at `"Auto-opening report in 0s..."` indefinitely unless the user clicks the button manually.
 
----
-
-## 2. The 6 Core User-Journey Simulation Suites
-
-### Suite 1: Cross-Route State Handshake Journey
-- Validate that navigation across `/`, `/landing`, `/dashboard`, `/checkout`, `/privacy`, `/terms`, `/cookies` maintains 100% synchronized auth and user profile state.
-- Ensure that entering any route with query params (`?auth=...`, `?nav=...`, `?checkout_id=...`) consumes the param once and sanitizes the URL without lingering or causing modal locks.
-
-### Suite 2: Authentication & Session Lifecycle Journey
-- Guest Mode: Landing and Dashboard present flawless demo states with zero PII leaks.
-- Sign In / Sign Up: Successful authentication smoothly transitions the entire application into authenticated mode.
-- Logged-in State: Re-clicking any login/signup button or route parameter NEVER opens redundant auth modals.
-- Sign Out: Full purge of `zelsis_user`, `shipguard_user`, license keys, and cookies; immediately resets all UI elements to clean guest mode.
-
-### Suite 3: Repository Audit & Scanner Journey
-- Input Edge Cases: Test URLs with prefixes (`https://`, `http://`), trailing slashes (`/`), repository suffixes (`.git`), and shorthand (`org/repo`).
-- Non-Destructive Projects: Scanning external repositories must create a new project object (`proj-${Date.now()}`) without mutating the demo showcase starter.
-- Scanner Resilience: Failed scans, network timeouts, or rate limits must render actionable, clean error states without infinite spinners.
-
-### Suite 4: Subscription, Pricing & Checkout Gate Journey
-- Plan Selection: Verify clicking "Get Started" or "Upgrade" from Pricing on `/` or inside Dashboard correctly passes the selected plan (`zelsis-core` vs `vibecare`) to Checkout.
-- Polar Checkout Return: Returning from Polar (`?checkout_id=...`) triggers server-side verification without exposing client-side bypasses.
-- Ambient Countdown Visibility: Verify `lib/subscription-utils.ts` accurately computes remaining days, renewal dates, and urgency color coding in Header, Sidebar, and Settings.
-
-### Suite 5: UI Interactivity, Modals & Drawer Resilience Journey
-- All application modals (AuthModal, StripeCheckoutModal, RuleConfig, PenTest, Badge, KB) must have:
-  1. Responsive, visible 'X' close button (min 44x44px touch target).
-  2. Backdrop / overlay click-to-close behavior.
-  3. Keyboard `Escape` key dismissal listener.
-  4. Non-locking layout (no stuck overlays).
-
-### Suite 6: Edge Case, Corrupted Storage & 404 Recovery Journey
-- Corrupted or outdated localStorage entries automatically self-heal and fallback to defaults without throwing uncaught exceptions.
-- 404 page provides direct, functional navigation back to `/dashboard` and `/`.
-- Multi-tab synchronization via `window.addEventListener('storage')`.
+### 1.3 Nested AuthModal Isolation in CheckoutView
+11. **`components/checkout/CheckoutView.tsx`**:
+    - *Bug:* When used standalone, `CheckoutView` renders an internal `AuthModal` that lacks the double-guard `isOpen={isInternalAuthModalOpen && !currentUser?.isLoggedIn}` and does not clean up `?auth` parameters upon closing.
 
 ---
 
-## 3. Multi-Agent Orchestration Roster (Phase 2 Parallel Execution)
+## 2. Phase 2 Implementation Packages (Multi-Agent Roster)
 
-In compliance with the /orchestrate protocol (Minimum 3 specialized agents required):
+In strict compliance with the `/orchestrate` protocol (Minimum 3 specialized agents executing upon user approval):
 
-- **Agent 1: `project-planner`**: Master State-Machine & Flow Mapping (`docs/PLAN.md`).
-- **Agent 2: `frontend-specialist`**: UI Interaction Resilience, modal backdrop/escape handlers across all views.
-- **Agent 3: `backend-specialist`**: Route query sanitization, API edge cases, and session persistence hardening.
-- **Agent 4: `test-engineer`**: Automated User-Journey Simulator Script (`scratch/simulate_all_user_journeys.py`).
+### Package 1: Modal & Overlay Universal Trap Eradication (`frontend-specialist`)
+- **Target Files:**
+  - `components/layout/ConnectTargetModal.tsx`
+  - `components/findings/BulkFixModal.tsx`
+  - `components/FeaturedWork.tsx`
+  - `components/ProjectsView.tsx`
+  - `components/VibeCareView.tsx`
+  - `components/ProjectSettingsView.tsx`
+  - `components/layout/Sidebar.tsx`
+  - `components/Navbar.tsx`
+  - `components/layout/Header.tsx`
+
+### Package 2: Scanner Timer Auto-Transition & State Hardening (`backend-specialist`)
+- **Target Files:**
+  - `components/ScanRunnerView.tsx`
+  - `components/checkout/CheckoutView.tsx`
+
+### Package 3: Automated Simulation & Production Verification (`test-engineer`)
+- **Target Actions:**
+  - Create and run `scratch/test_all_ux_traps.py`.
+  - TypeScript compilation (`npx tsc --noEmit`).
+  - Production build (`npm run build`).
+  - Synchronize to Desktop repo, commit, push to GitHub `origin main`, and verify live deployment on Vercel.
 
 ---
 
-## 4. Verification Plan
-
-1. Execute `python scratch/simulate_all_user_journeys.py` (Asserting all 6 journey suites).
-2. Execute `npx tsc --noEmit` (0 errors).
-3. Execute `npm run build` (24/24 static & dynamic routes).
-4. Verify live routes on `https://shipguard-saas.vercel.app`.
+## 3. Verification & Acceptance Criteria
+1. All modals, drawers, and popovers across the app must close on outside click and Escape key.
+2. The ScanRunnerView countdown must cleanly and automatically transition to the audit report when reaching 0.
+3. 100% Native English in code and commit messages.
+4. Clean TypeScript compilation (0 errors) and Next.js build (24/24 routes).
+5. Live production deployment verified.

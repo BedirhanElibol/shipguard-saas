@@ -18,6 +18,14 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
   const [cveAuditing, setCveAuditing] = React.useState<boolean>(false);
   const [showPdfGateModal, setShowPdfGateModal] = React.useState<boolean>(false);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showPdfGateModal) setShowPdfGateModal(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showPdfGateModal]);
+
   const [backupStatus, setBackupStatus] = React.useState<string>('Disaster Recovery (DR) restoration test passed cleanly.');
   const [backupTesting, setBackupTesting] = React.useState<boolean>(false);
 
@@ -240,7 +248,10 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
 
       {/* PDF Export Upgrade Gate Modal */}
       {showPdfGateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowPdfGateModal(false); }}
+        >
           <div className="bg-[#141414] border border-white/20 rounded-2xl w-full max-w-md p-6 sm:p-8 flex flex-col gap-5 shadow-2xl relative">
             <button
               onClick={() => setShowPdfGateModal(false)}

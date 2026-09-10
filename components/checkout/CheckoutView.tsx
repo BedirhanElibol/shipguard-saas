@@ -57,11 +57,31 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [activeLicenseKey, setActiveLicenseKey] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
 
-  // Sync user state from props or localStorage
+  const cleanupAuthQueryParam = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cleanUrl = new URL(window.location.href);
+        if (cleanUrl.searchParams.has('auth')) {
+          cleanUrl.searchParams.delete('auth');
+          const newUrl = cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : '') + cleanUrl.hash;
+          window.history.replaceState({}, '', newUrl);
+        }
+      } catch {
+        // Ignore URL parsing errors
+      }
+    }
+  };
+
+  // Sync user state reactively from props
   useEffect(() => {
     if (user !== undefined) {
       setCurrentUser(user);
-    } else {
+    }
+  }, [user]);
+
+  // Initial fallback to storage when rendered standalone without user prop
+  useEffect(() => {
+    if (user === undefined) {
       try {
         let saved = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
         if (!saved && typeof document !== 'undefined') {
@@ -80,7 +100,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         console.warn('[CheckoutView] Failed to read user from storage:', err);
       }
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -667,11 +687,15 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
       {/* Auth Modal for Unauthenticated Checkout Guests */}
       <AuthModal
-        isOpen={isInternalAuthModalOpen}
-        onClose={() => setIsInternalAuthModalOpen(false)}
+        isOpen={isInternalAuthModalOpen && !currentUser?.isLoggedIn}
+        onClose={() => {
+          setIsInternalAuthModalOpen(false);
+          cleanupAuthQueryParam();
+        }}
         onLoginSuccess={(authedUser) => {
           setCurrentUser(authedUser);
           setIsInternalAuthModalOpen(false);
+          cleanupAuthQueryParam();
           try {
             localStorage.setItem('zelsis_user', JSON.stringify(authedUser));
             localStorage.removeItem('shipguard_user');

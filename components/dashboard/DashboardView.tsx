@@ -17,7 +17,7 @@ import { GateStatusBanner } from './GateStatusBanner';
 import { DemoShowcaseBanner } from '../OverviewView';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
 import confetti from 'canvas-confetti';
-import { Play, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, Zap, Download, GitCompare, Bell, Sliders, Award, BookOpen, Server, ShieldAlert, MoreVertical } from 'lucide-react';
+import { Play, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, Zap, Download, GitCompare, Bell, Sliders, Award, BookOpen, Server, ShieldAlert, MoreVertical, Scale, Database } from 'lucide-react';
 
 interface DashboardViewProps {
   project: Project;
@@ -149,6 +149,22 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
           >
             <ShieldCheck size={13} className="text-white" />
             <span>Security Audit</span>
+          </button>
+
+          <button
+            onClick={() => onNavigatePillar('compliance')}
+            className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+          >
+            <Scale size={13} className="text-white" />
+            <span>Legal Gate</span>
+          </button>
+
+          <button
+            onClick={() => onNavigatePillar('infra')}
+            className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+          >
+            <Database size={13} className="text-white" />
+            <span>Infra Gate</span>
           </button>
 
           <button

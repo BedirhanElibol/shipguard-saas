@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ToastProvider } from '@/lib/toast';
+import { CookieBanner } from '@/components/CookieBanner';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -80,8 +81,6 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.webmanifest',
 };
-
-import { CookieBanner } from '@/components/CookieBanner';
 
 export default function RootLayout({
   children,

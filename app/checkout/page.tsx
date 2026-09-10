@@ -71,9 +71,11 @@ function CheckoutPageContent() {
         setUser(null);
         try {
           purgeZelsisStorage(true);
+          purgeShipguardStorage(true);
           if (typeof document !== 'undefined') {
-            document.cookie = 'zelsis_user=; path=/; max-age=0; SameSite=Lax';
-            document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `zelsis_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
+            document.cookie = `shipguard_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
           }
         } catch (e) {}
       }}

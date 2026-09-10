@@ -528,6 +528,22 @@ export function useDashboardState() {
     safeSetStorageItem('zelsis_selected_project_id', p.id);
   };
 
+  const handleDeleteProject = (projectId: string) => {
+    setProjects((prevProjects) => {
+      const updatedList = prevProjects.filter((p) => p.id !== projectId);
+      const fallbackList = updatedList.length > 0 ? updatedList : [MOCK_PROJECTS[0]];
+      persistProjectsList(fallbackList);
+
+      if (selectedProject.id === projectId) {
+        const nextSelected = fallbackList[0] || MOCK_PROJECTS[0];
+        setSelectedProject(nextSelected);
+        safeSetStorageItem('zelsis_selected_project_id', nextSelected.id);
+      }
+
+      return fallbackList;
+    });
+  };
+
   const handleToggleResolveFinding = (findingId: string) => {
     setProjects((prevProjects) => {
       let newlyUpdatedSelectedProj: Project | null = null;
@@ -669,6 +685,7 @@ export function useDashboardState() {
     setIsCheckoutOpen,
     persistProjectsList,
     handleSelectProject,
+    handleDeleteProject,
     handleToggleResolveFinding,
     handleAuthSubmit,
     handleSignOut,

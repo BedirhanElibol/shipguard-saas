@@ -28,6 +28,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   const [logSearchQuery, setLogSearchQuery] = useState<string>('');
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [countdownSeconds, setCountdownSeconds] = useState<number>(3);
+  const [scanFailureReason, setScanFailureReason] = useState<string | null>(null);
   const terminalLogsRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -96,6 +97,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       if (isLocalOrSelfAudit) {
         if (!canAccessLocalAudit()) {
           if (!isCancelled) {
+            setScanFailureReason('Local workspace self-audit is available only in local development.');
             setLogs([
               `[${new Date().toLocaleTimeString()}] ⛔ Local workspace self-audit is available only in local development.`,
               `[${new Date().toLocaleTimeString()}] 💡 Please select a public GitHub repository or live URL target to audit.`
@@ -136,6 +138,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
         } else {
           if (!isCancelled) {
+            setScanFailureReason(`Unable to reach target website "${project.repoUrl}". Verify the URL is live, accessible, and not blocking automated audits.`);
             setLogs((prev) => [
               ...prev,
               `[${new Date().toLocaleTimeString()}] ❌ Unable to reach target website "${project.repoUrl}".`,
@@ -171,6 +174,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
         } else {
           if (!isCancelled) {
+            setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT) in Settings.`);
             setLogs((prev) => [
               ...prev,
               `[${new Date().toLocaleTimeString()}] ❌ Unable to fetch files from GitHub repository "${project.repoUrl}".`,
@@ -421,22 +425,36 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                     </span>
                   </div>
                   <p className="text-sm font-bold text-[#EDEDED] mt-0.5">
-                    {(project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
+                    {scanFailureReason || ((project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
                       ? 'Local workspace self-audit is available only in local development.'
-                      : 'Audit execution was stopped before completion.'}
+                      : 'Audit execution was stopped before completion.')}
                   </p>
                 </div>
               </div>
 
-              <button
-                className="btn btn-secondary px-6 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 border border-white/10 hover:bg-white/10 text-white transition-all font-mono"
-                onClick={() => {
-                  hasCompletedRef.current = true;
-                  onCompleteScanRef.current();
-                }}
-              >
-                <span>Return to Dashboard</span>
-              </button>
+              <div className="flex items-center gap-3">
+                {scanFailureReason?.includes('Settings') && (
+                  <a
+                    href="/dashboard?nav=settings"
+                    className="btn btn-secondary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-all font-mono"
+                    onClick={() => {
+                      hasCompletedRef.current = true;
+                    }}
+                  >
+                    <span>Configure in Settings</span>
+                  </a>
+                )}
+
+                <button
+                  className="btn btn-secondary px-6 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 border border-white/10 hover:bg-white/10 text-white transition-all font-mono"
+                  onClick={() => {
+                    hasCompletedRef.current = true;
+                    onCompleteScanRef.current();
+                  }}
+                >
+                  <span>Return to Dashboard</span>
+                </button>
+              </div>
             </>
           )}
         </div>

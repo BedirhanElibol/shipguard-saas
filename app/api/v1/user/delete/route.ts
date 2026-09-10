@@ -21,42 +21,33 @@ export async function DELETE(req: NextRequest) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   try {
-    let userId: string | null = null;
-    let userEmail: string | null = null;
+    if (!token || !anonKey) {
+      return NextResponse.json({ error: 'Authentication token required for account deletion' }, { status: 401 });
+    }
 
-    if (token && anonKey) {
-      const userClient = createClient(supabaseUrl, anonKey, {
-        auth: { persistSession: false }
-      });
-      const { data: { user }, error: authErr } = await userClient.auth.getUser(token);
-      if (!authErr && user) {
-        userId = user.id;
-        userEmail = user.email || null;
+    const userClient = createClient(supabaseUrl, anonKey, {
+      auth: { persistSession: false }
+    });
+    const { data: { user }, error: authErr } = await userClient.auth.getUser(token);
+    if (authErr || !user) {
+      return NextResponse.json({ error: 'Invalid or expired authentication session' }, { status: 401 });
+    }
+
+    const userId = user.id;
+    const userEmail = user.email || null;
+
+    // Optional confirmation check from body
+    try {
+      const body = await req.json();
+      if (body?.confirmation && body.confirmation !== 'DELETE') {
+        return NextResponse.json({ error: 'Confirmation mismatch. Expected confirmation: DELETE' }, { status: 400 });
       }
-    }
+    } catch {}
 
-    if (!userId) {
-      try {
-        const body = await req.json();
-        if (body.confirmation === 'DELETE' && body.email) {
-          userEmail = body.email.toLowerCase().trim();
-        }
-      } catch {}
-    }
-
-    if (!userId && !userEmail) {
-      return NextResponse.json({ error: 'User authentication or confirmation required' }, { status: 400 });
-    }
-
-    logger.info(`[GDPR Erasure] Processing account deletion: ${userId || userEmail}`);
+    logger.info(`[GDPR Erasure] Processing verified account deletion for user ID: ${userId} (${userEmail || 'unknown email'})`);
 
     if (serviceRoleKey) {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      if (!userId && userEmail) {
-        const { data: listData } = await adminClient.auth.admin.listUsers();
-        const found = listData?.users?.find(u => u.email?.toLowerCase() === userEmail?.toLowerCase());
-        if (found) userId = found.id;
-      }
 
       if (userId) {
         await adminClient.from('findings').delete().eq('user_id', userId);

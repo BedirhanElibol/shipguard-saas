@@ -2,6 +2,19 @@
 import { Project, Finding } from '@/data/schema';
 
 /**
+ * Safe HTML Entity Escaping to eradicate Stored / DOM XSS in generated audit reports
+ */
+function escapeHtml(str: unknown): string {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
  * Executive Release Audit Report Exporter
  * Generates an official, printable B2B release gate audit document for clients and stakeholders.
  */
@@ -17,13 +30,15 @@ export function generateAuditPdfReport(project: Project) {
   const openFindings = (project?.findings || []).filter(f => f?.status === 'OPEN');
   const criticals = openFindings.filter(f => f?.severity === 'CRITICAL');
   const highs = openFindings.filter(f => f?.severity === 'HIGH');
+  const projectNameEscaped = escapeHtml(project?.name ?? 'Target Repository');
+  const gateStatusEscaped = escapeHtml(project?.gateStatus ?? 'PASSED');
 
   const reportHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Zelsis Release Audit Report — ${project?.name ?? 'Target Repository'}</title>
+  <title>Zelsis Release Audit Report — ${projectNameEscaped}</title>
   <style>
     body { font-family: 'Satoshi', -apple-system, sans-serif; background: #0a0a0a; color: #f5f3ef; padding: 40px; line-height: 1.6; }
     .header { border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
@@ -57,17 +72,17 @@ export function generateAuditPdfReport(project: Project) {
       <div style="color: #a1a1aa; font-size: 14px;">Official B2B Production Readiness Certificate</div>
     </div>
     <div class="status-badge ${(project?.gateStatus ?? 'PASSED') === 'PASSED' ? 'passed' : 'failed'}">
-      GATE STATUS: ${project?.gateStatus ?? 'PASSED'}
+      GATE STATUS: ${gateStatusEscaped}
     </div>
   </div>
 
   <div class="section">
     <h2>Project Metadata</h2>
     <div style="display: flex; gap: 40px; font-size: 14px;">
-      <div><strong>Project:</strong> ${project?.name ?? 'Untitled Project'}</div>
-      <div><strong>Framework:</strong> ${project?.framework ?? 'Next.js 15'}</div>
-      <div><strong>Repository:</strong> ${project?.repoUrl ?? 'Local Repository'}</div>
-      <div><strong>Audit Date:</strong> ${dateStr}</div>
+      <div><strong>Project:</strong> ${escapeHtml(project?.name ?? 'Untitled Project')}</div>
+      <div><strong>Framework:</strong> ${escapeHtml(project?.framework ?? 'Next.js 15')}</div>
+      <div><strong>Repository:</strong> ${escapeHtml(project?.repoUrl ?? 'Local Repository')}</div>
+      <div><strong>Audit Date:</strong> ${escapeHtml(dateStr)}</div>
     </div>
   </div>
 
@@ -92,12 +107,12 @@ export function generateAuditPdfReport(project: Project) {
     ${openFindings.map(f => `
       <div class="finding-card">
         <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px;">
-          <span>[${f?.severity ?? 'MEDIUM'}] ${f?.title ?? 'Audit Finding'}</span>
-          <span style="color: #a1a1aa;">${f?.filePath ?? 'Source File'} (${f?.lineRange ?? 'L1'})</span>
+          <span>[${escapeHtml(f?.severity ?? 'MEDIUM')}] ${escapeHtml(f?.title ?? 'Audit Finding')}</span>
+          <span style="color: #a1a1aa;">${escapeHtml(f?.filePath ?? 'Source File')} (${escapeHtml(f?.lineRange ?? 'L1')})</span>
         </div>
-        <div class="code">${f?.snippet ?? ''}</div>
+        <div class="code">${escapeHtml(f?.snippet ?? '')}</div>
         <div style="margin-top: 8px; font-size: 12px; color: #a1a1aa;">
-          <strong>Remediation:</strong> ${f?.remediationPrompt ?? ''}
+          <strong>Remediation:</strong> ${escapeHtml(f?.remediationPrompt ?? '')}
         </div>
       </div>
     `).join('')}

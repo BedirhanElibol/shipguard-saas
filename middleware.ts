@@ -56,7 +56,7 @@ function applySecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   res.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com; img-src 'self' data: https:; font-src 'self' data: https://api.fontshare.com https://cdn.fontshare.com; connect-src 'self' https://*.supabase.co https://api.polar.sh https://api.github.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com; img-src 'self' data: https:; font-src 'self' data: https://api.fontshare.com https://cdn.fontshare.com; connect-src 'self' https://*.supabase.co https://api.polar.sh https://api.github.com https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
   return res;
 }

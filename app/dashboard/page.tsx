@@ -57,6 +57,7 @@ function DashboardContent() {
     setIsCheckoutOpen,
     persistProjectsList,
     handleSelectProject,
+    handleDeleteProject,
     handleToggleResolveFinding,
     handleSignOut,
     handleUpdateUserProfile,
@@ -319,6 +320,7 @@ function DashboardContent() {
                   setActiveNav('dashboard');
                 }}
                 onAddNewProject={handleAddNewProject}
+                onDeleteProject={handleDeleteProject}
                 onTriggerScan={() => setIsScanning(true)}
                 user={user}
                 onOpenCheckout={() => handleOpenCheckoutModal()}

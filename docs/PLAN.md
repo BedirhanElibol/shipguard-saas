@@ -1,82 +1,95 @@
-# 🕵️‍♂️ SHIPGUARD / ZELSIS: COMPREHENSIVE INTERACTION, MODAL TRAP & STATE-MACHINE AUDIT MASTER PLAN
-## Version 10.0.0 — Comprehensive Flaw Eradication & Interactive Resilience
+# 🕵️‍♂️ SHIPGUARD / ZELSIS: BRUTAL HONESTY & DEEP DEFECT ERADICATION PLAN
+## Version 11.0.0 — Forensic Audit & Eradication of Flaws, Vulnerabilities & Placebo Controls
 
-> **Document Version:** 10.0.0-INTERACTION-TRAP-ERADICATION  
+> **Document Version:** 11.0.0-DEEP-DEFECT-ERADICATION  
 > **Status:** Phase 1 Master Architecture Plan (Sequential Planning Checkpoint)  
-> **Target User Query:** "/orchestrate find these types of bugs"  
-> **Author:** Master Orchestrator & Systems Architect  
-> **Language Standard:** Strict 100% Native English in code, documentation, and technical specs  
-> **Compliance Standard:** .agent/Project_Development_Guide.md (Zero AI Slop, WCAG 2.2 AA Accessibility, OWASP Top 10 Security Hardening)
+> **Target User Query:** "/orchestrate olan ve iyi şeyleri boşver kötülere bakalım onları araştırıp çözelim"  
+> **Author:** Master Orchestrator & Systems Security Architect  
+> **Language Standard:** Strict 100% Native English in code, documentation, and technical specs; Turkish in user-facing status messages.  
+> **Compliance Standard:** OWASP Top 10 2025, CWE-287, CWE-79, WCAG 2.2 AA, Zero AI Slop
 
 ---
 
-## 1. Forensic Audit: Discovered Interaction Bugs & Traps
+## 1. Forensic Audit: Discovered Flaws & Vulnerabilities (The "Bad Things")
 
-Through systematic AST analysis and state-machine inspection across all 24 routes and 45 components, we have identified **10 specific interaction bugs and traps** belonging to the exact same class of multi-step human interaction defects:
+In strict adherence to the directive (*"Ignore what works; inspect only defects, vulnerabilities, unhandled errors, and placebo UI"*), we conducted an end-to-end AST code audit across all endpoints, state machines, and components. Here are the **8 genuine, high-severity defects** identified:
 
-### 1.1 Modal & Drawer Traps (Missing Backdrop Click & Escape Dismissal)
-1. **`components/layout/ConnectTargetModal.tsx`**:
-   - *Bug:* The repository/target URL connection modal lacks backdrop click dismissal (`onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}`) and lacks a `keydown` Escape listener. Users clicking outside or pressing Escape are trapped.
-2. **`components/findings/BulkFixModal.tsx`**:
-   - *Bug:* The unified patch generator modal lacks backdrop click dismissal and lacks a `keydown` Escape listener.
-3. **`components/FeaturedWork.tsx`**:
-   - *Bug:* The case study preview modal on the landing page has an Escape listener but is missing the backdrop click dismissal handler on the outer overlay.
-4. **`components/ProjectsView.tsx`**:
-   - *Bug:* `isQuotaModalOpen` (Free Tier Project Limit Reached) modal has NO backdrop click handler and NO Escape key listener.
-5. **`components/VibeCareView.tsx`**:
-   - *Bug:* `showPdfGateModal` (White-Label PDF Certificate Gate) modal has NO backdrop click handler and NO Escape key listener.
-6. **`components/ProjectSettingsView.tsx`**:
-   - *Bug:* `isDeleteModalOpen` (GDPR Data Deletion Confirmation) modal has an Escape listener but is missing the backdrop click dismissal handler on the outer overlay.
-7. **`components/layout/Sidebar.tsx`**:
-   - *Bug:* Mobile drawer navigation menu has backdrop click, but lacks a window `Escape` key dismissal listener.
-8. **`components/Navbar.tsx`**:
-   - *Bug:* Mobile menu overlay on the landing page lacks a window `Escape` key dismissal listener.
-9. **`components/layout/Header.tsx`**:
-   - *Bug:* User Profile dropdown menu listens for `mousedown` outside, but lacks an `Escape` key listener for keyboard accessibility.
+### 🚨 VULN-01: Pre-Authentication Account Deletion & Destruction (CRITICAL)
+- **Location:** `app/api/v1/user/delete/route.ts` (lines 38–71)
+- **Defect:** If an unauthenticated attacker sends a request with `{ confirmation: "DELETE", email: "victim@example.com" }`, the endpoint does NOT require a verified Supabase JWT Bearer token. It executes `adminClient.auth.admin.deleteUser(userId)` and cascades deletions across `findings`, `scans`, `projects`, `subscriptions`, and `profiles`.
+- **Impact:** An attacker who knows any user's email can wipe their account and all data without passwords or session credentials.
 
-### 1.2 Countdown / Timer Deadlock in ScanRunnerView
-10. **`components/ScanRunnerView.tsx`**:
-    - *Bug:* After a scan completes, the banner displays `"Auto-opening report in {countdownSeconds}s..."` and counts down 3 -> 2 -> 1 -> 0. However, when `countdownSeconds === 0`, no effect actually invokes `onCompleteScanRef.current(scanResult)`. The UI remains stuck at `"Auto-opening report in 0s..."` indefinitely unless the user clicks the button manually.
+### 🚨 VULN-02: Stored / DOM XSS via Unescaped Printable HTML Report (HIGH)
+- **Location:** `lib/pdf-exporter.ts` (lines 21–111)
+- **Defect:** `generateAuditPdfReport(project)` interpolates `${f?.snippet ?? ''}`, `${f?.remediationPrompt ?? ''}`, `${f?.title ?? ''}`, and `${project?.name}` directly into raw HTML template literals before calling `window.open(url, '_blank')`.
+- **Impact:** Scanned source code containing `<script>` or event handlers (`<img src=x onerror=...>`) executes arbitrary JavaScript in the new window context.
 
-### 1.3 Nested AuthModal Isolation in CheckoutView
-11. **`components/checkout/CheckoutView.tsx`**:
-    - *Bug:* When used standalone, `CheckoutView` renders an internal `AuthModal` that lacks the double-guard `isOpen={isInternalAuthModalOpen && !currentUser?.isLoggedIn}` and does not clean up `?auth` parameters upon closing.
+### ⚠️ DEFECT-03: Impossible to Delete Individual Projects (Broken Feature / Missing Plumbing)
+- **Location:** `components/ProjectsView.tsx`, `hooks/useDashboardState.ts`, `app/dashboard/page.tsx`
+- **Defect:** `ProjectsView.tsx` defines an optional `onDeleteProject?: (id: string) => void` prop and renders a `<Trash2>` button only when `onDeleteProject` is provided. However, `app/dashboard/page.tsx` never passes `onDeleteProject`, and `useDashboardState.ts` does not implement or export `handleDeleteProject`.
+- **Impact:** Users who connect a test repository or mistype a repository URL are permanently trapped with that project; they cannot delete it without wiping their entire account in GDPR Danger Zone.
+
+### ⚠️ DEFECT-04: Project Settings State Desynchronization Trap (Stale Credentials Overwrite)
+- **Location:** `components/ProjectSettingsView.tsx` (lines 54–56)
+- **Defect:** `repoUrl` and `patToken` are initialized with `useState(project.repoUrl)` and `useState(project.githubToken)`. When the active project changes via Header or Sidebar, `ProjectSettingsView` has no `useEffect` syncing with `project`.
+- **Impact:** Switching projects and clicking "Save Settings" silently overwrites the newly selected project's repository URL and GitHub token with the previous project's credentials.
+
+### ⚠️ DEFECT-05: Corrupt Unified Git Patch Generation (`BulkFixModal.tsx`)
+- **Location:** `components/findings/BulkFixModal.tsx` (lines 44–70)
+- **Defect:** The exported bulk patch writes invalid unified diff headers (`// RULE [CRITICAL]: ...` and uncounted `@@ lineRange @@` without count markers) and completely ignores `f.diffPatch` (the actual validated unified diff generated by the AST engine).
+- **Impact:** Running `git apply` on the downloaded patch causes Git to fail with `fatal: corrupt patch at line ...`.
+
+### ⚠️ DEFECT-06: Placebo UI Controls in Sustainability & Lifecycle View (`VibeCareView.tsx`)
+- **Location:** `components/VibeCareView.tsx` (lines 48–76)
+- **Defect:** The four action buttons ("Run Live CVE Audit", "Test DR Restore", "Ping Endpoint", "Simulate Spend Alert") are pure `setTimeout` placebos with hardcoded fake responses and `Math.random()`.
+- **Impact:** Deceptive UI that gives a false sense of security without performing any real checks or real network calls.
+
+### ⚠️ DEFECT-07: CSP Violation on Raw GitHub Content Fetching (`middleware.ts`)
+- **Location:** `middleware.ts` (line 59)
+- **Defect:** Content Security Policy `connect-src` includes `https://api.github.com` but omits `https://raw.githubusercontent.com`.
+- **Impact:** When client-side scanner fallback attempts to fetch raw file contents from public repositories, the browser blocks the connection with a CSP violation.
+
+### ⚠️ DEFECT-08: Scanner Error Masking & Deadlock on Scan Failure (`ScanRunnerView.tsx`)
+- **Location:** `components/ScanRunnerView.tsx` (lines 141–182, 412–441)
+- **Defect:** When a scan fails (e.g. GitHub rate limit 403 or unreachable URL), the runner displays `"AUDIT RESTRICTED: Audit execution was stopped before completion"` and masks whether it was a 403 rate limit, a private repo, or a network timeout, leaving the user with no actionable retry or settings path.
 
 ---
 
 ## 2. Phase 2 Implementation Packages (Multi-Agent Roster)
 
-In strict compliance with the `/orchestrate` protocol (Minimum 3 specialized agents executing upon user approval):
+Upon user approval (`Y`), the following 4 specialized agents will execute in parallel:
 
-### Package 1: Modal & Overlay Universal Trap Eradication (`frontend-specialist`)
+### Package 1: Security Hardening & Auth Enforcement (`security-auditor`)
 - **Target Files:**
-  - `components/layout/ConnectTargetModal.tsx`
-  - `components/findings/BulkFixModal.tsx`
-  - `components/FeaturedWork.tsx`
-  - `components/ProjectsView.tsx`
-  - `components/VibeCareView.tsx`
-  - `components/ProjectSettingsView.tsx`
-  - `components/layout/Sidebar.tsx`
-  - `components/Navbar.tsx`
-  - `components/layout/Header.tsx`
+  - `app/api/v1/user/delete/route.ts`: Enforce strict Supabase JWT Bearer token authentication via `getUser(token)`. Reject unauthenticated deletion requests with 401 Unauthorized.
+  - `lib/pdf-exporter.ts`: Implement robust HTML entity escaping for all dynamic fields (`title`, `snippet`, `remediationPrompt`, `name`) to eradicate DOM XSS.
+  - `middleware.ts`: Add `https://raw.githubusercontent.com` to CSP `connect-src`.
 
-### Package 2: Scanner Timer Auto-Transition & State Hardening (`backend-specialist`)
+### Package 2: Project Management & State Integrity (`frontend-specialist`)
 - **Target Files:**
-  - `components/ScanRunnerView.tsx`
-  - `components/checkout/CheckoutView.tsx`
+  - `hooks/useDashboardState.ts`: Implement `handleDeleteProject(projectId: string)` with state cleanup and local storage persistence.
+  - `app/dashboard/page.tsx`: Pass `onDeleteProject={handleDeleteProject}` to `ProjectsView`.
+  - `components/ProjectSettingsView.tsx`: Add `useEffect` to synchronize `repoUrl` and `patToken` whenever `project.id` or `project.repoUrl` changes.
 
-### Package 3: Automated Simulation & Production Verification (`test-engineer`)
+### Package 3: Patch Generation, Scanner Diagnostics & Real Ops (`backend-specialist`)
+- **Target Files:**
+  - `components/findings/BulkFixModal.tsx`: Utilize `f.diffPatch` when available, and format valid unified diff syntax compatible with `git apply`.
+  - `components/ScanRunnerView.tsx`: Expose actionable failure diagnostics (`GitHub Rate Limit Exceeded`, `Private Repo Token Required`, `Domain Unreachable`) with a "Configure in Settings" button.
+  - `components/VibeCareView.tsx`: Replace fake placebos with real network latency pings (`fetch('/api/v1/badge')`) and live package audits.
+
+### Package 4: Automated Verification & Production Deployment (`test-engineer`)
 - **Target Actions:**
-  - Create and run `scratch/test_all_ux_traps.py`.
-  - TypeScript compilation (`npx tsc --noEmit`).
-  - Production build (`npm run build`).
-  - Synchronize to Desktop repo, commit, push to GitHub `origin main`, and verify live deployment on Vercel.
+  - Create comprehensive integration test `scratch/test_deep_defects.py`.
+  - Compile TypeScript with 0 errors (`npx tsc --noEmit`).
+  - Next.js production build (`npm run build`).
+  - Synchronize to Desktop repo (`C:\Users\Bedirhan\Desktop\newday`).
+  - Git commit & push to GitHub `origin main`.
+  - Verify live deployment on Vercel (`https://shipguard-saas.vercel.app`).
 
 ---
 
-## 3. Verification & Acceptance Criteria
-1. All modals, drawers, and popovers across the app must close on outside click and Escape key.
-2. The ScanRunnerView countdown must cleanly and automatically transition to the audit report when reaching 0.
-3. 100% Native English in code and commit messages.
-4. Clean TypeScript compilation (0 errors) and Next.js build (24/24 routes).
-5. Live production deployment verified.
+## 3. Sequential Approval Gate (Socratic Protocol)
+
+In accordance with `/orchestrate` Tier 0 Socratic Gate:
+- **Phase 1 Complete:** Deep flaw discovery and master plan synthesized.
+- **Action Required:** Await explicit user confirmation before modifying application code or spawning subagents.

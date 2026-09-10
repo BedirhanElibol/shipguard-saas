@@ -49,15 +49,27 @@ export const BulkFixModal: React.FC<BulkFixModalProps> = ({
 
 `;
 
-    selectedFindings.forEach((f, i) => {
-      patchContent += `--- a/${f.filePath}
+    selectedFindings.forEach((f) => {
+      if (f.diffPatch && f.diffPatch.includes('---') && f.diffPatch.includes('+++')) {
+        patchContent += f.diffPatch.trim() + '\n\n';
+      } else {
+        const rangeMatch = (f.lineRange || '').match(/(\d+)(?:-(\d+))?/);
+        const startLine = rangeMatch ? parseInt(rangeMatch[1], 10) : 1;
+        const endLine = rangeMatch && rangeMatch[2] ? parseInt(rangeMatch[2], 10) : startLine;
+        const lineCount = Math.max(1, endLine - startLine + 1);
+
+        const snippetLines = (f.snippet || '').split('\n');
+        const removedLines = snippetLines.map((l) => `-${l}`).join('\n');
+        const addedComment = `+// REMEDIATION [${f.severity} - ${f.title}]: ${f.remediationPrompt.replace(/\r?\n/g, ' ')}`;
+
+        patchContent += `--- a/${f.filePath}
 +++ b/${f.filePath}
-@@ ${f.lineRange} @@
-// RULE [${f.severity}]: ${f.title}
-- ${f.snippet}
-+ // REMEDIATION: ${f.remediationPrompt}
+@@ -${startLine},${lineCount} +${startLine},${lineCount} @@
+${removedLines}
+${addedComment}
 
 `;
+      }
     });
 
     const blob = new Blob([patchContent], { type: 'text/x-patch' });

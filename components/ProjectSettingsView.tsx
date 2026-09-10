@@ -55,6 +55,12 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const [patToken, setPatToken] = useState((project as any).githubToken || '');
   const [saved, setSaved] = useState(false);
 
+  // Synchronize form fields when selected project changes
+  useEffect(() => {
+    setRepoUrl(project.repoUrl || '');
+    setPatToken((project as any).githubToken || '');
+  }, [project.id, project.repoUrl, (project as any).githubToken]);
+
   // User Profile & Membership State
   const isAuthenticated = Boolean(user && user.isLoggedIn);
   const isGuest = !isAuthenticated;

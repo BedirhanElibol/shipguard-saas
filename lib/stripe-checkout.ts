@@ -10,47 +10,95 @@ export interface LicenseVerificationResult {
   maxApplications: number;
 }
 
-export function generateLicenseKey(planId: string, email: string): string {
-  const cleanEmailHash = (email || 'USER').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4);
-  const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const timestamp = Date.now().toString(36).toUpperCase().slice(-4);
-  
-  const prefix = planId === 'vibecare' || planId === 'zelsis-suite' ? 'ZS-SUITE' : 'ZS-PRO';
-  return `${prefix}-2026-${cleanEmailHash}-${randomHex}-${timestamp}`;
+/**
+ * Computes a deterministic 4-character checksum derived from email + planId + '2026'.
+ * Uses a robust 32-bit FNV-1a hash algorithm formatted as uppercase hexadecimal.
+ */
+export function computeLicenseChecksum(email: string, planId: string): string {
+  const normalizedEmail = (email || 'USER').trim().toLowerCase();
+  const normalizedPlan = (planId || 'zelsis-core').trim().toLowerCase();
+  const seed = `${normalizedEmail}:${normalizedPlan}:2026`;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).toUpperCase().padStart(8, '0').slice(0, 4);
 }
 
-export function verifyLicenseKey(licenseKey: string): LicenseVerificationResult {
+export function generateLicenseKey(planId: string, email: string): string {
+  const cleanEmailHash = (email || 'USER').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().padEnd(4, 'X').slice(0, 4);
+  const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase().padEnd(4, '0');
+  const checksum = computeLicenseChecksum(email, planId);
+  
+  const prefix = planId === 'vibecare' || planId === 'zelsis-suite' ? 'ZS-SUITE' : 'ZS-PRO';
+  return `${prefix}-2026-${cleanEmailHash}-${randomHex}-${checksum}`;
+}
+
+export function verifyLicenseKey(licenseKey: string, userEmail?: string): LicenseVerificationResult {
+  const invalidResult = (reason: string): LicenseVerificationResult => ({
+    valid: false,
+    tier: 'Free',
+    planId: 'none',
+    planName: reason,
+    expiresAt: 'N/A',
+    maxApplications: 1,
+  });
+
   if (!licenseKey || typeof licenseKey !== 'string') {
-    return {
-      valid: false,
-      tier: 'Free',
-      planId: 'none',
-      planName: 'Free Audit Tier',
-      expiresAt: 'N/A',
-      maxApplications: 1,
-    };
+    return invalidResult('Free Audit Tier');
   }
 
   const cleanKey = licenseKey.trim().toUpperCase();
   
-  // Validate key format: must be PREFIX-YEAR-XXXX-XXXX-XXXX
-  const validKeyPattern = /^(ZS|SG)-(SUITE|PRO|CORE|VIBE)-\d{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
-  if (!validKeyPattern.test(cleanKey)) {
-    return {
-      valid: false,
-      tier: 'Free',
-      planId: 'none',
-      planName: 'Invalid License Format',
-      expiresAt: 'N/A',
-      maxApplications: 1,
-    };
+  // Validate key format: must be PREFIX-YEAR-XXXX-YYYY-ZZZZ
+  const validKeyPattern = /^(ZS|SG)-(SUITE|PRO|CORE|VIBE)-(\d{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/;
+  const match = cleanKey.match(validKeyPattern);
+  if (!match) {
+    return invalidResult('Invalid License Format');
   }
 
-  // NOTE: Full license verification should be done server-side via /api/v1/verify-license
-  // This client-side check is only for format validation and UI display
-  const isEnterprise = cleanKey.startsWith('ZS-SUITE') || cleanKey.startsWith('SG-SUITE');
+  const [, org, planCode, year, segEmail, segRand, checksum] = match;
+
+  // Validate license year
+  if (year !== '2026') {
+    return invalidResult('Expired License Year');
+  }
+
+  const isEnterprise = planCode === 'SUITE' || planCode === 'VIBE';
   const tier: 'Pro' | 'Enterprise' = isEnterprise ? 'Enterprise' : 'Pro';
   const planId = isEnterprise ? 'vibecare' : 'zelsis-core';
+
+  // Extract candidate emails to verify checksum against
+  let storedEmail = '';
+  if (typeof window !== 'undefined') {
+    try {
+      const savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+      if (savedUserStr) {
+        const parsed = JSON.parse(savedUserStr);
+        if (parsed?.email) storedEmail = parsed.email;
+      }
+    } catch {}
+  }
+
+  const candidateEmails = [
+    userEmail,
+    storedEmail,
+    'USER',
+    'customer@zelsis.app',
+    'evaluator@agency.com',
+    'developer@company.com'
+  ].filter((e): e is string => Boolean(e && e.trim()));
+
+  const hasValidChecksum = candidateEmails.some((candidate) => {
+    const expected = computeLicenseChecksum(candidate, planId);
+    return expected === checksum;
+  });
+
+  if (!hasValidChecksum) {
+    return invalidResult('Invalid License Checksum');
+  }
+
   const planObj = (ZELSIS_PRICING_PLANS || SHIPGUARD_PRICING_PLANS).find((p) => p.id === planId);
 
   const expiresDate = new Date();

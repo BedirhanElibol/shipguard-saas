@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: 'Zelsis | Automated Codebase Security & Release Gate',
     description:
       'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
-    url: 'https://zelsis.com',
+    url: './',
     siteName: 'Zelsis',
     images: [
       {
@@ -90,6 +90,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark notranslate" translate="no" suppressHydrationWarning>
       <head>
+        <title>Zelsis | Automated Codebase Security &amp; Release Gate</title>
+        <meta name="description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
+        <meta property="og:title" content="Zelsis | Automated Codebase Security &amp; Release Gate" />
+        <meta property="og:description" content="Prove your application is secure, polished, and ready for production before launch." />
         {/* Fontshare CDN for Satoshi Font */}
         <link
           rel="preconnect"

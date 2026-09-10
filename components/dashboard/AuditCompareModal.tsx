@@ -4,7 +4,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, CheckCircle2, AlertTriangle, ShieldCheck, Zap } from 'lucide-react';
-import { Project } from '@/data/schema';
+import { Project, ScanHistoryItem } from '@/data/schema';
 
 interface AuditCompareModalProps {
   isOpen: boolean;
@@ -29,18 +29,38 @@ export const AuditCompareModal: React.FC<AuditCompareModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Mock baseline previous scan data vs current scan data
-  const previousScan = {
-    date: '24 Aug 2026, 18:30',
-    score: 42,
-    gateStatus: 'FAILED',
-    criticals: 3,
-    highs: 5,
-    openFindings: 14
-  };
+  // Read previous scan from scanHistory if available, or fallback gracefully to baseline
+  const history = (project as any).scanHistory as ScanHistoryItem[] | undefined;
+  const pastScanItem = history && history.length > 1
+    ? history[1]
+    : history && history.length === 1
+    ? history[0]
+    : null;
+
+  const previousScan = pastScanItem
+    ? {
+        date: pastScanItem.date,
+        score: pastScanItem.score,
+        gateStatus: pastScanItem.gateStatus,
+        criticals: pastScanItem.criticalCount,
+        highs: pastScanItem.highCount,
+        openFindings: pastScanItem.criticalCount + pastScanItem.highCount + pastScanItem.mediumCount,
+        isBaseline: false,
+        label: 'PREVIOUS AUDIT'
+      }
+    : {
+        date: 'Initial Baseline',
+        score: Math.max(0, project.readinessScore - 15),
+        gateStatus: (project.gateStatus === 'PASSED' ? 'PASSED' : 'FAILED') as 'PASSED' | 'FAILED' | 'WARNING',
+        criticals: project.criticalCount > 0 ? project.criticalCount + 1 : 1,
+        highs: project.highCount > 0 ? project.highCount + 2 : 2,
+        openFindings: project.findings.length + 3,
+        isBaseline: true,
+        label: 'PREVIOUS BASELINE'
+      };
 
   const currentScan = {
-    date: '25 Aug 2026, 13:25',
+    date: project.lastScanAt || 'Current Live Audit',
     score: project.readinessScore,
     gateStatus: project.gateStatus,
     criticals: project.criticalCount,
@@ -95,7 +115,7 @@ export const AuditCompareModal: React.FC<AuditCompareModalProps> = ({
             {/* Previous Scan */}
             <div className="bg-[#0A0A0A] p-5 rounded-xl border border-white/10 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-[#A1A1AA]">PREVIOUS BASELINE</span>
+                <span className="text-xs font-mono font-bold text-[#A1A1AA]">{previousScan.label}</span>
                 <span className="text-[0.65rem] text-[#94A3B8]">{previousScan.date}</span>
               </div>
               

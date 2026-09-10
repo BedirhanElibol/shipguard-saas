@@ -1,57 +1,78 @@
-# 🕵️‍♂️ SHIPGUARD / ZELSIS: BRUTAL HONESTY & DEEP DEFECT ERADICATION PLAN
-## Version 11.0.0 — Forensic Audit & Eradication of Flaws, Vulnerabilities & Placebo Controls
+# 🕵️‍♂️ SHIPGUARD / ZELSIS: FORENSIC AUDIT & DEEP DEFECT ERADICATION PLAN
+## Version 12.0.0 — Forensic Audit & Eradication of Flaws, Vulnerabilities & Placebo Controls (Round 2)
 
-> **Document Version:** 11.0.0-DEEP-DEFECT-ERADICATION  
+> **Document Version:** 12.0.0-DEEP-DEFECT-ERADICATION  
 > **Status:** Phase 1 Master Architecture Plan (Sequential Planning Checkpoint)  
-> **Target User Query:** "/orchestrate olan ve iyi şeyleri boşver kötülere bakalım onları araştırıp çözelim"  
+> **Target User Query:** "/orchestrate olan ve iyi şeyleri boşver kötülere bakalım onları araştırıp çözelim" & "/orchestrate devam et araştırmaya"  
 > **Author:** Master Orchestrator & Systems Security Architect  
 > **Language Standard:** Strict 100% Native English in code, documentation, and technical specs; Turkish in user-facing status messages.  
-> **Compliance Standard:** OWASP Top 10 2025, CWE-287, CWE-79, WCAG 2.2 AA, Zero AI Slop
+> **Compliance Standard:** OWASP Top 10 2025, CWE-287, CWE-918 (SSRF), CWE-200, WCAG 2.2 AA, Zero AI Slop
 
 ---
 
 ## 1. Forensic Audit: Discovered Flaws & Vulnerabilities (The "Bad Things")
 
-In strict adherence to the directive (*"Ignore what works; inspect only defects, vulnerabilities, unhandled errors, and placebo UI"*), we conducted an end-to-end AST code audit across all endpoints, state machines, and components. Here are the **8 genuine, high-severity defects** identified:
+In strict accordance with the user directive (*"Never mind the good and working things, let's look at the bad things, research them and solve them"*), we conducted an exhaustive forensic investigation across authentication flows, edge proxies, webhook receivers, background telemetry, and interactive modals. Here are the **10 genuine, high-severity defects** identified:
 
-### 🚨 VULN-01: Pre-Authentication Account Deletion & Destruction (CRITICAL)
-- **Location:** `app/api/v1/user/delete/route.ts` (lines 38–71)
-- **Defect:** If an unauthenticated attacker sends a request with `{ confirmation: "DELETE", email: "victim@example.com" }`, the endpoint does NOT require a verified Supabase JWT Bearer token. It executes `adminClient.auth.admin.deleteUser(userId)` and cascades deletions across `findings`, `scans`, `projects`, `subscriptions`, and `profiles`.
-- **Impact:** An attacker who knows any user's email can wipe their account and all data without passwords or session credentials.
+### 🚨 VULN-09: Unauthenticated Webhook Forgery in Polar Webhook Route (CRITICAL)
+- **Location:** `app/api/v1/polar-webhook/route.ts` (lines 19–45)
+- **Defect:** The webhook endpoint receives subscription lifecycle events (`subscription.created`, `subscription.updated`, `subscription.canceled`, `order.created`) and directly elevates or revokes user tiers in Supabase using `SUPABASE_SERVICE_ROLE_KEY`. However, it performs **zero HMAC signature verification**. `process.env.POLAR_WEBHOOK_SECRET` is never checked.
+- **Impact:** Any attacker on the internet can craft and POST a JSON payload to `/api/v1/polar-webhook` and grant themselves or any arbitrary account an instant Enterprise tier in the Supabase database.
+- **Remediation:** Implement standard HMAC-SHA256 signature verification matching Polar's webhook protocol (using `POLAR_WEBHOOK_SECRET`), reject unverified or spoofed requests with 401/403.
 
-### 🚨 VULN-02: Stored / DOM XSS via Unescaped Printable HTML Report (HIGH)
-- **Location:** `lib/pdf-exporter.ts` (lines 21–111)
-- **Defect:** `generateAuditPdfReport(project)` interpolates `${f?.snippet ?? ''}`, `${f?.remediationPrompt ?? ''}`, `${f?.title ?? ''}`, and `${project?.name}` directly into raw HTML template literals before calling `window.open(url, '_blank')`.
-- **Impact:** Scanned source code containing `<script>` or event handlers (`<img src=x onerror=...>`) executes arbitrary JavaScript in the new window context.
+### 🚨 VULN-10: Server-Side Request Forgery (SSRF) in Live Website Gate Check (CRITICAL)
+- **Location:** `app/api/v1/gate-check/route.ts` (lines 112–116) & `lib/website-scanner.ts` (lines 64–79)
+- **Defect:** When `POST /api/v1/gate-check` audits a web target (`isWebTarget`), it calls `fetchWebsiteAuditData(rawRepoUrl)` on the server. `isValidWebUrl` only checks if the string contains a dot and starts with http(s). Unlike `/api/v1/proxy`, `gate-check` does NOT validate the target against `validateSafeTargetUrl` (the SSRF guard).
+- **Impact:** An attacker can provide internal IPs (`127.0.0.1`, `169.254.169.254`, `10.0.0.1`, `metadata.google.internal`) to `/api/v1/gate-check`, forcing the serverless backend to request cloud metadata endpoints or private internal microservices.
+- **Remediation:** Enforce `validateSafeTargetUrl` in `gate-check` before invoking `fetchWebsiteAuditData`, returning 403 Forbidden on SSRF attempt.
 
-### ⚠️ DEFECT-03: Impossible to Delete Individual Projects (Broken Feature / Missing Plumbing)
-- **Location:** `components/ProjectsView.tsx`, `hooks/useDashboardState.ts`, `app/dashboard/page.tsx`
-- **Defect:** `ProjectsView.tsx` defines an optional `onDeleteProject?: (id: string) => void` prop and renders a `<Trash2>` button only when `onDeleteProject` is provided. However, `app/dashboard/page.tsx` never passes `onDeleteProject`, and `useDashboardState.ts` does not implement or export `handleDeleteProject`.
-- **Impact:** Users who connect a test repository or mistype a repository URL are permanently trapped with that project; they cannot delete it without wiping their entire account in GDPR Danger Zone.
+### 🚨 VULN-11: Data Leakage via Public Third-Party CORS Proxies & Placebo HTML (HIGH)
+- **Location:** `lib/website-scanner.ts` (lines 84–118)
+- **Defect:** If a direct fetch fails, `lib/website-scanner.ts` falls back to transmitting customer target URLs to public unverified proxy services (`api.allorigins.win` and `corsproxy.io`). Furthermore, if fetching fails completely, it fabricates a fake HTML document in memory and runs security audits on the fake document.
+- **Impact:** Leaks proprietary client deployment targets to untrusted third parties, and generates placebo findings on fake HTML when real sites are down.
+- **Remediation:** Completely remove public proxy fallbacks (`allorigins.win`, `corsproxy.io`). Use the hardened first-party `/api/v1/proxy` (with SSRF protection). If unreachable, report an authentic `UNREACHABLE_HOST` diagnostic error instead of fabricating fake HTML.
 
-### ⚠️ DEFECT-04: Project Settings State Desynchronization Trap (Stale Credentials Overwrite)
-- **Location:** `components/ProjectSettingsView.tsx` (lines 54–56)
-- **Defect:** `repoUrl` and `patToken` are initialized with `useState(project.repoUrl)` and `useState(project.githubToken)`. When the active project changes via Header or Sidebar, `ProjectSettingsView` has no `useEffect` syncing with `project`.
-- **Impact:** Switching projects and clicking "Save Settings" silently overwrites the newly selected project's repository URL and GitHub token with the previous project's credentials.
+### 🚨 VULN-12: Unauthenticated Subscription & Customer Email Enumeration (HIGH)
+- **Location:** `app/api/v1/subscription/sync/route.ts` (lines 24–45)
+- **Defect:** The sync route accepts `{ email: string }` without requiring an authenticated user session JWT. It queries Polar API and Supabase and returns the user's active tier and expiration date.
+- **Impact:** Anyone can run a dictionary attack or query arbitrary emails to enumerate which individuals are paid customers of the SaaS and inspect their renewal dates.
+- **Remediation:** Require a verified Supabase JWT Bearer token via `supabase.auth.getUser(token)`, ensuring callers can only query the subscription associated with their own verified account.
 
-### ⚠️ DEFECT-05: Corrupt Unified Git Patch Generation (`BulkFixModal.tsx`)
-- **Location:** `components/findings/BulkFixModal.tsx` (lines 44–70)
-- **Defect:** The exported bulk patch writes invalid unified diff headers (`// RULE [CRITICAL]: ...` and uncounted `@@ lineRange @@` without count markers) and completely ignores `f.diffPatch` (the actual validated unified diff generated by the AST engine).
-- **Impact:** Running `git apply` on the downloaded patch causes Git to fail with `fatal: corrupt patch at line ...`.
+### 🚨 VULN-13: Sliding-Window Rate Limiter Bypass via Spoofed Header (HIGH)
+- **Location:** `lib/rate-limiter.ts` (lines 53–70)
+- **Defect:** `getClientIp` reads `req.headers.get('x-client-ip')` first. Because `X-Client-IP` is an arbitrary client-settable HTTP request header, an attacker can supply random `X-Client-IP: 1.1.1.X` headers with each request, completely neutralizing the rate limiter on `/api/v1/gate-check`, `/api/v1/proxy`, and `/api/v1/badge`.
+- **Impact:** Unrestricted brute force and Denial of Service (DoS) vulnerability.
+- **Remediation:** Prioritize trusted edge proxy headers (`cf-connecting-ip`, `x-real-ip`, or `x-forwarded-for`) and ignore unverified client-sent `x-client-ip` headers.
 
-### ⚠️ DEFECT-06: Placebo UI Controls in Sustainability & Lifecycle View (`VibeCareView.tsx`)
-- **Location:** `components/VibeCareView.tsx` (lines 48–76)
-- **Defect:** The four action buttons ("Run Live CVE Audit", "Test DR Restore", "Ping Endpoint", "Simulate Spend Alert") are pure `setTimeout` placebos with hardcoded fake responses and `Math.random()`.
-- **Impact:** Deceptive UI that gives a false sense of security without performing any real checks or real network calls.
+### ⚠️ DEFECT-14: Placebo License Key Generation & Client-Side Bypass Trap (MEDIUM)
+- **Location:** `lib/stripe-checkout.ts` (lines 34–67) & `components/checkout/CheckoutView.tsx` (lines 546–575)
+- **Defect:** `verifyLicenseKey` accepts ANY key matching a simple regex pattern as valid 1-year Pro/Enterprise without cryptographic checksum or server validation. In addition, `CheckoutView.tsx` exposes a public "Simulate Instant Upgrade" button on the live checkout page that calls `activateUserTier` without payment.
+- **Impact:** Any user can generate a fake key or click the instant sandbox button on production to gain Pro access for free.
+- **Remediation:** Gate the sandbox simulation button strictly to development mode (`process.env.NODE_ENV !== 'production'`), and implement cryptographic HMAC checksum verification for license keys.
 
-### ⚠️ DEFECT-07: CSP Violation on Raw GitHub Content Fetching (`middleware.ts`)
-- **Location:** `middleware.ts` (line 59)
-- **Defect:** Content Security Policy `connect-src` includes `https://api.github.com` but omits `https://raw.githubusercontent.com`.
-- **Impact:** When client-side scanner fallback attempts to fetch raw file contents from public repositories, the browser blocks the connection with a CSP violation.
+### ⚠️ DEFECT-15: Scan History Desynchronization & Placebo Baseline Audit Comparison (MEDIUM)
+- **Location:** `components/ScanHistoryView.tsx` (lines 18–55) & `components/dashboard/AuditCompareModal.tsx` (lines 32–40)
+- **Defect:** `ScanHistoryView` displays static hardcoded entries (`SCAN-8092`, `SCAN-8091`, `SCAN-8090`). Real scans completed in `ScanRunnerView` are never added to scan history. `AuditCompareModal` compares current audits against a hardcoded fake baseline from `24 Aug 2026, 18:30`.
+- **Impact:** Broken data plumbing; users cannot inspect their actual past audits or compare real sequential progress.
+- **Remediation:** Record real completed scans into project state (`scanHistory`), render authentic scan logs in `ScanHistoryView`, and dynamically compare against the true previous scan in `AuditCompareModal`.
 
-### ⚠️ DEFECT-08: Scanner Error Masking & Deadlock on Scan Failure (`ScanRunnerView.tsx`)
-- **Location:** `components/ScanRunnerView.tsx` (lines 141–182, 412–441)
-- **Defect:** When a scan fails (e.g. GitHub rate limit 403 or unreachable URL), the runner displays `"AUDIT RESTRICTED: Audit execution was stopped before completion"` and masks whether it was a 403 rate limit, a private repo, or a network timeout, leaving the user with no actionable retry or settings path.
+### ⚠️ DEFECT-16: CSP Violation & Hardcoded Fallback on Dashboard GeoIP Tracker (MEDIUM)
+- **Location:** `components/dashboard/GeoIpTracker.tsx` (lines 19–38) & `middleware.ts` (line 59)
+- **Defect:** `GeoIpTracker` attempts to fetch `https://get.geojs.io/v1/ip/geo.json`, but `https://get.geojs.io` is NOT in CSP `connect-src`. The browser blocks the request with a CSP error on every dashboard view, causing it to always drop into `.catch()` and display fake fallback data (`Frankfurt, Germany`).
+- **Impact:** Red CSP console error on dashboard load and 100% fake location telemetry.
+- **Remediation:** Provide an internal `/api/v1/geo` endpoint using edge request headers (`x-vercel-ip-country`, `x-vercel-ip-city`) or proxy the request securely without leaking client IP to third parties.
+
+### ⚠️ DEFECT-17: Client-Side Webhook Test Fails Due to Browser CORS & CSP (MEDIUM)
+- **Location:** `components/dashboard/NotificationSettingsModal.tsx` (lines 78–89) & `lib/notifications.ts` (lines 71, 108)
+- **Defect:** `NotificationSettingsModal` executes direct client-side `fetch()` to Slack and Discord webhook URLs. Slack webhook endpoints block browser CORS, and CSP blocks `hooks.slack.com`. The "Send Test Alert" button fails 100% of the time with `ERROR: Could not dispatch webhook`.
+- **Impact:** Users cannot test or verify notification integrations from the dashboard.
+- **Remediation:** Route test webhook dispatches through an internal server endpoint `/api/v1/test-webhook` with server-side fetch and SSRF protection.
+
+### ⚠️ DEFECT-18: Broken Preset & String Matching in Vulnerability Playground (LOW/POLISH)
+- **Location:** `components/dashboard/VulnerabilityPlayground.tsx` (lines 28–30, 39–53)
+- **Defect:** Preset #4 "Wildcard Access-Control-Allow-Origin" in `VulnerabilityPlayground` sets `origin: process.env.PRODUCTION_CLIENT_URL` instead of `origin: '*'`. Clicking the preset and running the scan reports `CLEAN CODE` instead of demonstrating the vulnerability.
+- **Impact:** Broken interactive demo that contradicts its own label.
+- **Remediation:** Fix the preset code snippet to `origin: '*'` and connect the sandbox runner to `runStaticCodeScan` for real AST analysis.
 
 ---
 
@@ -59,30 +80,36 @@ In strict adherence to the directive (*"Ignore what works; inspect only defects,
 
 Upon user approval (`Y`), the following 4 specialized agents will execute in parallel:
 
-### Package 1: Security Hardening & Auth Enforcement (`security-auditor`)
+### Package 1: Security & Webhook Hardening (`security-auditor`)
 - **Target Files:**
-  - `app/api/v1/user/delete/route.ts`: Enforce strict Supabase JWT Bearer token authentication via `getUser(token)`. Reject unauthenticated deletion requests with 401 Unauthorized.
-  - `lib/pdf-exporter.ts`: Implement robust HTML entity escaping for all dynamic fields (`title`, `snippet`, `remediationPrompt`, `name`) to eradicate DOM XSS.
-  - `middleware.ts`: Add `https://raw.githubusercontent.com` to CSP `connect-src`.
+  - `app/api/v1/polar-webhook/route.ts`: Implement HMAC-SHA256 signature verification using `POLAR_WEBHOOK_SECRET`. Reject forged or missing signatures with 401/403.
+  - `app/api/v1/gate-check/route.ts`: Add `validateSafeTargetUrl` SSRF protection before auditing website targets. Validate webhook URLs before running scans.
+  - `lib/rate-limiter.ts`: Prioritize trusted edge headers (`cf-connecting-ip`, `x-real-ip`, `x-forwarded-for`) over unverified client-supplied `x-client-ip`.
+  - `app/api/v1/subscription/sync/route.ts`: Enforce Supabase JWT Bearer token authentication to prevent email enumeration.
 
-### Package 2: Project Management & State Integrity (`frontend-specialist`)
+### Package 2: Scanner Integrity & Network Resilience (`backend-specialist`)
 - **Target Files:**
-  - `hooks/useDashboardState.ts`: Implement `handleDeleteProject(projectId: string)` with state cleanup and local storage persistence.
-  - `app/dashboard/page.tsx`: Pass `onDeleteProject={handleDeleteProject}` to `ProjectsView`.
-  - `components/ProjectSettingsView.tsx`: Add `useEffect` to synchronize `repoUrl` and `patToken` whenever `project.id` or `project.repoUrl` changes.
+  - `lib/website-scanner.ts`: Remove third-party public CORS proxies (`allorigins.win`, `corsproxy.io`). Rely exclusively on the hardened internal `/api/v1/proxy`. Eliminate fake HTML fallback and return honest diagnostic errors.
+  - `app/api/v1/geo/route.ts` [NEW]: Create edge-compatible geolocation endpoint reading Vercel geo headers (`x-vercel-ip-country`, `x-vercel-ip-city`, `x-real-ip`).
+  - `app/api/v1/test-webhook/route.ts` [NEW]: Create server-side test webhook dispatcher with SSRF validation to fix browser CORS/CSP blocks.
 
-### Package 3: Patch Generation, Scanner Diagnostics & Real Ops (`backend-specialist`)
+### Package 3: UI Truth, Data Plumbing & Sandbox Integrity (`frontend-specialist`)
 - **Target Files:**
-  - `components/findings/BulkFixModal.tsx`: Utilize `f.diffPatch` when available, and format valid unified diff syntax compatible with `git apply`.
-  - `components/ScanRunnerView.tsx`: Expose actionable failure diagnostics (`GitHub Rate Limit Exceeded`, `Private Repo Token Required`, `Domain Unreachable`) with a "Configure in Settings" button.
-  - `components/VibeCareView.tsx`: Replace fake placebos with real network latency pings (`fetch('/api/v1/badge')`) and live package audits.
+  - `components/checkout/CheckoutView.tsx`: Restrict instant sandbox upgrade button to non-production environments (`process.env.NODE_ENV !== 'production'`).
+  - `lib/stripe-checkout.ts`: Implement cryptographic HMAC checksum for license key generation and validation.
+  - `app/dashboard/page.tsx` & `hooks/useDashboardState.ts`: Record real scan executions into project `scanHistory`.
+  - `components/ScanHistoryView.tsx`: Render real historical scan records with live timestamps, scores, and gate statuses.
+  - `components/dashboard/AuditCompareModal.tsx`: Compare current audits against the authentic previous scan from history.
+  - `components/dashboard/GeoIpTracker.tsx`: Switch from `get.geojs.io` to `/api/v1/geo`.
+  - `components/dashboard/NotificationSettingsModal.tsx`: Dispatch test webhooks through `/api/v1/test-webhook`.
+  - `components/dashboard/VulnerabilityPlayground.tsx`: Fix wildcard CORS preset code and connect to real AST scanner engine.
 
 ### Package 4: Automated Verification & Production Deployment (`test-engineer`)
 - **Target Actions:**
-  - Create comprehensive integration test `scratch/test_deep_defects.py`.
-  - Compile TypeScript with 0 errors (`npx tsc --noEmit`).
-  - Next.js production build (`npm run build`).
-  - Synchronize to Desktop repo (`C:\Users\Bedirhan\Desktop\newday`).
+  - Create comprehensive integration test `scratch/test_v12_defects.py`.
+  - Verify TypeScript compiles with 0 errors (`npx tsc --noEmit`).
+  - Run Next.js production build (`npm run build`).
+  - Synchronize all changes to Desktop repo (`C:\Users\Bedirhan\Desktop\newday`).
   - Git commit & push to GitHub `origin main`.
   - Verify live deployment on Vercel (`https://shipguard-saas.vercel.app`).
 
@@ -91,5 +118,5 @@ Upon user approval (`Y`), the following 4 specialized agents will execute in par
 ## 3. Sequential Approval Gate (Socratic Protocol)
 
 In accordance with `/orchestrate` Tier 0 Socratic Gate:
-- **Phase 1 Complete:** Deep flaw discovery and master plan synthesized.
+- **Phase 1 Complete:** Forensic flaw discovery and Version 12.0.0 master plan synthesized.
 - **Action Required:** Await explicit user confirmation before modifying application code or spawning subagents.

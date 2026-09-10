@@ -1,6 +1,8 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { CodeFile } from './scanner-engine';
 
+import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
+
 export interface WebsiteAuditData {
   url: string;
   statusCode: number;
@@ -42,11 +44,11 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
   let headers: Record<string, string> = {};
   let usedProxy = false;
 
-  // 1. Internal First-Party Proxy Attempt (Browser environment)
+  // 1. Internal First-Party Hardened Proxy Attempt (Browser environment)
   if (typeof window !== 'undefined') {
     try {
       const internalProxyUrl = `/api/v1/proxy?url=${encodeURIComponent(formattedUrl)}`;
-      const proxyRes = await fetch(internalProxyUrl, { signal });
+      const proxyRes = await fetch(internalProxyUrl, { signal: signal || AbortSignal.timeout(10000) });
       if (proxyRes.ok) {
         const data = await proxyRes.json();
         if (data && data.content) {
@@ -58,11 +60,20 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
       }
     } catch (err) {
       if (signal?.aborted) return null;
+      console.warn(`Internal hardened proxy fetch failed for ${formattedUrl}:`, err);
     }
   }
 
-  // 2. Direct Fetch (Server environment or proxy fallback)
+  // 2. Direct Fetch (Server environment with SSRF check, or browser fallback)
   if (!htmlText) {
+    if (typeof window === 'undefined') {
+      const ssrfCheck = await validateSafeTargetUrl(formattedUrl);
+      if (!ssrfCheck.safe) {
+        console.warn(`[SSRF Guard Blocked] Target ${formattedUrl} rejected: ${ssrfCheck.reason}`);
+        return null;
+      }
+    }
+
     try {
       const res = await fetch(formattedUrl, {
         headers: {
@@ -79,42 +90,32 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
       htmlText = await res.text();
     } catch (directErr) {
       if (signal?.aborted) return null;
-      console.warn(`Direct fetch to ${formattedUrl} blocked by browser CORS. Attempting Multi-Proxy fallback resilience...`, directErr);
+      console.warn(`Direct fetch to ${formattedUrl} failed:`, directErr);
 
-      const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(formattedUrl)}`,
-        `https://corsproxy.io/?${encodeURIComponent(formattedUrl)}`
-      ];
-
-      for (const proxyUrl of proxies) {
+      // In browser environment, fallback to internal hardened proxy if not already used
+      if (typeof window !== 'undefined' && !usedProxy) {
         try {
-          const proxyRes = await fetch(proxyUrl, { signal });
+          const internalProxyUrl = `/api/v1/proxy?url=${encodeURIComponent(formattedUrl)}`;
+          const proxyRes = await fetch(internalProxyUrl, { signal: signal || AbortSignal.timeout(10000) });
           if (proxyRes.ok) {
-            htmlText = await proxyRes.text();
-            usedProxy = true;
-            break;
+            const data = await proxyRes.json();
+            if (data && data.content) {
+              htmlText = data.content;
+              statusCode = data.status || 200;
+              headers = data.headers || {};
+              usedProxy = true;
+            }
           }
-        } catch (proxyErr) {
+        } catch {
           if (signal?.aborted) return null;
-          console.warn(`Proxy ${proxyUrl} unreachable, trying next...`);
         }
       }
     }
   }
 
-  // Fallback representation if unreadable
+  // Return null if unreachable or fetching failed (no placebo HTML)
   if (!htmlText) {
-    htmlText = `<!DOCTYPE html>
-<html>
-<head>
-  <title>Live Web App Deployment — ${new URL(formattedUrl).hostname}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-  <h1>Live Web Target Audit: ${formattedUrl}</h1>
-  <p>Auditing live production endpoint for HTTP Security Headers, CORS, and Secret Token Leaks.</p>
-</body>
-</html>`;
+    return null;
   }
 
   // Check Missing Security Headers

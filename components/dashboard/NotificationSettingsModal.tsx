@@ -4,7 +4,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, Send, CheckCircle2, AlertCircle, Slack, Mail } from 'lucide-react';
-import { dispatchWebhookAlerts } from '@/lib/notifications';
 
 interface NotificationSettingsModalProps {
   isOpen: boolean;
@@ -63,28 +62,27 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
     setIsSending(true);
     setTestStatus(null);
 
-    const mockResult = {
-      score: 92,
-      gateStatus: 'PASSED' as const,
-      criticalCount: 0,
-      highCount: 1,
-      mediumCount: 2,
-      lowCount: 0,
-      uiClicheCount: 0,
-      findings: [],
-      logs: []
-    };
-
-    const res = await dispatchWebhookAlerts(projectName, repoUrl, mockResult, {
-      slackWebhookUrl: slackUrl,
-      discordWebhookUrl: discordUrl
-    });
-
-    setIsSending(false);
-    if (res.slackSent || res.discordSent) {
-      setTestStatus('SUCCESS: Test webhook alert dispatched successfully!');
-    } else {
-      setTestStatus('ERROR: Could not dispatch webhook. Verify the URL and CORS settings.');
+    try {
+      const res = await fetch('/api/v1/test-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slackWebhookUrl: slackUrl,
+          discordWebhookUrl: discordUrl,
+          projectName,
+          repoUrl
+        })
+      });
+      const data = await res.json();
+      setIsSending(false);
+      if (res.ok && (data.slackSent || data.discordSent)) {
+        setTestStatus('SUCCESS: Test webhook alert dispatched successfully via serverless proxy!');
+      } else {
+        setTestStatus(data.error || 'ERROR: Could not dispatch webhook. Verify the URL.');
+      }
+    } catch {
+      setIsSending(false);
+      setTestStatus('ERROR: Network error attempting to dispatch test webhook.');
     }
   };
 

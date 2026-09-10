@@ -48,12 +48,10 @@ function cleanupExpiredEntries(windowMs: number) {
 }
 
 /**
- * Extracts client IP securely from headers or fallback
+ * Extracts client IP securely from trusted reverse proxy headers or fallback.
+ * Prevents IP spoofing attacks by rejecting untrusted x-client-ip in production.
  */
 export function getClientIp(req: NextRequest): string {
-  const xClientIp = req.headers.get('x-client-ip');
-  if (xClientIp) return xClientIp.trim();
-
   const cfConnectingIp = req.headers.get('cf-connecting-ip');
   if (cfConnectingIp) return cfConnectingIp.trim();
 
@@ -64,6 +62,11 @@ export function getClientIp(req: NextRequest): string {
   if (xForwardedFor) {
     const firstIp = xForwardedFor.split(',')[0].trim();
     if (firstIp) return firstIp;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    const xClientIp = req.headers.get('x-client-ip');
+    if (xClientIp) return xClientIp.trim();
   }
 
   return '127.0.0.1';

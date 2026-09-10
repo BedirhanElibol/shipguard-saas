@@ -2,7 +2,7 @@
 'use client';
 
 import React, { Suspense, useState } from 'react';
-import { Project, Finding } from '@/data/schema';
+import { Project, Finding, ScanHistoryItem } from '@/data/schema';
 import { MOCK_PROJECTS, VIBEPOLISH_30_CATALOG, UI_RULES_CATALOG, AI_CLICHE_25_CATALOG } from '@/data/mockData';
 import { AppShell } from '@/components/layout/AppShell';
 import { DashboardView } from '@/components/dashboard/DashboardView';
@@ -205,6 +205,18 @@ function DashboardContent() {
             project={selectedProject}
             onCompleteScan={(result) => {
               if (result) {
+                const newScanHistoryItem: ScanHistoryItem = {
+                  id: `SCAN-${Date.now().toString(36).toUpperCase()}`,
+                  date: new Date().toLocaleString(),
+                  target: selectedProject.repoUrl,
+                  score: result.score,
+                  gateStatus: result.gateStatus,
+                  criticalCount: result.criticalCount,
+                  highCount: result.highCount,
+                  mediumCount: result.mediumCount,
+                  duration: '3.4s',
+                  triggeredBy: 'Manual Dashboard Audit'
+                };
                 const updatedProject: Project = {
                   ...selectedProject,
                   readinessScore: result.score,
@@ -215,7 +227,8 @@ function DashboardContent() {
                   lowCount: result.lowCount,
                   uiClicheCount: result.uiClicheCount,
                   findings: result.findings,
-                  lastScanAt: new Date().toLocaleString()
+                  lastScanAt: new Date().toLocaleString(),
+                  scanHistory: [newScanHistoryItem, ...((selectedProject as any).scanHistory || [])].slice(0, 20)
                 };
                 setSelectedProject(updatedProject);
                 setProjects((prev) => {

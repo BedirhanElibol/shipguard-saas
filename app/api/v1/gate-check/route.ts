@@ -9,6 +9,7 @@ import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GateCheckRequestSchema, validateRequestBody } from '@/lib/validations/api-schemas';
 import { logger } from '@/lib/logger';
 import { canAccessLocalAudit } from '@/lib/env-config';
+import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
 
 function isAllowedWebhookUrl(url: string): boolean {
   try {
@@ -73,6 +74,17 @@ export async function POST(req: NextRequest) {
     const body = validation.data;
     const rawRepoUrl = (body.repoUrl || body.targetUrl || '').trim();
 
+    // Early validation of webhook URLs to prevent SSRF and avoid wasting compute
+    const slackWebhookUrl = body.slackWebhookUrl || process.env.SLACK_WEBHOOK_URL;
+    const discordWebhookUrl = body.discordWebhookUrl || process.env.DISCORD_WEBHOOK_URL;
+
+    if (slackWebhookUrl && !isAllowedWebhookUrl(slackWebhookUrl)) {
+      return NextResponse.json({ error: 'Invalid Slack webhook URL' }, { status: 400 });
+    }
+    if (discordWebhookUrl && !isAllowedWebhookUrl(discordWebhookUrl)) {
+      return NextResponse.json({ error: 'Invalid Discord webhook URL' }, { status: 400 });
+    }
+
     const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
     const githubToken = (body.githubToken || authHeader || '').trim() || undefined;
 
@@ -110,6 +122,20 @@ export async function POST(req: NextRequest) {
       filesToScan = WORKSPACE_SOURCE_FILES;
       targetName = 'Zelsis Local Workspace';
     } else if (isWebTarget) {
+      const ssrfCheck = await validateSafeTargetUrl(rawRepoUrl);
+      if (!ssrfCheck.safe || !ssrfCheck.url) {
+        logger.warn(`[SSRF Blocked in Gate-Check] Prohibited target: ${rawRepoUrl} - Reason: ${ssrfCheck.reason}`);
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            gateStatus: 'FAILED',
+            error: `SSRF Protection Blocked Request: ${ssrfCheck.reason || 'Access to internal, private, or restricted network endpoints is forbidden.'}`,
+            timestamp: new Date().toISOString()
+          },
+          { status: 403 }
+        );
+      }
+
       logger.info(`[Gate Check] Initiating website audit for ${rawRepoUrl}`);
       const webData = await fetchWebsiteAuditData(rawRepoUrl);
       filesToScan = webData?.files || [];
@@ -124,17 +150,6 @@ export async function POST(req: NextRequest) {
     const result = runStaticCodeScan(filesToScan, targetName);
 
     // Auto-dispatch webhook notifications if URLs provided
-    const slackWebhookUrl = body.slackWebhookUrl || process.env.SLACK_WEBHOOK_URL;
-    const discordWebhookUrl = body.discordWebhookUrl || process.env.DISCORD_WEBHOOK_URL;
-    
-    // Validate webhook URLs to prevent SSRF
-    if (slackWebhookUrl && !isAllowedWebhookUrl(slackWebhookUrl)) {
-      return NextResponse.json({ error: 'Invalid Slack webhook URL' }, { status: 400 });
-    }
-    if (discordWebhookUrl && !isAllowedWebhookUrl(discordWebhookUrl)) {
-      return NextResponse.json({ error: 'Invalid Discord webhook URL' }, { status: 400 });
-    }
-
     if (slackWebhookUrl || discordWebhookUrl) {
       dispatchWebhookAlerts(targetName, rawRepoUrl, result, { slackWebhookUrl, discordWebhookUrl }).catch((err) =>
         logger.warn('[Webhook Auto-dispatch Error]:', err?.message)

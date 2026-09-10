@@ -215,11 +215,18 @@ export function useDashboardState() {
               // 3. Lazy Background Revalidation (Every 12 hours)
               const lastVerified = parsedUser.lastVerifiedAt || 0;
               if (email && (Date.now() - lastVerified > 12 * 60 * 60 * 1000)) {
-                fetch('/api/v1/subscription/sync', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email }),
-                })
+                const supabase = getSupabase();
+                supabase?.auth.getSession().then(({ data: { session } }) => {
+                  const token = session?.access_token;
+                  if (!token) return;
+                  fetch('/api/v1/subscription/sync', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ email }),
+                  })
                   .then((res) => res.ok ? res.json() : null)
                   .then((data) => {
                     if (data) {
@@ -240,6 +247,7 @@ export function useDashboardState() {
                     }
                   })
                   .catch(() => {});
+                }).catch(() => {});
               }
             }
           } catch (jsonErr) {
@@ -350,7 +358,7 @@ export function useDashboardState() {
     // 2. Sync active Supabase OAuth session with automatic Subscription Sync
     const syncSupabaseSession = async () => {
       try {
-        const { user: supabaseUser } = await supabaseGetSession();
+        const { user: supabaseUser, session } = await supabaseGetSession();
         if (supabaseUser) {
           const email = (supabaseUser.email || '').toLowerCase().trim();
 
@@ -374,11 +382,14 @@ export function useDashboardState() {
           }
 
           // If still Free, query the subscription sync API in background
-          if (resolvedTier === 'Free' && email) {
+          if (resolvedTier === 'Free' && email && session?.access_token) {
             try {
               const syncRes = await fetch('/api/v1/subscription/sync', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`
+                },
                 body: JSON.stringify({ email }),
               });
               if (syncRes.ok) {
@@ -434,11 +445,14 @@ export function useDashboardState() {
             } catch {}
           }
 
-          if (resolvedTier === 'Free' && profile.email) {
+          if (resolvedTier === 'Free' && profile.email && session?.access_token) {
             try {
               const syncRes = await fetch('/api/v1/subscription/sync', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`
+                },
                 body: JSON.stringify({ email: profile.email }),
               });
               if (syncRes.ok) {

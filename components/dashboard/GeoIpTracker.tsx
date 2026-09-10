@@ -16,14 +16,14 @@ export const GeoIpTracker: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://get.geojs.io/v1/ip/geo.json')
+    fetch('/api/v1/geo')
       .then((res) => res.json())
       .then((data) => {
         setGeoInfo({
           ip: data.ip || '127.0.0.1',
           country: data.country || 'Global Edge',
           city: data.city || 'Cloud Datacenter',
-          organization: data.organization_name || 'Autonomous System (AS15169)'
+          organization: data.organization_name || data.organization || 'Autonomous System (AS15169)'
         });
         setLoading(false);
       })
@@ -47,10 +47,10 @@ export const GeoIpTracker: React.FC = () => {
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-[#EDEDED]">
-              Public API #1: GeoJS Real-Time Network &amp; IP Inspector
+              Edge Network &amp; Client IP Inspector
             </h3>
             <p className="text-[0.68rem] text-[#94A3B8]">
-              Live client origin &amp; edge node telemetry via GeoJS REST API
+              Live client origin &amp; edge node telemetry via /api/v1/geo endpoint
             </p>
           </div>
         </div>
@@ -63,7 +63,7 @@ export const GeoIpTracker: React.FC = () => {
 
       {loading ? (
         <div className="text-xs text-[#94A3B8] font-mono italic">
-          Fetching live IP geolocation data from get.geojs.io...
+          Fetching live edge telemetry from /api/v1/geo...
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">

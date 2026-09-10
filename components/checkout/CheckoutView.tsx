@@ -543,36 +543,38 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Sandbox / Demo Simulator Section */}
-                  <div className="mt-6 p-5 rounded-xl bg-[#0A0A0A] border border-dashed border-white/20 flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <Terminal size={16} className="text-white" />
-                      <span className="text-xs font-mono font-bold uppercase text-white">
-                        Developer Demo &amp; Sandbox Simulator
-                      </span>
+                  {/* Sandbox / Demo Simulator Section (Non-production only) */}
+                  {process.env.NODE_ENV !== 'production' && (
+                    <div className="mt-6 p-5 rounded-xl bg-[#0A0A0A] border border-dashed border-white/20 flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <Terminal size={16} className="text-white" />
+                        <span className="text-xs font-mono font-bold uppercase text-white">
+                          Developer Demo &amp; Sandbox Simulator
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#A1A1AA] leading-relaxed">
+                        Evaluating Zelsis for your agency or team? Simulate an instant subscription upgrade and generate a valid local license key without payment.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleSimulateSandbox}
+                        disabled={!isAuthenticated || isAlreadySubscribedToSelectedPlan}
+                        className={`min-h-[44px] py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border transition-all font-mono ${
+                          !isAuthenticated || isAlreadySubscribedToSelectedPlan
+                            ? 'border-white/10 bg-white/5 text-[#71717A] cursor-not-allowed opacity-60'
+                            : 'btn btn-secondary border-white/20 hover:bg-white/10 text-white cursor-pointer'
+                        }`}
+                      >
+                        <span>
+                          {!isAuthenticated
+                            ? 'Sign In Required for Instant Upgrade'
+                            : isAlreadySubscribedToSelectedPlan
+                            ? `Already Active: ${selectedPlan.name}`
+                            : `Simulate Instant Upgrade (${selectedPlan.name})`}
+                        </span>
+                      </button>
                     </div>
-                    <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                      Evaluating Zelsis for your agency or team? Simulate an instant subscription upgrade and generate a valid local license key without payment.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleSimulateSandbox}
-                      disabled={!isAuthenticated || isAlreadySubscribedToSelectedPlan}
-                      className={`min-h-[44px] py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border transition-all font-mono ${
-                        !isAuthenticated || isAlreadySubscribedToSelectedPlan
-                          ? 'border-white/10 bg-white/5 text-[#71717A] cursor-not-allowed opacity-60'
-                          : 'btn btn-secondary border-white/20 hover:bg-white/10 text-white cursor-pointer'
-                      }`}
-                    >
-                      <span>
-                        {!isAuthenticated
-                          ? 'Sign In Required for Instant Upgrade'
-                          : isAlreadySubscribedToSelectedPlan
-                          ? `Already Active: ${selectedPlan.name}`
-                          : `Simulate Instant Upgrade (${selectedPlan.name})`}
-                      </span>
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

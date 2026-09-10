@@ -29,6 +29,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     <html lang="en" className="dark">
       <head>
         <title>Zelsis Release Gate - Application Error Encountered</title>
+        <meta name="description" content="Application error boundary diagnostics and recovery console." />
+        <meta property="og:title" content="Zelsis Release Gate - Application Error Encountered" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className="min-h-[100dvh] bg-[#0A0A0A] text-[#EDEDED] flex items-center justify-center p-4 sm:p-6 font-sans antialiased selection:bg-white/20 selection:text-white">

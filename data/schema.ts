@@ -24,6 +24,19 @@ export const FindingSchema = z.object({
   falsePositive: z.boolean().default(false),
 });
 
+export interface ScanHistoryItem {
+  id: string;
+  date: string;
+  target: string;
+  score: number;
+  gateStatus: 'PASSED' | 'FAILED' | 'WARNING';
+  criticalCount: number;
+  highCount: number;
+  mediumCount: number;
+  duration: string;
+  triggeredBy: string;
+}
+
 export const ProjectSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -41,6 +54,7 @@ export const ProjectSchema = z.object({
   lowCount: z.number(),
   uiClicheCount: z.number(),
   findings: z.array(FindingSchema),
+  scanHistory: z.array(z.any()).optional(),
 });
 
 export const SecurityRuleSchema = z.object({

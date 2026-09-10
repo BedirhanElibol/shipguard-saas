@@ -21,24 +21,64 @@ export async function POST(req: NextRequest) {
     return createRateLimitResponse(rateLimit);
   }
 
-  let body: any;
+  // 1. Enforce Supabase JWT Bearer token authentication
+  const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Authentication required to synchronize subscription status' },
+      { status: 401 }
+    );
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmenBheWRma215Y3J3dXhtemtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MTc5NzEsImV4cCI6MjEwMzQ5Mzk3MX0.MNtKjLI3mNmGIRmcirzwnGknw0VJy58A2noAnEZZKZA';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const polarAccessToken = process.env.POLAR_ACCESS_TOKEN;
+
+  const authClient = createClient(supabaseUrl, anonKey);
+  const { data: authData, error: authError } = await authClient.auth.getUser(token);
+
+  if (authError || !authData?.user) {
+    logger.warn('[Subscription Sync] Unauthorized attempt with invalid or expired token:', authError?.message);
+    return NextResponse.json(
+      { error: 'Authentication required to synchronize subscription status' },
+      { status: 401 }
+    );
+  }
+
+  const authenticatedEmail = authData.user.email?.toLowerCase().trim();
+  if (!authenticatedEmail) {
+    return NextResponse.json(
+      { error: 'Authentication required to synchronize subscription status' },
+      { status: 401 }
+    );
+  }
+
+  let body: any = {};
   try {
-    body = await req.json();
+    const rawText = await req.text();
+    if (rawText) {
+      body = JSON.parse(rawText);
+    }
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const email = (body.email || '').trim().toLowerCase();
+  const requestedEmail = (body?.email || '').trim().toLowerCase();
+  if (requestedEmail && requestedEmail !== authenticatedEmail) {
+    logger.warn(`[Subscription Sync] Email mismatch: authenticated user ${authenticatedEmail} requested ${requestedEmail}`);
+    return NextResponse.json(
+      { error: 'Forbidden: You can only query or synchronize your own subscription' },
+      { status: 403 }
+    );
+  }
+
+  const email = requestedEmail || authenticatedEmail;
   if (!email || !email.includes('@')) {
     return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
   }
 
   logger.info(`[Subscription Sync] Checking subscription for: ${email}`);
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const polarAccessToken = process.env.POLAR_ACCESS_TOKEN;
 
   let verifiedTier: 'Pro' | 'Enterprise' | 'Free' = 'Free';
   let isActive = false;

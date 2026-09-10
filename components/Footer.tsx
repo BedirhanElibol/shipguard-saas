@@ -17,13 +17,12 @@ export const Footer: React.FC = () => {
             Automated release gate for AI-built software applications. Pre-flight security clearance &amp; VibePolish design verification matrix.
           </p>
 
-          <a
-            href="mailto:contact@zelsis.com"
-            className="text-sm font-mono text-white hover:underline inline-flex items-center gap-1 mt-2"
+          <span
+            className="text-sm font-mono text-white inline-flex items-center gap-1 mt-2"
           >
             <span>contact@zelsis.com</span>
             <ArrowUpRight size={14} />
-          </a>
+          </span>
         </div>
 
         {/* Col 2: Navigation (3 cols) */}

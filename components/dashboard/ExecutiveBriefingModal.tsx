@@ -40,6 +40,7 @@ export const ExecutiveBriefingModal: React.FC<ExecutiveBriefingModalProps> = ({
   return (
     <AnimatePresence>
       <div
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
         role="dialog"
         aria-modal="true"

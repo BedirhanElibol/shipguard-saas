@@ -18,6 +18,15 @@ export const DeploymentManifestModal: React.FC<DeploymentManifestModalProps> = (
 }) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const safeProjectName = (projectName ?? 'Zelsis Project').toLowerCase().replace(/\s+/g, '-');
@@ -86,7 +95,10 @@ spec:
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+      <div
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+      >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

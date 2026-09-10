@@ -9,9 +9,16 @@ import { purgeZelsisStorage, safeSetStorageItem } from '@/lib/storage';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { useSearchParams } from 'next/navigation';
 
+const VALID_NAVS = [
+  'dashboard', 'projects', 'scans', 'security', 'compliance',
+  'infra', 'vibepolish', 'aicliche', 'aimaster', 'vibecare',
+  'cicd', 'remediation', 'checkout', 'settings'
+];
+
 export function useDashboardState() {
   const searchParams = useSearchParams();
-  const initialNav = searchParams.get('nav') || 'dashboard';
+  const rawNav = searchParams.get('nav');
+  const initialNav = rawNav && VALID_NAVS.includes(rawNav) ? rawNav : 'dashboard';
   const [activeNav, setActiveNav] = useState<string>(initialNav);
   const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
   const [selectedProject, setSelectedProject] = useState<Project>(MOCK_PROJECTS[0]);
@@ -38,7 +45,9 @@ export function useDashboardState() {
 
   useEffect(() => {
     const nav = searchParams.get('nav');
-    if (nav) setActiveNav(nav);
+    if (nav) {
+      setActiveNav(VALID_NAVS.includes(nav) ? nav : 'dashboard');
+    }
     const auth = searchParams.get('auth');
     if (auth === 'signin' || auth === 'signup') {
       const isCurrentLoggedIn = Boolean(user?.isLoggedIn);
@@ -504,7 +513,12 @@ export function useDashboardState() {
     }
   };
 
-  const handleSelectProject = (p: Project) => {
+  const handleSelectProject = (p?: Project | null) => {
+    if (!p) {
+      setSelectedProject(MOCK_PROJECTS[0]);
+      safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
+      return;
+    }
     if (!canAccessLocalAudit() && (p.repoUrl === 'local' || p.id === 'proj-zelsis-self' || p.id === 'proj-shipguard-self')) {
       setSelectedProject(MOCK_PROJECTS[0]);
       safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);

@@ -31,6 +31,33 @@ function CheckoutPageContent() {
   const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>('signin');
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && (window.location.search.includes('checkout_id') || window.location.search.includes('success='))) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('checkout_id');
+      cleanUrl.searchParams.delete('checkoutId');
+      cleanUrl.searchParams.delete('success');
+      window.history.replaceState({}, '', cleanUrl.toString());
+    }
+  }, []);
+
+  useEffect(() => {
+    const auth = searchParams.get('auth');
+    if (auth === 'signin' || auth === 'signup') {
+      if (user?.isLoggedIn) {
+        setIsAuthModalOpen(false);
+        if (typeof window !== 'undefined' && window.location.search.includes('auth')) {
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('auth');
+          window.history.replaceState({}, '', cleanUrl.toString());
+        }
+      } else {
+        setAuthInitialMode(auth);
+        setIsAuthModalOpen(true);
+      }
+    }
+  }, [searchParams, user]);
+
+  useEffect(() => {
     try {
       let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
       if (!savedUserStr && typeof document !== 'undefined') {
@@ -94,8 +121,15 @@ function CheckoutPageContent() {
       />
 
       <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
+        isOpen={isAuthModalOpen && !user?.isLoggedIn}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          if (typeof window !== 'undefined' && window.location.search.includes('auth')) {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('auth');
+            window.history.replaceState({}, '', cleanUrl.toString());
+          }
+        }}
         initialMode={authInitialMode}
         onLoginSuccess={(loggedUser) => {
           setUser(loggedUser);
@@ -108,6 +142,11 @@ function CheckoutPageContent() {
             }
           } catch (e) {}
           setIsAuthModalOpen(false);
+          if (typeof window !== 'undefined' && window.location.search.includes('auth')) {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('auth');
+            window.history.replaceState({}, '', cleanUrl.toString());
+          }
         }}
       />
     </AppShell>

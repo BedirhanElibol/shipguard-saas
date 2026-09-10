@@ -18,6 +18,15 @@ export const BadgeGeneratorModal: React.FC<BadgeGeneratorModalProps> = ({
 }) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const score = project.readinessScore ?? 100;
@@ -35,7 +44,10 @@ export const BadgeGeneratorModal: React.FC<BadgeGeneratorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+    >
       <div className="relative w-full max-w-xl max-h-[85vh] overflow-y-auto bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col gap-6 text-[#EDEDED]">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">

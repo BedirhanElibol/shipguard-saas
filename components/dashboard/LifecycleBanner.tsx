@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Calendar, ExternalLink, X } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
+import { getSubscriptionValidity } from '@/lib/subscription-utils';
 
 interface LifecycleBannerProps {
   user?: UserProfile | null;
@@ -18,9 +19,22 @@ export const LifecycleBanner: React.FC<LifecycleBannerProps> = ({ user }) => {
 
   // 1. Dunning / Grace Period Banner (Payment Failed)
   if (user.status === 'past_due') {
-    const graceDateStr = user.gracePeriodUntil
-      ? new Date(user.gracePeriodUntil).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      : 'in 3 days';
+    let graceDateStr = 'in 3 days';
+    if (user.gracePeriodUntil && typeof user.gracePeriodUntil === 'string') {
+      try {
+        const d = new Date(user.gracePeriodUntil.trim());
+        if (!isNaN(d.getTime())) {
+          graceDateStr = d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            timeZone: 'UTC',
+          });
+        }
+      } catch {
+        graceDateStr = 'in 3 days';
+      }
+    }
 
     return (
       <div className="w-full bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
@@ -56,20 +70,11 @@ export const LifecycleBanner: React.FC<LifecycleBannerProps> = ({ user }) => {
   }
 
   // 2. Renewal Notice Banner (3 days or less before expiration)
-  if (user.tier !== 'Free' && user.expiresAt) {
-    const expiryTime = new Date(user.expiresAt).getTime();
-    if (isNaN(expiryTime)) return null;
+  if (user.tier !== 'Free') {
+    const validity = getSubscriptionValidity(user);
 
-    const msLeft = expiryTime - Date.now();
-    const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
-
-    if (daysLeft <= 3 && daysLeft >= 0) {
-      const renewalDateStr = new Date(user.expiresAt).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      const timingText = daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`;
+    if (validity.daysRemaining !== null && validity.daysRemaining <= 3 && validity.daysRemaining >= 0 && !validity.isExpired) {
+      const timingText = validity.daysRemaining === 0 ? 'today' : validity.daysRemaining === 1 ? 'tomorrow' : `in ${validity.daysRemaining} days`;
 
       return (
         <div className="w-full bg-[#141414] border border-white/15 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
@@ -79,8 +84,8 @@ export const LifecycleBanner: React.FC<LifecycleBannerProps> = ({ user }) => {
             </div>
             <div className="text-xs text-[#CBD5E1]">
               <span className="font-bold text-white">Subscription Renewal: </span>
-              Your <span className="font-semibold text-white">{user.tier} Plan</span> will renew automatically on{' '}
-              <strong className="text-white font-mono">{renewalDateStr}</strong> ({timingText}).
+              Your <span className="font-semibold text-white">{validity.tier} Plan</span> will renew automatically on{' '}
+              <strong className="text-white font-mono">{validity.formattedRenewalDate}</strong> ({timingText}).
             </div>
           </div>
 

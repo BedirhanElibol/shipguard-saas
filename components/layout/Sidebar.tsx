@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
+import { getSubscriptionValidity } from '@/lib/subscription-utils';
 
 interface SidebarProps {
   activeNav: string;
@@ -157,49 +158,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </div>
   );
 
-  const renderFooter = () => (
-    <div className="pt-4 border-t border-white/10 mt-6">
-      {user && user.isLoggedIn ? (
-        <div className="p-2.5 rounded-xl bg-[#141414] border border-white/10 hover:border-white/20 transition-all flex items-center justify-between gap-2 shadow-sm">
-          <div
-            onClick={() => {
-              if (onCloseMobile) onCloseMobile();
-              if (onNavigateSettings) onNavigateSettings();
-              else onNavigate('settings');
-            }}
-            className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer select-none group"
-          >
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-white truncate leading-tight group-hover:text-emerald-400 transition-colors">
-                {user.name}
-              </div>
-              <div className="mt-0.5">
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
-                  user.tier === 'Free'
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                    : user.tier === 'Pro'
-                    ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
-                    : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
-                }`}>
-                  {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
-                </span>
+  const renderFooter = () => {
+    const validity = getSubscriptionValidity(user);
+
+    return (
+      <div className="pt-4 border-t border-white/10 mt-6">
+        {user && user.isLoggedIn ? (
+          <div className="p-2.5 rounded-xl bg-[#141414] border border-white/10 hover:border-white/20 transition-all flex items-center justify-between gap-2 shadow-sm">
+            <div
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                if (onNavigateSettings) onNavigateSettings();
+                else onNavigate('settings');
+              }}
+              className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer select-none group"
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-xs font-bold text-white truncate leading-tight group-hover:text-emerald-400 transition-colors">
+                  {user.name}
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
+                  <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                    user.tier === 'Free'
+                      ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                      : user.tier === 'Pro'
+                      ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
+                      : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                  }`}>
+                    {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
+                  </span>
+                  {user.tier !== 'Free' && (
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${validity.badgeColors.bg} ${validity.badgeColors.text} ${validity.badgeColors.border} border`}
+                      title={validity.countdownLabel}
+                    >
+                      {validity.compactLabel}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
           <button
             onClick={() => {
@@ -227,7 +239,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <>

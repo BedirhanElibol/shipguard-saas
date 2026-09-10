@@ -3,11 +3,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Project } from '@/data/schema';
-import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu } from 'lucide-react';
+import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { sanitizeTargetUrl } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
+import { getSubscriptionValidity } from '@/lib/subscription-utils';
 
 interface HeaderProps {
   projects: Project[];
@@ -42,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [activeTargetUrl, setActiveTargetUrl] = useState<string>(selectedProject.repoUrl);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const validity = getSubscriptionValidity(user);
 
   useEffect(() => {
     setActiveTargetUrl(selectedProject.repoUrl);
@@ -217,32 +219,98 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-[#141414] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs font-mono">
-                  <div className="px-3 py-2.5 border-b border-white/10 flex items-center gap-2.5">
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
-                      />
+                <div className="absolute right-0 mt-2 w-72 bg-[#141414] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs font-mono">
+                    <div className="px-3 py-2.5 border-b border-white/10 flex items-center gap-2.5">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-white truncate">{user.name}</div>
+                        <div className="text-[10px] text-[#A1A1AA] truncate">{user.email}</div>
+                      </div>
+                    </div>
+
+                    {/* Subscription Validity Card */}
+                    {validity.tier === 'Free' ? (
+                      <div className="px-3 py-2 bg-white/[0.03] rounded-lg my-1 border border-white/5 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[11px] font-bold text-white">Free Plan</span>
+                          </div>
+                          <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                            Active
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-[#A1A1AA] pt-1 border-t border-white/5">
+                          <span>Standard audit tier</span>
+                          {onOpenCheckout && (
+                            <button
+                              onClick={() => {
+                                setIsUserMenuOpen(false);
+                                onOpenCheckout();
+                              }}
+                              className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Zap size={10} className="fill-amber-400" />
+                              <span>Upgrade</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
-                        {user.name.charAt(0).toUpperCase()}
+                      <div className="p-3 bg-white/[0.03] rounded-lg my-1 border border-white/5 flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full ${validity.badgeColors.dot} ${validity.isActive ? 'animate-pulse' : ''}`} />
+                            <span className="text-[11px] font-bold text-white">{validity.tier} Plan</span>
+                          </div>
+                          <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${validity.badgeColors.bg} ${validity.badgeColors.text} ${validity.badgeColors.border}`}>
+                            {validity.countdownLabel}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px] text-[#A1A1AA]">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Calendar size={11} className="text-[#A1A1AA] shrink-0" />
+                            <span className="truncate">
+                              {validity.isExpired
+                                ? `Expired ${validity.formattedRenewalDate}`
+                                : `Renews ${validity.formattedRenewalDate} • Monthly Cycle`}
+                            </span>
+                          </div>
+                          <a
+                            href="https://polar.sh/purchases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium underline underline-offset-2 flex items-center gap-0.5 shrink-0 ml-1.5"
+                          >
+                            <span>Manage</span>
+                            <ExternalLink size={9} />
+                          </a>
+                        </div>
+
+                        {/* Subtle 2px cycle progress bar */}
+                        <div className="w-full bg-white/10 rounded-full h-0.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${validity.badgeColors.bar}`}
+                            style={{ width: `${validity.cycleProgressPercent}%` }}
+                            role="progressbar"
+                            aria-valuenow={validity.cycleProgressPercent}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                          />
+                        </div>
                       </div>
                     )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-white truncate">{user.name}</div>
-                      <div className="text-[10px] text-[#A1A1AA] truncate">{user.email}</div>
-                    </div>
-                  </div>
-
-                  <div className="px-3 py-2 bg-white/[0.03] rounded-lg my-1 flex items-center justify-between border border-white/5">
-                    <span className="text-[11px] text-[#A1A1AA]">Status:</span>
-                    <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      {user.tier === 'Free' ? 'Free Tier - Active' : `${user.tier} Plan - Active`}
-                    </span>
-                  </div>
 
                   {onOpenCheckout && (
                     <button

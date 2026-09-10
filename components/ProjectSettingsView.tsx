@@ -29,6 +29,7 @@ import { supabaseSignOut } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { verifyLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
 import { purgeZelsisStorage } from '@/lib/storage';
+import { getSubscriptionValidity, formatRenewalDate } from '@/lib/subscription-utils';
 
 interface ProjectSettingsViewProps {
   project: Project;
@@ -61,6 +62,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
   const [profileSaved, setProfileSaved] = useState(false);
+  const validity = getSubscriptionValidity(user);
 
   // Subscription Sync State
   const [isSyncingSub, setIsSyncingSub] = useState(false);
@@ -92,9 +94,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             onUpdateUser(updatedUser);
           }
           localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
-          const dateStr = data.expiresAt
-            ? new Date(data.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-            : 'Active';
+          const dateStr = formatRenewalDate(data.expiresAt);
           setSyncFeedback({
             status: 'success',
             message: `✓ Active ${data.tier} subscription confirmed! Renews / valid until: ${dateStr}`,
@@ -357,9 +357,9 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Active
+            <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${validity.badgeColors.bg} ${validity.badgeColors.border} ${validity.badgeColors.text}`}>
+              <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot} ${validity.isActive ? 'animate-pulse' : ''}`} />
+              {validity.isActive ? 'Active' : 'Expired'}
             </span>
           </div>
         </div>
@@ -382,29 +382,71 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                         : 'Free Tier'}
                     </span>
                     {user?.tier && user.tier !== 'Free' && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                        ACTIVE
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${validity.badgeColors.bg} ${validity.badgeColors.text} ${validity.badgeColors.border}`}>
+                        {validity.isActive ? 'ACTIVE' : 'EXPIRED'}
                       </span>
                     )}
                   </div>
-                  {user?.tier && user.tier !== 'Free' && (
-                    <div className="flex items-center gap-1.5 mt-1 text-xs text-[#A1A1AA]">
-                      <Calendar size={13} className="text-emerald-400 shrink-0" />
-                      <span>
-                        Renews / Valid until:{' '}
-                        <strong className="text-white font-mono">
-                          {user?.expiresAt
-                            ? new Date(user.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                            : 'Monthly Active'}
-                        </strong>
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
                   {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$49 / mo' : '$0 / Lifetime'}
                 </span>
               </div>
+
+              {/* Rich Renewal Widget */}
+              {user?.tier && user.tier !== 'Free' ? (
+                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot} ${validity.isActive ? 'animate-pulse' : ''}`} />
+                      <span className="text-lg font-mono font-extrabold text-white">
+                        {validity.countdownLabel}
+                      </span>
+                    </div>
+                    <a
+                      href="https://polar.sh/purchases"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center gap-1.5 transition-colors"
+                    >
+                      <span>Manage at Polar</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+
+                  {/* Visual billing cycle progress bar */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${validity.badgeColors.bar}`}
+                        style={{ width: `${validity.cycleProgressPercent}%` }}
+                        role="progressbar"
+                        aria-valuenow={validity.cycleProgressPercent}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar size={13} className="text-[#A1A1AA] shrink-0" />
+                        <span>
+                          {validity.isExpired
+                            ? `Expired on ${validity.formattedRenewalDate}`
+                            : `Renews on ${validity.formattedRenewalDate}`}
+                        </span>
+                      </div>
+                      <span className="font-mono text-[10px]">
+                        {validity.cycleProgressPercent}% Cycle Completed
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs text-[#A1A1AA]">
+                  <Calendar size={13} className="text-emerald-400 shrink-0" />
+                  <span>Free Tier &bull; Lifetime Access</span>
+                </div>
+              )}
 
               {/* Included Features List */}
               <div className="flex flex-col gap-2.5">

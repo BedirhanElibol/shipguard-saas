@@ -165,10 +165,23 @@ export function evaluateComplianceRules(
   // ---------------------------------------------------------------------------
   // COMPL-03 (Rule ID 2003): Dark Pattern Cookie Banner Prevention
   // ---------------------------------------------------------------------------
+  const isTestFile =
+    lowerPath.includes('/test/') ||
+    lowerPath.includes('/tests/') ||
+    lowerPath.includes('/spec/') ||
+    lowerPath.includes('/specs/') ||
+    lowerPath.includes('/__tests__/') ||
+    lowerPath.startsWith('test/') ||
+    lowerPath.startsWith('tests/') ||
+    lowerPath.startsWith('spec/') ||
+    /\.(test|spec)\.[a-zA-Z0-9]+$/i.test(lowerPath);
+
   const isCookieBannerComponent =
-    lowerPath.includes('cookie') ||
-    lowerPath.includes('consent') ||
-    /CookieBanner|ConsentModal|CookieConsent/i.test(cleanContent);
+    !isTestFile &&
+    (lowerPath.includes('cookie-banner') ||
+     lowerPath.includes('consent-modal') ||
+     lowerPath.includes('cookieconsent') ||
+     /CookieBanner|ConsentModal|CookieConsent/i.test(cleanContent));
 
   if (isCookieBannerComponent) {
     const hasAccept = /(?:accept|allow|agree)/i.test(cleanContent);

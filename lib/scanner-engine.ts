@@ -801,15 +801,17 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] 🧱 VIBEPOLISH UI-41: System prompt inflation detected (${file.path})`);
     }
 
-    // VibePolish UI-48: Dynamic Variable Injection Failures
-    if (/\{[a-zA-Z0-9_]+\}/.test(file.content) && !file.content.includes('??') && file.content.includes('template')) {
+    // VibePolish UI-48: Dynamic Variable Injection Failures (Exclude config files, dotfiles, test files)
+    const isConfigFileOrDotfile = lowerFilePath.includes('.vscode/') || lowerFilePath.includes('.github/') || lowerFilePath.endsWith('.json') || lowerFilePath.endsWith('.toml') || lowerFilePath.endsWith('.yaml') || lowerFilePath.endsWith('.yml');
+    const isTestOrDocFile = lowerFilePath.includes('/test/') || lowerFilePath.includes('/tests/') || lowerFilePath.includes('/spec/') || lowerFilePath.endsWith('.md') || lowerFilePath.endsWith('.mdx');
+    if (!isConfigFileOrDotfile && !isTestOrDocFile && /\{[a-zA-Z0-9_]+\}/.test(file.content) && !file.content.includes('??') && file.content.includes('template')) {
       const matchLineIdx = lines.findIndex(l => /\{[a-zA-Z0-9_]+\}/.test(l));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
       addFinding({
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 48,
         type: 'VIBEPOLISH',
-        title: 'UI-48: UI-48: Dynamic Variable Injection Missing Fallback',
+        title: 'UI-48: Dynamic Variable Injection Missing Fallback',
         severity: 'HIGH',
         category: 'Variables & Templates',
         filePath: file.path,
@@ -833,7 +835,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           id: `real-find-${Date.now()}-${findingCounter++}`,
           ruleId: 57,
           type: 'VIBEPOLISH',
-          title: 'UI-57: UI-57: Excessive Temperature Setting on Deterministic Task',
+          title: 'UI-57: Excessive Temperature Setting on Deterministic Task',
           severity: 'HIGH',
           category: 'Model Parameters',
           filePath: file.path,
@@ -857,7 +859,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 61,
         type: 'VIBEPOLISH',
-        title: 'UI-61: UI-61: Naive Fixed-Character Text Splitter',
+        title: 'UI-61: Naive Fixed-Character Text Splitter',
         severity: 'MEDIUM',
         category: 'RAG Architecture',
         filePath: file.path,
@@ -880,7 +882,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 75,
         type: 'VIBEPOLISH',
-        title: 'UI-75: UI-75: Unfiltered Multi-Tenant Vector Query',
+        title: 'UI-75: Unfiltered Multi-Tenant Vector Query',
         severity: 'CRITICAL',
         category: 'Metadata & Security',
         filePath: file.path,
@@ -904,7 +906,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           id: `real-find-${Date.now()}-${findingCounter++}`,
           ruleId: 76,
           type: 'VIBEPOLISH',
-          title: 'UI-76: UI-76: Missing RAG Hallucination Guardrail',
+          title: 'UI-76: Missing RAG Hallucination Guardrail',
           severity: 'HIGH',
           category: 'RAG Architecture',
           filePath: file.path,
@@ -929,7 +931,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           id: `real-find-${Date.now()}-${findingCounter++}`,
           ruleId: 85,
           type: 'VIBEPOLISH',
-          title: 'UI-85: UI-85: Destructive Agent Action Missing Human-in-the-Loop Approval',
+          title: 'UI-85: Destructive Agent Action Missing Human-in-the-Loop Approval',
           severity: 'CRITICAL',
           category: 'Security & Approvals',
           filePath: file.path,
@@ -953,7 +955,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 90,
         type: 'VIBEPOLISH',
-        title: 'UI-90: UI-90: Unredacted Sensitive Data in Tool Logs',
+        title: 'UI-90: Unredacted Sensitive Data in Tool Logs',
         severity: 'HIGH',
         category: 'Security & Approvals',
         filePath: file.path,
@@ -976,7 +978,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 100,
         type: 'VIBEPOLISH',
-        title: 'UI-100: UI-100: Missing Request AbortSignal Listener',
+        title: 'UI-100: Missing Request AbortSignal Listener',
         severity: 'MEDIUM',
         category: 'Execution & Sandbox',
         filePath: file.path,
@@ -1023,7 +1025,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 111,
         type: 'VIBEPOLISH',
-        title: 'UI-111: UI-111: TypeScript "any" Type Escape',
+        title: 'UI-111: TypeScript "any" Type Escape',
         severity: 'MEDIUM',
         category: 'TypeScript & Types',
         filePath: file.path,
@@ -1044,7 +1046,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 115,
         type: 'VIBEPOLISH',
-        title: 'UI-115: UI-115: Monolithic Overly Long Source File (>400 Lines)',
+        title: 'UI-115: Monolithic Overly Long Source File (>400 Lines)',
         severity: 'MEDIUM',
         category: 'Code Architecture',
         filePath: file.path,
@@ -1067,7 +1069,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 117,
         type: 'VIBEPOLISH',
-        title: 'UI-117: UI-117: Uncleaned Event Listener Memory Leak',
+        title: 'UI-117: Uncleaned Event Listener Memory Leak',
         severity: 'HIGH',
         category: 'Database & Performance',
         filePath: file.path,
@@ -1082,7 +1084,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: UI-117 Uncleaned event listener detected (${file.path}:${lineNum})`);
     }
 
-    // VibePolish UI-121: Streaming Olmadan Bekletmek (Non-streamed LLM Completion)
+    // VibePolish UI-121: Synchronous Non-Streaming LLM Completion
     if (file.content.includes('chat.completions.create') && !file.content.includes('stream: true') && !file.content.includes('json') && !file.content.includes('response_format')) {
       const matchLineIdx = lines.findIndex(l => l.includes('chat.completions.create'));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -1090,7 +1092,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 121,
         type: 'VIBEPOLISH',
-        title: 'UI-121: Streaming Olmadan Senkron Bekletme (Missing Stream: True)',
+        title: 'UI-121: Synchronous Non-Streaming LLM Completion (Missing Stream: True)',
         severity: 'HIGH',
         category: 'Streaming & Latency',
         filePath: file.path,
@@ -1113,7 +1115,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 134,
         type: 'VIBEPOLISH',
-        title: 'UI-134: UI-134: Unvirtualized Long List (Missing Virtual Scrolling)',
+        title: 'UI-134: Unvirtualized Long List (Missing Virtual Scrolling)',
         severity: 'MEDIUM',
         category: 'Frontend Performance',
         filePath: file.path,
@@ -1136,7 +1138,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 139,
         type: 'VIBEPOLISH',
-        title: 'UI-139: UI-139: Missing Request Cancellation AbortSignal Listener',
+        title: 'UI-139: Missing Request Cancellation AbortSignal Listener',
         severity: 'HIGH',
         category: 'Streaming & Latency',
         filePath: file.path,
@@ -1159,7 +1161,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 141,
         type: 'VIBEPOLISH',
-        title: 'UI-141: UI-141: Unbounded Token Consumption (Missing max_tokens Limit)',
+        title: 'UI-141: Unbounded Token Consumption (Missing max_tokens Limit)',
         severity: 'MEDIUM',
         category: 'Token Economy & Costs',
         filePath: file.path,
@@ -1182,7 +1184,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 143,
         type: 'VIBEPOLISH',
-        title: 'UI-143: UI-143: Unmonitored Per-User Token Spend & Quota',
+        title: 'UI-143: Unmonitored Per-User Token Spend & Quota',
         severity: 'HIGH',
         category: 'User Quotas & Credits',
         filePath: file.path,
@@ -1205,7 +1207,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 160,
         type: 'VIBEPOLISH',
-        title: 'UI-160: UI-160: Missing Automated Budget Circuit Breaker',
+        title: 'UI-160: Missing Automated Budget Circuit Breaker',
         severity: 'CRITICAL',
         category: 'FinOps & Circuit Breakers',
         filePath: file.path,
@@ -1229,7 +1231,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           id: `real-find-${Date.now()}-${findingCounter++}`,
           ruleId: 185,
           type: 'VIBEPOLISH',
-          title: 'UI-185: UI-185: Missing User Feedback Component',
+          title: 'UI-185: Missing User Feedback Component',
           severity: 'MEDIUM',
           category: 'User Feedback & AB Testing',
           filePath: file.path,
@@ -1254,7 +1256,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           id: `real-find-${Date.now()}-${findingCounter++}`,
           ruleId: 195,
           type: 'VIBEPOLISH',
-          title: 'UI-195: UI-195: Exposing Raw Hyper-parameters to End Users',
+          title: 'UI-195: Exposing Raw Hyper-parameters to End Users',
           severity: 'LOW',
           category: 'User Experience & Retention',
           filePath: file.path,
@@ -1385,7 +1387,20 @@ export function calculateReadinessScore(findings: Finding[]): number {
   const mediumCount = openFindings.filter((f) => f.severity === 'MEDIUM').length;
   const lowCount = openFindings.filter((f) => f.severity === 'LOW').length;
 
-  return Math.max(0, 100 - criticalCount * 30 - highCount * 15 - mediumCount * 5 - lowCount * 1);
+  // Critical blockers directly deplete production readiness
+  if (criticalCount > 0) {
+    const criticalDeduction = criticalCount * 25 + Math.min(30, highCount * 5) + Math.min(15, mediumCount * 2);
+    return Math.max(0, Math.round(100 - criticalDeduction));
+  }
+
+  // Non-blocking repositories (GateStatus = PASSED or WARNING)
+  // Bounded weighted deductions prevent score collapse on large multi-file codebases
+  const highDeduction = Math.min(40, highCount * 7);
+  const mediumDeduction = Math.min(25, mediumCount * 2);
+  const lowDeduction = Math.min(10, lowCount * 0.5);
+
+  const totalDeduction = highDeduction + mediumDeduction + lowDeduction;
+  return Math.max(25, Math.min(100, Math.round(100 - totalDeduction)));
 }
 
 export function calculateGateStatus(findings: Finding[]): 'PASSED' | 'WARNING' | 'FAILED' {

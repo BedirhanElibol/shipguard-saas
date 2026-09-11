@@ -67,41 +67,47 @@ export async function fetchGithubRepositoryData(
   const parsed = parseGithubUrl(repoUrl);
   if (!parsed) return null;
 
-  // 1. First-Party Server-Side Proxy Attempt (Prevents Browser 404 Console Errors)
-  try {
-    const proxyEndpoint = `/api/v1/github-proxy?repoUrl=${encodeURIComponent(repoUrl)}`;
-    const proxyHeaders: Record<string, string> = {};
-    if (token) {
-      proxyHeaders['Authorization'] = `Bearer ${token.trim()}`;
-    }
-    const proxyRes = await fetch(proxyEndpoint, { headers: proxyHeaders, signal });
-    if (proxyRes.ok) {
-      const data = await proxyRes.json();
-      if (data && data.files) {
-        return {
-          name: data.name || parsed.repo,
-          fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
-          description: data.description || 'GitHub Application Repository',
-          defaultBranch: data.defaultBranch || 'main',
-          stars: data.stars || 0,
-          language: data.language || 'TypeScript',
-          files: data.files
-        };
+  // 1. Browser Client Proxy Attempt (Runs only in browser where relative URLs resolve)
+  const isBrowser = typeof window !== 'undefined';
+  if (isBrowser) {
+    try {
+      const proxyEndpoint = `/api/v1/github-proxy?repoUrl=${encodeURIComponent(repoUrl)}`;
+      const proxyHeaders: Record<string, string> = {};
+      if (token) {
+        proxyHeaders['Authorization'] = `Bearer ${token.trim()}`;
       }
+      const proxyRes = await fetch(proxyEndpoint, { headers: proxyHeaders, signal });
+      if (proxyRes.ok) {
+        const data = await proxyRes.json();
+        if (data && data.files) {
+          return {
+            name: data.name || parsed.repo,
+            fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+            description: data.description || 'GitHub Application Repository',
+            defaultBranch: data.defaultBranch || 'main',
+            stars: data.stars || 0,
+            language: data.language || 'TypeScript',
+            files: data.files
+          };
+        }
+      }
+    } catch (err: any) {
+      if (signal?.aborted || err?.name === 'AbortError') return null;
     }
-  } catch (err: any) {
-    if (signal?.aborted || err?.name === 'AbortError') return null;
   }
 
-  // 2. Direct Fallback Attempt
+  // 2. Direct GitHub API Fetch (Server routes or client fallback)
   const { owner, repo } = parsed;
+  const serverToken = typeof process !== 'undefined' ? (process.env.GITHUB_TOKEN || process.env.GITHUB_PAT) : undefined;
+  const effectiveToken = token || serverToken;
+
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
     'User-Agent': 'Zelsis-AI-Release-Gate'
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token.trim()}`;
+  if (effectiveToken) {
+    headers['Authorization'] = `Bearer ${effectiveToken.trim()}`;
   }
 
   try {

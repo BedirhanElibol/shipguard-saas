@@ -61,9 +61,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 4. Secure Token Extraction: Read exclusively from Authorization header
+  // 4. Secure Token Extraction: Read from Authorization header or server environment fallback
   const authHeader = req.headers.get('authorization');
-  const token = authHeader?.replace(/^Bearer\s+/i, '').trim() || undefined;
+  const userToken = authHeader?.replace(/^Bearer\s+/i, '').trim() || undefined;
+  const serverToken = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || undefined;
+  const token = userToken || serverToken;
 
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
@@ -138,7 +140,7 @@ export async function GET(req: NextRequest) {
           !item.path.includes('.venv/') &&
           !item.path.includes('__pycache__/')
       )
-      .slice(0, 300);
+      .slice(0, 150);
 
     // Fetch raw file contents in parallel chunks from GitHub
     const CHUNK_SIZE = 25;

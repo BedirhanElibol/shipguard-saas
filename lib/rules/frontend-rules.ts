@@ -153,32 +153,39 @@ export function evaluateFrontendRules(
   const h1Matches = cleanContent.match(/<h1[\s>]/gi);
   const hasDuplicateH1 = !!h1Matches && h1Matches.length > 1;
 
-  const isLayoutOrPage =
-    lowerPath.endsWith('/layout.tsx') ||
-    lowerPath.endsWith('/layout.jsx') ||
-    lowerPath.endsWith('/page.tsx') ||
-    lowerPath.endsWith('/page.jsx') ||
-    lowerPath === 'layout.tsx' ||
-    lowerPath === 'page.tsx';
+  const isRootLayout =
+    lowerPath === 'app/layout.tsx' ||
+    lowerPath === 'app/layout.jsx' ||
+    lowerPath.endsWith('/app/layout.tsx') ||
+    lowerPath.endsWith('/app/layout.jsx') ||
+    lowerPath === 'src/app/layout.tsx' ||
+    lowerPath === 'src/app/layout.jsx' ||
+    lowerPath.endsWith('/src/app/layout.tsx') ||
+    lowerPath.endsWith('/src/app/layout.jsx') ||
+    lowerPath === 'pages/_app.tsx' ||
+    lowerPath === 'pages/_app.jsx' ||
+    lowerPath.endsWith('/pages/_app.tsx');
 
   let hasMissingSocialMeta = false;
-  if (isLayoutOrPage) {
-    const hasMetadataExport =
-      cleanContent.includes('export const metadata') ||
-      cleanContent.includes('export async function generateMetadata') ||
-      cleanContent.includes('export function generateMetadata');
+  const hasMetadataExport =
+    cleanContent.includes('export const metadata') ||
+    cleanContent.includes('export async function generateMetadata') ||
+    cleanContent.includes('export function generateMetadata');
 
-    if (hasMetadataExport) {
+  if (isRootLayout) {
+    if (!hasMetadataExport) {
+      hasMissingSocialMeta = true;
+    } else {
       const hasOpenGraph = cleanContent.includes('openGraph') || cleanContent.includes('og:image');
       const hasTwitter = cleanContent.includes('twitter') || cleanContent.includes('twitter:card');
       if (!hasOpenGraph || !hasTwitter) {
         hasMissingSocialMeta = true;
       }
-    } else if (
-      (lowerPath.endsWith('/layout.tsx') || lowerPath === 'layout.tsx') &&
-      !cleanContent.includes("'use client'") &&
-      !cleanContent.includes('"use client"')
-    ) {
+    }
+  } else if (hasMetadataExport) {
+    // Only flag if page explicitly defines metadata but has empty or broken metadata
+    const hasTitle = cleanContent.includes('title:') || cleanContent.includes('title :');
+    if (!hasTitle) {
       hasMissingSocialMeta = true;
     }
   }

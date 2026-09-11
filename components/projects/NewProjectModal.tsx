@@ -24,16 +24,24 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
     e.preventDefault();
     setUrlError('');
 
-    const fullUrl = repoUrl.startsWith('http') ? repoUrl : `https://${repoUrl}`;
-    if (!repoUrl || !isValidGithubUrl(fullUrl)) {
-      setUrlError('Invalid GitHub URL format. Please enter a valid repository URL (e.g. "github.com/owner/repo").');
+    let cleanUrl = repoUrl.trim();
+    if (/^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/.test(cleanUrl)) {
+      cleanUrl = `https://github.com/${cleanUrl}`;
+    } else if (cleanUrl.startsWith('github.com/')) {
+      cleanUrl = `https://${cleanUrl}`;
+    } else if (!cleanUrl.startsWith('http')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+
+    if (!cleanUrl || !isValidGithubUrl(cleanUrl)) {
+      setUrlError('Invalid GitHub URL format. Please enter a valid repository URL (e.g. "github.com/owner/repo" or "owner/repo").');
       return;
     }
 
     const newP: Project = {
       id: `proj-${Date.now()}`,
       name,
-      repoUrl,
+      repoUrl: cleanUrl,
       framework,
       providers: ['Supabase', 'Vercel'],
       lastScanAt: 'Just now',

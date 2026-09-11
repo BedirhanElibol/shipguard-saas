@@ -7,6 +7,7 @@ import { UserProfile } from '@/components/auth/AuthModal';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
 import { purgeZelsisStorage, safeSetStorageItem } from '@/lib/storage';
 import { canAccessLocalAudit } from '@/lib/env-config';
+import { verifyLicenseKey } from '@/lib/stripe-checkout';
 import { useSearchParams } from 'next/navigation';
 
 const VALID_NAVS = [
@@ -178,10 +179,20 @@ export function useDashboardState() {
               let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = parsedUser.tier || 'Free';
               let expiresAt: string | undefined = parsedUser.expiresAt;
 
-              // Expiry Check: If subscription validity period ended, automatically downgrade to Free
+              // License Key check: If valid license key exists, preserve Pro/Enterprise tier
+              const savedLicenseKey = localStorage.getItem('zelsis_license_key');
+              if (savedLicenseKey) {
+                const licResult = verifyLicenseKey(savedLicenseKey, email);
+                if (licResult.valid) {
+                  resolvedTier = licResult.tier;
+                  if (!expiresAt) expiresAt = licResult.expiresAt;
+                }
+              }
+
+              // Expiry Check: Only downgrade to Free if subscription period genuinely expired
               if (resolvedTier !== 'Free' && expiresAt) {
                 const expiryTime = new Date(expiresAt).getTime();
-                if (!isNaN(expiryTime) && Date.now() > expiryTime) {
+                if (!isNaN(expiryTime) && Date.now() > expiryTime && !savedLicenseKey) {
                   console.info('[Zelsis Subscription] Subscription expired on', expiresAt, '- downgrading to Free tier.');
                   resolvedTier = 'Free';
                   expiresAt = undefined;
@@ -232,7 +243,19 @@ export function useDashboardState() {
                     if (data) {
                       setUser((prev) => {
                         if (!prev || prev.email.toLowerCase() !== email) return prev;
-                        const syncTier = data.active && (data.tier === 'Pro' || data.tier === 'Enterprise') ? data.tier : 'Free';
+                        // Prevent false downgrades if local subscription is still active or valid license key exists
+                        const isLocallyValid = Boolean(
+                          prev.tier !== 'Free' &&
+                          prev.expiresAt &&
+                          new Date(prev.expiresAt).getTime() > Date.now()
+                        );
+                        const hasValidLic = Boolean(
+                          savedLicenseKey && verifyLicenseKey(savedLicenseKey, email).valid
+                        );
+                        const syncTier = data.active && (data.tier === 'Pro' || data.tier === 'Enterprise')
+                          ? data.tier
+                          : (isLocallyValid || hasValidLic ? prev.tier : 'Free');
+
                         const updated: UserProfile = {
                           ...prev,
                           tier: syncTier,
@@ -381,6 +404,15 @@ export function useDashboardState() {
             } catch {}
           }
 
+          const savedLic = localStorage.getItem('zelsis_license_key');
+          if (savedLic) {
+            const licCheck = verifyLicenseKey(savedLic, email);
+            if (licCheck.valid) {
+              resolvedTier = licCheck.tier;
+              if (!savedExpiresAt) savedExpiresAt = licCheck.expiresAt;
+            }
+          }
+
           // If still Free, query the subscription sync API in background
           if (resolvedTier === 'Free' && email && session?.access_token) {
             try {
@@ -434,6 +466,9 @@ export function useDashboardState() {
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
           let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = profile.tier || 'Free';
+          let savedExpiresAt: string | undefined = undefined;
+          let savedStatus: 'active' | 'past_due' | 'canceled' = 'active';
+          let savedGracePeriod: string | undefined = undefined;
 
           const savedUserStr = localStorage.getItem('zelsis_user');
           if (savedUserStr) {
@@ -442,7 +477,19 @@ export function useDashboardState() {
               if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
                 resolvedTier = localParsed.tier;
               }
+              savedExpiresAt = localParsed?.expiresAt;
+              savedStatus = localParsed?.status || 'active';
+              savedGracePeriod = localParsed?.gracePeriodUntil;
             } catch {}
+          }
+
+          const savedLic = localStorage.getItem('zelsis_license_key');
+          if (savedLic) {
+            const licCheck = verifyLicenseKey(savedLic, profile.email);
+            if (licCheck.valid) {
+              resolvedTier = licCheck.tier;
+              if (!savedExpiresAt) savedExpiresAt = licCheck.expiresAt;
+            }
           }
 
           if (resolvedTier === 'Free' && profile.email && session?.access_token) {
@@ -459,6 +506,9 @@ export function useDashboardState() {
                 const syncData = await syncRes.json();
                 if (syncData.active && (syncData.tier === 'Pro' || syncData.tier === 'Enterprise')) {
                   resolvedTier = syncData.tier;
+                  savedExpiresAt = syncData.expiresAt;
+                  savedStatus = syncData.status || 'active';
+                  savedGracePeriod = syncData.gracePeriodUntil;
                 }
               }
             } catch {}
@@ -467,6 +517,10 @@ export function useDashboardState() {
           const mergedProfile: UserProfile = {
             ...profile,
             tier: resolvedTier,
+            expiresAt: (profile as any).expiresAt || savedExpiresAt,
+            status: savedStatus,
+            gracePeriodUntil: savedGracePeriod,
+            lastVerifiedAt: Date.now(),
           };
 
           setUser(mergedProfile);

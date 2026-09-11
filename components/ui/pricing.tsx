@@ -20,13 +20,13 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
       <div className="text-center flex flex-col items-center gap-3">
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-xs font-mono font-bold uppercase tracking-wider">
           <ShieldCheck size={14} />
-          <span>B2B Release Gate Subscriptions</span>
+          <span>Release Gatekeeper Plans</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-[#EDEDED]">
-          Monetization &amp; Pricing Tiers
+          Simple, Predictable Pricing
         </h2>
         <p className="text-sm text-[#A1A1AA] max-w-xl">
-          Choose the release gate plan matching your project scale. Annual plans include a 20% discount and instant license keys.
+          Deploy with confidence. Start free with core AST checks, upgrade when your team needs automated release gating and compliance.
         </p>
 
         {/* Monthly / Annual Toggle Button */}

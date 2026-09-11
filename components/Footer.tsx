@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
           <span
             className="text-sm font-mono text-white inline-flex items-center gap-1 mt-2"
           >
-            <span>contact@shipguard.com</span>
+            <span>contact@zelsis.com</span>
             <ArrowUpRight size={14} />
           </span>
         </div>
@@ -44,7 +44,7 @@ export const Footer: React.FC = () => {
         {/* Col 3: SaaS Platform (4 cols) */}
         <div className="md:col-span-4 flex flex-col gap-3">
           <span className="text-xs font-bold text-[#EDEDED] tracking-widest uppercase mb-2 font-mono">
-            SHIPGUARD PLATFORM
+            ZELSIS PLATFORM
           </span>
           <a href="/dashboard" className="text-sm text-white hover:underline transition-colors font-mono">
             Launch Audit Engine →
@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#A1A1AA]">
         <div>
-          © 2026 ShipGuard. All rights reserved.
+          © 2026 Zelsis. All rights reserved.
         </div>
         <div className="flex flex-wrap gap-4 sm:gap-6">
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>

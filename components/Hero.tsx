@@ -345,29 +345,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
             </div>
           </div>
         </motion.div>
-
-        {/* Real Production Outcomes */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs font-mono text-[#A1A1AA]"
-        >
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-white font-bold">0 Production Vulnerabilities</span>
-          </span>
-          <span className="text-white/20">•</span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-white font-bold">100% Launch Clearance</span>
-          </span>
-          <span className="text-white/20">•</span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-            <span className="text-white font-bold">Zero Production Rollbacks</span>
-          </span>
-        </motion.div>
       </div>
     </section>
   );

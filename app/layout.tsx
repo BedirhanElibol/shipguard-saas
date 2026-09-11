@@ -30,13 +30,13 @@ function getMetadataBase(): URL {
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: {
-    default: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
-    template: '%s | ShipGuard',
+    default: 'Zelsis | Production Release Gate for Modern Web & Cloud Apps',
+    template: '%s | Zelsis',
   },
   description:
     'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
   keywords: [
-    'ShipGuard',
+    'Zelsis',
     'Release Gate',
     'Security Audit',
     'OWASP Security',
@@ -49,17 +49,17 @@ export const metadata: Metadata = {
     canonical: './',
   },
   openGraph: {
-    title: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
+    title: 'Zelsis | Production Release Gate for Modern Web & Cloud Apps',
     description:
       'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
     url: './',
-    siteName: 'ShipGuard',
+    siteName: 'Zelsis',
     images: [
       {
         url: '/zelsis-logo.svg',
         width: 1200,
         height: 630,
-        alt: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
+        alt: 'Zelsis | Production Release Gate for Modern Web & Cloud Apps',
       },
     ],
     locale: 'en_US',
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
+    title: 'Zelsis | Production Release Gate for Modern Web & Cloud Apps',
     description:
       'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
     images: ['/zelsis-logo.svg'],

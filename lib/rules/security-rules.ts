@@ -248,10 +248,10 @@ export function evaluateSecurityRules(
   }
 
   // Rule 21 / SEC-21 (SEC-LOG-01): Potential Secret or PII Log Leakage
-  const isCodeFile = /\.(?:tsx?|jsx?|mjs|cjs)$/i.test(file.path);
+  const isCodeFile = /\.(?:tsx?|jsx?|mjs|cjs|py|go|rs|php|cs|java|rb|cpp|c|h|hpp)$/i.test(file.path);
   if (isCodeFile && !lowerPath.endsWith('package.json')) {
-    const logCallRegex = /(?:console\.(?:log|error|warn|info|debug)|logger\.(?:info|error|warn|debug))\s*\(/i;
-    const sensitiveRegex = /(?:token|secret|password|passwd|apiKey|api[_-]?key|req\.headers(?:\.authorization)?|headers\.authorization|jwt|credit[_-]?card|card[_-]?number|cvv|ssn)\b/i;
+    const logCallRegex = /(?:console\.(?:log|error|warn|info|debug)|logger\.(?:info|error|warn|debug)|print|System\.out\.println)\s*\(/i;
+    const sensitiveVarRegex = /(?:\$\{[^}]*(?:[a-zA-Z0-9_]*(?:token|secret|password|passwd|apiKey|api_key|jwt)|authHeader)\b|(?:\+\s*|,\s*|:\s*)(?:[a-zA-Z0-9_.]+\.)?(?:[a-zA-Z0-9_]*(?:token|secret|password|passwd|apiKey|api_key|jwt)|authHeader)\b|\{\s*(?:[a-zA-Z0-9_]+(?::\s*[^,}]+)?,\s*)*(?:[a-zA-Z0-9_]*(?:token|secret|password|passwd|apiKey|api_key|jwt)|authHeader)\b|\(\s*(?:[a-zA-Z0-9_.]+\.)?(?:[a-zA-Z0-9_]*(?:token|secret|password|passwd|apiKey|api_key|jwt)|authHeader)\s*[\),]|(?:req\.headers(?:\.authorization)?|headers\[['"]authorization['"]\]))/i;
     const safeMaskRegex = /(?:mask|redact|hash|\[REDACTED\]|\*\*\*)/i;
 
     let logMatchesInFile = 0;
@@ -260,7 +260,7 @@ export function evaluateSecurityRules(
       const trimmed = line.trim();
       if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) continue;
 
-      if (logCallRegex.test(line) && sensitiveRegex.test(line) && !safeMaskRegex.test(line)) {
+      if (logCallRegex.test(line) && sensitiveVarRegex.test(line) && !safeMaskRegex.test(line)) {
         if (logMatchesInFile >= 5) break; // Cap per file to avoid telemetry flooding
         logMatchesInFile++;
 

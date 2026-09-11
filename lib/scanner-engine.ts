@@ -685,7 +685,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-11: Belirsiz AI spinner detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-11: Vague AI spinner detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-21: Cliché Fluff & Filler Prefaces

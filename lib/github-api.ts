@@ -137,13 +137,19 @@ export async function fetchGithubRepositoryData(
         .filter(
           (item) =>
             item.type === 'blob' &&
-            (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|zelsisignore|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)/i.test(item.path)) &&
+            (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|c|cpp|cc|cxx|h|hpp|java|kt|kts|go|rs|php|cs|rb|swift|md|mdx|zelsisignore|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)|((?:^|\/)(?:dockerfile|makefile)$)/i.test(item.path)) &&
             !item.path.includes('node_modules') &&
             !item.path.includes('.next') &&
             !item.path.includes('.git') &&
             !item.path.includes('vendor/') &&
             !item.path.includes('dist/') &&
-            !item.path.includes('build/')
+            !item.path.includes('build/') &&
+            !item.path.includes('.agent') &&
+            !item.path.includes('.antigravity') &&
+            !item.path.includes('artifacts') &&
+            !item.path.includes('venv/') &&
+            !item.path.includes('.venv/') &&
+            !item.path.includes('__pycache__/')
         )
         .slice(0, 150);
     }

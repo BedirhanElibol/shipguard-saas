@@ -107,10 +107,11 @@ export function evaluateFrontendRules(
   // b) UI-PERF-01 (Rule ID 1027: Core Web Vitals & Next.js Image Optimization)
   // =========================================================================
   const isJsxTsx = file.path.endsWith('.tsx') || file.path.endsWith('.jsx');
-  const hasRawImg = isJsxTsx && /<\s*img\b/i.test(cleanContent);
-  const hasHeavyBase64 = /data:image\/[a-zA-Z0-9+.-]+;base64,[a-zA-Z0-9+/=]{1000,}/i.test(cleanContent) || /data:image\/[^"'\s`]{1000,}/i.test(cleanContent);
+  const isHtml = file.path.endsWith('.html');
+  const hasRawImg = (isJsxTsx || isHtml) && /<\s*img\b/i.test(cleanContent);
+  const hasHeavyBase64 = (isJsxTsx || isHtml) && (/data:image\/[a-zA-Z0-9+.-]+;base64,[a-zA-Z0-9+/=]{1000,}/i.test(cleanContent) || /data:image\/[^"'\s`]{1000,}/i.test(cleanContent));
 
-  if (hasRawImg || hasHeavyBase64) {
+  if (!lowerPath.endsWith('.css') && (hasRawImg || hasHeavyBase64)) {
     let matchLineIdx = -1;
     if (hasHeavyBase64) {
       matchLineIdx = lines.findIndex(l => l.includes('data:image/') && l.length > 500);

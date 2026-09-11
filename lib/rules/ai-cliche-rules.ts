@@ -420,30 +420,37 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-15: Overloaded Fake Corporate Footer (5 Columns)
-  if (/footer/i.test(file.path) || /footer/i.test(cleanContent)) {
-    const linkCount = (cleanContent.match(/<a\s|<Link\s|href=/gi) || []).length;
-    if (linkCount > 15) {
-      findings.push({
-        id: `cliche-${Date.now()}-${findingCounter.count++}`,
-        ruleId: 215,
-        type: 'VIBEPOLISH',
-        title: 'CLICHE-15: Overloaded Fake Corporate Footer (5 Columns)',
-        severity: 'LOW',
-        category: 'AI Cliché & Navigation',
-        filePath: file.path,
-        lineRange: 'L1-L50',
-        snippet: `Footer contains ${linkCount} links — likely more than existing pages`,
-        reproductionSteps: [
-          `Scanned footer in ${file.path}.`,
-          `Detected ${linkCount} footer links — AI-generated sites often create links to pages that do not exist.`
-        ],
-        remediationPrompt: `Audit footer links in ${file.path}. Only link to pages that actually exist. Use a clean, functional 2-3 column footer.`,
-        status: 'OPEN',
-        owner: 'UI Architect',
-        falsePositive: false
-      });
-      logs.push(`[${ts}] 🎨 CLICHE-15: Overloaded footer (${linkCount} links) detected (${file.path})`);
+  let footerLinks = 0;
+  if (/footer/i.test(file.path)) {
+    footerLinks = (cleanContent.match(/<a\s|<Link\s|href=/gi) || []).length;
+  } else {
+    const footerMatch = cleanContent.match(/<footer[\s\S]*?<\/footer>/i) || cleanContent.match(/<(?:div|section)[^>]*(?:id|class)=["'][^"']*footer[^"']*["'][\s\S]*?<\/(?:div|section)>/i);
+    if (footerMatch) {
+      footerLinks = (footerMatch[0].match(/<a\s|<Link\s|href=/gi) || []).length;
     }
+  }
+
+  if (footerLinks > 15) {
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 215,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-15: Overloaded Fake Corporate Footer (5 Columns)',
+      severity: 'LOW',
+      category: 'AI Cliché & Navigation',
+      filePath: file.path,
+      lineRange: 'L1-L50',
+      snippet: `Footer contains ${footerLinks} links — likely more than existing pages`,
+      reproductionSteps: [
+        `Scanned footer in ${file.path}.`,
+        `Detected ${footerLinks} footer links — AI-generated sites often create links to pages that do not exist.`
+      ],
+      remediationPrompt: `Audit footer links in ${file.path}. Only link to pages that actually exist. Use a clean, functional 2-3 column footer.`,
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-15: Overloaded footer (${footerLinks} links) detected (${file.path})`);
   }
 
   // CLICHE-16: Non-Functional Theme Toggle Button

@@ -4,7 +4,8 @@
 import React, { useRef } from 'react';
 import { Project, Finding } from '@/data/schema';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
-import { Play, AlertTriangle, CheckCircle2, Sliders, Download, Award, MoreVertical, GitCompare, Bell, Server, ShieldAlert, ShieldCheck, BookOpen } from 'lucide-react';
+import { Play, AlertTriangle, CheckCircle2, Sliders, Download, Award, MoreVertical, GitCompare, Bell, Server, ShieldAlert, ShieldCheck, BookOpen, Code, Table, FileText } from 'lucide-react';
+import { exportFindingsToCsv, exportScorecardToJson } from '@/lib/export-utils';
 
 interface GateStatusBannerProps {
   project: Project;
@@ -105,6 +106,15 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
         </button>
 
         <button
+          onClick={() => exportFindingsToCsv(project.findings, project.name)}
+          className="btn btn-secondary px-3 py-2 sm:py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
+          title="Export Findings to RFC 4180 CSV (Jira / Linear)"
+        >
+          <Table size={13} />
+          <span className="hidden xs:inline">CSV</span>
+        </button>
+
+        <button
           onClick={() => setIsExecutiveBriefingOpen(true)}
           className="btn btn-secondary px-3 py-2 sm:py-2.5 text-xs font-mono rounded-lg flex items-center gap-1.5"
           title="Executive Briefing"
@@ -124,6 +134,17 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
           {isMoreToolsOpen && (
             <div className="absolute right-0 top-full mt-2 w-56 bg-[#141414] border border-white/10 rounded-xl shadow-2xl p-1.5 z-40 flex flex-col gap-1 text-xs font-mono">
+              <button
+                onClick={() => {
+                  exportScorecardToJson(project);
+                  setIsMoreToolsOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2"
+              >
+                <Code size={14} />
+                <span>Export JSON Scorecard</span>
+              </button>
+
               <button
                 onClick={() => {
                   setIsCompareOpen(true);

@@ -77,6 +77,37 @@ spec:
             cpu: "250m"
             memory: "128Mi"`;
 
+  const githubActionYaml = `name: ShipGuard Release Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  release-gate:
+    name: Automated Release Gate Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run ShipGuard Gate Check
+        run: |
+          RESPONSE=$(curl -s -X POST "https://shipguard-saas.vercel.app/api/v1/gate-check?failOnBlock=true" \\
+            -H "Content-Type: application/json" \\
+            -d '{"repoUrl": "\${{ github.server_url }}/\${{ github.repository }}"}')
+          echo "Audit Response: $RESPONSE"
+          STATUS=$(echo "$RESPONSE" | grep -o '"gateStatus":"[^"]*' | cut -d'"' -f4)
+          SCORE=$(echo "$RESPONSE" | grep -o '"readinessScore":[0-9]*' | cut -d':' -f2)
+          echo "ShipGuard Status: $STATUS (Score: $SCORE/100)"
+          if [ "$STATUS" = "FAILED" ]; then
+            echo "❌ Release BLOCKED by ShipGuard Quality Gate."
+            exit 1
+          fi
+          echo "✅ Release PASSED ShipGuard Quality Gate."`;
+
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     setCopiedType(type);
@@ -103,7 +134,7 @@ spec:
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full max-w-3xl max-h-[85vh] overflow-y-auto bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative"
+          className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -113,10 +144,10 @@ spec:
               </div>
               <div>
                 <h2 className="text-lg font-extrabold text-[#EDEDED]">
-                  Docker &amp; Kubernetes Deployment Manifest Exporter
+                  CI/CD &amp; Deployment Manifest Exporter
                 </h2>
                 <p className="text-xs text-[#94A3B8]">
-                  Export production containerization manifests to run Zelsis in private cloud or K8s clusters
+                  Export automated GitHub Actions workflows, Docker containers, and Kubernetes manifests
                 </p>
               </div>
             </div>
@@ -131,7 +162,7 @@ spec:
           </div>
 
           {/* Manifests Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Docker Compose */}
             <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/10 flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -164,12 +195,14 @@ spec:
                   <button
                     onClick={() => handleCopy(k8sHelmYaml, 'k8s')}
                     className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-xs text-gray-300"
+                    title="Copy Kubernetes manifest"
                   >
                     {copiedType === 'k8s' ? <CheckCircle2 size={13} className="text-white" /> : <Copy size={13} />}
                   </button>
                   <button
                     onClick={() => handleDownload(k8sHelmYaml, 'k8s-deployment.yaml')}
                     className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-xs text-gray-300"
+                    title="Download k8s-deployment.yaml"
                   >
                     <Download size={13} />
                   </button>
@@ -179,12 +212,38 @@ spec:
                 {k8sHelmYaml}
               </pre>
             </div>
+
+            {/* GitHub Actions CI/CD Workflow */}
+            <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/10 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-[#EDEDED]">shipguard-gate.yml</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handleCopy(githubActionYaml, 'github')}
+                    className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-xs text-gray-300"
+                    title="Copy GitHub Action workflow"
+                  >
+                    {copiedType === 'github' ? <CheckCircle2 size={13} className="text-white" /> : <Copy size={13} />}
+                  </button>
+                  <button
+                    onClick={() => handleDownload(githubActionYaml, 'shipguard-gate.yml')}
+                    className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-xs text-gray-300"
+                    title="Download shipguard-gate.yml"
+                  >
+                    <Download size={13} />
+                  </button>
+                </div>
+              </div>
+              <pre className="bg-[#141414] p-3 rounded-lg border border-white/10 font-mono text-[0.68rem] text-[#A1A1AA] overflow-x-auto h-48">
+                {githubActionYaml}
+              </pre>
+            </div>
           </div>
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-2 border-t border-white/10">
             <div className="text-xs text-[#94A3B8]">
-              Production-ready Kubernetes &amp; Docker container manifests.
+              Automated GitHub Actions CI/CD workflows, Kubernetes &amp; Docker container manifests.
             </div>
             <button className="btn btn-primary text-xs px-5 py-2 font-bold uppercase tracking-wider rounded-lg bg-white text-black hover:bg-neutral-200 transition-all shadow-sm" onClick={onClose}>
               Close Exporter

@@ -4,7 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Finding } from '@/data/schema';
-import { X, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, User, GitCommit, ExternalLink } from 'lucide-react';
+import { X, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, User, GitCommit, ExternalLink, FileText } from 'lucide-react';
+import { formatFindingForJira } from '@/lib/export-utils';
 
 export interface FindingDetailModalProps {
   isOpen: boolean;
@@ -33,7 +34,8 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
 }) => {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedDiff, setCopiedDiff] = useState(false);
-  const [activeTab, setActiveTab] = useState<'prompt' | 'diff'>('prompt');
+  const [copiedJira, setCopiedJira] = useState(false);
+  const [activeTab, setActiveTab] = useState<'prompt' | 'diff' | 'jira'>('prompt');
 
   // Keyboard accessibility: Close on Escape
   useEffect(() => {
@@ -67,6 +69,13 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
     navigator.clipboard.writeText(cleanPrompt);
     setCopiedPrompt(true);
     setTimeout(() => setCopiedPrompt(false), 2000);
+  };
+
+  const copyJira = () => {
+    const jiraMarkdown = formatFindingForJira(finding);
+    navigator.clipboard.writeText(jiraMarkdown);
+    setCopiedJira(true);
+    setTimeout(() => setCopiedJira(false), 2000);
   };
 
   const severityBadgeClass =
@@ -162,7 +171,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                 <span>Reproduction &amp; Verification Evidence:</span>
               </div>
               <ol className="list-decimal list-inside space-y-1.5 text-xs text-zinc-400 bg-black/40 border border-white/5 rounded-xl p-3.5">
-                {cleanSteps.map((step, idx) => (
+                {cleanSteps.map((step: string, idx: number) => (
                   <li key={idx} className="leading-relaxed">
                     {step}
                   </li>
@@ -206,13 +215,26 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   <GitCommit size={12} />
                   <span>Git Diff Patch</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('jira')}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded text-[0.7rem] font-mono font-bold transition-all ${
+                    activeTab === 'jira'
+                      ? 'bg-white text-black font-extrabold shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <FileText size={12} />
+                  <span>Jira / Linear</span>
+                </button>
               </div>
             </div>
 
             {/* Quick Action Copy Button */}
             <div className="flex items-center justify-between pt-1">
               <span className="text-[0.7rem] font-mono text-zinc-400">
-                {activeTab === 'prompt' ? 'Developer-Reviewed Prompt:' : 'Unified AST Patch:'}
+                {activeTab === 'prompt' ? 'Developer-Reviewed Prompt:' : activeTab === 'diff' ? 'Unified AST Patch:' : 'Jira / Linear Issue Format:'}
               </span>
 
               {activeTab === 'prompt' ? (
@@ -224,7 +246,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   {copiedPrompt ? <CheckCircle2 size={13} /> : <Copy size={13} />}
                   <span>{copiedPrompt ? 'Prompt Copied!' : 'Copy Prompt'}</span>
                 </button>
-              ) : (
+              ) : activeTab === 'diff' ? (
                 <button
                   type="button"
                   onClick={copyDiff}
@@ -233,19 +255,32 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   {copiedDiff ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Code size={13} />}
                   <span>{copiedDiff ? 'Diff Copied!' : 'Copy Diff'}</span>
                 </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={copyJira}
+                  className="px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all"
+                >
+                  {copiedJira ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                  <span>{copiedJira ? 'Jira Ticket Copied!' : 'Copy Jira Ticket'}</span>
+                </button>
               )}
             </div>
 
-            {/* Prompt or Diff View */}
+            {/* Prompt, Diff, or Jira View */}
             {activeTab === 'prompt' ? (
               <div className="bg-[#141414] p-4 rounded-xl border border-white/10 font-mono text-xs text-zinc-200 leading-relaxed select-text">
                 {cleanPrompt}
+              </div>
+            ) : activeTab === 'jira' ? (
+              <div className="bg-[#141414] p-4 rounded-xl border border-white/10 font-mono text-xs text-zinc-200 leading-relaxed select-text whitespace-pre-wrap max-h-[280px] overflow-y-auto">
+                {formatFindingForJira(finding)}
               </div>
             ) : (
               <div className="bg-[#141414] border border-white/10 rounded-xl overflow-hidden font-mono text-xs">
                 <div className="p-3 space-y-1 overflow-x-auto text-[0.73rem] leading-relaxed">
                   {finding.diffPatch ? (
-                    finding.diffPatch.split('\n').map((dLine, idx) => {
+                    finding.diffPatch.split('\n').map((dLine: string, idx: number) => {
                       const isAdd = dLine.startsWith('+') && !dLine.startsWith('+++');
                       const isDel = dLine.startsWith('-') && !dLine.startsWith('---');
                       const isHdr = dLine.startsWith('@@') || dLine.startsWith('---') || dLine.startsWith('+++');
@@ -271,7 +306,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                       <div className="text-zinc-400 select-none">--- a/{finding.filePath}</div>
                       <div className="text-zinc-400 select-none">+++ b/{finding.filePath}</div>
                       <div className="text-zinc-500 select-none">@@ -{finding.lineRange} +{finding.lineRange} @@</div>
-                      {cleanSnippet.split('\n').map((line, idx) => (
+                      {cleanSnippet.split('\n').map((line: string, idx: number) => (
                         <div
                           key={`del-${idx}`}
                           className="bg-red-500/15 text-red-300 px-2 py-0.5 rounded border-l-2 border-red-500 flex items-start gap-2 font-mono"

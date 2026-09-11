@@ -344,5 +344,70 @@ export function evaluateSecurityRules(
     }
   }
 
+  // Rule 14 / SEC-14: Insecure JWT & Session Secret Hardcoded Fallbacks
+  const jwtFallbackRegex = /(?:JWT_SECRET|SESSION_SECRET|AUTH_SECRET|COOKIE_SECRET|NEXTAUTH_SECRET)\s*(?:\|\||\?\?)\s*['"`][^'"`]+['"`]/i;
+  if (isCodeFile && jwtFallbackRegex.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && jwtFallbackRegex.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 14,
+      type: 'SECURITY',
+      title: 'Insecure Hardcoded Fallback for Cryptographic Session / JWT Secret',
+      severity: 'CRITICAL',
+      category: 'Authentication & Tokens',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: snippet || lines[matchLineIdx] || "const secret = process.env.JWT_SECRET || 'secret';",
+      reproductionSteps: [
+        `Scanned authentication token signing in ${file.path}:${lineNum}.`,
+        'Detected hardcoded default fallback string for JWT/Session secret token, allowing attackers to forge arbitrary authentication cookies and tokens if environment variable is unset.'
+      ],
+      remediationPrompt: `Remove insecure default fallback in ${file.path}:${lineNum}. Enforce a strict runtime assertion: if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET must be configured in production');`,
+      status: 'OPEN',
+      owner: 'Security Lead',
+      falsePositive: false
+    });
+
+    logs.push(`[${ts}] 🛑 CRITICAL: SEC-14 Insecure JWT secret fallback in ${file.path}:${lineNum}`);
+  }
+
+  // Rule 15 / SEC-15: Unauthenticated Next.js API Mutation Route Handler
+  const isApiRoute = (lowerPath.includes('app/api/') || lowerPath.includes('pages/api/')) && /\.(?:ts|js)$/i.test(file.path);
+  const isPublicWebhookOrHealth = lowerPath.includes('webhook') || lowerPath.includes('health') || lowerPath.includes('ping') || lowerPath.includes('auth/callback');
+  if (isApiRoute && !isPublicWebhookOrHealth) {
+    const hasMutationExport = /export\s+async\s+function\s+(?:POST|PUT|DELETE|PATCH)\b/.test(cleanContent);
+    const hasAuthCheck = /(?:auth|session|supabase\.auth|verify|currentUser|getUser|getSession|apiKey|checkRateLimit|rateLimiter|req\.headers\.get\(['"]authorization['"]\))/i.test(cleanContent);
+    if (hasMutationExport && !hasAuthCheck) {
+      const matchLineIdx = lines.findIndex(l => /export\s+async\s+function\s+(?:POST|PUT|DELETE|PATCH)\b/.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 15,
+        type: 'SECURITY',
+        title: 'Unauthenticated API Mutation Route Handler (Missing Session / Auth Guard)',
+        severity: 'HIGH',
+        category: 'API Security & Auth',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'export async function POST(req: NextRequest) {',
+        reproductionSteps: [
+          `Scanned API route handler at ${file.path}:${lineNum}.`,
+          'Detected state-mutating HTTP handler (POST/PUT/DELETE) without session verification, authentication check, or rate-limiting middleware.'
+        ],
+        remediationPrompt: `Protect ${file.path}:${lineNum} with authentication verification (e.g. check authenticated user session or API token) and apply rate limiting before processing state mutations.`,
+        status: 'OPEN',
+        owner: 'Backend Team',
+        falsePositive: false
+      });
+
+      logs.push(`[${ts}] ⚠️ HIGH: SEC-15 Unauthenticated API mutation route in ${file.path}:${lineNum}`);
+    }
+  }
+
   return { findings, logs };
 }

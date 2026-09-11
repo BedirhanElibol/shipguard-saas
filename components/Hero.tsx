@@ -17,34 +17,53 @@ interface DemoFinding {
 export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
   const demoPresets = [
     {
-      label: '🚨 Insecure Secret & RLS',
+      label: '🚨 OWASP & Secret Exposure',
       code: [
-        '// Insecure API Route & Supabase RLS Policy:',
+        '// Insecure API Route & Database RLS Policy:',
         `export const stripeSecretKey = "${'sk_' + 'live_51M394x928103921EXPOSED'}";`,
-        `export const openAiApiKey = "${'sk-' + 'proj-948210392109321EXPOSED'}";`,
+        `const jwtSecret = process.env.JWT_SECRET || "dev-secret-fallback";`,
         '',
         `CREATE POLICY "Allow All Users" ON public.users FOR ALL ${'USING'} (true);`,
         `app.use(cors({ origin: ${"'*'"} }));`
       ].join('\n')
     },
     {
-      label: '💅 Clean UI Example',
-      code: `// Clean Component:
-export function HeroCard() {
-  return (
-    <div className="bg-[#141414] border border-white/10 p-8 rounded-lg">
-      <span>Plain text</span>
-      <button onClick={() => {}}>Submit</button>
-    </div>
-  );
-}`
+      label: '⚡ UI Performance & A11y',
+      code: [
+        '// Inaccessible Clickable Element & Layout Shift Risk:',
+        'export function SearchBox({ onSelect }: { onSelect: () => void }) {',
+        '  return (',
+        '    <div>',
+        '      <img src="/banner.png" alt="Hero Banner" />',
+        '      <div onClick={() => onSelect()}>Select Option</div>',
+        '    </div>',
+        '  );',
+        '}'
+      ].join('\n')
     },
     {
-      label: '🛡️ Hardened Production Code',
-      code: `// Verified Production-Ready Architecture:
-export const stripeKey = process.env.STRIPE_SECRET_KEY;
-CREATE POLICY "User Access" ON public.users FOR ALL USING (auth.uid() = user_id);
-app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
+      label: '☁️ Cloud Container Risk',
+      code: [
+        '# Production Dockerfile missing non-root user and healthcheck:',
+        'FROM node:20-alpine',
+        'WORKDIR /app',
+        'COPY package*.json ./',
+        'RUN npm install --production',
+        'COPY . .',
+        'USER root',
+        'EXPOSE 3000',
+        'CMD ["npm", "start"]'
+      ].join('\n')
+    },
+    {
+      label: '🛡️ Verified Production Release',
+      code: [
+        '// Verified Production-Ready Architecture:',
+        'export const stripeKey = process.env.STRIPE_SECRET_KEY;',
+        'if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET required");',
+        'CREATE POLICY "User Access" ON public.users FOR ALL USING (auth.uid() = user_id);',
+        'app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));'
+      ].join('\n')
     }
   ];
 
@@ -62,6 +81,15 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
         severity: 'CRITICAL',
         title: 'Hardcoded API Secret in Client Bundle',
         prompt: 'Move hardcoded secret keys into server-only environment variables (process.env.STRIPE_SECRET_KEY) with zero client exposure.'
+      });
+    }
+    if (code.includes('JWT_SECRET') && (code.includes('||') || code.includes('dev-secret'))) {
+      list.push({
+        id: 'f-jwt',
+        rule: 'SEC-14',
+        severity: 'CRITICAL',
+        title: 'Insecure Hardcoded Fallback for JWT Secret',
+        prompt: 'Remove fallback default string for JWT_SECRET. Enforce runtime validation: if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET required");'
       });
     }
     const rlsRule = 'USING ' + '(true)';
@@ -84,14 +112,40 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
         prompt: 'Restrict CORS origin to process.env.PRODUCTION_CLIENT_URL instead of open wildcard (*).'
       });
     }
-    const sparkleWord = 'Spar' + 'kles';
-    if (code.includes(sparkleWord) || code.includes('shadow-[')) {
+    if (code.includes('<div onClick=') || code.includes('<span onClick=')) {
       list.push({
-        id: 'f-4',
-        rule: 'UI-03',
+        id: 'f-a11y',
+        rule: 'UI-15',
+        severity: 'HIGH',
+        title: 'WCAG 2.1 AA: Non-Semantic Clickable Container',
+        prompt: 'Replace non-semantic <div onClick=...> with <button> or add role="button" tabIndex={0} onKeyDown handlers for keyboard accessibility.'
+      });
+    }
+    if (code.includes('<' + 'img ') && !code.includes('width=')) {
+      list.push({
+        id: 'f-img',
+        rule: 'UI-27',
+        severity: 'HIGH',
+        title: 'Unoptimized Raw Image Tag (Layout Shift / CLS Risk)',
+        prompt: 'Replace raw HTML image tag with Next.js next/image <Image> with explicit width and height to prevent Cumulative Layout Shift (CLS).'
+      });
+    }
+    if (code.includes('USER root')) {
+      list.push({
+        id: 'f-root',
+        rule: 'INFRA-02',
+        severity: 'HIGH',
+        title: 'Dockerfile Root User Execution (Privilege Escalation Risk)',
+        prompt: 'Switch production container to a dedicated non-root user (USER node or USER 1001) to prevent host privilege escalation.'
+      });
+    }
+    if (code.includes('EXPOSE') && !code.includes('HEALTHCHECK')) {
+      list.push({
+        id: 'f-health',
+        rule: 'INFRA-08',
         severity: 'MEDIUM',
-        title: 'AI Cliché Icon & Ambient Glow',
-        prompt: 'Remove AI cliché icon and artificial glow drop-shadow. Apply crisp 1px borders and desaturated monochrome tokens.'
+        title: 'Production Container Missing Health Check Directive',
+        prompt: 'Add HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://localhost:3000/api/health || exit 1 to Dockerfile.'
       });
     }
     return list;
@@ -112,6 +166,17 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
     <section className="relative min-h-[85vh] flex flex-col justify-between pt-24 pb-12 px-6 bg-[#0A0A0A] border-b border-white/10">
       {/* Hero Content Container */}
       <div className="relative z-10 max-w-5xl mx-auto w-full my-auto text-center flex flex-col items-center">
+        {/* Universal Triad Value Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[11px] font-mono font-medium text-[#A1A1AA] mb-6"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>ENTERPRISE RELEASE GATE // DETECT ➔ GATE ➔ REMEDIATE</span>
+        </motion.div>
+
         {/* Editorial Swiss Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 25 }}
@@ -119,8 +184,8 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
           transition={{ duration: 0.7 }}
           className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] max-w-4xl"
         >
-          The Release Gate for <br />
-          <span className="text-white">AI-Generated Software.</span>
+          The Production Release Gate for <br />
+          <span className="text-white">Modern Web & Cloud Applications.</span>
         </motion.h1>
 
         {/* Subtitle */}
@@ -130,7 +195,7 @@ app.use(cors({ origin: process.env.PRODUCTION_CLIENT_URL }));`
           transition={{ duration: 0.7, delay: 0.1 }}
           className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed mt-6 mb-8 font-sans"
         >
-          AI code generation is fast. Shipping without verification is reckless. Zelsis evaluates security vulnerabilities, design hygiene, and production readiness before code merges.
+          Ship with uncompromising confidence. ShipGuard automatically evaluates critical OWASP security vulnerabilities, UI/UX performance flaws, and cloud infrastructure risks before your code ever merges into production.
         </motion.p>
 
         {/* Primary CTA */}

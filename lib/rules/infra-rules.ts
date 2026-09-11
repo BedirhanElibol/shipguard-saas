@@ -364,5 +364,81 @@ export function evaluateInfraRules(
     }
   }
 
+  // =========================================================================
+  // RULE 3007 (INFRA-07): Kubernetes Deployment Missing Container Resource Limits
+  // =========================================================================
+  const isK8sYaml = (lowerPath.endsWith('.yaml') || lowerPath.endsWith('.yml')) &&
+    (cleanContent.includes('kind: Deployment') || cleanContent.includes('kind: Pod') || cleanContent.includes('kind: StatefulSet'));
+
+  if (isK8sYaml && cleanContent.includes('containers:') && !cleanContent.includes('resources:') && !cleanContent.includes('limits:')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('containers:'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const findingId = `real-find-${Date.now()}-${findingCounter.count++}`;
+    const snippet = extractSnippet(lines, lineNum);
+
+    const diffPatch = `--- a/${file.path}\n+++ b/${file.path}\n@@ -${lineNum},5 +${lineNum},11 @@\n       containers:\n       - name: app\n         image: registry.example.com/app:latest\n+        resources:\n+          limits:\n+            cpu: "500m"\n+            memory: "512Mi"\n+          requests:\n+            cpu: "100m"\n+            memory: "128Mi"`;
+
+    findings.push({
+      id: findingId,
+      ruleId: 3007,
+      type: 'INFRA_DATABASE',
+      title: 'Kubernetes Workload Manifest Missing CPU/Memory Resource Limits (DoS Risk)',
+      severity: 'HIGH',
+      category: 'Cloud Infrastructure',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned Kubernetes manifest at ${file.path}:${lineNum}.`,
+        'Detected container spec running without explicit resources.limits (CPU and Memory).',
+        'Unbounded containers can exhaust node memory causing Out-Of-Memory (OOM) cascading pod evictions and noisy-neighbor outages.'
+      ],
+      remediationPrompt: `Specify strict CPU and Memory limits (resources.limits) and requests (resources.requests) for all containers in ${file.path} to guarantee cluster stability and prevent resource starvation.`,
+      diffPatch,
+      status: 'OPEN',
+      owner: 'DevOps & SRE',
+      falsePositive: false
+    });
+
+    logs.push(`[${ts}] ☁️ [INFRA-07] HIGH: Kubernetes manifest lacks container resource limits in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3008 (INFRA-08): Production Container Manifest Missing Health Check Probe
+  // =========================================================================
+  const isProdDockerfile = lowerPath.includes('dockerfile') && !lowerPath.includes('dev') && !lowerPath.includes('test');
+  if (isProdDockerfile && !cleanContent.includes('HEALTHCHECK') && cleanContent.includes('EXPOSE')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('EXPOSE'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const findingId = `real-find-${Date.now()}-${findingCounter.count++}`;
+    const snippet = extractSnippet(lines, lineNum);
+
+    const diffPatch = `--- a/${file.path}\n+++ b/${file.path}\n@@ -${lineNum},3 +${lineNum},5 @@\n EXPOSE 3000\n+\n+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD wget -qO- http://localhost:3000/api/health || exit 1`;
+
+    findings.push({
+      id: findingId,
+      ruleId: 3008,
+      type: 'INFRA_DATABASE',
+      title: 'Production Dockerfile Missing Automated Health Check (HEALTHCHECK) Directive',
+      severity: 'MEDIUM',
+      category: 'Cloud Infrastructure',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned Dockerfile container definition at ${file.path}:${lineNum}.`,
+        'Detected production image with exposed network port but without a HEALTHCHECK instruction.',
+        'Orchestrators (Kubernetes, AWS ECS, Docker Swarm) cannot accurately detect deadlocks, crashed processes, or unready services without a container health check.'
+      ],
+      remediationPrompt: `Add HEALTHCHECK instruction to ${file.path} (e.g. HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://localhost:3000/api/health || exit 1) or configure livenessProbe in deployment manifests.`,
+      diffPatch,
+      status: 'OPEN',
+      owner: 'DevOps & SRE',
+      falsePositive: false
+    });
+
+    logs.push(`[${ts}] ☁️ [INFRA-08] MEDIUM: Dockerfile missing HEALTHCHECK directive in ${file.path}:${lineNum}`);
+  }
+
   return { findings, logs };
 }

@@ -11,44 +11,44 @@ export const Services: React.FC = () => {
   const services = [
     {
       id: 'sec-audit',
-      title: 'AI Software Architecture & Security Audit',
-      category: 'CYBERSECURITY & AUDIT',
+      title: 'Enterprise Web Architecture & Security Audit',
+      category: 'OWASP TOP 10 & CYBERSECURITY',
       description:
-        'We design and audit production-grade AI codebases. We verify secret key isolation, Supabase Row Level Security (RLS) policies, CORS restrictions, rate-limiting, and password hashing before launch.',
+        'We audit and harden production-grade web applications and APIs. We detect hardcoded secret keys, unauthenticated mutation handlers, PostgreSQL RLS flaws, wildcard CORS risks, and dangerous XSS vectors before code merges.',
       image: '/images/security_rules.png',
       badge: 'OWASP TOP 10',
       highlights: [
-        'Zero hardcoded API secrets in client bundles',
-        'Strict PostgreSQL RLS policy validation',
-        'HMAC webhook signature verification'
+        'Zero hardcoded credentials in client bundles',
+        'Strict database RLS & API auth validation',
+        'HMAC webhook signature & CORS clearance'
       ]
     },
     {
       id: 'vibepolish',
-      title: 'Brand Strategy & Design System Polish',
-      category: 'DESIGN SYSTEM & UX CRAFT',
+      title: 'Production UI/UX, Performance & A11y Polish',
+      category: 'FRONTEND PERFORMANCE & WCAG 2.1 AA',
       description:
-        'We craft visual identities and desaturated monochrome design tokens. We strip out common AI UI clichés like neon glow clutter, icon flooding, stark unstyled whites, and em-dash addiction.',
+        'We safeguard user experience and accessibility. We audit Core Web Vitals (CLS, LCP), unoptimized image payloads, non-semantic keyboard navigation traps, and eliminate amateur design clichés.',
       image: '/images/audit_findings.png',
-      badge: 'UI & UX POLISH',
+      badge: 'UI & ACCESSIBILITY',
       highlights: [
-        'Desaturated monochrome color tokens',
-        'Negative prompt linter for Cursor / v0 / Lovable',
-        'Accessibility & contrast scorecard'
+        'WCAG 2.1 AA keyboard focus & label compliance',
+        'Core Web Vitals & Next.js Image optimization',
+        'Memory leak & unkeyed render detection'
       ]
     },
     {
       id: 'vibecare',
-      title: 'Lifecycle Monitoring & Infrastructure Resilience',
-      category: 'LIFECYCLE & SUSTAINABILITY',
+      title: 'Cloud DevOps, Container & Infrastructure Resilience',
+      category: 'CLOUD DEVOPS & INFRASTRUCTURE GATE',
       description:
-        'We safeguard your application against runaway LLM token loops and unexpected billing spikes with hard caps ($50/80/100%), automated S3 disaster recovery snapshots, and dependency CVE drift alerts.',
+        'We enforce resilient cloud deployments across Docker, Kubernetes, and serverless environments. We identify root container execution, missing CPU/Memory limits, and ensure automated health checks.',
       image: '/images/bundle_profiler.png',
-      badge: 'SUSTAINABILITY',
+      badge: 'INFRA & CLOUD',
       highlights: [
-        'Automated daily encrypted S3 snapshots',
-        'LLM daily budget webhook alerts',
-        'White-label client PDF audit rescue reports'
+        'Docker non-root & privilege escalation defense',
+        'Kubernetes pod resource limits & QoS enforcement',
+        'Automated GitHub Actions CI/CD release gate'
       ]
     }
   ];
@@ -62,7 +62,7 @@ export const Services: React.FC = () => {
             PRODUCT CAPABILITIES
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#F5F3EF] tracking-tight uppercase">
-            RELEASE GATE FOR AI SOFTWARE
+            PRE-FLIGHT RELEASE GATE FOR ENTERPRISE SOFTWARE
           </h2>
         </div>
 

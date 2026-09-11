@@ -258,6 +258,76 @@ export function evaluateFrontendRules(
     logs.push(`[${ts}] 🔍 MEDIUM: UI-SEO-01 Missing Social OpenGraph / Duplicate H1 in ${file.path}:${lineNum}`);
   }
 
+  // =========================================================================
+  // d) UI-A11Y-02 (Rule ID 1029: Inaccessible Non-Semantic Clickable Element)
+  // =========================================================================
+  if (isJsxTsx) {
+    const clickableNonSemanticRegex = /<(?:div|span|section|article)\b(?![^>]*\b(?:role\s*=\s*["'](?:button|link|menuitem|tab)["']|tabIndex))\s+[^>]*\bonClick\s*=/i;
+    if (clickableNonSemanticRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && clickableNonSemanticRegex.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+        findings.push({
+          id: `frontend-${Date.now()}-${findingCounter.count++}`,
+          ruleId: 1029,
+          type: 'VIBEPOLISH',
+          title: 'WCAG 2.1 AA: Non-Semantic Clickable Container Missing Keyboard Accessibility',
+          severity: 'HIGH',
+          category: 'Accessibility (WCAG)',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: snippet || lines[matchLineIdx] || '<div onClick={handleClick}>Click me</div>',
+          reproductionSteps: [
+            `Scanned JSX component markup at ${file.path}:${lineNum}.`,
+            'Detected non-semantic container (<div> or <span>) with an onClick handler but lacking role="button", tabIndex={0}, and onKeyDown keyboard listener. Keyboard and screen reader users cannot activate this element.'
+          ],
+          remediationPrompt: `Replace non-semantic <div onClick=...> in ${file.path}:${lineNum} with a semantic <button onClick=...> element, or add role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }} to comply with WCAG 2.1 AA accessibility guidelines.`,
+          status: 'OPEN',
+          owner: 'Frontend Team',
+          falsePositive: false
+        });
+        logs.push(`[${ts}] ♿ HIGH: UI-A11Y-02 Non-semantic clickable element missing keyboard accessibility in ${file.path}:${lineNum}`);
+      }
+    }
+  }
+
+  // =========================================================================
+  // e) UI-PERF-02 (Rule ID 1030: Unkeyed React Array Mapping Reconciliation Hazard)
+  // =========================================================================
+  if (isJsxTsx) {
+    const unkeyedMapRegex = /\.map\s*\(\s*(?:\([^)]*\)|[a-zA-Z0-9_]+)\s*=>\s*<[a-zA-Z0-9]+(?![^>]*\bkey\s*=)/;
+    if (unkeyedMapRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && unkeyedMapRegex.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+        findings.push({
+          id: `frontend-${Date.now()}-${findingCounter.count++}`,
+          ruleId: 1030,
+          type: 'VIBEPOLISH',
+          title: 'Unkeyed React Array Mapping Reconciliation Hazard',
+          severity: 'MEDIUM',
+          category: 'Performance & CWV',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: snippet || lines[matchLineIdx] || 'items.map((item) => <div>{item.name}</div>)',
+          reproductionSteps: [
+            `Scanned React JSX render tree in ${file.path}:${lineNum}.`,
+            'Detected dynamic array mapping returning JSX elements without an explicit unique key prop, risking UI state de-synchronization and excessive DOM reconciliations.'
+          ],
+          remediationPrompt: `Add unique stable key prop (e.g. key={item.id}) to outermost mapped JSX elements in ${file.path}:${lineNum}. Avoid using raw array indices as keys if items can be re-ordered, filtered, or mutated.`,
+          status: 'OPEN',
+          owner: 'Frontend Team',
+          falsePositive: false
+        });
+        logs.push(`[${ts}] ⚡ MEDIUM: UI-PERF-02 Unkeyed array map in ${file.path}:${lineNum}`);
+      }
+    }
+  }
+
   return { findings, logs };
 }
 

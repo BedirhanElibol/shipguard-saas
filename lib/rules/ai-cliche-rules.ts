@@ -29,35 +29,39 @@ export function evaluateAiClicheRules(
 
   const ts = new Date().toLocaleTimeString();
 
-  // CLICHE-01: Decorative Hero Badge Pill
+  // CLICHE-01: Decorative Hero Badge Pill & Pseudo-Terminal Slop
   const isHeroOrLandingScope = /hero|landing/i.test(file.path);
-  if (
-    isHeroOrLandingScope &&
-    ((/badge|pill|chip/i.test(cleanContent) && /hero-badge|badge-hero|inline-flex.*rounded-full/i.test(cleanContent)) ||
-      (/rounded-full.*text-xs|text-xs.*rounded-full/i.test(cleanContent) && /(?:✨|🚀|Introducing|Powered by AI)\b/i.test(cleanContent)))
-  ) {
-    const matchLineIdx = lines.findIndex(l => /badge|pill|chip|rounded-full/i.test(l) && /✨|🚀|Introducing|New/i.test(l));
+  const hasGenericPillCliché =
+    (/badge|pill|chip/i.test(cleanContent) && /hero-badge|badge-hero|inline-flex.*rounded-full/i.test(cleanContent)) ||
+    (/rounded-full/i.test(cleanContent) && /(?:✨|🚀|Introducing|Powered by AI)\b/i.test(cleanContent)) ||
+    (/rounded-full/i.test(cleanContent) && (/\/\/\s*[A-Z]{3,}/.test(cleanContent) || /[➔→]|->/.test(cleanContent) || (/animate-pulse/i.test(cleanContent) && /RELEASE|GATE|DETECT|AI/i.test(cleanContent))));
+
+  if (isHeroOrLandingScope && hasGenericPillCliché) {
+    const matchLineIdx = lines.findIndex(l =>
+      /rounded-full|badge|pill/i.test(l) ||
+      (/\/\/\s*[A-Z]{3,}/.test(l) || /[➔→]|->/.test(l) || /animate-pulse/i.test(l))
+    );
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,
       ruleId: 201,
       type: 'VIBEPOLISH',
-      title: 'CLICHE-01: Decorative Hero Badge Pill',
+      title: 'CLICHE-01: Decorative Hero Badge Pill & Pseudo-Terminal Slop',
       severity: 'LOW',
       category: 'AI Cliché & Layout',
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || '<span className="badge">✨ Introducing</span>',
+      snippet: lines[matchLineIdx] || '<span className="badge">ENTERPRISE RELEASE GATE // DETECT ➔ GATE</span>',
       reproductionSteps: [
         `Scanned hero section in ${file.path}:${lineNum}.`,
-        'Detected small glowing badge/pill component above hero heading — a hallmark of AI-generated landing pages.'
+        'Detected decorative floating pill badge with pseudo-terminal syntax (//), arrow chains (➔), or pulsing indicator dot — a hallmark of AI-generated landing pages.'
       ],
-      remediationPrompt: `Remove decorative hero badge pill in ${file.path}. If retained, use only for real version/release announcements, not generic filler text.`,
+      remediationPrompt: `Remove decorative hero badge pill in ${file.path}. Rely on clear typographical hierarchy without pseudo-terminal ASCII slop.`,
       status: 'OPEN',
       owner: 'UI Architect',
       falsePositive: false
     });
-    logs.push(`[${ts}] 🎨 CLICHE-01: Hero badge pill detected (${file.path}:${lineNum})`);
+    logs.push(`[${ts}] 🎨 CLICHE-01: Hero badge pill / pseudo-terminal slop detected (${file.path}:${lineNum})`);
   }
 
   // CLICHE-02: Paired Dual CTA Buttons in Hero
@@ -717,6 +721,35 @@ export function evaluateAiClicheRules(
       falsePositive: false
     });
     logs.push(`[${ts}] 🎨 CLICHE-25: Stock team photo detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-26: Awkward Navigation Personalization & Pulsing CTA Cliché
+  const isNavScope = /nav|navbar|header|sidebar/i.test(file.path);
+  const hasParenthesizedNameInCta = /Dashboard\s*\(\s*\{.*name|Go\s*to\s*Dashboard\s*\(\s*\{.*name|Dashboard\s*\([a-zA-Z0-9_\s]+\)/i.test(cleanContent);
+  const hasNavPulsingDot = isNavScope && /animate-pulse.*(?:bg-emerald|bg-green|bg-cyan)/i.test(cleanContent);
+  if (isNavScope && (hasParenthesizedNameInCta || hasNavPulsingDot)) {
+    const matchLineIdx = lines.findIndex(l => /Dashboard\s*\(|animate-pulse/i.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 226,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-26: Awkward Navigation Button Personalization or Pulsing Dot',
+      severity: 'LOW',
+      category: 'Navigation & Micro-copy',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<span>Dashboard ({currentUser.name})</span>',
+      reproductionSteps: [
+        `Scanned navigation component in ${file.path}:${lineNum}.`,
+        'Detected user first-name interpolated into navigation CTA button or decorative pulsing indicator in primary header navigation.'
+      ],
+      remediationPrompt: `Simplify navigation link in ${file.path} to a clean "Dashboard" label without parenthesized user names. Place user identity in a dedicated avatar or account dropdown menu.`,
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-26: Navigation personalization cliché detected (${file.path}:${lineNum})`);
   }
 
   return { findings, logs };

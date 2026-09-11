@@ -123,10 +123,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
             {currentUser && currentUser.isLoggedIn ? (
               <a
                 href="/dashboard"
-                className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-md text-xs font-semibold text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex items-center gap-1.5"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Dashboard ({currentUser.name.split(' ')[0] || 'Account'})</span>
+                <span>Dashboard</span>
               </a>
             ) : (
               <a
@@ -187,10 +186,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
                 <a
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center border-emerald-500/30 text-emerald-400 flex items-center justify-center gap-2"
+                  className="btn btn-secondary w-full text-xs py-3 text-center border-white/10 text-white flex items-center justify-center gap-2"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Go to Dashboard ({currentUser.name.split(' ')[0] || 'Account'})</span>
+                  <span>Open Dashboard</span>
                 </a>
               ) : (
                 <a

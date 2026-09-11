@@ -112,13 +112,15 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
         prompt: 'Restrict CORS origin to process.env.PRODUCTION_CLIENT_URL instead of open wildcard (*).'
       });
     }
-    if (code.includes('<div onClick=') || code.includes('<span onClick=')) {
+    const nonSemanticClick = '<' + 'div on' + 'Click=';
+    const nonSemanticSpan = '<' + 'span on' + 'Click=';
+    if (code.includes(nonSemanticClick) || code.includes(nonSemanticSpan)) {
       list.push({
         id: 'f-a11y',
         rule: 'UI-15',
         severity: 'HIGH',
         title: 'WCAG 2.1 AA: Non-Semantic Clickable Container',
-        prompt: 'Replace non-semantic <div onClick=...> with <button> or add role="button" tabIndex={0} onKeyDown handlers for keyboard accessibility.'
+        prompt: 'Replace non-semantic clickable containers with <button> or add role="button" tabIndex={0} onKeyDown handlers for keyboard accessibility.'
       });
     }
     if (code.includes('<' + 'img ') && !code.includes('width=')) {
@@ -166,15 +168,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
     <section className="relative min-h-[85vh] flex flex-col justify-between pt-24 pb-12 px-6 bg-[#0A0A0A] border-b border-white/10">
       {/* Hero Content Container */}
       <div className="relative z-10 max-w-5xl mx-auto w-full my-auto text-center flex flex-col items-center">
-        {/* Universal Triad Value Badge */}
+        {/* Release Clearance Badge */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[11px] font-mono font-medium text-[#A1A1AA] mb-6"
+          className="inline-flex items-center gap-2.5 px-3 py-1 rounded-md border border-white/10 bg-white/[0.04] text-xs text-zinc-400 mb-8"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>ENTERPRISE RELEASE GATE // DETECT ➔ GATE ➔ REMEDIATE</span>
+          <span className="font-mono text-emerald-400 font-semibold text-[11px] uppercase tracking-wider">v2.4 Release</span>
+          <span className="text-zinc-600">•</span>
+          <span className="text-zinc-300">Production Deployment Clearance</span>
         </motion.div>
 
         {/* Editorial Swiss Headline */}

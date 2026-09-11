@@ -265,7 +265,6 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       lowerFilePath.includes('vulnerabilityplayground.tsx') ||
       lowerFilePath.includes('ruleknowledgebasemodal.tsx') ||
       lowerFilePath.includes('interactiveanalyzer.tsx') ||
-      lowerFilePath.endsWith('components/hero.tsx') ||
       lowerFilePath.includes('05_seed_data.sql') ||
       lowerFilePath.includes('scratch/') ||
       lowerFilePath.includes('.agent/');

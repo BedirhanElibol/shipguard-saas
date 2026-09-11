@@ -14,13 +14,13 @@ export const Footer: React.FC = () => {
           <ZelsisLogo size="md" />
 
           <p className="text-sm leading-relaxed max-w-sm text-[#A1A1AA]">
-            Automated release gate for AI-built software applications. Pre-flight security clearance &amp; VibePolish design verification matrix.
+            Universal pre-flight release gate for modern web and cloud applications. Automated OWASP security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure verification.
           </p>
 
           <span
             className="text-sm font-mono text-white inline-flex items-center gap-1 mt-2"
           >
-            <span>contact@zelsis.com</span>
+            <span>contact@shipguard.com</span>
             <ArrowUpRight size={14} />
           </span>
         </div>
@@ -44,7 +44,7 @@ export const Footer: React.FC = () => {
         {/* Col 3: SaaS Platform (4 cols) */}
         <div className="md:col-span-4 flex flex-col gap-3">
           <span className="text-xs font-bold text-[#EDEDED] tracking-widest uppercase mb-2 font-mono">
-            ZELSIS PLATFORM
+            SHIPGUARD PLATFORM
           </span>
           <a href="/dashboard" className="text-sm text-white hover:underline transition-colors font-mono">
             Launch Audit Engine →
@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#A1A1AA]">
         <div>
-          © 2026 Zelsis. All rights reserved.
+          © 2026 ShipGuard. All rights reserved.
         </div>
         <div className="flex flex-wrap gap-4 sm:gap-6">
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>

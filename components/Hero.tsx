@@ -221,7 +221,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="w-full max-w-4xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-[#141414] text-left flex flex-col"
+          className="w-full max-w-4xl rounded-2xl border border-white/10 shadow-2xl hover:border-white/20 transition-all duration-300 overflow-hidden bg-[#141414] text-left flex flex-col"
         >
           {/* Window Chrome Header */}
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 bg-[#0E0E10] border-b border-white/10">
@@ -230,8 +230,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
               <span className="ml-2 text-xs font-mono font-bold text-white flex items-center gap-1.5">
-                <Code size={13} className="text-white" />
-                <span>ZELSIS CLEARANCE ENGINE // LIVE CODE AUDITOR</span>
+                <Code size={13} className="text-emerald-400" />
+                <span>SHIPGUARD CLEARANCE ENGINE // LIVE CODE AUDITOR</span>
               </span>
             </div>
 
@@ -256,20 +256,27 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
 
           {/* Code Editor & Live Findings Split */}
           <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-white/10 bg-[#0A0A0A]">
-            {/* Code Input Box (7 Cols) */}
+            {/* Code Input Box (7 Cols) with Terminal Line Numbers */}
             <div className="lg:col-span-7 p-4 flex flex-col gap-2">
               <div className="text-[11px] font-mono text-[#A1A1AA] flex items-center justify-between">
                 <span>// Test code snippet against clearance policies:</span>
                 <span className="text-[10px] text-white/50">{inputCode.split('\n').length} lines</span>
               </div>
-              <textarea
-                value={inputCode}
-                onChange={(e) => setInputCode(e.target.value)}
-                rows={7}
-                placeholder="Paste code snippet..."
-                className="w-full bg-transparent font-mono text-xs text-[#EDEDED] outline-none resize-none leading-relaxed border-0 focus:ring-0 p-0"
-                spellCheck={false}
-              />
+              <div className="flex gap-3 overflow-hidden">
+                <div className="select-none font-mono text-[11px] text-white/20 text-right pr-2 border-r border-white/5 space-y-1 py-0.5 leading-relaxed shrink-0">
+                  {inputCode.split('\n').map((_, i) => (
+                    <div key={i}>{i + 1}</div>
+                  ))}
+                </div>
+                <textarea
+                  value={inputCode}
+                  onChange={(e) => setInputCode(e.target.value)}
+                  rows={Math.max(7, inputCode.split('\n').length)}
+                  placeholder="Paste code snippet..."
+                  className="w-full bg-transparent font-mono text-xs text-[#EDEDED] outline-none resize-none leading-relaxed border-0 focus:ring-0 p-0 selection:bg-emerald-500/30"
+                  spellCheck={false}
+                />
+              </div>
             </div>
 
             {/* Live Verdict Panel (5 Cols) */}

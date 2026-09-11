@@ -87,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
-          <a href="/" className="flex items-center group" aria-label="Zelsis Home">
+          <a href="/" className="flex items-center group" aria-label="ShipGuard Home">
             <ZelsisLogo size="md" />
           </a>
 

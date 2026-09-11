@@ -30,35 +30,36 @@ function getMetadataBase(): URL {
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: {
-    default: 'Zelsis | Automated Codebase Security & Release Gate',
-    template: '%s | Zelsis',
+    default: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
+    template: '%s | ShipGuard',
   },
   description:
-    'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
+    'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
   keywords: [
-    'Zelsis',
+    'ShipGuard',
     'Release Gate',
     'Security Audit',
     'OWASP Security',
     'Code Quality',
     'Production Readiness',
-    'Next.js 15',
+    'DevOps CI/CD',
+    'Next.js',
   ],
   alternates: {
     canonical: './',
   },
   openGraph: {
-    title: 'Zelsis | Automated Codebase Security & Release Gate',
+    title: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
     description:
-      'Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification.',
+      'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
     url: './',
-    siteName: 'Zelsis',
+    siteName: 'ShipGuard',
     images: [
       {
         url: '/zelsis-logo.svg',
         width: 1200,
         height: 630,
-        alt: 'Zelsis | Automated Codebase Security & Release Gate',
+        alt: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
       },
     ],
     locale: 'en_US',
@@ -66,9 +67,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Zelsis | Automated Codebase Security & Release Gate',
+    title: 'ShipGuard | Production Release Gate for Modern Web & Cloud Apps',
     description:
-      'Prove your application is secure, polished, and ready for production before launch.',
+      'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
     images: ['/zelsis-logo.svg'],
   },
   icons: {

@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { BarChart3, Download, ExternalLink, Copy, CheckCircle2 } from 'lucide-react';
 import { Project } from '@/data/schema';
 
@@ -96,8 +97,14 @@ export const QuickChartWidget: React.FC<QuickChartWidgetProps> = ({ project }) =
 
         {/* Live QuickChart Image Render */}
         <div className="shrink-0 bg-[#070A12] p-2 rounded-xl border border-white/10 flex items-center justify-center">
-          {/* eslint-disable-next-html-link */}
-          <img src={chartUrl} alt="QuickChart Live Render" className="max-h-36 object-contain" />
+          <Image
+            src={chartUrl}
+            alt="QuickChart Live Render"
+            width={400}
+            height={200}
+            unoptimized
+            className="max-h-36 object-contain"
+          />
         </div>
       </div>
     </div>

@@ -23,7 +23,7 @@ import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
 import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Sparkles, Plus } from 'lucide-react';
+import { ShieldCheck, Plus } from 'lucide-react';
 import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
 
 export default function DashboardPage() {
@@ -142,7 +142,7 @@ function DashboardContent() {
               onClick={handleRestoreDemoShowcase}
               className="btn btn-primary flex-1 py-2.5 px-4 rounded-xl text-xs font-bold font-mono bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-lg"
             >
-              <Sparkles size={14} />
+              <ShieldCheck size={14} />
               <span>Load Demo Showcase</span>
             </button>
 

@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 };
 
 function getMetadataBase(): URL {
-  const raw = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  const raw = process.env.NEXT_PUBLIC_APP_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   if (!raw || typeof raw !== 'string' || !raw.trim()) {
     return new URL('https://zelsis.com');
   }

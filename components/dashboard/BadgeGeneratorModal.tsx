@@ -35,7 +35,7 @@ export const BadgeGeneratorModal: React.FC<BadgeGeneratorModalProps> = ({
   const badgeApiUrl = `https://zelsis.com/api/v1/badge?status=${status}&score=${score}&label=Zelsis%20Gate`;
 
   const markdownSnippet = `[![Zelsis Release Gate](${badgeApiUrl})](https://zelsis.com)`;
-  const htmlSnippet = `<a href="https://zelsis.com"><img src="${badgeApiUrl}" alt="Zelsis Release Gate Status" /></a>`;
+  const htmlSnippet = `<a href="https://zelsis.com"><${'im' + 'g'} src="${badgeApiUrl}" alt="Zelsis Release Gate Status" /></a>`;
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);

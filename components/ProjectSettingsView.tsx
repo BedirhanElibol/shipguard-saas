@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/data/schema';
 import { UserProfile } from '@/components/auth/AuthModal';
@@ -25,7 +26,7 @@ import {
   Calendar,
   ExternalLink
 } from 'lucide-react';
-import { supabaseSignOut } from '@/lib/supabase';
+import { supabaseSignOut, getSupabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { verifyLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
 import { purgeZelsisStorage } from '@/lib/storage';
@@ -82,9 +83,25 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
     setIsSyncingSub(true);
     setSyncFeedback({ status: 'idle', message: '' });
     try {
+      const supabase = getSupabase();
+      const sessionRes = await supabase?.auth.getSession();
+      const token = sessionRes?.data?.session?.access_token;
+
+      if (!token) {
+        setSyncFeedback({
+          status: 'error',
+          message: 'Active session required to synchronize subscription status. Please sign in.',
+        });
+        setIsSyncingSub(false);
+        return;
+      }
+
       const res = await fetch('/api/v1/subscription/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ email: user.email }),
       });
       if (res.ok) {
@@ -149,7 +166,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
     e.preventDefault();
     if (!licenseInput.trim()) return;
 
-    const result = verifyLicenseKey(licenseInput.trim());
+    const result = verifyLicenseKey(licenseInput.trim(), user?.email || profileEmail);
     if (result.valid && (result.tier === 'Pro' || result.tier === 'Enterprise')) {
       activateUserTier(result.tier, licenseInput.trim());
       setLicenseFeedback({
@@ -600,12 +617,15 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
             <div className="flex items-center gap-4">
               {profileAvatarUrl ? (
-                <img
+                <Image
                   src={profileAvatarUrl}
                   alt={profileName || 'User Avatar'}
+                  width={56}
+                  height={56}
+                  unoptimized
                   className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md bg-[#141414] shrink-0"
                   onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
+                    (e.currentTarget as HTMLElement).style.display = 'none';
                   }}
                 />
               ) : (
@@ -640,6 +660,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 )}
               </label>
               <input
+                aria-label="Display Name"
                 type="text"
                 disabled={!isAuthenticated}
                 readOnly={!isAuthenticated}
@@ -649,7 +670,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
                   !isAuthenticated
                     ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
-                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500'
                 }`}
               />
             </div>
@@ -662,6 +683,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 )}
               </label>
               <input
+                aria-label="Email Address"
                 type="email"
                 disabled={!isAuthenticated}
                 readOnly={!isAuthenticated}
@@ -671,7 +693,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
                   !isAuthenticated
                     ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
-                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500'
                 }`}
               />
             </div>
@@ -685,6 +707,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               </label>
               <div className="flex gap-2">
                 <input
+                  aria-label="Avatar Image URL"
                   type="text"
                   disabled={!isAuthenticated}
                   readOnly={!isAuthenticated}
@@ -694,7 +717,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   className={`flex-1 border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
                     !isAuthenticated
                       ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
-                      : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                      : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500'
                   }`}
                 />
                 <button
@@ -758,11 +781,12 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
           <div className="flex items-center gap-2 w-full md:w-auto">
             <input
+              aria-label="License Key Input"
               type="text"
               placeholder="SG-PRO-2026-..."
               value={licenseInput}
               onChange={(e) => setLicenseInput(e.target.value)}
-              className="bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30 uppercase flex-1 md:w-60"
+              className="bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500 uppercase flex-1 md:w-60"
             />
             <button
               type="button"

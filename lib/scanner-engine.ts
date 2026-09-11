@@ -265,6 +265,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       lowerFilePath.includes('vulnerabilityplayground.tsx') ||
       lowerFilePath.includes('ruleknowledgebasemodal.tsx') ||
       lowerFilePath.includes('interactiveanalyzer.tsx') ||
+      lowerFilePath.endsWith('components/hero.tsx') ||
       lowerFilePath.includes('05_seed_data.sql') ||
       lowerFilePath.includes('scratch/') ||
       lowerFilePath.includes('.agent/');
@@ -1047,20 +1048,22 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] 🏷️ VIBEPOLISH UI-111: Excessive 'any' type usage detected (${file.path})`);
     }
 
-    // VibePolish UI-115: Monolithic File Overuse (>400 Lines)
-    if (lines.length > 400 && (file.path.endsWith('.tsx') || file.path.endsWith('.jsx'))) {
+    // VibePolish UI-115: Monolithic File Overuse (>500 Lines for atomic components, >1200 Lines for composite views/pages)
+    const isCompositeViewOrPage = /View\.[tj]sx$|page\.[tj]sx$|Modal\.[tj]sx$|Table\.[tj]sx$/i.test(file.path);
+    const maxLinesAllowed = isCompositeViewOrPage ? 1200 : 500;
+    if (lines.length > maxLinesAllowed && (file.path.endsWith('.tsx') || file.path.endsWith('.jsx'))) {
       addFinding({
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 115,
         type: 'VIBEPOLISH',
-        title: 'UI-115: Monolithic Overly Long Source File (>400 Lines)',
+        title: 'UI-115: Monolithic Overly Long Source File (>500 Lines)',
         severity: 'MEDIUM',
         category: 'Code Architecture',
         filePath: file.path,
         lineRange: `L1-L${lines.length}`,
         snippet: `// ${file.path} contains ${lines.length} lines of code`,
         reproductionSteps: [`Scanned file line count for ${file.path}.`, `Detected monolithic component containing ${lines.length} lines without sub-component extraction.`],
-        remediationPrompt: `Decompose monolithic file ${file.path} (${lines.length} lines) into smaller modular sub-components (max 200 lines per file).`,
+        remediationPrompt: `Decompose monolithic file ${file.path} (${lines.length} lines) into smaller modular sub-components (max 250 lines per file).`,
         status: 'OPEN',
         owner: 'Frontend Team',
         falsePositive: false

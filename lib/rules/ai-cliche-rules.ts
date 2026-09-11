@@ -308,30 +308,32 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-11: Count-Up-From-Zero Number Animation
-  if (/countUp|count-up|counter.*animation|animate.*count|useCountUp|CountUp/i.test(cleanContent) ||
-      (/from.*0|start.*0/i.test(cleanContent) && /count|number|stat/i.test(cleanContent) && /animate|motion|spring/i.test(cleanContent))) {
-    const matchLineIdx = lines.findIndex(l => /countUp|count-up|counter.*anim|useCountUp/i.test(l));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cliche-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 211,
-      type: 'VIBEPOLISH',
-      title: 'CLICHE-11: Count-Up-From-Zero Number Animation',
-      severity: 'LOW',
-      category: 'AI Cliché & Animation',
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || '<CountUp start={0} end={10000} duration={2} />',
-      reproductionSteps: [
-        `Scanned stat animations in ${file.path}:${lineNum}.`,
-        'Detected count-up-from-zero animation — gimmicky AI filler pattern.'
-      ],
-      remediationPrompt: `Remove count-up animation in ${file.path}. Display numbers directly and clearly without theatrical counting scripts.`,
-      status: 'OPEN',
-      owner: 'UI Architect',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] 🎨 CLICHE-11: Count-up animation detected (${file.path}:${lineNum})`);
+  if (/\b(?:countUp|count-up|useCountUp|CountUp)\b/i.test(cleanContent) ||
+      (/\b(?:start|from)\s*[:=]\s*\{?0\}?/i.test(cleanContent) && /\b(?:count|counter|number|stat)\b/i.test(cleanContent) && /\b(?:animate|motion|spring)\b/i.test(cleanContent))) {
+    const matchLineIdx = lines.findIndex(l => /\b(?:countUp|count-up|useCountUp|CountUp)\b/i.test(l) || (/\b(?:start|from)\s*[:=]\s*\{?0\}?/i.test(l) && /\b(?:count|counter)\b/i.test(l)));
+    if (matchLineIdx !== -1) {
+      const lineNum = matchLineIdx + 1;
+      findings.push({
+        id: `cliche-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 211,
+        type: 'VIBEPOLISH',
+        title: 'CLICHE-11: Count-Up-From-Zero Number Animation',
+        severity: 'LOW',
+        category: 'AI Cliché & Animation',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: lines[matchLineIdx] || '<CountUp start={0} end={10000} duration={2} />',
+        reproductionSteps: [
+          `Scanned stat animations in ${file.path}:${lineNum}.`,
+          'Detected count-up-from-zero animation — gimmicky AI filler pattern.'
+        ],
+        remediationPrompt: `Remove count-up animation in ${file.path}. Display numbers directly and clearly without theatrical counting scripts.`,
+        status: 'OPEN',
+        owner: 'UI Architect',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🎨 CLICHE-11: Count-up animation detected (${file.path}:${lineNum})`);
+    }
   }
 
   // CLICHE-12: Forced 1-2-3 Step "How It Works" Pattern
@@ -608,30 +610,32 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-22: Pastel Square Rounded Icon Containers
-  if (/rounded-(?:lg|xl|2xl).*(?:bg-(?:blue|green|orange|pink|purple|teal|cyan)-(?:50|100))/i.test(cleanContent) &&
+  if (/rounded-(?:lg|xl|2xl).*(?:bg-(?:blue|green|orange|pink|purple|teal|cyan)-(?:50|100)\b)/i.test(cleanContent) &&
       /lucide|icon|Icon|Feature/i.test(cleanContent)) {
-    const matchLineIdx = lines.findIndex(l => /rounded-.*bg-.*-(?:50|100)/i.test(l) && /icon|Icon/i.test(l));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cliche-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 222,
-      type: 'VIBEPOLISH',
-      title: 'CLICHE-22: Pastel Square Rounded Icon Containers',
-      severity: 'LOW',
-      category: 'AI Cliché & Visual',
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || '<div className="rounded-xl bg-blue-50 p-3"><Icon /></div>',
-      reproductionSteps: [
-        `Scanned feature icon styling in ${file.path}:${lineNum}.`,
-        'Detected pastel-colored rounded square icon containers — standard AI visual pattern.'
-      ],
-      remediationPrompt: `Replace pastel icon boxes in ${file.path} with real UI screenshots, micro-illustrations, or inline contextual graphics.`,
-      status: 'OPEN',
-      owner: 'UI Architect',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] 🎨 CLICHE-22: Pastel icon boxes detected (${file.path}:${lineNum})`);
+    const matchLineIdx = lines.findIndex(l => /rounded-.*bg-.*-(?:50|100)\b/i.test(l) && /icon|Icon/i.test(l));
+    if (matchLineIdx !== -1) {
+      const lineNum = matchLineIdx + 1;
+      findings.push({
+        id: `cliche-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 222,
+        type: 'VIBEPOLISH',
+        title: 'CLICHE-22: Pastel Square Rounded Icon Containers',
+        severity: 'LOW',
+        category: 'AI Cliché & Visual',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: lines[matchLineIdx] || '<div className="rounded-xl bg-blue-50 p-3"><Icon /></div>',
+        reproductionSteps: [
+          `Scanned feature icon styling in ${file.path}:${lineNum}.`,
+          'Detected pastel-colored rounded square icon containers — standard AI visual pattern.'
+        ],
+        remediationPrompt: `Replace pastel icon boxes in ${file.path} with real UI screenshots, micro-illustrations, or inline contextual graphics.`,
+        status: 'OPEN',
+        owner: 'UI Architect',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🎨 CLICHE-22: Pastel icon boxes detected (${file.path}:${lineNum})`);
+    }
   }
 
   // CLICHE-23: Generic Faceless Flat Stock Vectors (unDraw)

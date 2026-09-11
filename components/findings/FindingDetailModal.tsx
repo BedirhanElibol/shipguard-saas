@@ -164,12 +164,16 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
           </div>
 
           {/* Reproduction & Audit Steps */}
-          {cleanSteps.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-zinc-300 mb-2 font-mono">
-                <AlertTriangle size={15} className="text-amber-400" />
-                <span>Reproduction &amp; Verification Evidence:</span>
-              </div>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold text-zinc-300 mb-2 font-mono">
+              <AlertTriangle size={15} className="text-amber-400" />
+              <span>Reproduction &amp; Verification Evidence:</span>
+            </div>
+            {cleanSteps.length === 0 ? (
+              <p className="text-xs text-zinc-500 bg-black/40 border border-white/5 rounded-xl p-3.5">
+                No reproduction steps recorded.
+              </p>
+            ) : (
               <ol className="list-decimal list-inside space-y-1.5 text-xs text-zinc-400 bg-black/40 border border-white/5 rounded-xl p-3.5">
                 {cleanSteps.map((step: string, idx: number) => (
                   <li key={idx} className="leading-relaxed">
@@ -177,8 +181,8 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   </li>
                 ))}
               </ol>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Remediation Guidance & Safe Diff */}
           <div className="bg-[#0A0A0A] border border-white/10 p-5 rounded-xl flex flex-col gap-3">

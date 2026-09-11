@@ -100,7 +100,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
         {/* Search & Filters */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          {/* Search Box */}
+          {/* Search */}
           <div className="flex items-center gap-2 bg-[#0A0A0A] px-3 py-1.5 rounded-lg border border-white/10 flex-1 sm:w-64">
             <Search size={14} className="text-[#A1A1AA]" />
             <input
@@ -109,7 +109,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               placeholder="Search findings or files..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent text-xs text-[#EDEDED] outline-none w-full placeholder:text-[#A1A1AA]"
+              className="bg-transparent text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 w-full placeholder:text-[#A1A1AA] rounded"
             />
           </div>
 
@@ -117,9 +117,10 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           <div className="flex items-center gap-2 bg-[#0A0A0A] px-3 py-1.5 rounded-lg border border-white/10">
             <Filter size={14} className="text-[#A1A1AA]" />
             <select
+              aria-label="Filter findings by severity"
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-[#EDEDED] outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 cursor-pointer rounded"
             >
               <option value="ALL" className="bg-[#141414]">All Severities</option>
               <option value="CRITICAL" className="bg-[#141414] text-[#EF4444]">Critical</option>

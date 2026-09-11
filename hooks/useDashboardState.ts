@@ -36,7 +36,9 @@ export function useDashboardState() {
         const p = JSON.parse(saved);
         if (p && p.isLoggedIn) return false;
       }
-    } catch {}
+    } catch (err) {
+      void err;
+    }
     return true;
   });
   const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>(
@@ -165,7 +167,9 @@ export function useDashboardState() {
             try {
               savedUserStr = decodeURIComponent(match[3]);
               localStorage.setItem('zelsis_user', savedUserStr);
-            } catch {}
+            } catch (err) {
+              void err;
+            }
           }
         }
 
@@ -361,7 +365,8 @@ export function useDashboardState() {
           } else {
             setUser(null);
           }
-        } catch {
+        } catch (err) {
+          void err;
           setUser(null);
         }
       }
@@ -401,7 +406,9 @@ export function useDashboardState() {
               savedExpiresAt = localParsed?.expiresAt;
               savedStatus = localParsed?.status || 'active';
               savedGracePeriod = localParsed?.gracePeriodUntil;
-            } catch {}
+            } catch (err) {
+              void err;
+            }
           }
 
           const savedLic = localStorage.getItem('zelsis_license_key');
@@ -433,7 +440,9 @@ export function useDashboardState() {
                   savedGracePeriod = syncData.gracePeriodUntil;
                 }
               }
-            } catch {}
+            } catch (err) {
+              void err;
+            }
           }
 
           const mergedUser: UserProfile = {
@@ -480,7 +489,9 @@ export function useDashboardState() {
               savedExpiresAt = localParsed?.expiresAt;
               savedStatus = localParsed?.status || 'active';
               savedGracePeriod = localParsed?.gracePeriodUntil;
-            } catch {}
+            } catch (err) {
+              void err;
+            }
           }
 
           const savedLic = localStorage.getItem('zelsis_license_key');
@@ -511,7 +522,9 @@ export function useDashboardState() {
                   savedGracePeriod = syncData.gracePeriodUntil;
                 }
               }
-            } catch {}
+            } catch (err) {
+              void err;
+            }
           }
 
           const mergedProfile: UserProfile = {
@@ -557,7 +570,8 @@ export function useDashboardState() {
         }))
       }));
       safeSetStorageItem('zelsis_projects', JSON.stringify(lightweight), selectedProject.id);
-    } catch {
+    } catch (primaryQuotaErr) {
+      void primaryQuotaErr;
       try {
         const sanitized = canAccessLocalAudit()
           ? updated
@@ -575,8 +589,8 @@ export function useDashboardState() {
           }))
         }));
         safeSetStorageItem('zelsis_projects', JSON.stringify(ultraCompact), selectedProject.id);
-      } catch {
-        console.warn('[Zelsis Storage] Silent localStorage quota limit handled gracefully.');
+      } catch (fallbackQuotaErr) {
+        console.warn('[Zelsis Storage] Silent localStorage quota limit handled gracefully:', fallbackQuotaErr);
       }
     }
   };

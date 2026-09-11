@@ -66,11 +66,13 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-surface)', padding: '10px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)', flex: 1, minWidth: '280px' }}>
           <Search size={16} color="#A1A1AA" />
-          <input aria-label="Search filter input"
+          <input
+            aria-label="Search 200 AI anti-patterns, clichés or rules"
             type="text"
             placeholder="Search 200 AI anti-patterns, clichés or rules..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
             style={{ background: 'transparent', border: 'none', outline: 'none', color: '#F8FAFC', width: '100%', fontSize: '0.85rem' }}
           />
         </div>
@@ -78,8 +80,10 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Filter size={16} color="#A1A1AA" />
           <select
+            aria-label="Filter AI anti-patterns by category"
             value={selectedCat}
             onChange={(e) => setSelectedCat(e.target.value)}
+            className="focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
             style={{ background: 'var(--bg-surface)', color: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)', fontSize: '0.85rem', cursor: 'pointer' }}
           >
             {categories.map(cat => (

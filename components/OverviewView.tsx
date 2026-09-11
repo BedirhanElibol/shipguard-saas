@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { Project, Finding } from '@/data/schema';
-import { ShieldCheck, Palette, Layers, Activity, AlertTriangle, ArrowRight, Play, Copy, CheckCircle2, Sparkles, X } from 'lucide-react';
+import { ShieldCheck, Palette, Layers, Activity, AlertTriangle, ArrowRight, Play, Copy, CheckCircle2, X } from 'lucide-react';
 
 export interface DemoShowcaseBannerProps {
   onFocusQuickAudit?: () => void;
@@ -41,7 +41,7 @@ export const DemoShowcaseBanner: React.FC<DemoShowcaseBannerProps> = ({
     <div className="relative overflow-hidden rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-950/40 via-[#141414] to-[#141414] p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <div className="flex items-start sm:items-center gap-3.5 min-w-0">
         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400">
-          <Sparkles size={20} />
+          <Layers size={20} />
         </div>
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -208,7 +208,19 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         </div>
 
         {/* Metric 2: Security Checks */}
-        <div className="bg-[#141414] border border-white/10 rounded-xl" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => onNavigateTab('security')}>
+        <div
+          role="button"
+          tabIndex={0}
+          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+          style={{ padding: '20px', cursor: 'pointer' }}
+          onClick={() => onNavigateTab('security')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onNavigateTab('security');
+            }
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>Security Pre-Flight</span>
             <ShieldCheck size={18} color="#10B981" />
@@ -222,7 +234,19 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         </div>
 
         {/* Metric 3: VibePolish UI Matrix */}
-        <div className="bg-[#141414] border border-white/10 rounded-xl" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => onNavigateTab('vibepolish')}>
+        <div
+          role="button"
+          tabIndex={0}
+          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+          style={{ padding: '20px', cursor: 'pointer' }}
+          onClick={() => onNavigateTab('vibepolish')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onNavigateTab('vibepolish');
+            }
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>VibePolish UI</span>
             <Palette size={18} color="#34D399" />
@@ -236,7 +260,19 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         </div>
 
         {/* Metric 4: AI Master Slop Matrix */}
-        <div className="bg-[#141414] border border-white/10 rounded-xl" style={{ padding: '20px', cursor: 'pointer' }} onClick={() => onNavigateTab('aimaster')}>
+        <div
+          role="button"
+          tabIndex={0}
+          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+          style={{ padding: '20px', cursor: 'pointer' }}
+          onClick={() => onNavigateTab('aimaster')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onNavigateTab('aimaster');
+            }
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>AI Master Matrix</span>
             <Layers size={18} color="#0EA5E9" />

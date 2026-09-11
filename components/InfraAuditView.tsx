@@ -95,16 +95,17 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
             placeholder="Search rules, stacks (Supabase, Docker, Next.js), or categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-transparent border-none outline-none text-[#EDEDED] w-full text-xs font-mono placeholder:text-zinc-500"
+            className="bg-transparent border-none outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 text-[#EDEDED] w-full text-xs font-mono placeholder:text-zinc-500 rounded"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[#A1A1AA]" />
           <select
+            aria-label="Filter infrastructure rules by category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#141414] text-[#EDEDED] px-3.5 py-2.5 rounded-xl border border-white/10 text-xs font-mono font-bold cursor-pointer outline-none"
+            className="bg-[#141414] text-[#EDEDED] px-3.5 py-2.5 rounded-xl border border-white/10 text-xs font-mono font-bold cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
           >
             {categories.map((c) => (
               <option key={c} value={c} className="bg-[#141414]">
@@ -116,8 +117,13 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
       </div>
 
       {/* Rules Catalog Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredRules.map((rule) => {
+      {filteredRules.length === 0 ? (
+        <div className="bg-[#141414] border border-white/10 rounded-xl p-10 text-center text-[#A1A1AA] text-xs font-mono">
+          No infrastructure rules match your search or filter.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredRules.map((rule) => {
           const matchingFindings = findings.filter(
             (f) => (f.ruleId === rule.id || f.ruleId === rule.id - 3000) && f.status === 'OPEN'
           );
@@ -212,7 +218,8 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

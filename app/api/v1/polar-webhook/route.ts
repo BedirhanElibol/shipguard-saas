@@ -139,10 +139,23 @@ export async function POST(req: NextRequest) {
     logger.warn('[Polar Webhook Security Warning] POLAR_WEBHOOK_SECRET is not configured in production environment. Webhook verification is bypassed.');
   }
 
-  let body: any;
+  let body: {
+    type?: string;
+    data?: {
+      customer?: { email?: string };
+      user?: { email?: string };
+      product?: { name?: string };
+      current_period_end?: string | null;
+      subscription?: {
+        current_period_end?: string | null;
+        product?: { name?: string };
+      };
+    };
+  } | null = null;
   try {
     body = JSON.parse(rawBody);
-  } catch {
+  } catch (parseErr) {
+    void parseErr;
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
@@ -193,7 +206,7 @@ export async function POST(req: NextRequest) {
       // Find user by email in auth.users
       const { data: users } = await adminClient.auth.admin.listUsers();
       const matchedUser = users?.users?.find(
-        (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+        (u: { email?: string; id: string }) => u.email?.toLowerCase() === customerEmail.toLowerCase()
       );
 
       if (matchedUser) {
@@ -205,8 +218,8 @@ export async function POST(req: NextRequest) {
           await adminClient.auth.admin.updateUserById(matchedUser.id, {
             user_metadata: { tier: formattedTier, subscriptionStatus: status }
           });
-        } catch (authMetaErr: any) {
-          logger.warn('[Polar Webhook] User metadata update warning:', authMetaErr?.message);
+        } catch (authMetaErr: unknown) {
+          logger.warn('[Polar Webhook] User metadata update warning:', authMetaErr instanceof Error ? authMetaErr.message : String(authMetaErr));
         }
 
         // 2. Upsert subscriptions record
@@ -219,18 +232,18 @@ export async function POST(req: NextRequest) {
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
           logger.info(`[Polar Webhook] Upserted subscriptions for ${customerEmail} tier ${formattedTier} (status: ${status})`);
-        } catch (subErr: any) {
-          logger.warn('[Polar Webhook] Subscriptions table update warning:', subErr?.message);
+        } catch (subErr: unknown) {
+          logger.warn('[Polar Webhook] Subscriptions table update warning:', subErr instanceof Error ? subErr.message : String(subErr));
         }
 
         // 3. Update profiles table updated_at
         try {
           await adminClient
-            .from('profiles')
-            .update({ updated_at: new Date().toISOString() })
-            .eq('id', matchedUser.id);
-        } catch (profileError: any) {
-          logger.warn(`[Polar Webhook] Profile update notice: ${profileError?.message}`);
+              .from('profiles')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', matchedUser.id);
+        } catch (profileError: unknown) {
+          logger.warn(`[Polar Webhook] Profile update notice: ${profileError instanceof Error ? profileError.message : String(profileError)}`);
         }
       } else {
         logger.warn(`[Polar Webhook] No user found for email: ${customerEmail}`);
@@ -240,8 +253,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true, tier, email: customerEmail });
-  } catch (err: any) {
-    logger.error(`[Polar Webhook] Error processing ${eventType}:`, err?.message);
+  } catch (err: unknown) {
+    logger.error(`[Polar Webhook] Error processing ${eventType}:`, err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error: 'Processing error' }, { status: 500 });
   }
 }

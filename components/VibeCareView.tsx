@@ -4,7 +4,7 @@
 import React from 'react';
 import { Project } from '@/data/schema';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
-import { Activity, ShieldCheck, DollarSign, RefreshCw, Server, CheckCircle2, Download, Lock, Sparkles, X } from 'lucide-react';
+import { Activity, ShieldCheck, DollarSign, RefreshCw, Server, CheckCircle2, Download, Lock, Zap, X } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 
 interface VibeCareViewProps {
@@ -309,7 +309,7 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
                 }}
                 className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
               >
-                <Sparkles size={14} />
+                <Zap size={14} />
                 <span>Upgrade to Pro ($19/mo)</span>
               </button>
               <button

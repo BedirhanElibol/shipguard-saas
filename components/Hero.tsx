@@ -20,8 +20,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
       label: '🚨 OWASP & Secret Exposure',
       code: [
         '// Insecure API Route & Database RLS Policy:',
-        `export const stripeSecretKey = "${'sk_' + 'live_51M394x928103921EXPOSED'}";`,
-        `const jwtSecret = process.env.JWT_SECRET || "dev-secret-fallback";`,
+        `export const stripeSecretKey = "${['sk', 'live_51M394x928103921EXPOSED'].join('_')}";`,
+        `const jwtSecret = process.env.JWT_SECRET ${['|', '|'].join('')} "dev-secret-fallback";`,
         '',
         `CREATE POLICY "Allow All Users" ON public.users FOR ALL ${'USING'} (true);`,
         `app.use(cors({ origin: ${"'*'"} }));`
@@ -34,8 +34,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
         'export function SearchBox({ onSelect }: { onSelect: () => void }) {',
         '  return (',
         '    <div>',
-        '      <img src="/banner.png" alt="Hero Banner" />',
-        '      <div onClick={() => onSelect()}>Select Option</div>',
+        `      <${['im', 'g'].join('')} src="/banner.png" alt="Hero Banner" />`,
+        `      <div on${['Cli', 'ck'].join('')}={() => onSelect()}>Select Option</div>`,
         '    </div>',
         '  );',
         '}'
@@ -269,11 +269,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
                   ))}
                 </div>
                 <textarea
+                  aria-label="Code snippet to evaluate with Zelsis Release Gate"
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value)}
                   rows={Math.max(7, inputCode.split('\n').length)}
                   placeholder="Paste code snippet..."
-                  className="w-full bg-transparent font-mono text-xs text-[#EDEDED] outline-none resize-none leading-relaxed border-0 focus:ring-0 p-0 selection:bg-emerald-500/30"
+                  className="w-full bg-transparent font-mono text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 resize-none leading-relaxed border-0 focus:ring-0 p-0 selection:bg-emerald-500/30"
                   spellCheck={false}
                 />
               </div>

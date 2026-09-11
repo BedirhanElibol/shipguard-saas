@@ -1,5 +1,5 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
 import { UserProfile } from '@/components/auth/AuthModal';
 
 const DEFAULT_SUPABASE_URL = 'https://afzpaydfkmycrwuxmzkk.supabase.co';
@@ -50,15 +50,15 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
         name: data.user.user_metadata?.full_name || fallbackName,
         email: data.user.email || email,
         avatarUrl: data.user.user_metadata?.avatar_url,
-        tier: (data.user.user_metadata?.tier as any) || 'Free',
+        tier: (data.user.user_metadata?.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free',
         isLoggedIn: true,
         emailVerified: data.user.email_confirmed_at != null
       };
       return { user: userProfile, error: null };
     }
     return { user: null, error: 'User not found' };
-  } catch (err: any) {
-    return { user: null, error: err?.message || 'Authentication error occurred.' };
+  } catch (err: unknown) {
+    return { user: null, error: err instanceof Error ? err.message : 'Authentication error occurred.' };
   }
 }
 
@@ -99,8 +99,8 @@ export async function supabaseSignUp(email: string, password: string, name: stri
       return { user: userProfile, error: null, requiresVerification: !data.user.email_confirmed_at };
     }
     return { user: null, error: 'Registration completed but user state could not be verified.' };
-  } catch (err: any) {
-    return { user: null, error: err?.message || 'Sign up error occurred.' };
+  } catch (err: unknown) {
+    return { user: null, error: err instanceof Error ? err.message : 'Sign up error occurred.' };
   }
 }
 
@@ -122,8 +122,8 @@ export async function supabaseResetPassword(email: string): Promise<{ success: b
       success: true,
       message: `Password reset instruction email successfully sent to ${email}.`
     };
-  } catch (err: any) {
-    return { success: false, message: err?.message || 'Password reset request failed.' };
+  } catch (err: unknown) {
+    return { success: false, message: err instanceof Error ? err.message : 'Password reset request failed.' };
   }
 }
 
@@ -138,10 +138,15 @@ export async function supabaseSignOut(): Promise<void> {
   }
 }
 
-export function mapSupabaseUserToProfile(supabaseUser: any): UserProfile {
+export function mapSupabaseUserToProfile(supabaseUser: {
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+  email_confirmed_at?: string | null;
+}): UserProfile {
   const metadata = supabaseUser?.user_metadata || {};
-  const rawName = metadata.full_name || metadata.name || metadata.user_name || supabaseUser?.email?.split('@')[0] || 'User';
-  const avatar = metadata.avatar_url || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
+  const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || supabaseUser?.email?.split('@')[0] || 'User';
+  const avatar = (metadata.avatar_url as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
   const tier = (metadata.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free';
 
   return {
@@ -181,12 +186,12 @@ export async function supabaseSignInWithOAuth(
 
     if (error) return { error: error.message };
     return { url: data?.url, error: null };
-  } catch (err: any) {
-    return { error: err?.message || 'OAuth initialization failed' };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'OAuth initialization failed' };
   }
 }
 
-export async function supabaseGetSession(): Promise<{ user: UserProfile | null; session: any; error: string | null }> {
+export async function supabaseGetSession(): Promise<{ user: UserProfile | null; session: Session | null; error: string | null }> {
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) {
     return { user: null, session: null, error: null };
@@ -203,7 +208,7 @@ export async function supabaseGetSession(): Promise<{ user: UserProfile | null; 
     const { data: { session } } = await supabase.auth.getSession();
     const profile = mapSupabaseUserToProfile(verifiedUser);
     return { user: profile, session, error: null };
-  } catch (err: any) {
-    return { user: null, session: null, error: err?.message || 'Failed to fetch session' };
+  } catch (err: unknown) {
+    return { user: null, session: null, error: err instanceof Error ? err.message : 'Failed to fetch session' };
   }
 }

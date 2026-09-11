@@ -54,13 +54,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: any = {};
+  let body: { email?: string } = {};
   try {
     const rawText = await req.text();
     if (rawText) {
       body = JSON.parse(rawText);
     }
-  } catch {
+  } catch (parseErr) {
+    void parseErr;
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
       if (polarRes.ok) {
         const polarData = await polarRes.json();
         const polarSub = (polarData.items || []).find(
-          (s: any) => s.status === 'active' || s.status === 'past_due'
+          (s: { status?: string; current_period_end?: string | null; product?: { name?: string } }) => s.status === 'active' || s.status === 'past_due'
         );
         if (polarSub) {
           const periodEnd = polarSub.current_period_end ? new Date(polarSub.current_period_end) : null;
@@ -126,8 +127,8 @@ export async function POST(req: NextRequest) {
           }
         }
       }
-    } catch (err: any) {
-      logger.warn('[Subscription Sync] Polar API check failed:', err?.message);
+    } catch (err: unknown) {
+      logger.warn('[Subscription Sync] Polar API check failed:', err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -171,14 +172,14 @@ export async function POST(req: NextRequest) {
             } else {
               verifiedTier = subPlanTier;
               isActive = true;
-              subStatus = (sub?.status as any) || 'active';
+              subStatus = (sub?.status === 'past_due' || sub?.status === 'canceled') ? sub.status : 'active';
               expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
               logger.info(`[Subscription Sync] Supabase subscription confirmed: ${verifiedTier} for ${email}`);
             }
           }
         }
-      } catch (err: any) {
-        logger.warn('[Subscription Sync] Supabase check error:', err?.message);
+      } catch (err: unknown) {
+        logger.warn('[Subscription Sync] Supabase check error:', err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -211,8 +212,8 @@ export async function POST(req: NextRequest) {
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
       }
-    } catch (syncUpdateErr: any) {
-      logger.warn('[Subscription Sync] Admin update notice:', syncUpdateErr?.message);
+    } catch (syncUpdateErr: unknown) {
+      logger.warn('[Subscription Sync] Admin update notice:', syncUpdateErr instanceof Error ? syncUpdateErr.message : String(syncUpdateErr));
     }
   }
 

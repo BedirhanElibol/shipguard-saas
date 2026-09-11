@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Terminal, GitPullRequest, ShieldCheck, Copy, CheckCircle2, Download, Settings2, Sliders, CheckSquare, Sparkles, AlertTriangle } from 'lucide-react';
+import { Terminal, GitPullRequest, ShieldCheck, Copy, CheckCircle2, Download, Settings2, Sliders, CheckSquare, AlertTriangle } from 'lucide-react';
 
 interface CicdAutomationViewProps {
   projectName?: string;
@@ -215,8 +215,9 @@ jobs:
                 min="60"
                 max="95"
                 value={minScore}
+                aria-label="Minimum Required Score Threshold"
                 onChange={(e) => setMinScore(Number(e.target.value))}
-                className="w-32 accent-emerald-500 cursor-pointer"
+                className="w-32 accent-emerald-500 cursor-pointer focus-visible:ring-1 focus-visible:ring-emerald-500"
               />
               <span className="font-mono font-bold text-emerald-400 text-sm">{minScore} / 100</span>
             </div>
@@ -297,20 +298,25 @@ jobs:
           </div>
 
           <div className="flex flex-wrap gap-3 pt-3 border-t border-white/5">
-            {Object.keys(enabledGates).map((gateKey) => {
-              const k = gateKey as keyof typeof enabledGates;
-              return (
-                <label key={k} className="flex items-center gap-2 cursor-pointer text-xs font-mono text-zinc-300">
-                  <input
-                    type="checkbox"
-                    checked={enabledGates[k]}
-                    onChange={(e) => setEnabledGates({ ...enabledGates, [k]: e.target.checked })}
-                    className="rounded accent-emerald-500 cursor-pointer"
-                  />
-                  <span className="capitalize">{k}</span>
-                </label>
-              );
-            })}
+            {Object.keys(enabledGates).length === 0 ? (
+              <p className="text-xs text-zinc-500">No gates configured.</p>
+            ) : (
+              Object.keys(enabledGates).map((gateKey) => {
+                const k = gateKey as keyof typeof enabledGates;
+                return (
+                  <label key={k} className="flex items-center gap-2 cursor-pointer text-xs font-mono text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={enabledGates[k]}
+                      aria-label={`Toggle ${k} gate`}
+                      onChange={(e) => setEnabledGates({ ...enabledGates, [k]: e.target.checked })}
+                      className="rounded accent-emerald-500 cursor-pointer focus-visible:ring-1 focus-visible:ring-emerald-500"
+                    />
+                    <span className="capitalize">{k}</span>
+                  </label>
+                );
+              })
+            )}
           </div>
         </div>
 

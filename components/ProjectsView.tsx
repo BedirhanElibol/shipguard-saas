@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Project } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
-import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap, Lock, Sparkles, X } from 'lucide-react';
+import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap, Lock, X } from 'lucide-react';
 import { NewProjectModal } from '@/components/projects/NewProjectModal';
 import { UserProfile } from '@/components/auth/AuthModal';
 
@@ -341,7 +341,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 }}
                 className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
               >
-                <Sparkles size={14} />
+                <Zap size={14} />
                 <span>Upgrade to Pro ($19/mo)</span>
               </button>
               <button

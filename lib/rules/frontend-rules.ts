@@ -328,6 +328,204 @@ export function evaluateFrontendRules(
     }
   }
 
+
+  // =========================================================================
+  // f) UI-PERF-03 (Rule ID 1126: Client-Side Waterfall Fetching in useEffect)
+  // =========================================================================
+  if (isJsxTsx) {
+    const waterfallFetchRegex = /useEffect\s*\(\s*\(\)\s*=>\s*\{[\s\S]*?(?:fetch|axios\.(?:get|post)|supabase\.from)\([^)]*\)\.then/;
+    if (waterfallFetchRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => /useEffect\s*\(/.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `frontend-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 1126,
+        type: 'VIBEPOLISH',
+        title: 'Client-Side Waterfall Fetching Hazard in useEffect Hook',
+        severity: 'HIGH',
+        category: 'Performance & CWV',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'useEffect(() => { fetch("/api/data").then(...) }, [])',
+        reproductionSteps: [
+          `Scanned component lifecycle at ${file.path}:${lineNum}.`,
+          'Detected chained client-side data fetching inside useEffect, inducing render waterfalls, layout shifts, and delayed Largest Contentful Paint (LCP).'
+        ],
+        remediationPrompt: `Refactor client-side useEffect fetches to React Server Components (RSC) or prefetch in parallel using React Query / SWR / Promise.all in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Frontend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚡ HIGH: UI-PERF-03 Waterfall fetch in useEffect in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // g) UI-PERF-04 (Rule ID 1127: Bloated Monolithic Library Imports)
+  // =========================================================================
+  if (isJsxTsx) {
+    const bloatedImportRegex = /import\s*\{[^}]{180,}\}\s*from\s*['"](?:lodash|date-fns|lucide-react)['"]/;
+    if (bloatedImportRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => bloatedImportRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `frontend-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 1127,
+        type: 'VIBEPOLISH',
+        title: 'Bloated Monolithic Library Barrel Import (Missing optimizePackageImports)',
+        severity: 'MEDIUM',
+        category: 'Performance & CWV',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'import { ... } from "lucide-react";',
+        reproductionSteps: [
+          `Scanned module import headers at ${file.path}:${lineNum}.`,
+          'Detected massive barrel import pulling dozens of icons/utilities into client bundle, increasing JavaScript parsing time and Total Blocking Time (TBT).'
+        ],
+        remediationPrompt: `Configure optimizePackageImports: ['lucide-react'] in next.config.js or use direct subpath imports in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Frontend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚡ MEDIUM: UI-PERF-04 Bloated library barrel import in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // h) UI-A11Y-03 (Rule ID 1128: Missing Form Error Accessibility Binding)
+  // =========================================================================
+  if (isJsxTsx && (cleanContent.includes('errors.') || cleanContent.includes('formState.errors'))) {
+    const unboundInputRegex = /<input[^>]+(?:name|id)=['"][^'"]+['"][^>]*(?![^>]*(?:aria-invalid|aria-describedby))>/;
+    if (unboundInputRegex.test(cleanContent) && cleanContent.includes('<form')) {
+      const matchLineIdx = lines.findIndex(l => /<input/.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+        findings.push({
+          id: `frontend-${Date.now()}-${findingCounter.count++}`,
+          ruleId: 1128,
+          type: 'VIBEPOLISH',
+          title: 'Missing Accessible Form Error Binding (aria-invalid & aria-describedby)',
+          severity: 'HIGH',
+          category: 'Accessibility (WCAG)',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: snippet || lines[matchLineIdx] || '<input name="email" />',
+          reproductionSteps: [
+            `Scanned form controls at ${file.path}:${lineNum}.`,
+            'Detected form input with validation error states visually displayed without programmatic aria-invalid or aria-describedby bindings for screen readers.'
+          ],
+          remediationPrompt: `Bind form inputs with aria-invalid={!!errors.email} and aria-describedby={errors.email ? 'email-error' : undefined} in ${file.path}:${lineNum}.`,
+          status: 'OPEN',
+          owner: 'Frontend Lead',
+          falsePositive: false
+        });
+        logs.push(`[${ts}] ♿ HIGH: UI-A11Y-03 Unbound form error in ${file.path}:${lineNum}`);
+      }
+    }
+  }
+
+  // =========================================================================
+  // i) UI-A11Y-04 (Rule ID 1129: Disabled Button Pointer-Events Trap)
+  // =========================================================================
+  if (isJsxTsx) {
+    const disabledPointerTrapRegex = /<button[^>]*(?:disabled)[^>]*className=['"][^'"]*pointer-events-none/i;
+    if (disabledPointerTrapRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => disabledPointerTrapRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `frontend-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 1129,
+        type: 'VIBEPOLISH',
+        title: 'Disabled Button Pointer-Events Trap (Keyboard & Screen Reader Hazard)',
+        severity: 'MEDIUM',
+        category: 'Accessibility (WCAG)',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || '<button disabled className="... pointer-events-none">',
+        reproductionSteps: [
+          `Scanned button attributes at ${file.path}:${lineNum}.`,
+          'Detected pointer-events-none applied to disabled button, stripping assistive technology hover tooltips and causing focus confusion.'
+        ],
+        remediationPrompt: `Remove pointer-events-none from disabled buttons in ${file.path}:${lineNum}. Rely on native disabled or aria-disabled with cursor-not-allowed.`,
+        status: 'OPEN',
+        owner: 'Frontend Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ♿ MEDIUM: UI-A11Y-04 Disabled button pointer-events trap in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // j) UI-PERF-06 (Rule ID 1033: Custom Web Fonts Missing font-display: swap)
+  // =========================================================================
+  if (cleanContent.includes('@font-face') && !cleanContent.includes('font-display: swap') && !cleanContent.includes('font-display:swap')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('@font-face'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+    findings.push({
+      id: `frontend-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 1033,
+      type: 'VIBEPOLISH',
+      title: 'Custom Web Font Missing font-display: swap (FOIT / LCP Penalty)',
+      severity: 'LOW',
+      category: 'Performance & CWV',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: snippet || lines[matchLineIdx] || '@font-face { font-family: "Custom"; }',
+      reproductionSteps: [
+        `Scanned font stylesheet declarations at ${file.path}:${lineNum}.`,
+        'Detected @font-face rule without font-display: swap, causing Flash of Invisible Text (FOIT) while external fonts are downloading.'
+      ],
+      remediationPrompt: `Add font-display: swap to @font-face rules in ${file.path}:${lineNum} to ensure instant fallback text rendering.`,
+      status: 'OPEN',
+      owner: 'Frontend Team',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ⚡ LOW: UI-PERF-06 Font missing font-display: swap in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // k) UI-PERF-07 (Rule ID 1034: Synchronous Render-Blocking Script Tags)
+  // =========================================================================
+  if (file.path.endsWith('.html') || lowerPath.includes('layout.') || lowerPath.includes('document.')) {
+    const syncScriptRegex = /<script\s+src=['"][^'"]+['"](?![^>]*(?:async|defer|type=['"]module['"]))/i;
+    if (syncScriptRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => syncScriptRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `frontend-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 1034,
+        type: 'VIBEPOLISH',
+        title: 'Synchronous Render-Blocking Script Tag Detected in Document Head',
+        severity: 'MEDIUM',
+        category: 'Performance & CWV',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || '<script src="analytics.js"></script>',
+        reproductionSteps: [
+          `Scanned script tags at ${file.path}:${lineNum}.`,
+          'Detected synchronous <script src="..."> tag without async, defer, or Next.js next/script strategy, blocking HTML parser and delaying First Contentful Paint (FCP).'
+        ],
+        remediationPrompt: `Add defer or async attribute, or migrate to Next.js <Script strategy="afterInteractive" /> in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Performance Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚡ MEDIUM: UI-PERF-07 Render-blocking script tag in ${file.path}:${lineNum}`);
+    }
+  }
+
   return { findings, logs };
 }
 

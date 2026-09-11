@@ -440,5 +440,226 @@ export function evaluateInfraRules(
     logs.push(`[${ts}] ☁️ [INFRA-08] MEDIUM: Dockerfile missing HEALTHCHECK directive in ${file.path}:${lineNum}`);
   }
 
+
+  // =========================================================================
+  // RULE 3009 (INFRA-09): Serverless Connection Pool Exhaustion in Next.js / Prisma
+  // =========================================================================
+  const isPrismaOrDbInit = (lowerPath.includes('lib/') || lowerPath.includes('db') || lowerPath.includes('prisma')) && /\.(?:ts|js)$/i.test(lowerPath);
+  if (isPrismaOrDbInit && cleanContent.includes('new PrismaClient()') && !cleanContent.includes('globalThis')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('new PrismaClient()'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3009,
+      type: 'INFRA_DATABASE',
+      title: 'Serverless Connection Pool Exhaustion Hazard (Prisma Missing Global Singleton)',
+      severity: 'CRITICAL',
+      category: 'Serverless & Database Reliability',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned database initialization at ${file.path}:${lineNum}.`,
+        'Detected new PrismaClient() instantiated without globalThis caching, causing connection pool exhaustion across serverless function re-invocations.'
+      ],
+      remediationPrompt: `Instantiate PrismaClient via globalThis singleton pattern in ${file.path} to reuse database connection pools across serverless lambdas.`,
+      diffPatch: `--- a/${file.path}\n+++ b/${file.path}\n@@ -${lineNum},1 +${lineNum},4 @@\n-export const prisma = new PrismaClient();\n+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };\n+export const prisma = globalForPrisma.prisma || new PrismaClient();\n+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;`,
+      status: 'OPEN',
+      owner: 'Database Lead',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ☁️ [INFRA-09] CRITICAL: PrismaClient missing globalThis singleton in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3010 (INFRA-10): Serverless Function Execution Timeout & Memory Misconfiguration
+  // =========================================================================
+  const isServerlessHeavyRoute = lowerPath.includes('app/api/') && (cleanContent.includes('streamText') || cleanContent.includes('openai.chat') || cleanContent.includes('exportPdf'));
+  if (isServerlessHeavyRoute && !cleanContent.includes('maxDuration')) {
+    const matchLineIdx = lines.findIndex(l => /export\s+async\s+function\s+(?:POST|GET)/.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3010,
+      type: 'INFRA_DATABASE',
+      title: 'Missing maxDuration Timeout Declaration on Long-Running Serverless Route',
+      severity: 'HIGH',
+      category: 'Cloud & Serverless Infrastructure',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned API route handler at ${file.path}:${lineNum}.`,
+        'Detected heavy compute, AI streaming, or PDF export route without export const maxDuration declaration, risking premature 504 gateway timeout on Vercel/AWS Lambda.'
+      ],
+      remediationPrompt: `Export maxDuration configuration: export const maxDuration = 60; in ${file.path} to prevent 10s serverless termination.`,
+      diffPatch: `--- a/${file.path}\n+++ b/${file.path}\n@@ -1,2 +1,3 @@\n+export const maxDuration = 60;\n export const dynamic = 'force-dynamic';`,
+      status: 'OPEN',
+      owner: 'DevOps & SRE',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ☁️ [INFRA-10] HIGH: Serverless route missing maxDuration in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3011 (INFRA-11): Unencrypted Database & Cache In-Transit (Missing SSL / rediss://)
+  // =========================================================================
+  const unencryptedRedisRegex = /['"]redis:\/\/(?!localhost|127\.0\.0\.1|test)[^'"]+['"]/i;
+  if (unencryptedRedisRegex.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && unencryptedRedisRegex.test(l));
+    if (matchLineIdx !== -1) {
+      const lineNum = matchLineIdx + 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 3011,
+        type: 'INFRA_DATABASE',
+        title: 'Unencrypted Cache Connection URI (Missing rediss:// TLS Protocol)',
+        severity: 'CRITICAL',
+        category: 'Transport Layer Security & Privacy',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned remote connection string at ${file.path}:${lineNum}.`,
+          'Detected unencrypted redis:// protocol connecting to remote cache host without TLS encryption in transit.'
+        ],
+        remediationPrompt: `Enforce TLS in-transit: replace redis:// with rediss:// in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Infrastructure Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ☁️ [INFRA-11] CRITICAL: Unencrypted Redis URI in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // RULE 3012 (INFRA-12): S3 / R2 Bucket Public ACL Misconfiguration
+  // =========================================================================
+  const isCloudStorageConfig = lowerPath.includes('s3') || lowerPath.includes('bucket') || lowerPath.includes('storage') || lowerPath.endsWith('.tf');
+  if (isCloudStorageConfig && (cleanContent.includes('public-read') || cleanContent.includes('BlockPublicAcls = false'))) {
+    const matchLineIdx = lines.findIndex(l => l.includes('public-read') || l.includes('BlockPublicAcls = false'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3012,
+      type: 'INFRA_DATABASE',
+      title: 'Public Read ACL Detected on Cloud Storage Bucket Configuration',
+      severity: 'CRITICAL',
+      category: 'Cloud Storage Security',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned storage configuration at ${file.path}:${lineNum}.`,
+        'Detected public-read ACL or disabled public access blocks on storage bucket, risking unauthorized data exposure.'
+      ],
+      remediationPrompt: `Set bucket ACL to private and enable Block Public Access settings in ${file.path}:${lineNum}.`,
+      status: 'OPEN',
+      owner: 'Cloud Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ☁️ [INFRA-12] CRITICAL: Storage bucket public ACL in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3013 (INFRA-13): Container Read-Only Root Filesystem (Docker read_only: true)
+  // =========================================================================
+  const isComposeFile = lowerPath.includes('docker-compose') || lowerPath.includes('compose.yaml');
+  if (isComposeFile && cleanContent.includes('services:') && !cleanContent.includes('read_only: true')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('image:') || l.includes('build:'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3013,
+      type: 'INFRA_DATABASE',
+      title: 'Container Compose Definition Missing Read-Only Root Filesystem Guard',
+      severity: 'HIGH',
+      category: 'Container Hardening',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned Docker Compose configuration at ${file.path}:${lineNum}.`,
+        'Detected container service running with writable root filesystem without read_only: true constraint.'
+      ],
+      remediationPrompt: `Add read_only: true and mount temporary writable directories via tmpfs in ${file.path}:${lineNum}.`,
+      status: 'OPEN',
+      owner: 'DevOps & SRE',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ☁️ [INFRA-13] HIGH: Container missing read_only filesystem in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3016 (INFRA-16): Production Process Missing Graceful Shutdown (SIGTERM/SIGINT)
+  // =========================================================================
+  const isCustomServer = (lowerPath.endsWith('server.js') || lowerPath.endsWith('server.ts')) && !lowerPath.includes('test');
+  if (isCustomServer && cleanContent.includes('.listen(') && !cleanContent.includes('SIGTERM')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('.listen('));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3016,
+      type: 'INFRA_DATABASE',
+      title: 'Production Server Missing Graceful Shutdown SIGTERM/SIGINT Signal Handlers',
+      severity: 'MEDIUM',
+      category: 'Server Resilience',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned HTTP server startup at ${file.path}:${lineNum}.`,
+        'Detected Node.js HTTP server without process.on("SIGTERM") listeners, risking aborted database transactions during rolling deployments.'
+      ],
+      remediationPrompt: `Register process.on('SIGTERM', () => { server.close(); pool.end(); }) in ${file.path}:${lineNum} to guarantee zero-downtime rolling updates.`,
+      status: 'OPEN',
+      owner: 'DevOps Lead',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ☁️ [INFRA-16] MEDIUM: Server missing SIGTERM handler in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3017 (INFRA-17): Dangerous Docker Socket Mount (/var/run/docker.sock)
+  // =========================================================================
+  if ((isComposeFile || isProdDockerfile) && cleanContent.includes('/var/run/docker.sock')) {
+    const matchLineIdx = lines.findIndex(l => l.includes('/var/run/docker.sock'));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3017,
+      type: 'INFRA_DATABASE',
+      title: 'Dangerous Host Docker Socket Mount (/var/run/docker.sock Exposed)',
+      severity: 'CRITICAL',
+      category: 'Container Security',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned container volume mounts at ${file.path}:${lineNum}.`,
+        'Detected /var/run/docker.sock mounted into container, effectively granting full host root privilege escalation.'
+      ],
+      remediationPrompt: `Remove /var/run/docker.sock mount from ${file.path}:${lineNum}. Use rootless builds or isolated Kaniko pods instead.`,
+      status: 'OPEN',
+      owner: 'Security Lead',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] ☁️ [INFRA-17] CRITICAL: Docker socket mount in ${file.path}:${lineNum}`);
+  }
+
   return { findings, logs };
 }

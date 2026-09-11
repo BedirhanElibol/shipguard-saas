@@ -6,26 +6,10 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/data/schema';
 import { UserProfile } from '@/components/auth/AuthModal';
-import {
-  Settings,
-  Key,
-  Save,
-  CheckCircle2,
-  ShieldCheck,
-  AlertTriangle,
-  Trash2,
-  X,
-  Lock,
-  ShieldAlert,
-  Loader2,
-  CreditCard,
-  Zap,
-  Check,
-  User,
-  AlertCircle,
-  Calendar,
-  ExternalLink
-} from 'lucide-react';
+import { Settings, Key, Save, Trash2, X, Lock, User } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, ShieldAlert, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Loader2, CreditCard, Zap, Check, Calendar, ExternalLink } from 'lucide-react';
+
 import { supabaseSignOut, getSupabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { verifyLicenseKey, activateUserTier } from '@/lib/stripe-checkout';

@@ -364,5 +364,142 @@ export function evaluateComplianceRules(
     logs.push(`[${ts}] 🛑 CRITICAL: COMPL-06 Raw Cardholder Data Input in ${file.path}:${lineNum}`);
   }
 
+
+  // ---------------------------------------------------------------------------
+  // COMPL-07 (Rule ID 2007): Tamper-Evident Security Audit Logging for Administrative Actions
+  // ---------------------------------------------------------------------------
+  const isAdminRoute = lowerPath.includes('/api/admin/') || lowerPath.includes('/api/v1/admin/');
+  if (isAdminRoute && /\.(?:ts|js)$/i.test(file.path)) {
+    const hasAdminMutation = /export\s+async\s+function\s+(?:POST|PUT|DELETE|PATCH)\b/.test(cleanContent);
+    const hasAuditLog = /(?:audit_logs|auditLog|recordAudit|logger\.audit|insertAudit)/i.test(cleanContent);
+    if (hasAdminMutation && !hasAuditLog) {
+      const matchLineIdx = lines.findIndex(l => /export\s+async\s+function\s+(?:POST|PUT|DELETE|PATCH)\b/.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 2007,
+        type: 'LEGAL_COMPLIANCE',
+        title: 'Missing Immutable Security Audit Logging on Administrative Mutation Route',
+        severity: 'CRITICAL',
+        category: 'Enterprise Governance & Auditability',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned administrative endpoint at ${file.path}:${lineNum}.`,
+          'Detected state mutation handler without recording structured security audit logs, violating SOC 2 Type II CC6.8 and ISO 27001 compliance standards.'
+        ],
+        remediationPrompt: `Record immutable audit log entry (actor_id, target_id, action, timestamp, IP) in ${file.path}:${lineNum} before returning response.`,
+        status: 'OPEN',
+        owner: 'Compliance Officer',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚖️ CRITICAL: COMPL-07 Missing audit log on admin route in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // COMPL-08 (Rule ID 2008): Automated Session Invalidation on Password Reset
+  // ---------------------------------------------------------------------------
+  const isPasswordResetFile = (lowerPath.includes('password') || lowerPath.includes('reset')) && /\.(?:ts|js)$/i.test(file.path);
+  if (isPasswordResetFile && (cleanContent.includes('updatePassword') || cleanContent.includes('resetPassword'))) {
+    const hasSessionRevoke = /(?:signOut\([^)]*GLOBAL|revokeAll|tokenVersion|session\.destroy|incrementTokenVersion)/i.test(cleanContent);
+    if (!hasSessionRevoke) {
+      const matchLineIdx = lines.findIndex(l => l.includes('updatePassword') || l.includes('resetPassword'));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 2008,
+        type: 'LEGAL_COMPLIANCE',
+        title: 'Missing Session Revocation / tokenVersion Invalidation on Password Reset',
+        severity: 'HIGH',
+        category: 'Authentication & Identity Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned password mutation handler at ${file.path}:${lineNum}.`,
+          'Detected password update logic failing to revoke active user sessions or increment tokenVersion, leaving existing authenticated sessions open on adversary devices.'
+        ],
+        remediationPrompt: `Increment tokenVersion or invoke global session revocation (e.g. supabase.auth.admin.signOut(userId, 'GLOBAL')) in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚖️ HIGH: COMPL-08 Password reset missing global session revocation in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // COMPL-10 (Rule ID 2010): Max Consent Lifetime & Re-consent Policy (12-Month Expiry)
+  // ---------------------------------------------------------------------------
+  if (cleanContent.includes('cookieConsent') || cleanContent.includes('consent_status') || cleanContent.includes('zelsis_consent')) {
+    const excessiveCookieMaxAgeRegex = /maxAge\s*:\s*(?:[4-9]\d{7,}|[1-9]\d{8,})/;
+    if (excessiveCookieMaxAgeRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => excessiveCookieMaxAgeRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 2010,
+        type: 'LEGAL_COMPLIANCE',
+        title: 'Excessive Cookie Consent Duration Detected (>12 Months GDPR/CNIL Cap)',
+        severity: 'HIGH',
+        category: 'Cookie & Privacy Compliance',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned consent cookie expiration configuration at ${file.path}:${lineNum}.`,
+          'Detected cookie lifetime exceeding 12 months (31,536,000 seconds), violating European Data Protection Board (EDPB) and CNIL consent validity duration caps.'
+        ],
+        remediationPrompt: `Cap cookie consent maxAge to 31,536,000 seconds (365 days) in ${file.path}:${lineNum} to comply with European regulatory consent guidelines.`,
+        status: 'OPEN',
+        owner: 'Privacy Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚖️ HIGH: COMPL-10 Excessive consent duration in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // COMPL-14 (Rule ID 2014): Plaintext Credentials / OTP in Email Payloads
+  // ---------------------------------------------------------------------------
+  const isEmailOrNotifier = (lowerPath.includes('mail') || lowerPath.includes('email') || lowerPath.includes('notify') || lowerPath.includes('resend')) && /\.(?:ts|js)$/i.test(file.path);
+  if (isEmailOrNotifier) {
+    const plaintextCredentialInEmailRegex = /(?:sendMail|emails\.send|resend\.emails\.send)\s*\([^)]*(?:password|passwd|api_key|tokenSecret)\s*:/i;
+    if (plaintextCredentialInEmailRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => plaintextCredentialInEmailRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 2014,
+        type: 'LEGAL_COMPLIANCE',
+        title: 'Plaintext Password or Permanent Secret Transmitted in Email Payload',
+        severity: 'HIGH',
+        category: 'Privacy & Credential Protection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned email dispatch handler at ${file.path}:${lineNum}.`,
+          'Detected plaintext password or permanent secret token embedded directly inside outbound email template payload.'
+        ],
+        remediationPrompt: `Never email plaintext passwords. Use time-limited one-time magic links or password reset tokens with short expiry in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚖️ HIGH: COMPL-14 Plaintext password in email in ${file.path}:${lineNum}`);
+    }
+  }
+
   return { findings, logs };
 }

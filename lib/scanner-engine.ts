@@ -58,6 +58,8 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const ruleMatch = trimmed.match(/^RULE-?(\d+)$/i);
     const numMatch = trimmed.match(/^(\d+)$/);
 
+    const llmMatch = trimmed.match(/^LLM-?(\d+)$/i);
+
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
       ignoredRuleIds.add(26);
@@ -77,6 +79,12 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     } else if (secMatch) {
       const num = parseInt(secMatch[1], 10);
       if (!isNaN(num)) ignoredRuleIds.add(num);
+    } else if (llmMatch) {
+      const num = parseInt(llmMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(4000 + num);
+        ignoredRuleIds.add(num);
+      }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
       if (!isNaN(num)) {
@@ -86,10 +94,10 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     } else if (complMatch) {
       const num = parseInt(complMatch[1], 10);
       if (!isNaN(num)) {
-        if (num >= 1 && num <= 6) {
+        if (num >= 1 && num <= 20) {
           ignoredRuleIds.add(2000 + num);
           ignoredRuleIds.add(num);
-        } else if (num >= 2001 && num <= 2006) {
+        } else if (num >= 2001 && num <= 2020) {
           ignoredRuleIds.add(num);
           ignoredRuleIds.add(num - 2000);
         } else {
@@ -99,10 +107,10 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     } else if (infraMatch) {
       const num = parseInt(infraMatch[1], 10);
       if (!isNaN(num)) {
-        if (num >= 1 && num <= 6) {
+        if (num >= 1 && num <= 20) {
           ignoredRuleIds.add(3000 + num);
           ignoredRuleIds.add(num);
-        } else if (num >= 3001 && num <= 3006) {
+        } else if (num >= 3001 && num <= 3020) {
           ignoredRuleIds.add(num);
           ignoredRuleIds.add(num - 3000);
         } else {
@@ -113,20 +121,24 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(ruleMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(num);
-        if (num >= 2001 && num <= 2006) {
+        if (num >= 2001 && num <= 2020) {
           ignoredRuleIds.add(num - 2000);
-        } else if (num >= 3001 && num <= 3006) {
+        } else if (num >= 3001 && num <= 3020) {
           ignoredRuleIds.add(num - 3000);
+        } else if (num >= 4001 && num <= 4020) {
+          ignoredRuleIds.add(num - 4000);
         }
       }
     } else if (numMatch) {
       const num = parseInt(numMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(num);
-        if (num >= 2001 && num <= 2006) {
+        if (num >= 2001 && num <= 2020) {
           ignoredRuleIds.add(num - 2000);
-        } else if (num >= 3001 && num <= 3006) {
+        } else if (num >= 3001 && num <= 3020) {
           ignoredRuleIds.add(num - 3000);
+        } else if (num >= 4001 && num <= 4020) {
+          ignoredRuleIds.add(num - 4000);
         } else if (num < 1000) {
           ignoredRuleIds.add(num + 1000);
         }

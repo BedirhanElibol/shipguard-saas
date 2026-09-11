@@ -409,5 +409,483 @@ export function evaluateSecurityRules(
     }
   }
 
+
+  // Rule 16 / SEC-16: SSRF in Webhook & Outbound Fetch Dispatch
+  if (isCodeFile && !isPublicWebhookOrHealth) {
+    const outboundFetchRegex = /fetch\s*\(\s*(?:req\.(?:body|query|params)\.[a-zA-Z0-9_]+|url|targetUrl|webhookUrl|callbackUrl)/i;
+    const ssrfGuardRegex = /(?:validateSafeTargetUrl|isAllowedWebhookUrl|isPrivateIp|ssrfGuard|allowedDomains|new URL\([^)]*\)\.hostname)/i;
+    if (outboundFetchRegex.test(cleanContent) && !ssrfGuardRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && outboundFetchRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 16,
+        type: 'SECURITY',
+        title: 'Server-Side Request Forgery (SSRF) in Outbound Fetch / Webhook Dispatch',
+        severity: 'CRITICAL',
+        category: 'Network & SSRF',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'await fetch(targetUrl);',
+        reproductionSteps: [
+          `Scanned outbound network request at ${file.path}:${lineNum}.`,
+          'Detected dynamic HTTP request dispatch accepting user-controlled target URL without private IP or DNS rebinding validation.'
+        ],
+        remediationPrompt: `Validate destination URLs before dispatching HTTP requests in ${file.path}:${lineNum}. Reject internal IP ranges (127.0.0.1, 10.0.0.0/8, 169.254.169.254) and enforce an explicit domain whitelist.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-16 Unvalidated outbound fetch / SSRF risk in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 17 / SEC-17: Broken Object Level Authorization (BOLA / IDOR)
+  if (isApiRoute) {
+    const dbQueryWithParamRegex = /(?:prisma\.[a-zA-Z0-9_]+\.(?:findUnique|findFirst|update|delete)|supabase\.from\([^)]+\)\.(?:select|update|delete))\s*\([^)]*(?:params\.id|query\.id|req\.params|req\.query)/i;
+    const tenantCheckRegex = /(?:auth\.uid\(\)|user_id|userId|session\.user\.id|tenantId|orgId|account_id)/i;
+    if (dbQueryWithParamRegex.test(cleanContent) && !tenantCheckRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && dbQueryWithParamRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 17,
+        type: 'SECURITY',
+        title: 'Potential Broken Object Level Authorization (BOLA / IDOR)',
+        severity: 'CRITICAL',
+        category: 'Authentication & Access Control',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'await prisma.record.findUnique({ where: { id: params.id } })',
+        reproductionSteps: [
+          `Scanned database query in API route at ${file.path}:${lineNum}.`,
+          'Detected resource access keyed exclusively by user-provided ID without verifying record ownership against the authenticated session user ID.'
+        ],
+        remediationPrompt: `Scope query to authenticated session user in ${file.path}:${lineNum}. Ensure database queries include { where: { id: params.id, userId: session.user.id } }.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-17 Potential BOLA/IDOR in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 18 / SEC-18: Prompt Injection Risk via Direct User String Interpolation (LLM01)
+  if (isCodeFile) {
+    const promptConcatRegex = /(?:messages:\s*\[[^\]]*(?:content:\s*`[^`]*\$\{(?:req\.body|prompt|userInput|query|text)|content:\s*(?:userInput|prompt|text)\s*\+))/i;
+    const promptGuardRegex = /(?:sanitizePrompt|validatePrompt|systemGuard|delimiter|guardrails|zod)/i;
+    if (promptConcatRegex.test(cleanContent) && !promptGuardRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && promptConcatRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18,
+        type: 'SECURITY',
+        title: 'Direct User Input Interpolation into LLM Prompt (OWASP LLM01 Prompt Injection)',
+        severity: 'HIGH',
+        category: 'AI & LLM Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'messages: [{ role: "user", content: `User query: ${req.body.query}` }]',
+        reproductionSteps: [
+          `Scanned LLM message preparation at ${file.path}:${lineNum}.`,
+          'Detected raw user input template literal interpolation without delimiters, input sanitization, or defensive guardrails.'
+        ],
+        remediationPrompt: `Isolate untrusted user input using XML/triple-quote delimiters and validate inputs with defensive guardrails in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'AI Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚠️ HIGH: SEC-18 Prompt injection risk in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 19 / SEC-19: Excessive Agency & Unbounded Function Calling (OWASP LLM08)
+  if (isCodeFile) {
+    const llmToolCallRegex = /(?:tools:\s*\[[^\]]*(?:exec|deleteDatabase|dropTable|eval|sendEmail|transferFunds)|autoRun:\s*true)/i;
+    const humanInLoopRegex = /(?:confirmWithUser|requireApproval|humanInTheLoop|dryRun)/i;
+    if (llmToolCallRegex.test(cleanContent) && !humanInLoopRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && llmToolCallRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 19,
+        type: 'SECURITY',
+        title: 'Autonomous Destructive LLM Tool Calling (OWASP LLM08 Excessive Agency)',
+        severity: 'CRITICAL',
+        category: 'AI & LLM Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'tools: [deleteDatabaseTool], autoRun: true',
+        reproductionSteps: [
+          `Scanned LLM agent tools at ${file.path}:${lineNum}.`,
+          'Detected autonomous tool binding with destructive capabilities without mandatory human confirmation or approval gate.'
+        ],
+        remediationPrompt: `Require explicit human approval before executing destructive actions (data deletion, financial mutations, arbitrary execution) in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'AI Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-19 Excessive agency in LLM tools in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 23 / SEC-23: Mass Assignment in Database Mutations
+  if (isApiRoute) {
+    const massAssignRegex = /(?:prisma\.[a-zA-Z0-9_]+\.(?:create|update)\s*\(\s*\{\s*data:\s*(?:req\.body|await req\.json\(\)|body)|db\.[a-zA-Z0-9_]+\.create\s*\(\s*(?:req\.body|body)\s*\))/i;
+    const schemaParseRegex = /(?:parse|safeParse|validate|pick|whitelist|allowedFields)/i;
+    if (massAssignRegex.test(cleanContent) && !schemaParseRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && massAssignRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 23,
+        type: 'SECURITY',
+        title: 'Mass Assignment Vulnerability in Database Mutation (CWE-915)',
+        severity: 'HIGH',
+        category: 'Database & API Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'await prisma.user.update({ data: req.body });',
+        reproductionSteps: [
+          `Scanned database mutation at ${file.path}:${lineNum}.`,
+          'Detected unparsed client request body passed directly into database persistence layer, allowing attackers to overwrite sensitive columns (role, isAdmin, balance).'
+        ],
+        remediationPrompt: `Validate and sanitize incoming payload with Zod schema (e.g. UpdateUserSchema.parse(body)) before persisting to database in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Backend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚠️ HIGH: SEC-23 Mass assignment risk in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 24 / SEC-24: Path Traversal in File Operations (CWE-22)
+  if (isCodeFile) {
+    const pathTraversalRegex = /(?:fs\.(?:readFile|createReadStream|promises\.readFile|readFileSync))\s*\([^)]*(?:req\.(?:query|params|body)|searchParams\.get|params\.)/i;
+    const pathSanitizeRegex = /(?:path\.resolve|path\.basename|sanitizeFilename|starts_with|startsWith)/i;
+    if (pathTraversalRegex.test(cleanContent) && !pathSanitizeRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && pathTraversalRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 24,
+        type: 'SECURITY',
+        title: 'Path Traversal in Filesystem Operations (CWE-22)',
+        severity: 'CRITICAL',
+        category: 'Application Security / Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'fs.readFile(req.query.file, "utf8")',
+        reproductionSteps: [
+          `Scanned filesystem interaction at ${file.path}:${lineNum}.`,
+          'Detected user-controlled request parameter passed directly into filesystem read operation without canonical base path validation.'
+        ],
+        remediationPrompt: `Sanitize filename with path.basename() and assert resolvedPath.startsWith(BASE_DIR + path.sep) in ${file.path}:${lineNum}.`,
+        diffPatch: `--- a/${file.path}\n+++ b/${file.path}\n@@ -${lineNum},2 +${lineNum},4 @@\n-const content = await fs.promises.readFile(req.query.file);\n+const safeName = path.basename(req.query.file);\n+const resolved = path.resolve(BASE_DIR, safeName);\n+if (!resolved.startsWith(BASE_DIR)) throw new Error('Forbidden');\n+const content = await fs.promises.readFile(resolved);`,
+        status: 'OPEN',
+        owner: 'Security Architect',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-24 Path Traversal (CWE-22) in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 25 / SEC-25: Open Redirects via Unvalidated Return URLs (CWE-601)
+  if (isCodeFile && (isApiRoute || file.path.includes('app/'))) {
+    const openRedirectRegex = /(?:NextResponse\.redirect|res\.redirect)\s*\(\s*(?:req\.query|searchParams\.get|params\.)/i;
+    const urlValidationRegex = /(?:startsWith\(['"]\/['"]\)|new URL\([^)]*\)\.origin|allowedOrigins|isValidRedirect)/i;
+    if (openRedirectRegex.test(cleanContent) && !urlValidationRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && openRedirectRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 25,
+        type: 'SECURITY',
+        title: 'Open Redirect via Unvalidated Return URL (CWE-601)',
+        severity: 'HIGH',
+        category: 'Authentication & Session',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'return NextResponse.redirect(searchParams.get("returnUrl"));',
+        reproductionSteps: [
+          `Scanned redirect handler at ${file.path}:${lineNum}.`,
+          'Detected HTTP redirect accepting unvalidated return URL parameter, allowing phishing attackers to redirect authenticated users to external malicious domains.'
+        ],
+        remediationPrompt: `Validate redirect destination: enforce relative paths (returnUrl.startsWith('/') && !returnUrl.startsWith('//')) or verify against trusted host origins in ${file.path}:${lineNum}.`,
+        diffPatch: `--- a/${file.path}\n+++ b/${file.path}\n@@ -${lineNum},2 +${lineNum},3 @@\n-return NextResponse.redirect(url);\n+const safeUrl = (url.startsWith('/') && !url.startsWith('//')) ? url : '/dashboard';\n+return NextResponse.redirect(new URL(safeUrl, req.url));`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚠️ HIGH: SEC-25 Open Redirect (CWE-601) in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 26 / SEC-26: GraphQL Query Depth & Complexity Limits (DoS Prevention)
+  if (isCodeFile && (cleanContent.includes('ApolloServer') || cleanContent.includes('createYoga') || cleanContent.includes('createHandler'))) {
+    const hasDepthLimit = /validationRules.*depthLimit|createComplexityLimitRule|graphql-depth-limit/i.test(cleanContent);
+    if (!hasDepthLimit) {
+      const matchLineIdx = lines.findIndex(l => /ApolloServer|createYoga|createHandler/i.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 26,
+        type: 'SECURITY',
+        title: 'GraphQL Query Depth & Complexity Limits Missing (DoS Prevention)',
+        severity: 'HIGH',
+        category: 'API Security & DoS',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'const server = new ApolloServer({ typeDefs, resolvers });',
+        reproductionSteps: [
+          `Scanned GraphQL server initialization at ${file.path}:${lineNum}.`,
+          'Detected GraphQL endpoint without validationRules enforcing query depth or complexity limits, exposing server to circular query denial of service.'
+        ],
+        remediationPrompt: `Add graphql-depth-limit (max depth <= 7) to validationRules in GraphQL server configuration in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'API Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚠️ HIGH: SEC-26 GraphQL missing depth limit in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 27 / SEC-27: Catastrophic Backtracking Regular Expression (ReDoS CWE-1333)
+  if (isCodeFile) {
+    const redosRegex = /\/\((?:[^\)\(]+[+*]){2,}\)[+*]\/|\/\((?:[a-zA-Z0-9_]+[\s|]+)+[a-zA-Z0-9_]+\)[+*]\//;
+    if (redosRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && redosRegex.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+        findings.push({
+          id: `real-find-${Date.now()}-${findingCounter.count++}`,
+          ruleId: 27,
+          type: 'SECURITY',
+          title: 'Catastrophic Backtracking Regular Expression (ReDoS CWE-1333)',
+          severity: 'HIGH',
+          category: 'API Security & DoS',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: snippet || lines[matchLineIdx] || 'const pattern = /([a-z]+)+$/;',
+          reproductionSteps: [
+            `Scanned regular expression pattern at ${file.path}:${lineNum}.`,
+            'Detected nested quantifiers in regular expression vulnerable to polynomial or exponential backtracking denial of service.'
+          ],
+          remediationPrompt: `Refactor regular expression to avoid nested quantifiers or validate maximum input length before regex evaluation in ${file.path}:${lineNum}.`,
+          status: 'OPEN',
+          owner: 'Security Lead',
+          falsePositive: false
+        });
+        logs.push(`[${ts}] ⚠️ HIGH: SEC-27 ReDoS pattern in ${file.path}:${lineNum}`);
+      }
+    }
+  }
+
+  // Rule 28 / SEC-28: JWT Algorithm Confusion & None Algorithm Acceptance
+  if (isCodeFile && cleanContent.includes('jwt.verify')) {
+    const jwtVerifyWithoutAlgRegex = /jwt\.verify\s*\([^,]+,\s*[^,)]+\s*\)/;
+    if (jwtVerifyWithoutAlgRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && jwtVerifyWithoutAlgRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 28,
+        type: 'SECURITY',
+        title: 'JWT Algorithm Confusion Vulnerability (Missing Algorithms Whitelist)',
+        severity: 'CRITICAL',
+        category: 'Cryptographic & Auth Failures',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'jwt.verify(token, secret);',
+        reproductionSteps: [
+          `Scanned JWT token verification at ${file.path}:${lineNum}.`,
+          'Detected jwt.verify() without explicit algorithms whitelist ({ algorithms: ["HS256"] }), allowing attackers to forge tokens using algorithm confusion or unsigned none algorithm.'
+        ],
+        remediationPrompt: `Provide explicit algorithms whitelist to jwt.verify(token, secret, { algorithms: ['HS256'] }) in ${file.path}:${lineNum}.`,
+        diffPatch: `--- a/${file.path}\n+++ b/${file.path}\n@@ -${lineNum},1 +${lineNum},1 @@\n-jwt.verify(token, secret);\n+jwt.verify(token, secret, { algorithms: ['HS256'] });`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-28 JWT Algorithm Confusion risk in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 30 / SEC-30: Sensitive Cookie Domain Scope (Domain=.example.com Leaks)
+  if (isCodeFile && (cleanContent.includes('domain:') || cleanContent.includes('Domain='))) {
+    const looseCookieDomainRegex = /domain\s*:\s*['"]\.[a-zA-Z0-9.-]+['"]|Domain=\.[a-zA-Z0-9.-]+/i;
+    if (looseCookieDomainRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && looseCookieDomainRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 30,
+        type: 'SECURITY',
+        title: 'Sensitive Cookie Loose Parent Domain Scope (Wildcard Domain Leak)',
+        severity: 'MEDIUM',
+        category: 'Cookie & Session Management',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'cookies().set({ name: "token", domain: ".example.com" });',
+        reproductionSteps: [
+          `Scanned cookie configuration at ${file.path}:${lineNum}.`,
+          'Detected wildcard parent domain attribute on cookie, exposing sensitive session tokens to all current and future subdomains.'
+        ],
+        remediationPrompt: `Remove leading dot or wildcard domain attribute from cookie configuration in ${file.path}:${lineNum} so cookies remain scoped to origin host.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🍪 MEDIUM: SEC-30 Loose cookie domain scope in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 31 / SEC-31: Insecure File Deserialization / YAML / XML External Entity (XXE)
+  if (isCodeFile && (cleanContent.includes('yaml.load') || cleanContent.includes('xml2js'))) {
+    const unsafeYamlRegex = /yaml\.load\s*\([^,)]+\)/;
+    if (unsafeYamlRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && unsafeYamlRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 31,
+        type: 'SECURITY',
+        title: 'Insecure YAML Deserialization (CWE-502 Remote Code Execution)',
+        severity: 'CRITICAL',
+        category: 'Injection & Deserialization',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'const data = yaml.load(userFile);',
+        reproductionSteps: [
+          `Scanned YAML parser execution at ${file.path}:${lineNum}.`,
+          'Detected unsafe yaml.load() call vulnerable to arbitrary object instantiation and remote code execution.'
+        ],
+        remediationPrompt: `Replace unsafe yaml.load() with YAML.parse() or yaml.load(file, { schema: yaml.FAILSAFE_SCHEMA }) in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Architect',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-31 Insecure YAML deserialization in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 4001 / LLM-01: Unbounded Token Consumption & Cost Quota Exhaustion (OWASP LLM04)
+  if (isCodeFile && (cleanContent.includes('openai.chat.completions.create') || cleanContent.includes('anthropic.messages.create'))) {
+    const missingMaxTokensRegex = /(?:openai\.chat\.completions\.create|anthropic\.messages\.create)\s*\(\s*\{(?![^}]*(?:max_tokens|maxTokens|maxOutputTokens))/;
+    if (missingMaxTokensRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && /openai\.chat\.completions\.create|anthropic\.messages\.create/.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 4001,
+        type: 'SECURITY',
+        title: 'Unbounded LLM Token Consumption (OWASP LLM04 Model Denial of Service)',
+        severity: 'HIGH',
+        category: 'AI & LLM Resource Management',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'await openai.chat.completions.create({ model: "gpt-4", messages })',
+        reproductionSteps: [
+          `Scanned LLM completion request at ${file.path}:${lineNum}.`,
+          'Detected LLM invocation missing max_tokens parameter, permitting unbounded generation and exposing system to API quota exhaustion and financial denial of wallet.'
+        ],
+        remediationPrompt: `Specify max_tokens limit (e.g. max_tokens: 1500) and enforce user quota checks in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'AI Engineering Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🤖 HIGH: LLM-01 Missing max_tokens limit in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 4003 / LLM-03: Untrusted LLM Output Execution / eval (LLM05)
+  if (isCodeFile) {
+    const untrustedLlmExecRegex = /(?:eval|child_process\.exec|execSync)\s*\([^)]*(?:completion|aiResponse|llmOutput|assistantMessage)/i;
+    if (untrustedLlmExecRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && untrustedLlmExecRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 4003,
+        type: 'SECURITY',
+        title: 'Untrusted LLM Output Execution (OWASP LLM05 Code Execution)',
+        severity: 'CRITICAL',
+        category: 'AI Security & Code Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'eval(aiResponse);',
+        reproductionSteps: [
+          `Scanned dynamic evaluation statement at ${file.path}:${lineNum}.`,
+          'Detected raw LLM output passed directly into eval or child_process.exec, enabling prompt injection attacks to execute arbitrary code on host server.'
+        ],
+        remediationPrompt: `Never execute LLM outputs using eval() or shell exec. Use sandboxed environments (isolated-vm or Firecracker microVMs) in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'AI Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: LLM-03 Untrusted LLM execution in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 4004 / LLM-04: Insecure Vector Search / Cross-Tenant Retrieval
+  if (isCodeFile && (cleanContent.includes('vectorStore') || cleanContent.includes('pinecone') || cleanContent.includes('match_documents'))) {
+    const vectorQueryRegex = /(?:pinecone.*\.query|supabase\.rpc\(['"]match_documents['"])\s*\(\s*\{(?![^}]*(?:tenant_id|tenantId|user_id|userId))/;
+    if (vectorQueryRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && /pinecone.*\.query|match_documents/.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 4004,
+        type: 'SECURITY',
+        title: 'Insecure Multi-Tenant Vector Search (Cross-Tenant Retrieval Hazard)',
+        severity: 'CRITICAL',
+        category: 'RAG Architecture & Multi-Tenancy',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'await pinecone.query({ vector, topK: 5 });',
+        reproductionSteps: [
+          `Scanned vector embedding retrieval at ${file.path}:${lineNum}.`,
+          'Detected vector similarity query executed without mandatory tenant_id or user_id metadata filter, risking cross-tenant data leakage.'
+        ],
+        remediationPrompt: `Attach mandatory tenant filter to vector queries: filter: { tenant_id: { $eq: tenantId } } in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'AI Engineering Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: LLM-04 Cross-tenant vector search hazard in ${file.path}:${lineNum}`);
+    }
+  }
+
   return { findings, logs };
 }

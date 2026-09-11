@@ -156,8 +156,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const failOnBlock = req.nextUrl.searchParams.get('failOnBlock') === 'true';
     const isPassed = result.gateStatus === 'PASSED';
-    const statusCode = isPassed ? 200 : 422;
+    const statusCode = (failOnBlock && !isPassed) ? 422 : 200;
 
     return NextResponse.json(
       {

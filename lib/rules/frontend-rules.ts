@@ -108,7 +108,8 @@ export function evaluateFrontendRules(
   // =========================================================================
   const isJsxTsx = file.path.endsWith('.tsx') || file.path.endsWith('.jsx');
   const isHtml = file.path.endsWith('.html');
-  const hasRawImg = (isJsxTsx || isHtml) && /<\s*img\b/i.test(cleanContent);
+  const hasUnsizedHtmlImg = isHtml && /<\s*img\b(?![^>]*\b(?:width|height|loading)\b)[^>]*>/i.test(cleanContent);
+  const hasRawImg = isJsxTsx ? /<\s*img\b/i.test(cleanContent) : hasUnsizedHtmlImg;
   const hasHeavyBase64 = (isJsxTsx || isHtml) && (/data:image\/[a-zA-Z0-9+.-]+;base64,[a-zA-Z0-9+/=]{1000,}/i.test(cleanContent) || /data:image\/[^"'\s`]{1000,}/i.test(cleanContent));
 
   if (!lowerPath.endsWith('.css') && (hasRawImg || hasHeavyBase64)) {
@@ -122,30 +123,50 @@ export function evaluateFrontendRules(
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
 
+    const severity = isJsxTsx ? 'HIGH' : (hasHeavyBase64 ? 'MEDIUM' : 'LOW');
+    const title = isJsxTsx
+      ? 'Unoptimized Raw <img> Tag or Heavy Inline Data URI (Layout Shift / LCP Risk)'
+      : hasHeavyBase64
+      ? 'Heavy Inline Base64 Image Data URI in HTML Template'
+      : 'HTML <img> Tag Missing Explicit Dimensions or Lazy Loading (Layout Shift Risk)';
+
+    const reproductionSteps = isJsxTsx
+      ? [
+          `Scanned frontend JSX rendering at ${file.path}:${lineNum}.`,
+          hasHeavyBase64 && hasRawImg
+            ? 'Detected both unoptimized raw <img> tag and massive inline Base64 data URI (>1000 chars) degrading page load performance and Core Web Vitals.'
+            : hasHeavyBase64
+            ? 'Detected massive inline Base64 image data URI (>1000 characters) embedded in JSX, causing severe bundle bloat and blocking DOM parsing.'
+            : 'Detected unoptimized raw HTML <img> tag in Next.js component instead of next/image <Image>, risking Cumulative Layout Shift (CLS) and missing WebP/AVIF compression.'
+        ]
+      : [
+          `Scanned HTML template at ${file.path}:${lineNum}.`,
+          hasHeavyBase64
+            ? 'Detected massive inline Base64 image data URI (>1000 characters) embedded in HTML, increasing payload size.'
+            : 'Detected <img> tag without explicit width, height, or loading="lazy" attributes, risking Cumulative Layout Shift (CLS).'
+        ];
+
+    const remediationPrompt = isJsxTsx
+      ? `Replace raw <img> tags in ${file.path} with Next.js 'next/image' <Image> component with explicit width, height, and priority attributes. Move inline base64 data URIs to static assets in /public to avoid bundle bloat and Cumulative Layout Shift (CLS).`
+      : `Add explicit 'width', 'height', and 'loading="lazy"' attributes to <img> tags in ${file.path} to prevent Cumulative Layout Shift (CLS) and optimize page load speed.`;
+
     findings.push({
       id: `frontend-${Date.now()}-${findingCounter.count++}`,
       ruleId: 1027,
       type: 'VIBEPOLISH',
-      title: 'Unoptimized Raw <img> Tag or Heavy Inline Data URI (Layout Shift / LCP Risk)',
-      severity: 'HIGH',
+      title,
+      severity,
       category: 'Performance & CWV',
       filePath: file.path,
       lineRange: `L${lineNum}`,
       snippet: snippet || lines[matchLineIdx] || '<img src="..." alt="..." />',
-      reproductionSteps: [
-        `Scanned frontend JSX rendering at ${file.path}:${lineNum}.`,
-        hasHeavyBase64 && hasRawImg
-          ? 'Detected both unoptimized raw <img> tag and massive inline Base64 data URI (>1000 chars) degrading page load performance and Core Web Vitals.'
-          : hasHeavyBase64
-          ? 'Detected massive inline Base64 image data URI (>1000 characters) embedded in JSX, causing severe bundle bloat and blocking DOM parsing.'
-          : 'Detected unoptimized raw HTML <img> tag in Next.js component instead of next/image <Image>, risking Cumulative Layout Shift (CLS) and missing WebP/AVIF compression.'
-      ],
-      remediationPrompt: `Replace raw <img> tags in ${file.path} with Next.js 'next/image' <Image> component with explicit width, height, and priority attributes. Move inline base64 data URIs to static assets in /public to avoid bundle bloat and Cumulative Layout Shift (CLS).`,
+      reproductionSteps,
+      remediationPrompt,
       status: 'OPEN',
       owner: 'Frontend Team',
       falsePositive: false
     });
-    logs.push(`[${ts}] ⚡ HIGH: UI-PERF-01 Unoptimized image or inline data URI detected in ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] ⚡ ${severity}: UI-PERF-01 ${title} detected in ${file.path}:${lineNum}`);
   }
 
   // =========================================================================

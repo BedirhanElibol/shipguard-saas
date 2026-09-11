@@ -801,11 +801,18 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] 🧱 VIBEPOLISH UI-41: System prompt inflation detected (${file.path})`);
     }
 
-    // VibePolish UI-48: Dynamic Variable Injection Failures (Exclude config files, dotfiles, test files)
+    // VibePolish UI-48: Dynamic Variable Injection Failures (Exclude config files, dotfiles, test files, and non-JS/TS backend languages)
     const isConfigFileOrDotfile = lowerFilePath.includes('.vscode/') || lowerFilePath.includes('.github/') || lowerFilePath.endsWith('.json') || lowerFilePath.endsWith('.toml') || lowerFilePath.endsWith('.yaml') || lowerFilePath.endsWith('.yml');
-    const isTestOrDocFile = lowerFilePath.includes('/test/') || lowerFilePath.includes('/tests/') || lowerFilePath.includes('/spec/') || lowerFilePath.endsWith('.md') || lowerFilePath.endsWith('.mdx');
-    if (!isConfigFileOrDotfile && !isTestOrDocFile && /\{[a-zA-Z0-9_]+\}/.test(file.content) && !file.content.includes('??') && file.content.includes('template')) {
-      const matchLineIdx = lines.findIndex(l => /\{[a-zA-Z0-9_]+\}/.test(l));
+    const isTestOrDocFile =
+      lowerFilePath.includes('/test/') || lowerFilePath.includes('/tests/') || lowerFilePath.includes('/spec/') ||
+      lowerFilePath.startsWith('test/') || lowerFilePath.startsWith('tests/') || lowerFilePath.startsWith('spec/') ||
+      lowerFilePath.includes('__tests__/') || /\.(?:test|spec)\.[a-zA-Z0-9]+$/i.test(lowerFilePath) ||
+      /(?:^|\/)(?:test_[^/]+|[^/]+_test)\.[a-zA-Z0-9]+$/i.test(lowerFilePath) ||
+      lowerFilePath.endsWith('.md') || lowerFilePath.endsWith('.mdx');
+    const isNonJsBackend = /\.(?:go|rs|c|cpp|cc|cxx|h|hpp|java|kt|kts|cs|swift|rb|sh|bash|zsh|ps1)$/i.test(lowerFilePath);
+    const hasSingleBracePlaceholder = /(?<!\{)\{[a-zA-Z0-9_]+\}(?!\})/.test(file.content);
+    if (!isConfigFileOrDotfile && !isTestOrDocFile && !isNonJsBackend && hasSingleBracePlaceholder && !file.content.includes('??') && file.content.includes('template')) {
+      const matchLineIdx = lines.findIndex(l => /(?<!\{)\{[a-zA-Z0-9_]+\}(?!\})/.test(l));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
       addFinding({
         id: `real-find-${Date.now()}-${findingCounter++}`,
@@ -1061,8 +1068,11 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] 📦 VIBEPOLISH UI-115: Monolithic long file detected (${file.path})`);
     }
 
-    // VibePolish UI-117: Uncleaned Event Listener Memory Leaks
-    if (file.content.includes('addEventListener(') && !file.content.includes('removeEventListener(')) {
+    // VibePolish UI-117: Uncleaned Event Listener Memory Leaks (Focus on components/hooks, skip third-party vendor & bootstrap entry files)
+    const isVendorOrLib = /(?:^|\/)(?:vendor|libs?|external|third_party|dist|bundles|node_modules)\//i.test(lowerFilePath);
+    const isBootstrapOrEntry = /(?:boot|client-app|main|index|entry|setup)\.[a-zA-Z0-9]+$/i.test(lowerFilePath);
+    const isComponentOrHook = lowerFilePath.includes('/components/') || lowerFilePath.includes('/hooks/') || lowerFilePath.includes('/views/') || file.content.includes('useEffect') || file.content.includes('componentDidMount');
+    if (!isVendorOrLib && !isBootstrapOrEntry && isComponentOrHook && file.content.includes('addEventListener(') && !file.content.includes('removeEventListener(')) {
       const matchLineIdx = lines.findIndex(l => l.includes('addEventListener('));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
       addFinding({

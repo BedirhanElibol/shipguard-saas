@@ -172,7 +172,19 @@ export function evaluateInfraRules(
         continue;
       }
 
+      // Skip common default local dev credentials
+      if (['postgres', 'root', 'admin', 'test', 'demo'].includes(user.toLowerCase()) &&
+          ['postgres', 'root', 'admin', 'test', 'demo', ''].includes(password.toLowerCase())) {
+        continue;
+      }
+
       const lineNum = cleanContent.slice(0, dbMatch.index).split('\n').length;
+      const matchingLine = lines[lineNum - 1]?.trim() || '';
+
+      // Skip commented-out sample URIs in YAML, Python, SQL, or code comments
+      if (matchingLine.startsWith('#') || matchingLine.startsWith('//') || matchingLine.startsWith('*') || matchingLine.startsWith('--')) {
+        continue;
+      }
       const findingId = `real-find-${Date.now()}-${findingCounter.count++}`;
       const snippet = extractSnippet(lines, lineNum);
 

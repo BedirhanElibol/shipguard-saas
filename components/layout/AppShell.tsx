@@ -42,6 +42,24 @@ export const AppShell: React.FC<AppShellProps> = ({
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (isMobileMenuOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[#EDEDED] flex flex-col font-sans">
       {/* Top Header with Layout Fixes & Auth Controls */}

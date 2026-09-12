@@ -9,6 +9,10 @@ import { evaluateInfraRules } from './rules/infra-rules';
 import { evaluateInteractionRules } from './rules/interaction-rules';
 import { evaluateSecretRules } from './rules/secrets-rules';
 import { evaluateDatabaseRules } from './rules/database-rules';
+import { evaluateCloudNativeRules } from './rules/cloud-native-rules';
+import { evaluateWebVitalsRules } from './rules/web-vitals-rules';
+import { evaluateApiRules } from './rules/api-rules';
+import { evaluateSupplyChainRules } from './rules/supply-chain-rules';
 
 export interface CodeFile {
   path: string;
@@ -66,6 +70,10 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const interactMatch = trimmed.match(/^UI-INTERACT-?(\d+)$/i);
     const secretMatch = trimmed.match(/^SEC-SECRET-?(\d+)$/i);
     const dbMatch = trimmed.match(/^DB-PERF-?(\d+)$/i);
+    const cloudMatch = trimmed.match(/^CLOUD-?(\d+)$/i);
+    const webPerfMatch = trimmed.match(/^(?:WEB-PERF|PERF)-?(\d+)$/i);
+    const apiMatch = trimmed.match(/^API-?(\d+)$/i);
+    const supplyMatch = trimmed.match(/^(?:SUPPLY|SBOM)-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -111,6 +119,26 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(dbMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(6000 + num);
+      }
+    } else if (cloudMatch) {
+      const num = parseInt(cloudMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(7000 + num);
+      }
+    } else if (webPerfMatch) {
+      const num = parseInt(webPerfMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(7100 + num);
+      }
+    } else if (apiMatch) {
+      const num = parseInt(apiMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(7200 + num);
+      }
+    } else if (supplyMatch) {
+      const num = parseInt(supplyMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(7300 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -205,10 +233,10 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       lowerPath.includes('scratch/') ||
       lowerPath.includes('.agent/') ||
       lowerPath.includes('artifacts/') ||
-      lowerPath.includes('dist/') ||
-      lowerPath.includes('build/') ||
-      lowerPath.includes('out/') ||
-      lowerPath.includes('.next/') ||
+      lowerPath.startsWith('dist/') || lowerPath.includes('/dist/') ||
+      lowerPath.startsWith('build/') || lowerPath.includes('/build/') ||
+      lowerPath.startsWith('out/') || lowerPath.includes('/out/') ||
+      lowerPath.startsWith('.next/') || lowerPath.includes('/.next/') ||
       lowerPath.includes('node_modules/') ||
       lowerPath.includes('data/catalogs/') ||
       lowerPath.includes('data/workspacefiles.ts') ||
@@ -1420,6 +1448,51 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...dbResult.logs);
+
+    // Wave 2 Enterprise Release Gate Engines:
+    // 4. Cloud Native, Serverless & Edge (CLOUD-01 to 50, Rule IDs 7001-7050)
+    const cloudCounter = { count: findingCounter };
+    const cloudResult = evaluateCloudNativeRules(file, lines, cleanContent, cloudCounter);
+    findingCounter = cloudCounter.count;
+    for (const item of cloudResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cloudResult.logs);
+
+    // 5. Core Web Vitals & Advanced Performance (WEB-PERF-01 to 50, Rule IDs 7101-7150)
+    const webPerfCounter = { count: findingCounter };
+    const webPerfResult = evaluateWebVitalsRules(file, lines, cleanContent, webPerfCounter);
+    findingCounter = webPerfCounter.count;
+    for (const item of webPerfResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...webPerfResult.logs);
+
+    // 6. API Architecture & Microservices Reliability (API-01 to 50, Rule IDs 7201-7250)
+    const apiCounter = { count: findingCounter };
+    const apiResult = evaluateApiRules(file, lines, cleanContent, apiCounter);
+    findingCounter = apiCounter.count;
+    for (const item of apiResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...apiResult.logs);
+
+    // 7. Supply Chain, SBOM & Dependency Security (SUPPLY-01 to 50, Rule IDs 7301-7350)
+    const supplyCounter = { count: findingCounter };
+    const supplyResult = evaluateSupplyChainRules(file, lines, cleanContent, supplyCounter);
+    findingCounter = supplyCounter.count;
+    for (const item of supplyResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...supplyResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Project } from '@/data/schema';
-import { FolderGit2, X, Globe } from 'lucide-react';
+import { FolderGit2, X, Globe, Eye, EyeOff } from 'lucide-react';
 import { isValidGithubUrl, sanitizeTargetUrl } from '@/lib/github-api';
 import { isValidWebUrl } from '@/lib/website-scanner';
 
@@ -28,6 +28,8 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
   const [framework, setFramework] = useState<string>('Auto-Detect');
   const [githubToken, setGithubToken] = useState<string>('');
   const [urlError, setUrlError] = useState<string>('');
+  const [showToken, setShowToken] = useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,6 +44,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
   const handleConnectRepo = (e: React.FormEvent) => {
     e.preventDefault();
     setUrlError('');
+    setIsConnecting(true);
 
     let finalUrl = targetType === 'GITHUB' ? githubUrl : webSiteUrl;
     let customName = repoName.trim();
@@ -59,10 +62,12 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
 
     if (targetType === 'GITHUB' && !isGithub) {
       setUrlError('⚠️ Invalid GitHub URL format. Please enter a valid repository URL (e.g. "https://github.com/owner/repo").');
+      setIsConnecting(false);
       return;
     }
     if (targetType === 'WEB' && !isWeb) {
       setUrlError('⚠️ Invalid Web App URL format. Please enter a valid website URL (e.g. "https://my-app.vercel.app").');
+      setIsConnecting(false);
       return;
     }
 
@@ -91,6 +96,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
       onAddNewProject(newProject);
     }
     onSelectProject(newProject);
+    setIsConnecting(false);
     onClose();
   };
 
@@ -152,43 +158,51 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
           {targetType === 'GITHUB' ? (
             <>
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Repository Title</label>
+                <label htmlFor="target-repo-name" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Repository Title</label>
                 <input
+                  id="target-repo-name"
+                  aria-label="Repository Title"
                   type="text"
                   value={repoName}
                   onChange={(e) => setRepoName(e.target.value)}
                   placeholder="e.g. My Next.js SaaS Project"
-                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 font-mono"
+                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/20 font-mono"
                 />
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Repository URL *</label>
+                <label htmlFor="target-github-url" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Repository URL *</label>
                 <input
+                  id="target-github-url"
+                  aria-label="GitHub Repository URL"
                   type="text"
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/user/my-saas"
-                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 font-mono"
+                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/20 font-mono"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Branch</label>
+                  <label htmlFor="target-branch" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Branch</label>
                   <input
+                    id="target-branch"
+                    aria-label="Branch"
                     type="text"
                     value={branch}
                     onChange={(e) => setBranch(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none font-mono"
+                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none font-mono"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Framework</label>
+                  <label htmlFor="target-framework" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Framework</label>
                   <select
+                    id="target-framework"
+                    aria-label="Framework"
                     value={framework}
                     onChange={(e) => setFramework(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none cursor-pointer font-mono"
+                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none cursor-pointer font-mono"
                   >
                     <option value="Auto-Detect">Auto-Detect</option>
                     <option value="Next.js 15">Next.js 15</option>
@@ -200,34 +214,49 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Private GitHub PAT Token (Optional)</label>
-                <input
-                  type="password"
-                  value={githubToken}
-                  onChange={(e) => setGithubToken(e.target.value)}
-                  placeholder="ghp_..."
-                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none font-mono"
-                />
+                <label htmlFor="target-github-token" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Private GitHub PAT Token (Optional)</label>
+                <div className="relative flex items-center">
+                  <input
+                    id="target-github-token"
+                    aria-label="Private GitHub PAT Token"
+                    type={showToken ? 'text' : 'password'}
+                    value={githubToken}
+                    onChange={(e) => setGithubToken(e.target.value)}
+                    placeholder="ghp_..."
+                    className="w-full pr-10 px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowToken((prev) => !prev)}
+                    aria-label={showToken ? 'Hide PAT token' : 'Show PAT token'}
+                    className="absolute right-3 text-[#A1A1AA] hover:text-white transition-colors"
+                  >
+                    {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
               </div>
             </>
           ) : (
             <div className="flex flex-col gap-1">
-              <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Live Web App Endpoint URL *</label>
+              <label htmlFor="target-website-url" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Live Web App Endpoint URL *</label>
               <input
+                id="target-website-url"
+                aria-label="Live Web App Endpoint URL"
                 type="text"
                 value={webSiteUrl}
                 onChange={(e) => setWebSiteUrl(e.target.value)}
                 placeholder="https://my-app.vercel.app"
-                className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/30 font-mono"
+                className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
               />
             </div>
           )}
 
           <button
             type="submit"
-            className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
+            disabled={isConnecting}
+            className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Connect &amp; Select Target
+            {isConnecting ? 'Connecting Target...' : 'Connect & Select Target'}
           </button>
         </form>
       </div>

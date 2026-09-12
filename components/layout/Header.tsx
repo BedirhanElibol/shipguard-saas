@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Project } from '@/data/schema';
 import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
@@ -197,13 +198,13 @@ export const Header: React.FC<HeaderProps> = ({
                 aria-label="User Profile and Plan Options"
               >
                 {user.avatarUrl ? (
-                  <img
+                  <Image
                     src={user.avatarUrl}
                     alt={user.name}
+                    width={28}
+                    height={28}
                     className="w-7 h-7 rounded-full object-cover border border-white/20 shrink-0"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
+                    unoptimized
                   />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-[10px] text-white shrink-0">
@@ -229,10 +230,13 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="absolute right-0 mt-2 w-72 bg-[#141414] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs font-mono">
                     <div className="px-3 py-2.5 border-b border-white/10 flex items-center gap-2.5">
                       {user.avatarUrl ? (
-                        <img
+                        <Image
                           src={user.avatarUrl}
                           alt={user.name}
+                          width={32}
+                          height={32}
                           className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">

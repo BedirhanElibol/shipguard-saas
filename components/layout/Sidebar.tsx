@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -10,7 +11,9 @@ import {
   Activity,
   FolderGit2,
   CheckSquare,
-  CreditCard,
+  CreditCard
+} from 'lucide-react';
+import {
   Settings,
   FileText,
   LogIn,
@@ -183,13 +186,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer select-none group"
             >
               {user.avatarUrl ? (
-                <img
+                <Image
                   src={user.avatarUrl}
                   alt={user.name}
+                  width={32}
+                  height={32}
                   className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  unoptimized
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">

@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
+// EmptyState fallback: static pricing plan definitions never yield empty list
 import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
 import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2 } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';

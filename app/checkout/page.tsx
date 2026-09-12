@@ -104,7 +104,9 @@ function CheckoutPageContent() {
             document.cookie = `zelsis_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
             document.cookie = `shipguard_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('[CheckoutPage] Failed to purge storage:', e);
+        }
       }}
     >
       <CheckoutView
@@ -140,7 +142,9 @@ function CheckoutPageContent() {
               document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(loggedUser))}; path=/; max-age=2592000; SameSite=Lax`;
               document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(loggedUser))}; path=/; max-age=2592000; SameSite=Lax`;
             }
-          } catch (e) {}
+          } catch (e) {
+            console.warn('[CheckoutPage] Failed to save user to storage:', e);
+          }
           setIsAuthModalOpen(false);
           if (typeof window !== 'undefined' && window.location.search.includes('auth')) {
             const cleanUrl = new URL(window.location.href);

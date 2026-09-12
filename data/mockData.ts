@@ -1,7 +1,25 @@
 // i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { Project, Finding, SecurityRule, UiRule, ComplianceRule, ComplianceRuleSchema, InfraRule } from './schema';
-import { UI_CLICHE_CATALOG, UI_INTERACTION_CATALOG, SECRETS_RULES_CATALOG, DATABASE_PERF_CATALOG } from './catalogs';
-export { UI_CLICHE_CATALOG, UI_INTERACTION_CATALOG, SECRETS_RULES_CATALOG, DATABASE_PERF_CATALOG };
+import {
+  UI_CLICHE_CATALOG,
+  UI_INTERACTION_CATALOG,
+  SECRETS_RULES_CATALOG,
+  DATABASE_PERF_CATALOG,
+  CLOUD_NATIVE_CATALOG,
+  WEB_VITALS_CATALOG,
+  API_RULES_CATALOG,
+  SUPPLY_CHAIN_CATALOG,
+} from './catalogs';
+export {
+  UI_CLICHE_CATALOG,
+  UI_INTERACTION_CATALOG,
+  SECRETS_RULES_CATALOG,
+  DATABASE_PERF_CATALOG,
+  CLOUD_NATIVE_CATALOG,
+  WEB_VITALS_CATALOG,
+  API_RULES_CATALOG,
+  SUPPLY_CHAIN_CATALOG,
+};
 
 export const SECURITY_RULES_CATALOG: SecurityRule[] = [
   {
@@ -414,6 +432,8 @@ export const SECURITY_RULES_CATALOG: SecurityRule[] = [
 
 
   ...SECRETS_RULES_CATALOG,
+  ...API_RULES_CATALOG,
+  ...SUPPLY_CHAIN_CATALOG,
 ];
 
 export const UI_RULES_CATALOG: UiRule[] = [
@@ -599,6 +619,7 @@ export const UI_RULES_CATALOG: UiRule[] = [
   { id: 200, code: 'UI-200', title: 'Broken Feedback Loop (Open-Loop Deficit)', category: 'Evaluation & Testing', clichePattern: 'Production failures and negative feedback never reaching developer backlogs', whyAiDoesIt: 'Lacking an automated pipeline to route failed queries into test suites', zelsisSolution: 'Establish a closed-loop pipeline routing failed production queries directly into weekly prompt fix test backlogs.' },
     ...UI_CLICHE_CATALOG,
   ...UI_INTERACTION_CATALOG,
+  ...WEB_VITALS_CATALOG,
   { id: 1026, code: 'UI-A11Y-01', title: 'WCAG 2.1 AA Focus & Label Validation', category: 'Accessibility (WCAG)', clichePattern: 'Stripping keyboard focus outlines (outline-none) without focus rings, and unlabelled form inputs missing aria-label or id', whyAiDoesIt: 'LLMs default to aesthetic minimalism and forget keyboard accessibility (WCAG 2.1 AA)', zelsisSolution: 'Enforce visible focus indicators (focus-visible:ring-2) and require aria-label or associated <label> for all interactive inputs.' },
   { id: 1027, code: 'UI-PERF-01', title: 'Core Web Vitals & Next.js Image Optimization', category: 'Performance & CWV', clichePattern: 'Unoptimized raw HTML <img> tags in Next.js or heavy inline Base64 data URIs (>1000 characters)', whyAiDoesIt: 'Copying basic HTML <img> tags without leveraging Next.js image optimization or embedding base64 directly into JSX', zelsisSolution: 'Use next/image <Image> with explicit width, height, and priority attributes, and serve images from /public static storage.' },
   { id: 1028, code: 'UI-SEO-01', title: 'Social OpenGraph & Semantic Metadata', category: 'SEO & Social Meta', clichePattern: 'Missing OpenGraph/Twitter Card social preview metadata in layout.tsx/page.tsx, or multiple duplicate <h1> headings', whyAiDoesIt: 'Omitting complete Next.js Metadata objects or repeating <h1> tags across multiple component sections', zelsisSolution: 'Export comprehensive Next.js Metadata with openGraph and twitter cards, and restrict pages to a single semantic <h1>.' },
@@ -1310,6 +1331,7 @@ export const INFRA_RULES_CATALOG: InfraRule[] = [
 
 
   ...DATABASE_PERF_CATALOG,
+  ...CLOUD_NATIVE_CATALOG,
 ];
 
 export const DEMO_AUDIT_FINDINGS: Finding[] = SHOWCASE_DEMO_FINDINGS;

@@ -1,0 +1,460 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+import { UiRule } from '../schema';
+
+/**
+ * Zelsis Master Core Web Vitals & Performance Catalog (50 Rules)
+ * Rules WEB-PERF-01 to WEB-PERF-50.
+ * Eliminates LCP delays, CLS layout shifts, INP main-thread blocking, and unoptimized assets.
+ */
+export const WEB_VITALS_CATALOG: UiRule[] = [
+  {
+    id: 7101,
+    code: 'WEB-PERF-01',
+    title: "Above-The-Fold Hero Image Missing Priority Attribute",
+    category: "Largest Contentful Paint (LCP)",
+    clichePattern: "Hero section primary image rendered without priority or fetchpriority='high', delaying LCP milestone.",
+    whyAiDoesIt: "Above-the-fold hero image includes priority={true} or fetchpriority='high'.",
+    zelsisSolution: "Add priority={true} to the Next.js <Image> in the hero section."
+  },
+  {
+    id: 7102,
+    code: 'WEB-PERF-02',
+    title: "Unsized Image or Video Element Causing Layout Shift",
+    category: "Cumulative Layout Shift (CLS)",
+    clichePattern: "<img> or <video> tag rendered without explicit width and height attributes or CSS aspect-ratio.",
+    whyAiDoesIt: "Every image or video element specifies width and height or aspect-ratio.",
+    zelsisSolution: "Specify explicit width and height props: <Image width={800} height={450} ... /> or CSS aspect-video."
+  },
+  {
+    id: 7103,
+    code: 'WEB-PERF-03',
+    title: "Synchronous Third-Party Script Tag Blocking Render",
+    category: "Total Blocking Time (TBT)",
+    clichePattern: "Third-party analytics, tracking, or ad scripts included via <script src='...'> without async, defer, or Next.js Script strategy.",
+    whyAiDoesIt: "All third-party scripts load with defer, async, or Next.js <Script strategy='lazyOnload' />.",
+    zelsisSolution: "Wrap in Next.js Script: <Script src='...' strategy='afterInteractive' /> or add defer/async."
+  },
+  {
+    id: 7104,
+    code: 'WEB-PERF-04',
+    title: "Non-Passive Touch or Wheel Event Listener",
+    category: "Interaction to Next Paint (INP)",
+    clichePattern: "Attaching window.addEventListener('touchstart', fn) or 'wheel' without { passive: true }, blocking main-thread scroll.",
+    whyAiDoesIt: "Scroll and touch event listeners configure { passive: true } options object.",
+    zelsisSolution: "Add { passive: true } to event listener options: window.addEventListener('wheel', fn, { passive: true })."
+  },
+  {
+    id: 7105,
+    code: 'WEB-PERF-05',
+    title: "Uncompressed Legacy Font Format (.ttf / .otf) in Bundle",
+    category: "Font Loading & FOUT",
+    clichePattern: "Referencing uncompressed .ttf or .otf font files in @font-face instead of modern WOFF2.",
+    whyAiDoesIt: "Web font stylesheets prioritize .woff2 format with font-display: swap.",
+    zelsisSolution: "Convert font to WOFF2 format and add font-display: swap to @font-face declaration."
+  },
+  {
+    id: 7106,
+    code: 'WEB-PERF-06',
+    title: "CSS @import Directive in Render-Critical Stylesheet",
+    category: "Critical CSS & Waterfall",
+    clichePattern: "Using @import url(...) inside critical CSS stylesheets causing sequential render-blocking network round-trips.",
+    whyAiDoesIt: "Stylesheets linked in HTML <link rel='stylesheet'> or bundled into a single minified bundle.",
+    zelsisSolution: "Replace @import with HTML <link rel='preload' as='style' ...> or combine into main CSS bundle."
+  },
+  {
+    id: 7107,
+    code: 'WEB-PERF-07',
+    title: "Excessive DOM Node Tree Depth (>32 Levels)",
+    category: "DOM Performance",
+    clichePattern: "Nesting excessive layers of redundant container <div> elements exceeding 32 levels of DOM depth.",
+    whyAiDoesIt: "DOM tree depth kept <= 32 levels; maximum total DOM nodes under 1,500.",
+    zelsisSolution: "Flatten component hierarchy by removing unnecessary wrapper <div> elements and leveraging CSS grid."
+  },
+  {
+    id: 7108,
+    code: 'WEB-PERF-08',
+    title: "Unmemoized Heavy Computation in Component Render Body",
+    category: "React Re-render Cost",
+    clichePattern: "Running expensive array filtering, sorting, or regex compilation directly in component render body on every state change.",
+    whyAiDoesIt: "Heavy computations wrapped in React.useMemo with explicit dependency arrays.",
+    zelsisSolution: "Wrap expensive calculations in React.useMemo(() => compute(data), [data])."
+  },
+  {
+    id: 7109,
+    code: 'WEB-PERF-09',
+    title: "Unthrottled Window Scroll or Resize Event Handler",
+    category: "Main Thread Bottleneck",
+    clichePattern: "Directly executing state updates inside window onScroll or onResize without requestAnimationFrame or throttle.",
+    whyAiDoesIt: "Scroll/resize listeners throttled or debounced using requestAnimationFrame.",
+    zelsisSolution: "Throttle handler using requestAnimationFrame or a 100ms debounce function."
+  },
+  {
+    id: 7110,
+    code: 'WEB-PERF-10',
+    title: "Unoptimized SVG with Embedded Raster Base64 Data",
+    category: "Asset Payload",
+    clichePattern: "Inline SVGs containing multi-megabyte base64 embedded PNG/JPEG data inflating JS bundle size.",
+    whyAiDoesIt: "SVGs contain pure vector paths; raster images externalized to WebP/AVIF with CDN caching.",
+    zelsisSolution: "Extract base64 data to standalone external images optimized with Next.js <Image>."
+  },
+  {
+    id: 7111,
+    code: 'WEB-PERF-11',
+    title: "Missing Preconnect for Critical External CDNs",
+    category: "Network Latency",
+    clichePattern: "Loading critical fonts, scripts, or images from external origins (e.g. fonts.googleapis.com) without preconnect.",
+    whyAiDoesIt: "<link rel='preconnect'> declared for critical third-party origin domains in document head.",
+    zelsisSolution: "Add <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' /> to <head>."
+  },
+  {
+    id: 7112,
+    code: 'WEB-PERF-12',
+    title: "Client Component Wrapping Entire Page Tree",
+    category: "Server Components",
+    clichePattern: "Placing 'use client' at the root of page.tsx, converting entire sub-tree to client bundle and destroying SSR benefits.",
+    whyAiDoesIt: "Pages remain Server Components by default; push 'use client' down to isolated interactive leaf nodes.",
+    zelsisSolution: "Remove 'use client' from page.tsx; extract interactive state into dedicated client leaf components."
+  },
+  {
+    id: 7113,
+    code: 'WEB-PERF-13',
+    title: "Dynamic Import Missing for Below-The-Fold Modal",
+    category: "Bundle Splitting",
+    clichePattern: "Statically importing heavy modals, chart libraries, or PDF generators that only render on user click.",
+    whyAiDoesIt: "Heavy below-the-fold dialogs dynamically imported using next/dynamic with ssr: false.",
+    zelsisSolution: "Use dynamic import: const Modal = dynamic(() => import('./HeavyModal'), { ssr: false })."
+  },
+  {
+    id: 7114,
+    code: 'WEB-PERF-14',
+    title: "Missing Content-Visibility on Long Off-Screen Lists",
+    category: "Rendering Engine",
+    clichePattern: "Rendering thousands of list items or table rows without CSS content-visibility: auto.",
+    whyAiDoesIt: "Large off-screen lists apply content-visibility: auto and contain-intrinsic-size.",
+    zelsisSolution: "Add content-visibility: auto and contain-intrinsic-size: 0 80px to list item styles."
+  },
+  {
+    id: 7115,
+    code: 'WEB-PERF-15',
+    title: "Forced Synchronous Layout Shift (Layout Thrashing)",
+    category: "Layout & Reflow",
+    clichePattern: "Interleaving DOM style writes (element.style.height) and reads (element.offsetHeight) inside loops.",
+    whyAiDoesIt: "DOM reads batched together before performing DOM writes, or scheduled with requestAnimationFrame.",
+    zelsisSolution: "Batch layout measurements before mutating styles or use ResizeObserver."
+  },
+  {
+    id: 7116,
+    code: 'WEB-PERF-16',
+    title: "Infinite Scroll Missing Virtualization / Windowing",
+    category: "DOM Memory & Footprint",
+    clichePattern: "Rendering 500+ items into DOM in infinite scroll without virtualized windowing (react-window).",
+    whyAiDoesIt: "Long lists (>100 items) consume virtualizer library rendering only visible viewport items.",
+    zelsisSolution: "Implement virtual scrolling using @tanstack/react-virtual or react-window."
+  },
+  {
+    id: 7117,
+    code: 'WEB-PERF-17',
+    title: "Heavy Barrel File Import Inflating Bundle Size",
+    category: "Tree Shaking",
+    clichePattern: "Importing icons or utilities from massive barrel files (import { X } from 'lucide-react' or 'lodash') pulling entire library.",
+    whyAiDoesIt: "Imports use direct path imports or bundler optimizes package imports (optimizePackageImports).",
+    zelsisSolution: "Ensure next.config.mjs specifies experimental.optimizePackageImports: ['lucide-react']."
+  },
+  {
+    id: 7118,
+    code: 'WEB-PERF-18',
+    title: "Animated CSS Properties Triggering Layout Reflow",
+    category: "Animation Performance",
+    clichePattern: "Animating layout properties (top, left, width, height, margin) instead of GPU-accelerated transform / opacity.",
+    whyAiDoesIt: "All CSS transitions and keyframe animations restricted to transform and opacity.",
+    zelsisSolution: "Refactor transition: left/top to transform: translate3d(x, y, 0) with will-change: transform."
+  },
+  {
+    id: 7119,
+    code: 'WEB-PERF-19',
+    title: "Missing will-change Optimization on Frequent Transitions",
+    category: "GPU Acceleration",
+    clichePattern: "Complex 60fps animations or slide-over drawers omitting will-change property on mobile browsers.",
+    whyAiDoesIt: "High-frequency animated elements declare will-change: transform, opacity.",
+    zelsisSolution: "Add will-change: transform to animated drawer or modal container styles."
+  },
+  {
+    id: 7120,
+    code: 'WEB-PERF-20',
+    title: "Unoptimized Animated GIF Asset in Production",
+    category: "Media Compression",
+    clichePattern: "Deploying raw .gif files (>5MB) instead of optimized looped MP4 or WebM video containers.",
+    whyAiDoesIt: "Animated GIF assets converted to modern WebM / MP4 video elements with autoplay muted playsinline.",
+    zelsisSolution: "Replace heavy .gif with <video autoPlay loop muted playsInline poster='...'><source src='...' type='video/mp4' /></video>."
+  },
+  {
+    id: 7121,
+    code: 'WEB-PERF-21',
+    title: "Uncontrolled LocalStorage Hydration Waterfall",
+    category: "React Hydration",
+    clichePattern: "Reading localStorage inside useLayoutEffect or rendering fallback spinners blocking client hydration.",
+    whyAiDoesIt: "State initialized with SSR-safe defaults; sync with storage asynchronously after mount in useEffect.",
+    zelsisSolution: "Initialize state with server-safe fallback and read localStorage inside useEffect([])."
+  },
+  {
+    id: 7122,
+    code: 'WEB-PERF-22',
+    title: "Massive JSON Payload Inlined into HTML Page Source",
+    category: "Initial Payload Size",
+    clichePattern: "Passing raw multi-megabyte database objects directly into Page props, inflating __NEXT_DATA__ HTML payload.",
+    whyAiDoesIt: "Props pruned to only the specific primitive fields rendered by the page component.",
+    zelsisSolution: "Select only required fields: .select('id, name, title') instead of passing raw full record entities."
+  },
+  {
+    id: 7123,
+    code: 'WEB-PERF-23',
+    title: "CSS Filter Blur on Continuous Scrolling Container",
+    category: "GPU Memory & Rendering",
+    clichePattern: "Applying backdrop-filter: blur(20px) on large continuously scrolling containers causing mobile FPS drop.",
+    whyAiDoesIt: "Backdrop blur restricted to small fixed header/navigation surfaces.",
+    zelsisSolution: "Remove backdrop-filter from scrollable body elements or reduce blur radius to <= 8px."
+  },
+  {
+    id: 7124,
+    code: 'WEB-PERF-24',
+    title: "Uncached Client API Fetch Missing SWR / React Query",
+    category: "Client Data Fetching",
+    clichePattern: "Using raw useEffect(fetch) on frequently visited tabs, triggering redundant network fetches on every navigation.",
+    whyAiDoesIt: "Client data fetching backed by SWR, TanStack Query, or RTK Query with stale-while-revalidate caching.",
+    zelsisSolution: "Wrap client queries with useSWR(key, fetcher) or TanStack useQuery."
+  },
+  {
+    id: 7125,
+    code: 'WEB-PERF-25',
+    title: "Missing Image Format Modernization (WebP / AVIF)",
+    category: "Image Optimization",
+    clichePattern: "Disabling Next.js image optimization (unoptimized: true) or serving uncompressed PNGs for photographic images.",
+    whyAiDoesIt: "Next.js Image optimizer converts photographic images to modern AVIF/WebP formats.",
+    zelsisSolution: "Ensure images.formats includes ['image/avif', 'image/webp'] in next.config.mjs."
+  },
+  {
+    id: 7126,
+    code: 'WEB-PERF-26',
+    title: "Unbounded React State Array Concatenation",
+    category: "Memory Leaks",
+    clichePattern: "Appending telemetry or event logs directly to React state array indefinitely without slice limits.",
+    whyAiDoesIt: "Streaming state arrays capped at maximum item limit (e.g. prev => [...prev.slice(-100), item]).",
+    zelsisSolution: "Cap state array length: setToasts(prev => [...prev.slice(-20), newToast])."
+  },
+  {
+    id: 7127,
+    code: 'WEB-PERF-27',
+    title: "Missing Resource Hints for Critical Navigation Routes",
+    category: "Page Transition Speed",
+    clichePattern: "Disabling Next.js Link prefetching (prefetch={false}) on primary navigation links.",
+    whyAiDoesIt: "Primary navigation links utilize default prefetching for instant page transitions.",
+    zelsisSolution: "Remove prefetch={false} on primary sidebar/header links unless route is heavy authenticated checkout."
+  },
+  {
+    id: 7128,
+    code: 'WEB-PERF-28',
+    title: "Render-Blocking Custom Web Font Declaration",
+    category: "FOIT / FOUT",
+    clichePattern: "Declaring @font-face with font-display: block, causing invisible text (FOIT) for up to 3 seconds on slow connections.",
+    whyAiDoesIt: "@font-face explicitly sets font-display: swap to ensure immediate fallback font rendering.",
+    zelsisSolution: "Add font-display: swap to all @font-face rules."
+  },
+  {
+    id: 7129,
+    code: 'WEB-PERF-29',
+    title: "Synchronous LocalStorage Read in Event Loop Hot Path",
+    category: "Main Thread Latency",
+    clichePattern: "Calling localStorage.getItem() repeatedly inside mousemove, scroll, or high-frequency game render loops.",
+    whyAiDoesIt: "Storage read once and held in React state or in-memory variable.",
+    zelsisSolution: "Cache storage value in memory variable instead of reading synchronous localStorage in tight loops."
+  },
+  {
+    id: 7130,
+    code: 'WEB-PERF-30',
+    title: "Missing Compression Middleware for Custom Server Responses",
+    category: "Payload Compression",
+    clichePattern: "Node.js Express / custom server instances lacking compression (Gzip / Brotli) middleware on JSON responses.",
+    whyAiDoesIt: "HTTP responses compressed with Brotli (br) or Gzip for text/html and application/json.",
+    zelsisSolution: "Add app.use(compression({ threshold: 1024 })) to custom server pipeline."
+  },
+  {
+    id: 7131,
+    code: 'WEB-PERF-31',
+    title: "Unaborted Fetch Request on Component Unmount",
+    category: "Resource Waste",
+    clichePattern: "Component triggering long fetch requests without AbortController cleanup in useEffect return callback.",
+    whyAiDoesIt: "All network fetches pass AbortSignal and abort on component unmount.",
+    zelsisSolution: "Create const controller = new AbortController(); pass signal, and return () => controller.abort()."
+  },
+  {
+    id: 7132,
+    code: 'WEB-PERF-32',
+    title: "High-Resolution Image Rendered in Small Avatar Thumbnail",
+    category: "Bandwidth Waste",
+    clichePattern: "Serving 4000x4000px raw user profile images inside a 32x32px thumbnail container without downscaling.",
+    whyAiDoesIt: "Thumbnails requested with width/height transformations matching display dimensions.",
+    zelsisSolution: "Request resized avatar image via CDN parameters (?width=64&height=64) or Next.js <Image width={32} />."
+  },
+  {
+    id: 7133,
+    code: 'WEB-PERF-33',
+    title: "Synchronous JSON.parse on Multi-Megabyte Payloads",
+    category: "Main Thread Freezes",
+    clichePattern: "Parsing large JSON strings (>10MB) synchronously on main thread causing noticeable UI frame drops.",
+    whyAiDoesIt: "Heavy JSON parsing offloaded to Web Worker or parsed with streaming JSON reader.",
+    zelsisSolution: "Offload large JSON deserialization to a Web Worker via Comlink or Worker thread."
+  },
+  {
+    id: 7134,
+    code: 'WEB-PERF-34',
+    title: "DOM Node Polling via setInterval Instead of Observers",
+    category: "CPU & Battery Waste",
+    clichePattern: "Using setInterval(checkElement, 50) to detect DOM changes instead of MutationObserver or ResizeObserver.",
+    whyAiDoesIt: "DOM mutations monitored using MutationObserver, IntersectionObserver, or ResizeObserver.",
+    zelsisSolution: "Replace polling setInterval with MutationObserver or IntersectionObserver."
+  },
+  {
+    id: 7135,
+    code: 'WEB-PERF-35',
+    title: "Unkeyed React List Elements Forcing Full DOM Rebuild",
+    category: "React Reconciliation",
+    clichePattern: "Mapping array to JSX using index as key or omitting key prop, breaking React reconciliation diffing.",
+    whyAiDoesIt: "All mapped JSX elements supply stable, unique domain entity IDs as keys.",
+    zelsisSolution: "Use unique entity ID for keys: items.map(item => <Item key={item.id} ... />) instead of index."
+  },
+  {
+    id: 7136,
+    code: 'WEB-PERF-36',
+    title: "Missing Link rel='dns-prefetch' on Asset Domains",
+    category: "DNS Resolution",
+    clichePattern: "Loading assets from multiple distinct subdomains without dns-prefetch hints.",
+    whyAiDoesIt: "Critical CDN domains declared with <link rel='dns-prefetch'>.",
+    zelsisSolution: "Add <link rel='dns-prefetch' href='https://assets.example.com' /> in HTML head."
+  },
+  {
+    id: 7137,
+    code: 'WEB-PERF-37',
+    title: "Unoptimized React Context Splitting Causing Cascade Renders",
+    category: "React Architecture",
+    clichePattern: "Combining frequently changing state (e.g. mouse position, timers) and static theme/user state in a single Context.",
+    whyAiDoesIt: "High-frequency state split into dedicated contexts or managed via atomic state stores (Zustand).",
+    zelsisSolution: "Split broad context into separate StateContext and DispatchContext, or adopt Zustand."
+  },
+  {
+    id: 7138,
+    code: 'WEB-PERF-38',
+    title: "Missing HTML Lang Attribute Delaying Accessibility Tree",
+    category: "Document Parsing",
+    clichePattern: "Root <html> tag omitting lang='en' attribute causing screen reader and translation delays.",
+    whyAiDoesIt: "Root HTML element declares valid ISO language attribute: <html lang='en'>.",
+    zelsisSolution: "Add lang='en' to root <html> tag in layout.tsx."
+  },
+  {
+    id: 7139,
+    code: 'WEB-PERF-39',
+    title: "Unused CSS Class Bloat in Production Bundle",
+    category: "CSS Payload",
+    clichePattern: "Production CSS including unpurged third-party CSS bundles or disabling Tailwind content purging.",
+    whyAiDoesIt: "Tailwind content array points to all source files, purging 100% of unused utility classes.",
+    zelsisSolution: "Verify tailwind.config.ts content array includes all app, components, and lib paths."
+  },
+  {
+    id: 7140,
+    code: 'WEB-PERF-40',
+    title: "Missing Stale-While-Revalidate on Server-Rendered Assets",
+    category: "Edge Caching",
+    clichePattern: "Edge responses setting max-age without stale-while-revalidate, forcing user to block on background regeneration.",
+    whyAiDoesIt: "Cache-Control headers include stale-while-revalidate=86400 on dynamically cached routes.",
+    zelsisSolution: "Add stale-while-revalidate=86400 to Cache-Control header."
+  },
+  {
+    id: 7141,
+    code: 'WEB-PERF-41',
+    title: "Heavy Lottie Animation Running Continuously Off-Screen",
+    category: "Battery & CPU",
+    clichePattern: "Lottie or Canvas animation loop running at 60fps even when scrolled completely out of viewport.",
+    whyAiDoesIt: "Animations paused when element intersects out of viewport using IntersectionObserver.",
+    zelsisSolution: "Pause animation playback when entry.isIntersecting is false using IntersectionObserver."
+  },
+  {
+    id: 7142,
+    code: 'WEB-PERF-42',
+    title: "Document Title Mutation Inside Render Phase",
+    category: "DOM Thrashing",
+    clichePattern: "Directly mutating document.title during component render body rather than inside useEffect.",
+    whyAiDoesIt: "DOM document title updates encapsulated in useEffect or Next.js Metadata API.",
+    zelsisSolution: "Move document.title update into useEffect or export metadata object in page.tsx."
+  },
+  {
+    id: 7143,
+    code: 'WEB-PERF-43',
+    title: "Missing Early Hints (HTTP 103) on Critical Assets",
+    category: "Server Push & TTFB",
+    clichePattern: "Edge server failing to stream 103 Early Hints headers for critical CSS and font resources.",
+    whyAiDoesIt: "Server sends 103 Early Hints with Link headers for critical stylesheets and fonts.",
+    zelsisSolution: "Configure HTTP 103 Early Hints in edge reverse proxy or Next.js experimental config."
+  },
+  {
+    id: 7144,
+    code: 'WEB-PERF-44',
+    title: "Unminified JavaScript Script in Public Directory",
+    category: "Asset Size",
+    clichePattern: "Serving unminified third-party JS scripts directly from public/ folder.",
+    whyAiDoesIt: "All public static JS scripts minified and compressed before deployment.",
+    zelsisSolution: "Minify custom public scripts using esbuild or terser before shipping."
+  },
+  {
+    id: 7145,
+    code: 'WEB-PERF-45',
+    title: "Missing Favicon and Icon Dimensions in Manifest",
+    category: "Browser Initialization",
+    clichePattern: "Favicons served without explicit sizes or SVG fallback, causing browser to scale heavy icons.",
+    whyAiDoesIt: "App manifest defines 192x192, 512x512, and SVG scalable icon targets.",
+    zelsisSolution: "Provide 192x192 and 512x512 icons in manifest.webmanifest and app/icon.png."
+  },
+  {
+    id: 7146,
+    code: 'WEB-PERF-46',
+    title: "Excessive Cookie Size (>4KB) Sent on Every Request",
+    category: "Network Overhead",
+    clichePattern: "Storing large serialized session states or user preferences in cookies exceeding 4KB per request.",
+    whyAiDoesIt: "Cookies restricted to lightweight session IDs (<500 bytes); state stored server-side.",
+    zelsisSolution: "Store user state in database/Redis and keep only secure session token in cookies."
+  },
+  {
+    id: 7147,
+    code: 'WEB-PERF-47',
+    title: "Unnecessary Third-Party CSS Framework Import",
+    category: "Bundle Size",
+    clichePattern: "Importing Bootstrap or Bulma alongside Tailwind CSS, duplicating reset rules and inflating bundle.",
+    whyAiDoesIt: "Single cohesive CSS framework used across entire application.",
+    zelsisSolution: "Remove duplicate legacy CSS framework dependencies."
+  },
+  {
+    id: 7148,
+    code: 'WEB-PERF-48',
+    title: "Synchronous File Reader in Client File Upload",
+    category: "Main Thread Block",
+    clichePattern: "Using FileReader.readAsDataURL on multi-hundred megabyte file uploads directly on main thread.",
+    whyAiDoesIt: "Large file uploads chunked and read asynchronously via File.stream() or Web Worker.",
+    zelsisSolution: "Use File.stream() and ReadableStream for large file upload processing."
+  },
+  {
+    id: 7149,
+    code: 'WEB-PERF-49',
+    title: "Missing Server-Timing Header for Latency Profiling",
+    category: "Observability",
+    clichePattern: "Production API responses lacking Server-Timing headers, blinding frontend RUM from diagnosing DB vs Edge latency.",
+    whyAiDoesIt: "API responses expose Server-Timing header measuring db, cache, and render durations.",
+    zelsisSolution: "Add Server-Timing: db;dur=12, cache;dur=2 to API responses for observability."
+  },
+  {
+    id: 7150,
+    code: 'WEB-PERF-50',
+    title: "Cumulative Layout Shift Caused by Dynamic Cookie Banner",
+    category: "CLS & User Experience",
+    clichePattern: "Injecting cookie banners or sticky notification bars at top of document pushing existing page content down.",
+    whyAiDoesIt: "Sticky banners positioned with fixed bottom overlay or reserved header space.",
+    zelsisSolution: "Position cookie banner with fixed bottom-0 left-0 right-0 or fixed inset-x-0 to prevent content push."
+  },
+];

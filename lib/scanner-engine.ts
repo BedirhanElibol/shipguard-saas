@@ -60,6 +60,11 @@ import { evaluateTlsCryptographyRules } from './rules/tls-cryptography-rules';
 import { evaluateDoraComplianceRules } from './rules/dora-compliance-rules';
 import { evaluateMessageBrokerRules } from './rules/message-broker-rules';
 import { evaluateSbomAttestationRules } from './rules/sbom-attestation-rules';
+import { evaluateWasmRuntimeRules } from './rules/wasm-runtime-rules';
+import { evaluateEnterpriseSsoRules } from './rules/enterprise-sso-rules';
+import { evaluatePciDssV4Rules } from './rules/pci-dss-v4-rules';
+import { evaluateSearchEngineRules } from './rules/search-engine-rules';
+import { evaluateZeroTrustNetworkRules } from './rules/zero-trust-network-rules';
 
 export interface CodeFile {
   path: string;
@@ -168,6 +173,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const doraMatch = trimmed.match(/^DORA-?(\d+)$/i);
     const mqMatch = trimmed.match(/^MQ-?(\d+)$/i);
     const sbomMatch = trimmed.match(/^SBOM-?(\d+)$/i);
+    const wasmMatch = trimmed.match(/^WASM-?(\d+)$/i);
+    const ssoMatch = trimmed.match(/^SSO-?(\d+)$/i);
+    const pci4Match = trimmed.match(/^PCI4-?(\d+)$/i);
+    const searchMatch = trimmed.match(/^SEARCH-?(\d+)$/i);
+    const sdpMatch = trimmed.match(/^SDP-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -468,6 +478,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(sbomMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(12600 + num);
+      }
+    } else if (wasmMatch) {
+      const num = parseInt(wasmMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12700 + num);
+      }
+    } else if (ssoMatch) {
+      const num = parseInt(ssoMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12800 + num);
+      }
+    } else if (pci4Match) {
+      const num = parseInt(pci4Match[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12900 + num);
+      }
+    } else if (searchMatch) {
+      const num = parseInt(searchMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13000 + num);
+      }
+    } else if (sdpMatch) {
+      const num = parseInt(sdpMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2349,6 +2384,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...sbomResult.logs);
+
+    // Wave 13 Enterprise Release Gate Engines (Milestone 3,350 Rules):
+    // 55. WebAssembly & WASI Sandbox Resilience (WASM-01 to 50, Rule IDs 12701-12750)
+    const wasmCounter = { count: findingCounter };
+    const wasmResult = evaluateWasmRuntimeRules(file, lines, cleanContent, wasmCounter);
+    findingCounter = wasmCounter.count;
+    for (const item of wasmResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...wasmResult.logs);
+
+    // 56. Enterprise SAML 2.0 & SCIM Identity Governance (SSO-01 to 50, Rule IDs 12801-12850)
+    const ssoCounter = { count: findingCounter };
+    const ssoResult = evaluateEnterpriseSsoRules(file, lines, cleanContent, ssoCounter);
+    findingCounter = ssoCounter.count;
+    for (const item of ssoResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...ssoResult.logs);
+
+    // 57. PCI-DSS v4.0 Modern Payment Security Standards (PCI4-01 to 50, Rule IDs 12901-12950)
+    const pci4Counter = { count: findingCounter };
+    const pci4Result = evaluatePciDssV4Rules(file, lines, cleanContent, pci4Counter);
+    findingCounter = pci4Counter.count;
+    for (const item of pci4Result.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...pci4Result.logs);
+
+    // 58. Elasticsearch & OpenSearch Index Optimization (SEARCH-01 to 50, Rule IDs 13001-13050)
+    const searchCounter = { count: findingCounter };
+    const searchResult = evaluateSearchEngineRules(file, lines, cleanContent, searchCounter);
+    findingCounter = searchCounter.count;
+    for (const item of searchResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...searchResult.logs);
+
+    // 59. Software-Defined Perimeter & Zero Trust Mesh (SDP-01 to 50, Rule IDs 13101-13150)
+    const sdpCounter = { count: findingCounter };
+    const sdpResult = evaluateZeroTrustNetworkRules(file, lines, cleanContent, sdpCounter);
+    findingCounter = sdpCounter.count;
+    for (const item of sdpResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...sdpResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

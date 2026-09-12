@@ -54,3 +54,8 @@ export { TLS_CRYPTOGRAPHY_RULES_CATALOG } from './tls-cryptography-catalog';
 export { DORA_COMPLIANCE_RULES_CATALOG } from './dora-compliance-catalog';
 export { MESSAGE_BROKER_RULES_CATALOG } from './message-broker-catalog';
 export { SBOM_ATTESTATION_RULES_CATALOG } from './sbom-attestation-catalog';
+export { WASM_RUNTIME_RULES_CATALOG } from './wasm-runtime-catalog';
+export { ENTERPRISE_SSO_RULES_CATALOG } from './enterprise-sso-catalog';
+export { PCI_DSS_V4_RULES_CATALOG } from './pci-dss-v4-catalog';
+export { SEARCH_ENGINE_RULES_CATALOG } from './search-engine-catalog';
+export { ZERO_TRUST_NETWORK_RULES_CATALOG } from './zero-trust-network-catalog';

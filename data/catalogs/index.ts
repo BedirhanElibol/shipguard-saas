@@ -94,3 +94,8 @@ export { MULTI_AGENT_ORCHESTRATION_RULES } from './multiAgentOrchestrationRules'
 export { CONFIDENTIAL_COMPUTING_RULES } from './confidentialComputingRules';
 export { FEDERATED_LEARNING_RULES } from './federatedLearningRules';
 export { VECTOR_INDEX_OPTIMIZATION_RULES } from './vectorIndexOptimizationRules';
+export { QUANTUM_KEY_DISTRIBUTION_RULES } from './quantumKeyDistributionRules';
+export { SPACE_TERRESTRIAL_MESH_RULES } from './spaceTerrestrialMeshRules';
+export { AI_AGENT_ETHICS_GOVERNANCE_RULES } from './aiAgentEthicsGovernanceRules';
+export { HOMOMORPHIC_ENCRYPTION_RULES } from './homomorphicEncryptionRules';
+export { NEUROMORPHIC_SPIKING_COMPUTE_RULES } from './neuromorphicSpikingComputeRules';

@@ -100,6 +100,11 @@ import { evaluateMultiAgentOrchestrationRules } from './rules/multi-agent-orches
 import { evaluateConfidentialComputingRules } from './rules/confidential-computing-rules';
 import { evaluateFederatedLearningRules } from './rules/federated-learning-rules';
 import { evaluateVectorIndexOptimizationRules } from './rules/vector-index-optimization-rules';
+import { evaluateQuantumKeyDistributionRules } from './rules/quantum-key-distribution-rules';
+import { evaluateSpaceTerrestrialMeshRules } from './rules/space-terrestrial-mesh-rules';
+import { evaluateAiAgentEthicsGovernanceRules } from './rules/ai-agent-ethics-governance-rules';
+import { evaluateHomomorphicEncryptionRules } from './rules/homomorphic-encryption-rules';
+import { evaluateNeuromorphicSpikingComputeRules } from './rules/neuromorphic-spiking-compute-rules';
 
 export interface CodeFile {
   path: string;
@@ -248,6 +253,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const confComputeMatch = trimmed.match(/^CONF-COMPUTE-?(\d+)$/i);
     const fedLearnMatch = trimmed.match(/^FED-LEARN-?(\d+)$/i);
     const vecOptMatch = trimmed.match(/^VEC-OPT-?(\d+)$/i);
+    const qkdMatch = trimmed.match(/^QKD-?(\d+)$/i);
+    const spaceMeshMatch = trimmed.match(/^SPACE-MESH-?(\d+)$/i);
+    const aiEthicsMatch = trimmed.match(/^AI-ETHICS-?(\d+)$/i);
+    const fheSecMatch = trimmed.match(/^FHE-SEC-?(\d+)$/i);
+    const neuroCompMatch = trimmed.match(/^NEURO-COMP-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -748,6 +758,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(vecOptMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(16600 + num);
+      }
+    } else if (qkdMatch) {
+      const num = parseInt(qkdMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16700 + num);
+      }
+    } else if (spaceMeshMatch) {
+      const num = parseInt(spaceMeshMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16800 + num);
+      }
+    } else if (aiEthicsMatch) {
+      const num = parseInt(aiEthicsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16900 + num);
+      }
+    } else if (fheSecMatch) {
+      const num = parseInt(fheSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17000 + num);
+      }
+    } else if (neuroCompMatch) {
+      const num = parseInt(neuroCompMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3077,6 +3112,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...vecOptResult.logs);
+
+    // Wave 21 Enterprise Release Gate Engines (Milestone 5,350 Rules):
+    // 95. Quantum Key Distribution & BB84 Protocol Gate (QKD-01 to 50, Rule IDs 16701-16750)
+    const qkdCounter = { count: findingCounter };
+    const qkdResult = evaluateQuantumKeyDistributionRules(file, lines, cleanContent, qkdCounter);
+    findingCounter = qkdCounter.count;
+    for (const item of qkdResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...qkdResult.logs);
+
+    // 96. LEO Satellite Mesh & Delay-Tolerant Networking Gate (SPACE-MESH-01 to 50, Rule IDs 16801-16850)
+    const spaceMeshCounter = { count: findingCounter };
+    const spaceMeshResult = evaluateSpaceTerrestrialMeshRules(file, lines, cleanContent, spaceMeshCounter);
+    findingCounter = spaceMeshCounter.count;
+    for (const item of spaceMeshResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...spaceMeshResult.logs);
+
+    // 97. AI Agent Ethics & Deception Governance Gate (AI-ETHICS-01 to 50, Rule IDs 16901-16950)
+    const aiEthicsCounter = { count: findingCounter };
+    const aiEthicsResult = evaluateAiAgentEthicsGovernanceRules(file, lines, cleanContent, aiEthicsCounter);
+    findingCounter = aiEthicsCounter.count;
+    for (const item of aiEthicsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...aiEthicsResult.logs);
+
+    // 98. Fully Homomorphic Encryption & Privacy Inference Gate (FHE-SEC-01 to 50, Rule IDs 17001-17050)
+    const fheSecCounter = { count: findingCounter };
+    const fheSecResult = evaluateHomomorphicEncryptionRules(file, lines, cleanContent, fheSecCounter);
+    findingCounter = fheSecCounter.count;
+    for (const item of fheSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...fheSecResult.logs);
+
+    // 99. Neuromorphic Computing & Spiking Neural Network Gate (NEURO-COMP-01 to 50, Rule IDs 17101-17150)
+    const neuroCompCounter = { count: findingCounter };
+    const neuroCompResult = evaluateNeuromorphicSpikingComputeRules(file, lines, cleanContent, neuroCompCounter);
+    findingCounter = neuroCompCounter.count;
+    for (const item of neuroCompResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...neuroCompResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

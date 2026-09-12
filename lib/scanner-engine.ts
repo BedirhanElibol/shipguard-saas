@@ -55,6 +55,11 @@ import { evaluateDnsSecurityRules } from './rules/dns-security-rules';
 import { evaluateNistSp80053Rules } from './rules/nist-sp800-53-rules';
 import { evaluateGraphDatabaseRules } from './rules/graph-database-rules';
 import { evaluateSiemAuditLoggingRules } from './rules/siem-audit-logging-rules';
+import { evaluateContainerSecurityRules } from './rules/container-security-rules';
+import { evaluateTlsCryptographyRules } from './rules/tls-cryptography-rules';
+import { evaluateDoraComplianceRules } from './rules/dora-compliance-rules';
+import { evaluateMessageBrokerRules } from './rules/message-broker-rules';
+import { evaluateSbomAttestationRules } from './rules/sbom-attestation-rules';
 
 export interface CodeFile {
   path: string;
@@ -158,6 +163,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const nistMatch = trimmed.match(/^NIST-?(\d+)$/i);
     const grphMatch = trimmed.match(/^GRPH-?(\d+)$/i);
     const auditMatch = trimmed.match(/^AUDIT-?(\d+)$/i);
+    const containerMatch = trimmed.match(/^CONTAINER-?(\d+)$/i);
+    const tlsMatch = trimmed.match(/^TLS-?(\d+)$/i);
+    const doraMatch = trimmed.match(/^DORA-?(\d+)$/i);
+    const mqMatch = trimmed.match(/^MQ-?(\d+)$/i);
+    const sbomMatch = trimmed.match(/^SBOM-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -433,6 +443,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(auditMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(12100 + num);
+      }
+    } else if (containerMatch) {
+      const num = parseInt(containerMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12200 + num);
+      }
+    } else if (tlsMatch) {
+      const num = parseInt(tlsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12300 + num);
+      }
+    } else if (doraMatch) {
+      const num = parseInt(doraMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12400 + num);
+      }
+    } else if (mqMatch) {
+      const num = parseInt(mqMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12500 + num);
+      }
+    } else if (sbomMatch) {
+      const num = parseInt(sbomMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2258,6 +2293,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...auditResult.logs);
+
+    // Wave 12 Enterprise Release Gate Engines (Milestone 3,100 Rules):
+    // 50. OCI Container Security & Pod Security Standards (CONTAINER-01 to 50, Rule IDs 12201-12250)
+    const containerCounter = { count: findingCounter };
+    const containerResult = evaluateContainerSecurityRules(file, lines, cleanContent, containerCounter);
+    findingCounter = containerCounter.count;
+    for (const item of containerResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...containerResult.logs);
+
+    // 51. TLS 1.3 & Post-Quantum Cryptography (TLS-01 to 50, Rule IDs 12301-12350)
+    const tlsCounter = { count: findingCounter };
+    const tlsResult = evaluateTlsCryptographyRules(file, lines, cleanContent, tlsCounter);
+    findingCounter = tlsCounter.count;
+    for (const item of tlsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...tlsResult.logs);
+
+    // 52. EU DORA Digital Operational Resilience (DORA-01 to 50, Rule IDs 12401-12450)
+    const doraCounter = { count: findingCounter };
+    const doraResult = evaluateDoraComplianceRules(file, lines, cleanContent, doraCounter);
+    findingCounter = doraCounter.count;
+    for (const item of doraResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...doraResult.logs);
+
+    // 53. Enterprise Message Broker & AMQP 0-9-1 Reliability (MQ-01 to 50, Rule IDs 12501-12550)
+    const mqCounter = { count: findingCounter };
+    const mqResult = evaluateMessageBrokerRules(file, lines, cleanContent, mqCounter);
+    findingCounter = mqCounter.count;
+    for (const item of mqResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...mqResult.logs);
+
+    // 54. CycloneDX / SPDX SBOM Deep Supply Chain Attestation (SBOM-01 to 50, Rule IDs 12601-12650)
+    const sbomCounter = { count: findingCounter };
+    const sbomResult = evaluateSbomAttestationRules(file, lines, cleanContent, sbomCounter);
+    findingCounter = sbomCounter.count;
+    for (const item of sbomResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...sbomResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

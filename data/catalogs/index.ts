@@ -49,3 +49,8 @@ export { DNS_SECURITY_RULES_CATALOG } from './dns-security-catalog';
 export { NIST_SP800_53_RULES_CATALOG } from './nist-sp800-53-catalog';
 export { GRAPH_DATABASE_RULES_CATALOG } from './graph-database-catalog';
 export { SIEM_AUDIT_LOGGING_RULES_CATALOG } from './siem-audit-logging-catalog';
+export { CONTAINER_SECURITY_RULES_CATALOG } from './container-security-catalog';
+export { TLS_CRYPTOGRAPHY_RULES_CATALOG } from './tls-cryptography-catalog';
+export { DORA_COMPLIANCE_RULES_CATALOG } from './dora-compliance-catalog';
+export { MESSAGE_BROKER_RULES_CATALOG } from './message-broker-catalog';
+export { SBOM_ATTESTATION_RULES_CATALOG } from './sbom-attestation-catalog';

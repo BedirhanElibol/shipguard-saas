@@ -74,3 +74,8 @@ export { OWASP_API_SECURITY_RULES } from './owaspApiSecurityRules';
 export { HIPAA_SECURITY_RULES } from './hipaaSecurityRules';
 export { MESSAGE_QUEUE_OPT_RULES } from './messageQueueOptRules';
 export { RASP_ANTI_TAMPER_RULES } from './raspAntiTamperRules';
+export { GRPC_WEB_SECURITY_RULES } from './grpcWebSecurityRules';
+export { CSPM_CLOUD_POSTURE_RULES } from './cspmCloudPostureRules';
+export { GLBA_COMPLIANCE_RULES } from './glbaComplianceRules';
+export { GEO_DISTRIBUTED_DB_RULES } from './geoDistributedDbRules';
+export { CYBER_DECEPTION_RULES } from './cyberDeceptionRules';

@@ -80,6 +80,11 @@ import { evaluateOwaspApiSecurityRules } from './rules/owasp-api-security-rules'
 import { evaluateHipaaSecurityRules } from './rules/hipaa-security-rules';
 import { evaluateMessageQueueOptRules } from './rules/message-queue-opt-rules';
 import { evaluateRaspAntiTamperRules } from './rules/rasp-anti-tamper-rules';
+import { evaluateGrpcWebSecurityRules } from './rules/grpc-web-security-rules';
+import { evaluateCspmCloudPostureRules } from './rules/cspm-cloud-posture-rules';
+import { evaluateGlbaComplianceRules } from './rules/glba-compliance-rules';
+import { evaluateGeoDistributedDbRules } from './rules/geo-distributed-db-rules';
+import { evaluateCyberDeceptionRules } from './rules/cyber-deception-rules';
 
 export interface CodeFile {
   path: string;
@@ -208,6 +213,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const hipaasecMatch = trimmed.match(/^HIPAASEC-?(\d+)$/i);
     const mqoptMatch = trimmed.match(/^MQOPT-?(\d+)$/i);
     const raspMatch = trimmed.match(/^RASP-?(\d+)$/i);
+    const grpcsecMatch = trimmed.match(/^GRPCSEC-?(\d+)$/i);
+    const cspmMatch = trimmed.match(/^CSPM-?(\d+)$/i);
+    const glbaMatch = trimmed.match(/^GLBA-?(\d+)$/i);
+    const geodistMatch = trimmed.match(/^GEODIST-?(\d+)$/i);
+    const deceptionMatch = trimmed.match(/^DECEPTION-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -608,6 +618,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(raspMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(14600 + num);
+      }
+    } else if (grpcsecMatch) {
+      const num = parseInt(grpcsecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14700 + num);
+      }
+    } else if (cspmMatch) {
+      const num = parseInt(cspmMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14800 + num);
+      }
+    } else if (glbaMatch) {
+      const num = parseInt(glbaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14900 + num);
+      }
+    } else if (geodistMatch) {
+      const num = parseInt(geodistMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15000 + num);
+      }
+    } else if (deceptionMatch) {
+      const num = parseInt(deceptionMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2713,6 +2748,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...raspResult.logs);
+
+    // Wave 17 Enterprise Release Gate Engines (Milestone 4,350 Rules):
+    // 75. gRPC-Web, HTTP/2 & Protobuf Security Gate (GRPCSEC-01 to 50, Rule IDs 14701-14750)
+    const grpcsecCounter = { count: findingCounter };
+    const grpcsecResult = evaluateGrpcWebSecurityRules(file, lines, cleanContent, grpcsecCounter);
+    findingCounter = grpcsecCounter.count;
+    for (const item of grpcsecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...grpcsecResult.logs);
+
+    // 76. CSPM Cloud Posture & IAM Privilege Drift (CSPM-01 to 50, Rule IDs 14801-14850)
+    const cspmCounter = { count: findingCounter };
+    const cspmResult = evaluateCspmCloudPostureRules(file, lines, cleanContent, cspmCounter);
+    findingCounter = cspmCounter.count;
+    for (const item of cspmResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cspmResult.logs);
+
+    // 77. GLBA Safeguards Rule Financial Compliance (GLBA-01 to 50, Rule IDs 14901-14950)
+    const glbaCounter = { count: findingCounter };
+    const glbaResult = evaluateGlbaComplianceRules(file, lines, cleanContent, glbaCounter);
+    findingCounter = glbaCounter.count;
+    for (const item of glbaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...glbaResult.logs);
+
+    // 78. Geo-Distributed Database Resilience Gate (GEODIST-01 to 50, Rule IDs 15001-15050)
+    const geodistCounter = { count: findingCounter };
+    const geodistResult = evaluateGeoDistributedDbRules(file, lines, cleanContent, geodistCounter);
+    findingCounter = geodistCounter.count;
+    for (const item of geodistResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...geodistResult.logs);
+
+    // 79. Cyber Deception, Honeytokens & Threat Trapping (DECEPTION-01 to 50, Rule IDs 15101-15150)
+    const deceptionCounter = { count: findingCounter };
+    const deceptionResult = evaluateCyberDeceptionRules(file, lines, cleanContent, deceptionCounter);
+    findingCounter = deceptionCounter.count;
+    for (const item of deceptionResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...deceptionResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

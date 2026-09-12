@@ -24,3 +24,8 @@ export { MOBILE_SECURITY_CATALOG } from './mobile-security-catalog';
 export { EVENT_STREAMING_CATALOG } from './event-streaming-catalog';
 export { CICD_SUPPLYCHAIN_CATALOG } from './cicd-supplychain-catalog';
 export { RUST_SYSTEMS_CATALOG } from './rust-systems-catalog';
+export { FINTECH_COMPLIANCE_CATALOG } from './fintech-compliance-catalog';
+export { HIPAA_COMPLIANCE_CATALOG } from './hipaa-compliance-catalog';
+export { OTEL_OBSERVABILITY_CATALOG } from './otel-observability-catalog';
+export { CPP_MEMORY_CATALOG } from './cpp-memory-catalog';
+export { ECOMM_INVENTORY_CATALOG } from './ecomm-inventory-catalog';

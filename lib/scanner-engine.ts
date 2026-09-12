@@ -30,6 +30,11 @@ import { evaluateMobileSecurityRules } from './rules/mobile-security-rules';
 import { evaluateEventStreamingRules } from './rules/event-streaming-rules';
 import { evaluateCicdSupplyChainRules } from './rules/cicd-supplychain-rules';
 import { evaluateRustSystemsRules } from './rules/rust-systems-rules';
+import { evaluateFintechComplianceRules } from './rules/fintech-compliance-rules';
+import { evaluateHipaaComplianceRules } from './rules/hipaa-compliance-rules';
+import { evaluateOtelObservabilityRules } from './rules/otel-observability-rules';
+import { evaluateCppMemoryRules } from './rules/cpp-memory-rules';
+import { evaluateEcommInventoryRules } from './rules/ecomm-inventory-rules';
 
 export interface CodeFile {
   path: string;
@@ -108,6 +113,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const eventMatch = trimmed.match(/^EVENT-?(\d+)$/i);
     const cicdSecMatch = trimmed.match(/^CICD-SEC-?(\d+)$/i);
     const rustMatch = trimmed.match(/^RUST-?(\d+)$/i);
+    const fintechMatch = trimmed.match(/^FINTECH-?(\d+)$/i);
+    const hipaaMatch = trimmed.match(/^HIPAA-?(\d+)$/i);
+    const otelMatch = trimmed.match(/^OTEL-?(\d+)$/i);
+    const cppMatch = trimmed.match(/^(?:CPP-SEC|CPP)-?(\d+)$/i);
+    const ecommMatch = trimmed.match(/^ECOMM-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -258,6 +268,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(rustMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(9600 + num);
+      }
+    } else if (fintechMatch) {
+      const num = parseInt(fintechMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9700 + num);
+      }
+    } else if (hipaaMatch) {
+      const num = parseInt(hipaaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9800 + num);
+      }
+    } else if (otelMatch) {
+      const num = parseInt(otelMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9900 + num);
+      }
+    } else if (cppMatch) {
+      const num = parseInt(cppMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10000 + num);
+      }
+    } else if (ecommMatch) {
+      const num = parseInt(ecommMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1803,6 +1838,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...rustResult.logs);
+
+    // Wave 7 Enterprise Release Gate Engines (Milestone 1,850 Rules):
+    // 25. Fintech & PCI-DSS Compliance Gate (FINTECH-01 to 50, Rule IDs 9701-9750)
+    const fintechCounter = { count: findingCounter };
+    const fintechResult = evaluateFintechComplianceRules(file, lines, cleanContent, fintechCounter);
+    findingCounter = fintechCounter.count;
+    for (const item of fintechResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...fintechResult.logs);
+
+    // 26. Healthcare & HIPAA Data Privacy Gate (HIPAA-01 to 50, Rule IDs 9801-9850)
+    const hipaaCounter = { count: findingCounter };
+    const hipaaResult = evaluateHipaaComplianceRules(file, lines, cleanContent, hipaaCounter);
+    findingCounter = hipaaCounter.count;
+    for (const item of hipaaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hipaaResult.logs);
+
+    // 27. Cloud Native Observability & Tracing (OTEL-01 to 50, Rule IDs 9901-9950)
+    const otelCounter = { count: findingCounter };
+    const otelResult = evaluateOtelObservabilityRules(file, lines, cleanContent, otelCounter);
+    findingCounter = otelCounter.count;
+    for (const item of otelResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...otelResult.logs);
+
+    // 28. C/C++ Systems Memory Safety Gate (CPP-SEC-01 to 50, Rule IDs 10001-10050)
+    const cppCounter = { count: findingCounter };
+    const cppResult = evaluateCppMemoryRules(file, lines, cleanContent, cppCounter);
+    findingCounter = cppCounter.count;
+    for (const item of cppResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cppResult.logs);
+
+    // 29. eCommerce & Inventory Integrity Gate (ECOMM-01 to 50, Rule IDs 10101-10150)
+    const ecommCounter = { count: findingCounter };
+    const ecommResult = evaluateEcommInventoryRules(file, lines, cleanContent, ecommCounter);
+    findingCounter = ecommCounter.count;
+    for (const item of ecommResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...ecommResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

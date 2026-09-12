@@ -34,3 +34,8 @@ export { PGVECTOR_POSTGRES_CATALOG } from './pgvector-postgres-catalog';
 export { WAF_EDGE_CATALOG } from './waf-edge-catalog';
 export { WEBSOCKET_REALTIME_CATALOG } from './websocket-realtime-catalog';
 export { SOC2_AUDIT_CATALOG } from './soc2-audit-catalog';
+export { CACHE_REDIS_CATALOG } from './cache-redis-catalog';
+export { ISO27001_COMPLIANCE_CATALOG } from './iso27001-compliance-catalog';
+export { OAUTH_OIDC_CATALOG } from './oauth-oidc-catalog';
+export { TERRAFORM_IAC_CATALOG } from './terraform-iac-catalog';
+export { EDGE_CDN_CATALOG } from './edge-cdn-catalog';

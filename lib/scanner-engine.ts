@@ -40,6 +40,11 @@ import { evaluatePgvectorPostgresRules } from './rules/pgvector-postgres-rules';
 import { evaluateWafEdgeRules } from './rules/waf-edge-rules';
 import { evaluateWebsocketRealtimeRules } from './rules/websocket-realtime-rules';
 import { evaluateSoc2AuditRules } from './rules/soc2-audit-rules';
+import { evaluateCacheRedisRules } from './rules/cache-redis-rules';
+import { evaluateIso27001ComplianceRules } from './rules/iso27001-compliance-rules';
+import { evaluateOauthOidcRules } from './rules/oauth-oidc-rules';
+import { evaluateTerraformIacRules } from './rules/terraform-iac-rules';
+import { evaluateEdgeCdnRules } from './rules/edge-cdn-rules';
 
 export interface CodeFile {
   path: string;
@@ -128,6 +133,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const wafMatch = trimmed.match(/^WAF-?(\d+)$/i);
     const wsMatch = trimmed.match(/^WS-?(\d+)$/i);
     const soc2Match = trimmed.match(/^SOC2-?(\d+)$/i);
+    const cacheMatch = trimmed.match(/^CACHE-?(\d+)$/i);
+    const isoMatch = trimmed.match(/^ISO-?(\d+)$/i);
+    const oauthMatch = trimmed.match(/^OAUTH-?(\d+)$/i);
+    const tfMatch = trimmed.match(/^TF-?(\d+)$/i);
+    const cdnMatch = trimmed.match(/^CDN-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -328,6 +338,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(soc2Match[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(10600 + num);
+      }
+    } else if (cacheMatch) {
+      const num = parseInt(cacheMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10700 + num);
+      }
+    } else if (isoMatch) {
+      const num = parseInt(isoMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10800 + num);
+      }
+    } else if (oauthMatch) {
+      const num = parseInt(oauthMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10900 + num);
+      }
+    } else if (tfMatch) {
+      const num = parseInt(tfMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11000 + num);
+      }
+    } else if (cdnMatch) {
+      const num = parseInt(cdnMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1985,6 +2020,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...soc2Result.logs);
+
+    // Wave 9 Enterprise Release Gate Engines (Milestone 2,350 Rules):
+    // 35. Redis & In-Memory Distributed Cache Reliability (CACHE-01 to 50, Rule IDs 10701-10750)
+    const cacheCounter = { count: findingCounter };
+    const cacheResult = evaluateCacheRedisRules(file, lines, cleanContent, cacheCounter);
+    findingCounter = cacheCounter.count;
+    for (const item of cacheResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cacheResult.logs);
+
+    // 36. ISO/IEC 27001:2022 Information Security Management Controls (ISO-01 to 50, Rule IDs 10801-10850)
+    const isoCounter = { count: findingCounter };
+    const isoResult = evaluateIso27001ComplianceRules(file, lines, cleanContent, isoCounter);
+    findingCounter = isoCounter.count;
+    for (const item of isoResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...isoResult.logs);
+
+    // 37. OAuth 2.1 & OpenID Connect (OIDC) Modern Identity (OAUTH-01 to 50, Rule IDs 10901-10950)
+    const oauthCounter = { count: findingCounter };
+    const oauthResult = evaluateOauthOidcRules(file, lines, cleanContent, oauthCounter);
+    findingCounter = oauthCounter.count;
+    for (const item of oauthResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...oauthResult.logs);
+
+    // 38. Terraform & Cloud Infrastructure-as-Code Policy (TF-01 to 50, Rule IDs 11001-11050)
+    const tfCounter = { count: findingCounter };
+    const tfResult = evaluateTerraformIacRules(file, lines, cleanContent, tfCounter);
+    findingCounter = tfCounter.count;
+    for (const item of tfResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...tfResult.logs);
+
+    // 39. Edge CDN, HTTP/3 & Asset Delivery Optimization (CDN-01 to 50, Rule IDs 11101-11150)
+    const cdnCounter = { count: findingCounter };
+    const cdnResult = evaluateEdgeCdnRules(file, lines, cleanContent, cdnCounter);
+    findingCounter = cdnCounter.count;
+    for (const item of cdnResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cdnResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

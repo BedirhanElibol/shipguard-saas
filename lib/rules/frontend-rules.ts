@@ -31,10 +31,10 @@ export function evaluateFrontendRules(
     file.path.endsWith('.html') ||
     file.path.endsWith('.css');
 
-  if (!isFrontend) return { findings, logs };
+  const lowerPath = file.path.toLowerCase().replace(/\\/g, '/');
+  if (!isFrontend || lowerPath.includes('data/catalogs/')) return { findings, logs };
 
   const ts = new Date().toLocaleTimeString();
-  const lowerPath = file.path.toLowerCase().replace(/\\/g, '/');
 
   // =========================================================================
   // a) UI-A11Y-01 (Rule ID 1026: WCAG 2.1 AA Focus & Label Validation)

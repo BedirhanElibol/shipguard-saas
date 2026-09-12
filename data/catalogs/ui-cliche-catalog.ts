@@ -1,0 +1,685 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+import { UiRule } from '../schema';
+
+/**
+ * Zelsis Master AI Web Design Cliché Catalog (75 Rules)
+ * Rules CLICHE-01 to CLICHE-75.
+ * Detects AI-generated visual slop, manipulative copywriting, and layout anti-patterns.
+ */
+export const UI_CLICHE_CATALOG: UiRule[] = [
+  {
+    id: 201,
+    code: 'CLICHE-01',
+    title: "Decorative Hero Badge Pill",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Small glowing badge/pill above hero title (\u2728 Build the Future)",
+    whyAiDoesIt: "Copies default AI landing page templates from training data",
+    zelsisSolution: "Remove decorative pill or restrict usage strictly to verified version releases."
+  },
+  {
+    id: 202,
+    code: 'CLICHE-02',
+    title: "Paired Dual CTA Buttons in Hero",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Paired filled primary (\"Get Started\") and outline secondary (\"Watch Demo\") buttons",
+    whyAiDoesIt: "Defaults to dual CTA pattern regardless of user focus",
+    zelsisSolution: "Focus the user on a single strong primary action (Single Strong CTA)."
+  },
+  {
+    id: 203,
+    code: 'CLICHE-03',
+    title: "\"No Credit Card Required\" Micro-Copy Clich\u00e9",
+    category: "AI Clich\u00e9 & Copywriting",
+    clichePattern: "Copy-paste muted text below primary button: \"No credit card required\"",
+    whyAiDoesIt: "Injects generic trust micro-copy by default",
+    zelsisSolution: "Replace generic filler with specific value hooks (e.g. \"14-day free trial\", \"Cancel anytime\")."
+  },
+  {
+    id: 204,
+    code: 'CLICHE-04',
+    title: "Full-Screen 100vh Hero Lock",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Forced 100vh hero height hiding below-fold content from user view",
+    whyAiDoesIt: "Fixes container height to 100vh without scroll peek",
+    zelsisSolution: "Allow below-fold content to peek (~85vh) to encourage natural scrolling."
+  },
+  {
+    id: 205,
+    code: 'CLICHE-05',
+    title: "Floating 3D Perspective Device Mockup",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "3D perspective tilted device mockups floating in mid-air",
+    whyAiDoesIt: "Uses flashy 3D effects to mask missing real product UI content",
+    zelsisSolution: "Use flat, readable, authentic product screenshots reflecting true user experience."
+  },
+  {
+    id: 206,
+    code: 'CLICHE-06',
+    title: "Fake Browser Chrome Window Decoration",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Fake 3-dot (red/yellow/green) browser window frame wrapped around screenshots",
+    whyAiDoesIt: "Wraps images in default browser window chrome",
+    zelsisSolution: "Remove decorative window frames; present clean product UI directly."
+  },
+  {
+    id: 207,
+    code: 'CLICHE-07',
+    title: "Fabricated Brand Logos (Nexora, Vertexa, Lumina)",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "\"TRUSTED BY THOUSANDS\" followed by fake brand names (Nexora, Vertexa, Lumina)",
+    whyAiDoesIt: "Fabricates corporate brand names when social proof is missing",
+    zelsisSolution: "Do not use fake logos; highlight verified product outcomes and metrics instead."
+  },
+  {
+    id: 208,
+    code: 'CLICHE-08',
+    title: "Infinite Scrolling Logo Marquee",
+    category: "AI Clich\u00e9 & Animation",
+    clichePattern: "Non-interactive infinite scrolling marquee logo ticker",
+    whyAiDoesIt: "Adds unneeded marquee CSS animations for artificial motion",
+    zelsisSolution: "Replace distracting marquee ticker with a static grid of readable partner logos."
+  },
+  {
+    id: 209,
+    code: 'CLICHE-09',
+    title: "Overlapping Stock Avatar Social Proof",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Stacked overlapping stock profile avatars next to \"10,000+ users joined\"",
+    whyAiDoesIt: "Copies Tailwind avatar-group overlap utility classes",
+    zelsisSolution: "Provide authentic customer testimonials with verified names, photos, and roles."
+  },
+  {
+    id: 210,
+    code: 'CLICHE-10',
+    title: "Fabricated Vanity Metrics (10,000+ Users, 99.9% Uptime, 24/7)",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Standard vanity metric trio: 10,000+ Users | 99.9% Uptime | 24/7 Support",
+    whyAiDoesIt: "Repeats formulaic stat metric trios across generated sites",
+    zelsisSolution: "Display real, measurable product KPIs and verifiable performance benchmarks."
+  },
+  {
+    id: 211,
+    code: 'CLICHE-11',
+    title: "Count-Up-From-Zero Number Animation",
+    category: "AI Clich\u00e9 & Animation",
+    clichePattern: "Rapid count-up JavaScript counter script triggering on scroll",
+    whyAiDoesIt: "Loads unnecessary count-up JS scripts for theatrical effect",
+    zelsisSolution: "Remove count-up scripts; display numbers statically and clearly."
+  },
+  {
+    id: 212,
+    code: 'CLICHE-12',
+    title: "Forced 1-2-3 Step \"How It Works\" Pattern",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Forced 3-step process: 1. Sign Up, 2. Connect, 3. Start",
+    whyAiDoesIt: "Forces all product onboarding into rigid 3-step structures",
+    zelsisSolution: "Show the actual value-creation workflow instead of generic sign-up steps."
+  },
+  {
+    id: 213,
+    code: 'CLICHE-13',
+    title: "Generic FAQ Accordion with Plus Icons",
+    category: "AI Clich\u00e9 & Content",
+    clichePattern: "Generic FAQ accordion (\"How does it work?\", \"Is it secure?\") with (+) icons",
+    whyAiDoesIt: "Fails to analyze real customer purchase barriers and objections",
+    zelsisSolution: "Address actual customer purchase-blocking objections with precise technical answers."
+  },
+  {
+    id: 214,
+    code: 'CLICHE-14',
+    title: "Dark Closing CTA Banner (\"Ready to get started?\")",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Centered dark full-width banner at page bottom: \"Ready to get started?\"",
+    whyAiDoesIt: "Copies dark closing banner templates across page footers",
+    zelsisSolution: "Strengthen closing CTA with specific value offers or risk reducers."
+  },
+  {
+    id: 215,
+    code: 'CLICHE-15',
+    title: "Overloaded Fake Corporate Footer (5 Columns)",
+    category: "AI Clich\u00e9 & Navigation",
+    clichePattern: "20+ links across 5 columns in footer on a 2-page site",
+    whyAiDoesIt: "Generates fake link columns to mimic enterprise footers",
+    zelsisSolution: "Include links only to existing pages; maintain a clean 2-3 column footer."
+  },
+  {
+    id: 216,
+    code: 'CLICHE-16',
+    title: "Non-Functional Theme Toggle Button",
+    category: "AI Clich\u00e9 & Functionality",
+    clichePattern: "Dark/light mode toggle button present but non-functional or buggy",
+    whyAiDoesIt: "Places theme switch UI without underlying CSS variable infrastructure",
+    zelsisSolution: "Build a complete theme system or remove non-functional toggle button."
+  },
+  {
+    id: 217,
+    code: 'CLICHE-17',
+    title: "Excessive Center-Alignment (text-center Abuse)",
+    category: "AI Clich\u00e9 & Typography",
+    clichePattern: "All titles, body copy, buttons, and lists centered down the entire page",
+    whyAiDoesIt: "Relies on text-center utilities to avoid complex layout alignment",
+    zelsisSolution: "Left-align body copy and feature lists for natural F-pattern readability."
+  },
+  {
+    id: 218,
+    code: 'CLICHE-18',
+    title: "Repetitive 3-Column Card Grid Sections",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Identical \"Heading + Subtitle + 3-Card Grid\" repeating down the page",
+    whyAiDoesIt: "Re-uses identical 3-column grid components across sections",
+    zelsisSolution: "Introduce visual rhythm: alternate 2-column splits, interactive demos, and asymmetric grids."
+  },
+  {
+    id: 219,
+    code: 'CLICHE-19',
+    title: "Default Indigo-600 Color Fallback (#4F46E5)",
+    category: "AI Clich\u00e9 & Color",
+    clichePattern: "Defaulting to Indigo-600 / Blurple (#4F46E5) for all buttons and accents",
+    whyAiDoesIt: "Uses default Tailwind Indigo color tokens without customization",
+    zelsisSolution: "Define a custom brand palette tailored to product domain and audience."
+  },
+  {
+    id: 220,
+    code: 'CLICHE-20',
+    title: "Monotone Slate-500 Gray Text Overuse (#64748B)",
+    category: "AI Clich\u00e9 & Color",
+    clichePattern: "Using a single shade of gray (#64748B) for all non-heading body copy",
+    whyAiDoesIt: "Fails to establish typographic color contrast tiers",
+    zelsisSolution: "Build contrast hierarchy using font weight, size, and distinct gray tones."
+  },
+  {
+    id: 221,
+    code: 'CLICHE-21',
+    title: "Forced Fixed-Height Card Containers",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Fixed pixel heights on cards causing artificial whitespace gaps",
+    whyAiDoesIt: "Fixes card heights instead of allowing responsive content flow",
+    zelsisSolution: "Allow natural content flow or balance text copy; use min-height instead of fixed height."
+  },
+  {
+    id: 222,
+    code: 'CLICHE-22',
+    title: "Pastel Square Rounded Icon Containers",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Feature items led by pastel rounded square boxes with Lucide icons",
+    whyAiDoesIt: "Replicates pastel icon container templates",
+    zelsisSolution: "Replace pastel icon boxes with real UI snippets, micro-illustrations, or inline graphics."
+  },
+  {
+    id: 223,
+    code: 'CLICHE-23',
+    title: "Generic Faceless Flat Stock Vectors (unDraw)",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Faceless single-color stock vector illustrations (unDraw style)",
+    whyAiDoesIt: "Selects generic flat vector illustrations as visual placeholders",
+    zelsisSolution: "Use authentic product UI screenshots, data flows, or custom brand artwork."
+  },
+  {
+    id: 224,
+    code: 'CLICHE-24',
+    title: "Decorative Floating Glassmorphism Blur Orbs",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Floating blurred colorful glassmorphism circles behind content",
+    whyAiDoesIt: "Fills background whitespace with random blur circles",
+    zelsisSolution: "Remove decorative blur orbs; treat negative space (whitespace) as a design element."
+  },
+  {
+    id: 225,
+    code: 'CLICHE-25',
+    title: "Stock Photo of Happy Team Looking at Laptop",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Overly enthusiastic stock office photo of team looking at laptop",
+    whyAiDoesIt: "Uses generic stock photography instead of authentic media",
+    zelsisSolution: "Show real team members, actual workspace, or direct product interface."
+  },
+  {
+    id: 226,
+    code: 'CLICHE-26',
+    title: "Rainbow Animated Conic Gradient Card Borders",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Continuous spinning conic rainbow border around every feature card",
+    whyAiDoesIt: "Copies popular CSS border-animation snippets from CodePen/TikTok",
+    zelsisSolution: "Use subtle solid borders with stateful hover highlights instead of distracting spinning gradients."
+  },
+  {
+    id: 227,
+    code: 'CLICHE-27',
+    title: "Monotonous Matrix Grid Background Overlays",
+    category: "AI Clich\u00e9 & Background",
+    clichePattern: "Dark background blanketed with low-opacity square grid lines and radial spotlight mask",
+    whyAiDoesIt: "Over-relies on default Tailwind background-grid snippets to hide lack of illustration",
+    zelsisSolution: "Use purposeful background treatment or generous clean negative space."
+  },
+  {
+    id: 228,
+    code: 'CLICHE-28',
+    title: "Fabricated \"Active Now\" Pulsing Ping Dot",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Artificial animate-ping green badge indicating \"1,420 Users Active Now\"",
+    whyAiDoesIt: "Fakes live server activity with static client-side CSS keyframe animations",
+    zelsisSolution: "Show genuine live presence only when backed by real WebSocket / Redis telemetry."
+  },
+  {
+    id: 229,
+    code: 'CLICHE-29',
+    title: "Generic Archetype Testimonial Persona Titles",
+    category: "AI Clich\u00e9 & Copywriting",
+    clichePattern: "Testimonials signed by \"Tech Enthusiast\", \"Early Adopter\", or \"Digital Nomad\"",
+    whyAiDoesIt: "Generates generic persona titles when lacking genuine customer testimonials",
+    zelsisSolution: "Include real customer names, verified LinkedIn handles, and concrete company roles."
+  },
+  {
+    id: 230,
+    code: 'CLICHE-30',
+    title: "Asymmetric Bento Grid with Empty Filler Cards",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Bento grid layout where 2 cards have content and 3 cards have decorative shapes",
+    whyAiDoesIt: "Forces content into bento templates without sufficient content depth",
+    zelsisSolution: "Select layouts that naturally fit your actual feature set rather than forcing arbitrary grids."
+  },
+  {
+    id: 231,
+    code: 'CLICHE-31',
+    title: "Floating Geometric Wireframe Polyhedra",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "3D wireframe cubes, spheres, and donuts floating in landing page whitespace",
+    whyAiDoesIt: "Fills negative space with generic Three.js / Spline wireframe geometry",
+    zelsisSolution: "Replace abstract 3D shapes with product interface walkthroughs or data architecture diagrams."
+  },
+  {
+    id: 232,
+    code: 'CLICHE-32',
+    title: "Artificial Scarcity Countdown Banner",
+    category: "AI Clich\u00e9 & Copywriting",
+    clichePattern: "Permanent \"Only 3 spots remaining at this price!\" or recurring 15-minute countdown",
+    whyAiDoesIt: "Employs deceptive scarcity tricks common in scam marketing templates",
+    zelsisSolution: "Provide honest, predictable pricing without manipulative countdown timers."
+  },
+  {
+    id: 233,
+    code: 'CLICHE-33',
+    title: "Generic Robot / Brain / Neon Mascot Logo",
+    category: "AI Clich\u00e9 & Branding",
+    clichePattern: "Landing page logo consisting of a generic Lucide Bot, Brain, or Sparkles icon in a square",
+    whyAiDoesIt: "Omits unique company branding in favor of stock SVG iconography",
+    zelsisSolution: "Design a distinctive, purpose-driven brandmark tailored to product identity."
+  },
+  {
+    id: 234,
+    code: 'CLICHE-34',
+    title: "Arbitrary \"Most Popular\" Inverted Pricing Card",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Inverting colors and scaling 1.1x on an enterprise tier with zero rationale",
+    whyAiDoesIt: "Follows formulaic pricing table recipes without behavioral conversion logic",
+    zelsisSolution: "Highlight tiers based on user personas and explain specifically why each tier fits the buyer."
+  },
+  {
+    id: 235,
+    code: 'CLICHE-35',
+    title: "Endless Infinite One-Page Landing Monolith",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Stretching landing page to 14 sprawling sections with repetitive marketing claims",
+    whyAiDoesIt: "Concatenates multiple generated page sections into an unnavigable single scroll",
+    zelsisSolution: "Prioritize information density, clear sub-page routing, and focused user flows."
+  },
+  {
+    id: 236,
+    code: 'CLICHE-36',
+    title: "Unreadable Frosted Glass over High-Contrast Text",
+    category: "AI Clich\u00e9 & Contrast",
+    clichePattern: "Backdrop-blur cards overlaid directly on busy animated canvas backgrounds",
+    whyAiDoesIt: "Applies glassmorphism blindly without verifying text contrast ratios",
+    zelsisSolution: "Ensure minimum 4.5:1 WCAG contrast ratio with solid background opacity layers."
+  },
+  {
+    id: 237,
+    code: 'CLICHE-37',
+    title: "Fabricated FAANG Customer Logo Parade",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Displaying Google, Meta, and Apple logos with ambiguous \"Works With\" claim",
+    whyAiDoesIt: "Implies enterprise endorsement where none exists",
+    zelsisSolution: "Display verified customer case studies with attributed quotes and direct permission."
+  },
+  {
+    id: 238,
+    code: 'CLICHE-38',
+    title: "Uniform Rounded-3xl Corner Inflation",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Applying rounded-3xl or rounded-[2rem] to every container, button, and input box",
+    whyAiDoesIt: "Overuses maximum border-radius tokens to simulate \"modern friendly\" design",
+    zelsisSolution: "Adopt a balanced radius hierarchy: smaller radius for micro-elements, structured radius for surfaces."
+  },
+  {
+    id: 239,
+    code: 'CLICHE-39',
+    title: "Persistent Sticky Banner Blocking Mobile Viewport",
+    category: "AI Clich\u00e9 & Mobile",
+    clichePattern: "Combining sticky cookie bar, top promo ticker, and bottom CTA taking 45% of screen",
+    whyAiDoesIt: "Fails to consider cumulative height of floating widgets on mobile screens",
+    zelsisSolution: "Collapse non-critical persistent banners on small viewports to maintain content readability."
+  },
+  {
+    id: 240,
+    code: 'CLICHE-40',
+    title: "Blinding Radial Spotlight Halo Behind Hero Button",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Gigantic 200px blurred gradient orb pulsing behind a single primary CTA",
+    whyAiDoesIt: "Attempts to force user gaze via exaggerated luminescent CSS effects",
+    zelsisSolution: "Create visual hierarchy through high contrast, clean typography, and whitespace."
+  },
+  {
+    id: 241,
+    code: 'CLICHE-41',
+    title: "Static Fake Product Hunt \"#1 Product of the Day\" Badge",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Embedding an unlinked, non-verifiable Product Hunt medal SVG",
+    whyAiDoesIt: "Fakes community awards using static vector assets",
+    zelsisSolution: "Embed live, clickable official Product Hunt badges or omit if unverified."
+  },
+  {
+    id: 242,
+    code: 'CLICHE-42',
+    title: "Buzzword Soup Hero Headline (\"Supercharge Your Workflow\")",
+    category: "AI Clich\u00e9 & Copywriting",
+    clichePattern: "Vague headlines claiming to \"Supercharge, Revolutionize, and Transform your Future\"",
+    whyAiDoesIt: "Relies on hyperbolic marketing buzzwords instead of explaining what the software does",
+    zelsisSolution: "State clearly what the product does, who it is for, and the concrete outcome it delivers."
+  },
+  {
+    id: 243,
+    code: 'CLICHE-43',
+    title: "Decorative Non-Functional Terminal with Fake Logs",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Mock terminal window printing fake compile logs with zero interactive capability",
+    whyAiDoesIt: "Mimics developer tool aesthetics with hollow visual theatre",
+    zelsisSolution: "Provide copyable CLI installation commands or an actual interactive interactive playground."
+  },
+  {
+    id: 244,
+    code: 'CLICHE-44',
+    title: "Monospace Body Text Misuse",
+    category: "AI Clich\u00e9 & Typography",
+    clichePattern: "Rendering entire multi-paragraph feature descriptions in JetBrains Mono or Courier",
+    whyAiDoesIt: "Confuses developer-focused aesthetic with readable editorial typography",
+    zelsisSolution: "Restrict monospace fonts strictly to code blocks, hashes, timestamps, and numeric tabular data."
+  },
+  {
+    id: 245,
+    code: 'CLICHE-45',
+    title: "Uncontrollable Auto-Playing Testimonial Carousel",
+    category: "AI Clich\u00e9 & Usability",
+    clichePattern: "Testimonial cards spinning horizontally every 2 seconds without pause-on-hover",
+    whyAiDoesIt: "Prioritizes automated motion over user reading comprehension",
+    zelsisSolution: "Provide manual swipe/arrow controls and pause animation immediately on pointer hover or focus."
+  },
+  {
+    id: 246,
+    code: 'CLICHE-46',
+    title: "Blown-Out Neon Box Shadow Glows",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Extreme box-shadow values with 100% saturation neon colors causing visual haze",
+    whyAiDoesIt: "Employs cyberpunk aesthetic indiscriminately across B2B enterprise interfaces",
+    zelsisSolution: "Use subtle, multi-layered neutral drop shadows with realistic ambient occlusion."
+  },
+  {
+    id: 247,
+    code: 'CLICHE-47',
+    title: "Formulaic Clich\u00e9 Feature Comparison Matrix",
+    category: "AI Clich\u00e9 & Content",
+    clichePattern: "Comparison table where competitors have 10 red (X) icons and our app has 10 green checkmarks",
+    whyAiDoesIt: "Presents obviously biased comparisons that insult customer intelligence",
+    zelsisSolution: "Build honest, nuanced comparison tables highlighting specific architectural differences."
+  },
+  {
+    id: 248,
+    code: 'CLICHE-48',
+    title: "Unlabeled Toggle Switch Interactive Ambiguity",
+    category: "AI Clich\u00e9 & Accessibility",
+    clichePattern: "Toggle switch component rendering without associated label or active status indicator",
+    whyAiDoesIt: "Focuses on visual toggle slider without semantic state communication",
+    zelsisSolution: "Pair every toggle with an explicit textual state label and aria-checked binding."
+  },
+  {
+    id: 249,
+    code: 'CLICHE-49',
+    title: "Decorative Hand-Drawn SVG Scribble Arrows",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Hand-drawn marker arrows pointing from sub-copy to primary button (\"Click here!\")",
+    whyAiDoesIt: "Injects folksy doodle SVGs into otherwise strict modern layouts",
+    zelsisSolution: "Rely on intuitive layout hierarchy to guide user action without crude visual pointers."
+  },
+  {
+    id: 250,
+    code: 'CLICHE-50',
+    title: "Orphaned Dead Social Media Footer Anchors",
+    category: "AI Clich\u00e9 & Navigation",
+    clichePattern: "Twitter, Facebook, Instagram icons linking to root domains without company handle",
+    whyAiDoesIt: "Populates boilerplate footer links without connecting company profiles",
+    zelsisSolution: "Link only to verified, active corporate channels or omit unused platforms completely."
+  },
+  {
+    id: 251,
+    code: 'CLICHE-51',
+    title: "Hyper-Saturated Particle Canvas CPU Drain",
+    category: "AI Clich\u00e9 & Performance",
+    clichePattern: "Background tsParticles or canvas drawing hundreds of bouncing nodes constantly at 60fps",
+    whyAiDoesIt: "Wastes GPU/CPU cycles on decorative canvas elements that distract from primary content",
+    zelsisSolution: "Limit canvas animations, throttle to requestAnimationFrame, and honor prefers-reduced-motion."
+  },
+  {
+    id: 252,
+    code: 'CLICHE-52',
+    title: "Generic Intercom Chat Bubble Impersonation",
+    category: "AI Clich\u00e9 & UX",
+    clichePattern: "Floating bottom-right button with generic agent avatar that opens a mailto: link",
+    whyAiDoesIt: "Pretends to provide real-time live support when only a contact form exists",
+    zelsisSolution: "Label contact triggers accurately (\"Send us an email\") rather than mimicking live chat."
+  },
+  {
+    id: 253,
+    code: 'CLICHE-53',
+    title: "5-Star Rating Badge Without Review Count or Source",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Yellow 5-star SVGs accompanied by vague \"Rated 5.0 by top companies\"",
+    whyAiDoesIt: "Omits review count, review platform (G2, Capterra), and individual customer quotes",
+    zelsisSolution: "Attribute star ratings to verified third-party aggregators with direct link."
+  },
+  {
+    id: 254,
+    code: 'CLICHE-54',
+    title: "Full-Bleed Unpadded Table Layout on Mobile",
+    category: "AI Clich\u00e9 & Mobile",
+    clichePattern: "Table layout overflowing viewport with zero padding and cut-off right border",
+    whyAiDoesIt: "Fails to test horizontal scrolling boundaries on small screen widths",
+    zelsisSolution: "Wrap tables in responsive overflow containers with scroll affordance indicators."
+  },
+  {
+    id: 255,
+    code: 'CLICHE-55',
+    title: "Default Native Select Menu in Polished Dark Mode",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Dark theme form using unstyled native HTML <select> opening blinding white dropdown OS menu",
+    whyAiDoesIt: "Neglects to style native select options to match application color scheme",
+    zelsisSolution: "Style select options using dark popovers or custom accessible dropdown components."
+  },
+  {
+    id: 256,
+    code: 'CLICHE-56',
+    title: "Fixed Floating Call-to-Action Masking Footer Links",
+    category: "AI Clich\u00e9 & Usability",
+    clichePattern: "Floating sticky mobile action bar covering the legal and copyright footer",
+    whyAiDoesIt: "Fixes bottom bar without adding sufficient bottom padding to the document body",
+    zelsisSolution: "Add safe-area-inset bottom padding to page container equal to floating bar height."
+  },
+  {
+    id: 257,
+    code: 'CLICHE-57',
+    title: "Nested Scroll Containers Causing Scrolljacking Traps",
+    category: "AI Clich\u00e9 & Usability",
+    clichePattern: "Feature card containing internal scrollable text box that captures mousewheel scroll",
+    whyAiDoesIt: "Traps user cursor in nested container while trying to scroll down the page",
+    zelsisSolution: "Avoid nested scrollable boxes on marketing pages; display full text or use disclosure modals."
+  },
+  {
+    id: 258,
+    code: 'CLICHE-58',
+    title: "Misaligned Hero Headline Gradient Cutoff",
+    category: "AI Clich\u00e9 & Typography",
+    clichePattern: "Applying bg-clip-text gradient with descenders (g, y, p, q) clipped at the baseline",
+    whyAiDoesIt: "Applies text gradient without compensating for line-height and bounding box padding",
+    zelsisSolution: "Add pb-1 or appropriate leading so typographic descenders remain fully rendered."
+  },
+  {
+    id: 259,
+    code: 'CLICHE-59',
+    title: "Fake \"Built for Enterprise\" Security Shield Badges",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Generic lock SVG with \"Military Grade 256-bit Encryption\" and \"SOC2 Type II Ready\"",
+    whyAiDoesIt: "Displays meaningless security slogans that enterprise security teams laugh at",
+    zelsisSolution: "State concrete security controls (e.g. \"AES-256 at rest, TLS 1.3 in transit, automated pentests\")."
+  },
+  {
+    id: 260,
+    code: 'CLICHE-60',
+    title: "Redundant Breadcrumb Navigation on 2-Level Site",
+    category: "AI Clich\u00e9 & Navigation",
+    clichePattern: "Displaying \"Home > Dashboard\" on a single-page web app with no deeper hierarchy",
+    whyAiDoesIt: "Pastes enterprise breadcrumb components without architectural necessity",
+    zelsisSolution: "Use breadcrumbs only when information architecture is 3+ levels deep."
+  },
+  {
+    id: 261,
+    code: 'CLICHE-61',
+    title: "Missing Input Placeholder Contrast in Dark Theme",
+    category: "AI Clich\u00e9 & Accessibility",
+    clichePattern: "Input placeholder text styled with opacity-20 making it completely invisible",
+    whyAiDoesIt: "Fails WCAG 3:1 placeholder text contrast guidelines in dark interfaces",
+    zelsisSolution: "Use placeholder text with minimum 3:1 contrast against input background."
+  },
+  {
+    id: 262,
+    code: 'CLICHE-62',
+    title: "Inflexible Fixed-Width Container Breakpoints",
+    category: "AI Clich\u00e9 & Responsive",
+    clichePattern: "Using fixed w-[1200px] instead of max-w-7xl with responsive percentage margins",
+    whyAiDoesIt: "Causes horizontal overflow on tablet screens between 768px and 1200px",
+    zelsisSolution: "Always use fluid percentage widths with max-width bounding constraints."
+  },
+  {
+    id: 263,
+    code: 'CLICHE-63',
+    title: "Fake \"Press Mentions\" Banner with Generic Icons",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Displaying \"As seen in TechCrunch, Forbes, Bloomberg\" without any actual article links",
+    whyAiDoesIt: "Manufactures media coverage using downloaded publisher logos",
+    zelsisSolution: "Link directly to verified third-party coverage or omit media mention bars entirely."
+  },
+  {
+    id: 264,
+    code: 'CLICHE-64',
+    title: "Misplaced Skeuomorphic Glass Reflection Strokes",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Applying 1px gradient borders simulating glass reflections on flat data tables",
+    whyAiDoesIt: "Applies decorative skeuomorphism inconsistently across utility interfaces",
+    zelsisSolution: "Maintain consistent surface styling across the entire design system."
+  },
+  {
+    id: 265,
+    code: 'CLICHE-65',
+    title: "Interactive Elements Disguised as Static Text",
+    category: "AI Clich\u00e9 & Affordance",
+    clichePattern: "Clickable action links rendered in plain body text color without underline or hover state",
+    whyAiDoesIt: "Sacrifices functional affordance for minimalist visual cleanliness",
+    zelsisSolution: "Ensure interactive links have distinct color, underline on hover, or clear button styling."
+  },
+  {
+    id: 266,
+    code: 'CLICHE-66',
+    title: "Static Video Player Mockup with Fake Play Button",
+    category: "AI Clich\u00e9 & UX",
+    clichePattern: "Big video preview image with centered play button that does nothing or opens modal with dead YouTube link",
+    whyAiDoesIt: "Promises video walkthrough without producing the underlying video asset",
+    zelsisSolution: "Embed real, functioning video player or use animated GIF/WEBM interface preview."
+  },
+  {
+    id: 267,
+    code: 'CLICHE-67',
+    title: "Unstyled Skeleton Screen Flickering",
+    category: "AI Clich\u00e9 & Performance",
+    clichePattern: "Displaying high-contrast white skeleton boxes on dark background before data loads",
+    whyAiDoesIt: "Applies light-mode skeleton defaults to dark mode themes causing visual flash",
+    zelsisSolution: "Style skeleton loaders with theme-matched subtle pulse animations."
+  },
+  {
+    id: 268,
+    code: 'CLICHE-68',
+    title: "Missing Tab Indicator Transition on Navigation",
+    category: "AI Clich\u00e9 & Interaction",
+    clichePattern: "Tab bars where the active indicator teleports abruptly with zero animation",
+    whyAiDoesIt: "Omits basic layout transition animations on active tab state changes",
+    zelsisSolution: "Use layoutId or smooth transition transitions on active tab indicator pill."
+  },
+  {
+    id: 269,
+    code: 'CLICHE-69',
+    title: "Arbitrary \"Beta\" Pill Attached Indefinitely",
+    category: "AI Clich\u00e9 & Trust",
+    clichePattern: "Software operating for 3 years still showing glowing \"BETA\" pill next to brand name",
+    whyAiDoesIt: "Leaves beta label permanently to deflect accountability for software defects",
+    zelsisSolution: "Remove beta labels once product is commercially released with paid subscriptions."
+  },
+  {
+    id: 270,
+    code: 'CLICHE-70',
+    title: "Inconsistent Icon Stroke Widths across Sections",
+    category: "AI Clich\u00e9 & Visual",
+    clichePattern: "Mixing 1px, 1.5px, and 2.5px icon line weights from different icon libraries",
+    whyAiDoesIt: "Copies icons from multiple icon packs without normalizing stroke widths",
+    zelsisSolution: "Standardize on a single icon library with uniform stroke width across all views."
+  },
+  {
+    id: 271,
+    code: 'CLICHE-71',
+    title: "Ambiguous Back Button Navigation on Subpages",
+    category: "AI Clich\u00e9 & Usability",
+    clichePattern: "Back button that executes router.back() into external referrer instead of parent page",
+    whyAiDoesIt: "Relies on browser history instead of structured hierarchical page navigation",
+    zelsisSolution: "Direct back buttons explicitly to logical parent section or provide fallback."
+  },
+  {
+    id: 272,
+    code: 'CLICHE-72',
+    title: "Inverted Hero Visual Dominating Primary Action",
+    category: "AI Clich\u00e9 & Layout",
+    clichePattern: "Massive glowing animation so prominent that user completely misses the sign-up CTA",
+    whyAiDoesIt: "Overpowers conversion actions with oversized background graphics",
+    zelsisSolution: "Ensure primary call-to-action has the highest visual weight in the hero section."
+  },
+  {
+    id: 273,
+    code: 'CLICHE-73',
+    title: "Broken Mobile Hamburger Menu Scroll Lock",
+    category: "AI Clich\u00e9 & Mobile",
+    clichePattern: "Mobile navigation drawer open while background page continues scrolling underneath",
+    whyAiDoesIt: "Fails to disable body scroll when mobile slide-over overlay is active",
+    zelsisSolution: "Apply overflow-hidden to document body when mobile navigation is active."
+  },
+  {
+    id: 274,
+    code: 'CLICHE-74',
+    title: "Unannounced External Link Navigation",
+    category: "AI Clich\u00e9 & Accessibility",
+    clichePattern: "Links navigating to external third-party sites without target=\"_blank\" or external icon",
+    whyAiDoesIt: "Disrupts user journey by navigating away from active session without warning",
+    zelsisSolution: "Indicate external links clearly with an ExternalLink icon and screen-reader notice."
+  },
+  {
+    id: 275,
+    code: 'CLICHE-75',
+    title: "Formulaic \"Frequently Asked Questions\" Subtitle Clich\u00e9",
+    category: "AI Clich\u00e9 & Copywriting",
+    clichePattern: "\"Everything you need to know about our product and billing\" repeating on every site",
+    whyAiDoesIt: "Copies boilerplate FAQ section subtitles from standard template kits",
+    zelsisSolution: "Write authentic section descriptions explaining how customer questions are handled."
+  }
+];

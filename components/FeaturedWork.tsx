@@ -24,13 +24,18 @@ export const FeaturedWork: React.FC = () => {
 
   React.useEffect(() => {
     if (selectedCase) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') setSelectedCase(null);
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
         document.body.style.overflow = 'unset';
+        document.body.style.paddingRight = '';
         window.removeEventListener('keydown', handleKeyDown);
       };
     }

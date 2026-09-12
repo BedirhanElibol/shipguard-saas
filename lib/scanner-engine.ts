@@ -6,6 +6,9 @@ import { evaluateSecurityRules } from './rules/security-rules';
 import { evaluateFrontendRules } from './rules/frontend-rules';
 import { evaluateComplianceRules } from './rules/compliance-rules';
 import { evaluateInfraRules } from './rules/infra-rules';
+import { evaluateInteractionRules } from './rules/interaction-rules';
+import { evaluateSecretRules } from './rules/secrets-rules';
+import { evaluateDatabaseRules } from './rules/database-rules';
 
 export interface CodeFile {
   path: string;
@@ -59,6 +62,10 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const numMatch = trimmed.match(/^(\d+)$/);
 
     const llmMatch = trimmed.match(/^LLM-?(\d+)$/i);
+    const clicheMatch = trimmed.match(/^CLICHE-?(\d+)$/i);
+    const interactMatch = trimmed.match(/^UI-INTERACT-?(\d+)$/i);
+    const secretMatch = trimmed.match(/^SEC-SECRET-?(\d+)$/i);
+    const dbMatch = trimmed.match(/^DB-PERF-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -84,6 +91,26 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       if (!isNaN(num)) {
         ignoredRuleIds.add(4000 + num);
         ignoredRuleIds.add(num);
+      }
+    } else if (clicheMatch) {
+      const num = parseInt(clicheMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(200 + num);
+      }
+    } else if (interactMatch) {
+      const num = parseInt(interactMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(1200 + num);
+      }
+    } else if (secretMatch) {
+      const num = parseInt(secretMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(5000 + num);
+      }
+    } else if (dbMatch) {
+      const num = parseInt(dbMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(6000 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -183,6 +210,8 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       lowerPath.includes('out/') ||
       lowerPath.includes('.next/') ||
       lowerPath.includes('node_modules/') ||
+      lowerPath.includes('data/catalogs/') ||
+      lowerPath.includes('data/workspacefiles.ts') ||
       lowerPath.endsWith('.png') ||
       lowerPath.endsWith('.jpg') ||
       lowerPath.endsWith('.jpeg') ||
@@ -1357,6 +1386,40 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       addFinding(inf);
     }
     logs.push(...infraResult.logs);
+
+    // Wave 1 Enterprise Release Gate Engines:
+    // 1. Frontend Interaction & Modal Traps (UI-INTERACT-01 to 50, Rule IDs 1201-1250)
+    const interactCounter = { count: findingCounter };
+    const interactResult = evaluateInteractionRules(file, lines, cleanContent, interactCounter);
+    findingCounter = interactCounter.count;
+    for (const item of interactResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...interactResult.logs);
+
+    // 2. Enterprise Secret Signatures (SEC-SECRET-01 to 100, Rule IDs 5001-5100)
+    const secretCounter = { count: findingCounter };
+    const secretResult = evaluateSecretRules(file, lines, cleanContent, secretCounter);
+    findingCounter = secretCounter.count;
+    for (const item of secretResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...secretResult.logs);
+
+    // 3. Database & ORM Performance Engine (DB-PERF-01 to 50, Rule IDs 6001-6050)
+    const dbCounter = { count: findingCounter };
+    const dbResult = evaluateDatabaseRules(file, lines, cleanContent, dbCounter);
+    findingCounter = dbCounter.count;
+    for (const item of dbResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...dbResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

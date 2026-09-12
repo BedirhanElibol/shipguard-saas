@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/data/schema';
 import { UserProfile } from '@/components/auth/AuthModal';
-import { Settings, Key, Save, Trash2, X, Lock, User } from 'lucide-react';
+import { Settings, Key, Save, Trash2, X, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { CheckCircle2, ShieldCheck, ShieldAlert, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Loader2, CreditCard, Zap, Check, Calendar, ExternalLink } from 'lucide-react';
 
@@ -38,6 +38,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
   const router = useRouter();
   const [repoUrl, setRepoUrl] = useState(project.repoUrl);
   const [patToken, setPatToken] = useState((project as any).githubToken || '');
+  const [showPatToken, setShowPatToken] = useState(false);
   const [saved, setSaved] = useState(false);
 
   // Synchronize form fields when selected project changes
@@ -804,14 +805,24 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             <Key size={14} className="text-white" />
             <span>GitHub Personal Access Token (PAT) (Optional for Private Repos):</span>
           </label>
-          <input
-            aria-label="GitHub Personal Access Token"
-            type="password"
-            placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-            value={patToken}
-            onChange={(e) => setPatToken(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono focus:outline-none focus:border-white/20"
-          />
+          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
+            <input
+              aria-label="GitHub Personal Access Token"
+              type={showPatToken ? 'text' : 'password'}
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              value={patToken}
+              onChange={(e) => setPatToken(e.target.value)}
+              className="w-full bg-transparent py-1.5 text-xs text-[#EDEDED] font-mono focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPatToken(!showPatToken)}
+              aria-label={showPatToken ? 'Hide PAT token' : 'Show PAT token'}
+              className="text-[#A1A1AA] hover:text-white transition-colors p-1 shrink-0"
+            >
+              {showPatToken ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t border-white/10 flex-wrap gap-3">
@@ -821,7 +832,8 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
           <button
             type="submit"
-            className="btn btn-primary min-h-[44px] px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md"
+            disabled={saved}
+            className="btn btn-primary min-h-[44px] px-6 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md disabled:opacity-50"
           >
             {saved ? <CheckCircle2 size={15} /> : <Save size={15} />}
             <span>{saved ? 'Saved!' : 'Save Settings'}</span>

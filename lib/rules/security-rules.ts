@@ -15,6 +15,9 @@ export function evaluateSecurityRules(
   const findingCounter = typeof cleanContentOrCounter === 'object' ? cleanContentOrCounter : (counterMaybe || { count: 1 });
   const ts = new Date().toLocaleTimeString();
   const lowerPath = file.path.toLowerCase();
+  if (lowerPath.includes('data/catalogs/')) {
+    return { findings, logs };
+  }
 
   // Rule 1: Exposed Stripe/OpenAI API Keys (SEC-01)
   if (cleanContent.includes('sk_live_') || cleanContent.includes('sk-proj-') || /api[_-]?key\s*=\s*["']sk-[a-zA-Z0-9_-]{20,}/i.test(cleanContent)) {

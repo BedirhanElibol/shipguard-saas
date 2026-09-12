@@ -89,7 +89,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
   return (
     <div
       aria-label="Notifications"
-      className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"
+      className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"
     >
       <AnimatePresence mode="popLayout">
         {toasts.map((toast) => (

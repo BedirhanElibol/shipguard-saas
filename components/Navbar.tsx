@@ -61,11 +61,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileMenuOpen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [mobileMenuOpen]);
 
   const navLinks = [

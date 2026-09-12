@@ -1,0 +1,460 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+import { UiRule } from '../schema';
+
+/**
+ * Zelsis Master Frontend Interaction & Modal Traps Catalog (50 Rules)
+ * Rules UI-INTERACT-01 to UI-INTERACT-50.
+ * Eliminates modal lockups, focus leaks, layout jumps, and accessibility traps.
+ */
+export const UI_INTERACTION_CATALOG: UiRule[] = [
+  {
+    id: 1201,
+    code: 'UI-INTERACT-01',
+    title: "Modal Overlay Missing Backdrop Click Dismissal",
+    category: "Modal & Dialog Traps",
+    clichePattern: "Modal overlays lacking onClick handlers to dismiss on outer backdrop tap",
+    whyAiDoesIt: "AI omits target === currentTarget backdrop click dismissal on dialog wrapper",
+    zelsisSolution: "Attach backdrop click handler: onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}."
+  },
+  {
+    id: 1202,
+    code: 'UI-INTERACT-02',
+    title: "Modal Dialog Missing Keyboard Escape Listener",
+    category: "Modal & Dialog Traps",
+    clichePattern: "Modal dialog lacking window keydown listener for Escape key",
+    whyAiDoesIt: "AI omits global Escape key event listeners on dialog components",
+    zelsisSolution: "Add useEffect listening for e.key === \"Escape\" while modal is open to call onClose()."
+  },
+  {
+    id: 1203,
+    code: 'UI-INTERACT-03',
+    title: "Missing Focus Trap in Open Modal Dialog",
+    category: "Accessibility & Focus",
+    clichePattern: "Focus leaks outside modal into background page elements when tabbing",
+    whyAiDoesIt: "AI mounts floating div dialogs without focus-trapping boundaries",
+    zelsisSolution: "Enforce focus trapping within dialog or use accessible primitives (Radix/Headless UI)."
+  },
+  {
+    id: 1204,
+    code: 'UI-INTERACT-04',
+    title: "Disruptive autoFocus Input Hijacking",
+    category: "Usability & Accessibility",
+    clichePattern: "Forms applying autoFocus on mount, stealing screen-reader and user focus",
+    whyAiDoesIt: "AI adds autoFocus to initial input without considering page load UX",
+    zelsisSolution: "Remove disruptive autoFocus attributes; let users initiate interaction naturally."
+  },
+  {
+    id: 1205,
+    code: 'UI-INTERACT-05',
+    title: "Arbitrary Z-Index Escalation War (z-[99999])",
+    category: "Layout & Stacking Context",
+    clichePattern: "Using extreme arbitrary z-indexes (z-[9999], z-[99999]) causing stacking collisions",
+    whyAiDoesIt: "AI increases z-index blindly whenever an element fails to appear on top",
+    zelsisSolution: "Establish a strict 5-tier z-index scale (dropdown: 10, sticky: 20, modal: 40, toast: 50)."
+  },
+  {
+    id: 1206,
+    code: 'UI-INTERACT-06',
+    title: "Button Dimensions Shift During Loading State",
+    category: "Visual Jitter & Feedback",
+    clichePattern: "Button changes width/height when spinner replaces label text on submit",
+    whyAiDoesIt: "AI conditionally swaps text with spinner without maintaining button min-width",
+    zelsisSolution: "Set fixed min-width or render loading spinner as overlay to prevent layout shift."
+  },
+  {
+    id: 1207,
+    code: 'UI-INTERACT-07',
+    title: "Viewport Horizontal Overflow from w-screen",
+    category: "Responsive Layout",
+    clichePattern: "Using w-screen causing horizontal scrollbar due to desktop OS scrollbar width",
+    whyAiDoesIt: "AI uses w-screen interchangeably with w-full without accounting for scrollbar gutter",
+    zelsisSolution: "Replace w-screen with w-full to avoid horizontal scrollbar layout breakage."
+  },
+  {
+    id: 1208,
+    code: 'UI-INTERACT-08',
+    title: "Hydration Mismatch from Client-Only Window Checks",
+    category: "React & Next.js Hygiene",
+    clichePattern: "Rendering dynamic window properties in initial JSX causing SSR hydration error",
+    whyAiDoesIt: "AI renders typeof window !== \"undefined\" values directly in render output",
+    zelsisSolution: "Defer client-only rendering until mounted state in useEffect."
+  },
+  {
+    id: 1209,
+    code: 'UI-INTERACT-09',
+    title: "Unvalidated Dynamic URL Query Parameters",
+    category: "Routing & State Resilience",
+    clichePattern: "Reading searchParams without validating against allowed enum values, causing white screen",
+    whyAiDoesIt: "AI casts query parameters blindly into state machines",
+    zelsisSolution: "Validate searchParams against whitelist enum; fallback safely to default tab/view."
+  },
+  {
+    id: 1210,
+    code: 'UI-INTERACT-10',
+    title: "Scroll Lock without Scrollbar Width Compensation",
+    category: "Modal & Layout Shift",
+    clichePattern: "Setting overflow:hidden on body when modal opens causing page layout to jump right",
+    whyAiDoesIt: "AI locks body scroll without compensating for scrollbar width disparity",
+    zelsisSolution: "Apply padding-right compensation equal to scrollbar width when locking body scroll."
+  },
+  {
+    id: 1211,
+    code: 'UI-INTERACT-11',
+    title: "Double-Click Duplicate Mutation Hazard",
+    category: "Form & Mutation Safety",
+    clichePattern: "Buttons lacking disable-on-click or mutation guards, firing duplicate API requests",
+    whyAiDoesIt: "AI omits isSubmitting state disable guards on submit buttons",
+    zelsisSolution: "Disable submit buttons while pending and apply optimistic submission guards."
+  },
+  {
+    id: 1212,
+    code: 'UI-INTERACT-12',
+    title: "Missing aria-expanded on Collapsible Accordion Triggers",
+    category: "Accessibility & WCAG",
+    clichePattern: "Accordion toggle buttons lacking aria-expanded and aria-controls attributes",
+    whyAiDoesIt: "AI creates toggle components using plain unannotated buttons or divs",
+    zelsisSolution: "Bind aria-expanded={isOpen} and aria-controls={panelId} on all collapsible controls."
+  },
+  {
+    id: 1213,
+    code: 'UI-INTERACT-13',
+    title: "Transient Tooltip Disappearing on Hover",
+    category: "Usability & Affordance",
+    clichePattern: "Tooltips closing when pointer moves toward them, preventing text selection",
+    whyAiDoesIt: "AI positions tooltips without pointer-events-none or proper hover bridges",
+    zelsisSolution: "Add pointer-events-none or bridge hover area so tooltips remain stable."
+  },
+  {
+    id: 1214,
+    code: 'UI-INTERACT-14',
+    title: "Keyboard Tab Trap in Code / Text Area",
+    category: "Accessibility & WCAG",
+    clichePattern: "Pressing Tab inside text editor indents text with no escape pathway for keyboard users",
+    whyAiDoesIt: "AI intercepts Tab key in textarea without providing keyboard escape shortcut",
+    zelsisSolution: "Document keyboard escape mechanism (e.g. Esc then Tab) or provide dedicated shortcut."
+  },
+  {
+    id: 1215,
+    code: 'UI-INTERACT-15',
+    title: "Accidental Form Loss on Unsaved Navigation",
+    category: "Data Preservation",
+    clichePattern: "Closing modal or navigating away destroys 10 fields of filled user data without prompt",
+    whyAiDoesIt: "AI fails to check dirty form state before executing close or navigation handlers",
+    zelsisSolution: "Warn users with confirmation dialog if closing form with uncommitted dirty changes."
+  },
+  {
+    id: 1216,
+    code: 'UI-INTERACT-16',
+    title: "Dropdown Menu Leaking on Outside Document Click",
+    category: "Menu & Overlay Traps",
+    clichePattern: "Custom select or dropdown menus remaining open when clicking elsewhere on page",
+    whyAiDoesIt: "AI forgets to bind window mousedown outside-click event listeners",
+    zelsisSolution: "Attach outside-click listener to dismiss dropdowns when user clicks outside."
+  },
+  {
+    id: 1217,
+    code: 'UI-INTERACT-17',
+    title: "Touch Target Overlap on Mobile Viewports",
+    category: "Mobile Accessibility",
+    clichePattern: "Interactive icon buttons spaced less than 8px apart causing mistaken taps on mobile",
+    whyAiDoesIt: "AI clusters compact buttons without verifying physical finger tap clearance",
+    zelsisSolution: "Ensure minimum 44x44px touch bounding box with 8px margin between targets."
+  },
+  {
+    id: 1218,
+    code: 'UI-INTERACT-18',
+    title: "Focus Ring Clipped by overflow-hidden Containers",
+    category: "Accessibility & Focus",
+    clichePattern: "Interactive element focus ring clipped or hidden by parent card overflow-hidden",
+    whyAiDoesIt: "AI applies overflow-hidden to card containers without focus outline margin",
+    zelsisSolution: "Add focus outline offset or remove unnecessary overflow-hidden from focusable containers."
+  },
+  {
+    id: 1219,
+    code: 'UI-INTERACT-19',
+    title: "Sticky Header Obscuring Hash-Anchored Section Titles",
+    category: "Navigation & Scrolling",
+    clichePattern: "Clicking anchor link scrolls heading directly behind fixed header",
+    whyAiDoesIt: "AI omits scroll-mt (scroll-margin-top) utility on anchored section titles",
+    zelsisSolution: "Add scroll-mt-20 or appropriate offset matching fixed navbar height to all sections."
+  },
+  {
+    id: 1220,
+    code: 'UI-INTERACT-20',
+    title: "Unannounced Dynamic Toast / Alert Notifications",
+    category: "Accessibility & Live Regions",
+    clichePattern: "Toast messages rendering in DOM without aria-live=\"polite\" or role=\"status\"",
+    whyAiDoesIt: "AI appends toast elements without accessibility live-region announcements",
+    zelsisSolution: "Wrap notification containers in role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"."
+  },
+  {
+    id: 1221,
+    code: 'UI-INTERACT-21',
+    title: "Clipboard Copy Button Lacking Confirmation State",
+    category: "Visual Feedback",
+    clichePattern: "Copy-to-clipboard button offers no visual confirmation that text was copied",
+    whyAiDoesIt: "AI calls navigator.clipboard.writeText without toggling temporary success feedback",
+    zelsisSolution: "Show temporary checkmark icon and \"Copied!\" feedback for 2 seconds upon click."
+  },
+  {
+    id: 1222,
+    code: 'UI-INTERACT-22',
+    title: "Auto-Closing Notification Dismissal Too Fast",
+    category: "Usability & Reading Pace",
+    clichePattern: "Toast alerts auto-dismissing in under 2 seconds before user can finish reading",
+    whyAiDoesIt: "AI sets arbitrary short timeouts (1000-2000ms) on notification toasts",
+    zelsisSolution: "Keep toasts visible for at least 4-5 seconds and pause timer when hovered."
+  },
+  {
+    id: 1223,
+    code: 'UI-INTERACT-23',
+    title: "Nested Button Invalid HTML Hierarchy",
+    category: "HTML Semantics & React",
+    clichePattern: "Nesting <button> inside an <a> tag or another <button>, causing hydration errors",
+    whyAiDoesIt: "AI wraps interactive cards inside buttons while placing action buttons inside",
+    zelsisSolution: "Refactor nested buttons into sibling elements or use event delegation."
+  },
+  {
+    id: 1224,
+    code: 'UI-INTERACT-24',
+    title: "Missing Loading State on Long Async Actions",
+    category: "State & Feedback",
+    clichePattern: "User clicks button and nothing changes visually for 3+ seconds while API responds",
+    whyAiDoesIt: "AI awaits fetch without toggling pending or loading state",
+    zelsisSolution: "Set immediate loading spinner or disable state on button upon click."
+  },
+  {
+    id: 1225,
+    code: 'UI-INTERACT-25',
+    title: "Unchecked File Upload Size and Type Traps",
+    category: "Input Validation & UX",
+    clichePattern: "File dropzone accepting 500MB video without client-side check, crashing browser",
+    whyAiDoesIt: "AI connects file input directly to FormData without preliminary size/MIME check",
+    zelsisSolution: "Validate file size and MIME type on drop before initiating upload."
+  },
+  {
+    id: 1226,
+    code: 'UI-INTERACT-26',
+    title: "Search Input Missing Clear Button (X)",
+    category: "Usability & Inputs",
+    clichePattern: "Text search field forcing user to backspace 40 characters to reset search query",
+    whyAiDoesIt: "AI omits quick-clear button from search input fields",
+    zelsisSolution: "Add clear icon button inside search input when query length > 0."
+  },
+  {
+    id: 1227,
+    code: 'UI-INTERACT-27',
+    title: "Infinite Scroll Lacking Footer Access",
+    category: "Navigation & Layout",
+    clichePattern: "Infinite scrolling list preventing user from ever reaching footer links",
+    whyAiDoesIt: "AI implements endless scrolling without alternative pagination or sticky footer",
+    zelsisSolution: "Provide \"Load More\" button or relocate legal and footer links to a sidebar."
+  },
+  {
+    id: 1228,
+    code: 'UI-INTERACT-28',
+    title: "Password Input Lacking Visibility Toggle",
+    category: "Usability & Form Entry",
+    clichePattern: "Password input field without reveal/hide eye toggle button",
+    whyAiDoesIt: "AI renders basic type=\"password\" input without toggle functionality",
+    zelsisSolution: "Add accessible show/hide password toggle button with aria-label."
+  },
+  {
+    id: 1229,
+    code: 'UI-INTERACT-29',
+    title: "Tab Component Lacking Arrow Key Keyboard Navigation",
+    category: "Accessibility & WCAG",
+    clichePattern: "Tabs switchable only via mouse clicks; arrow keys do nothing (WCAG 2.1 Tab pattern)",
+    whyAiDoesIt: "AI binds onClick to tab buttons without implementing arrow key navigation",
+    zelsisSolution: "Implement Left/Right arrow key handlers to switch active tabs per WAI-ARIA pattern."
+  },
+  {
+    id: 1230,
+    code: 'UI-INTERACT-30',
+    title: "Accordion Item Closing While User Is Typing Inside Form",
+    category: "State Management",
+    clichePattern: "Collapsing accordion panel while user has active focus inside a nested input",
+    whyAiDoesIt: "AI toggles panels on re-render without checking active element focus",
+    zelsisSolution: "Prevent collapsing active accordion panels while focus resides within child inputs."
+  },
+  {
+    id: 1231,
+    code: 'UI-INTERACT-31',
+    title: "Slider / Range Input Missing Numeric Value Label",
+    category: "Accessibility & Form Entry",
+    clichePattern: "HTML range slider without visible current value readout or aria-valuetext",
+    whyAiDoesIt: "AI inserts <input type=\"range\"> without pairing with live numeric display",
+    zelsisSolution: "Display live numeric indicator alongside slider and set aria-valuenow."
+  },
+  {
+    id: 1232,
+    code: 'UI-INTERACT-32',
+    title: "Audio / Video Auto-Play with Sound",
+    category: "Usability & Accessibility",
+    clichePattern: "Embedding media player that plays sound automatically on page mount",
+    whyAiDoesIt: "AI configures autoPlay without muted attribute",
+    zelsisSolution: "Always set muted on autoplay videos or require explicit user action to start audio."
+  },
+  {
+    id: 1233,
+    code: 'UI-INTERACT-33',
+    title: "Un-dismissible Drawer on Mobile Swipe Left",
+    category: "Mobile Interaction",
+    clichePattern: "Slide-over drawer that cannot be dismissed via touch gesture or backdrop tap",
+    whyAiDoesIt: "AI builds mobile drawer without swipe-to-dismiss gesture handling",
+    zelsisSolution: "Support swipe-to-dismiss touch gestures and explicit close button on mobile drawers."
+  },
+  {
+    id: 1234,
+    code: 'UI-INTERACT-34',
+    title: "Radio Button Group Missing Default Selection",
+    category: "Form Usability",
+    clichePattern: "Radio button group rendered with none of the options selected by default",
+    whyAiDoesIt: "AI maps radio options without providing initial default value",
+    zelsisSolution: "Always initialize radio button groups with a sensible default selection."
+  },
+  {
+    id: 1235,
+    code: 'UI-INTERACT-35',
+    title: "Checkbox Label Click Area Disconnected",
+    category: "Accessibility & Usability",
+    clichePattern: "Clicking checkbox label text does not toggle the checkbox",
+    whyAiDoesIt: "AI places <label> without htmlFor matching the input id",
+    zelsisSolution: "Wrap input inside <label> or bind htmlFor explicitly to input id."
+  },
+  {
+    id: 1236,
+    code: 'UI-INTERACT-36',
+    title: "Auto-Complete Dropdown Obscuring Submit Button",
+    category: "Mobile Form Usability",
+    clichePattern: "Browser autocomplete or custom suggestions menu covering the submit button",
+    whyAiDoesIt: "AI sets excessive dropdown height without mobile viewport positioning checks",
+    zelsisSolution: "Limit autocomplete dropdown max-height to 200px and ensure submit button remains visible."
+  },
+  {
+    id: 1237,
+    code: 'UI-INTERACT-37',
+    title: "Date Picker Missing Manual Text Input Fallback",
+    category: "Accessibility & Usability",
+    clichePattern: "Calendar datepicker widget forcing user to click back 360 months to select birth year",
+    whyAiDoesIt: "AI uses calendar grid without direct year selector or text input mode",
+    zelsisSolution: "Provide direct text input masking or quick year/month dropdown jump selectors."
+  },
+  {
+    id: 1238,
+    code: 'UI-INTERACT-38',
+    title: "Context Menu Trigger Colliding with Mobile Long-Press",
+    category: "Mobile Interaction",
+    clichePattern: "Custom right-click context menu failing to open or breaking on mobile devices",
+    whyAiDoesIt: "AI binds only onContextMenu without handling mobile long-press touch events",
+    zelsisSolution: "Provide alternate action menu trigger button for mobile viewports."
+  },
+  {
+    id: 1239,
+    code: 'UI-INTERACT-39',
+    title: "Missing Confirmation on Destructive Delete Actions",
+    category: "Data Safety",
+    clichePattern: "Clicking \"Delete Project\" executes immediate irreversible API deletion without confirmation",
+    whyAiDoesIt: "AI hooks delete button directly to mutation without modal verification",
+    zelsisSolution: "Require explicit two-step confirmation or modal prompt for destructive deletions."
+  },
+  {
+    id: 1240,
+    code: 'UI-INTERACT-40',
+    title: "Interactive Chart Missing Keyboard Accessible Data Table",
+    category: "Accessibility & WCAG",
+    clichePattern: "Canvas / SVG data chart completely inaccessible to screen reader users",
+    whyAiDoesIt: "AI renders chart via Recharts or Canvas without alternative text representation",
+    zelsisSolution: "Provide hidden or togglable tabular data alternative (role=\"table\") for all charts."
+  },
+  {
+    id: 1241,
+    code: 'UI-INTERACT-41',
+    title: "Draggable Kanban / List Lacking Keyboard Reordering",
+    category: "Accessibility & WCAG",
+    clichePattern: "Drag-and-drop items movable only with mouse; impossible with keyboard",
+    whyAiDoesIt: "AI implements react-beautiful-dnd without keyboard grab/drop bindings",
+    zelsisSolution: "Support keyboard reordering via Space (grab) and Arrow keys (move)."
+  },
+  {
+    id: 1242,
+    code: 'UI-INTERACT-42',
+    title: "Sticky Elements Overlapping Floating Action Buttons",
+    category: "Layout & Stacking",
+    clichePattern: "Sticky bottom bar and floating WhatsApp/help button colliding into a messy blob",
+    whyAiDoesIt: "AI positions multiple fixed bottom elements without shared offset management",
+    zelsisSolution: "Coordinate positioning of sticky elements with CSS variables or shared layout state."
+  },
+  {
+    id: 1243,
+    code: 'UI-INTERACT-43',
+    title: "Form Submission Resetting Cursor Position in Controlled Input",
+    category: "React State Hygiene",
+    clichePattern: "Typing in controlled input jumps cursor to end of field on every keystroke",
+    whyAiDoesIt: "AI modifies input value asynchronously during onChange handler",
+    zelsisSolution: "Maintain cursor selection start/end indices during custom input formatters."
+  },
+  {
+    id: 1244,
+    code: 'UI-INTERACT-44',
+    title: "Broken Zoom Affordance on Pinch Gestures",
+    category: "Mobile Usability",
+    clichePattern: "Meta viewport tag containing user-scalable=no, disabling accessibility zoom",
+    whyAiDoesIt: "AI copies boilerplate viewport tags disabling pinch-to-zoom",
+    zelsisSolution: "Remove maximum-scale=1.0 and user-scalable=no from viewport metadata."
+  },
+  {
+    id: 1245,
+    code: 'UI-INTERACT-45',
+    title: "Unresponsive Action Sheet Close Gesture",
+    category: "Mobile UX",
+    clichePattern: "Bottom sheet dialog closing only on tiny X button, ignoring down-drag gesture",
+    whyAiDoesIt: "AI mounts static bottom sheet without drag gesture bindings",
+    zelsisSolution: "Implement drag-down gesture listener to dismiss bottom sheets naturally."
+  },
+  {
+    id: 1246,
+    code: 'UI-INTERACT-46',
+    title: "Missing Empty State Action Button",
+    category: "Empty State UX",
+    clichePattern: "Empty state displays \"No items found\" with zero call-to-action button",
+    whyAiDoesIt: "AI renders passive empty state message without action trigger",
+    zelsisSolution: "Provide primary action button (\"Create New Item\") inside all empty states."
+  },
+  {
+    id: 1247,
+    code: 'UI-INTERACT-47',
+    title: "Animated Counter Freezing on Rapid Page Scroll",
+    category: "Animation Resilience",
+    clichePattern: "Count-up animation script crashing or locking up if user scrolls past rapidly",
+    whyAiDoesIt: "AI initiates animation without checking if component is unmounted",
+    zelsisSolution: "Clean up animation frame timers on component unmount and handle fast scrolling."
+  },
+  {
+    id: 1248,
+    code: 'UI-INTERACT-48',
+    title: "Multi-Step Wizard Lacking Step History Navigation",
+    category: "Wizard UX",
+    clichePattern: "Browser back button leaves entire multi-step wizard rather than going to previous step",
+    whyAiDoesIt: "AI manages step state in local memory without updating URL hash or history",
+    zelsisSolution: "Sync wizard step changes with shallow URL query or history state."
+  },
+  {
+    id: 1249,
+    code: 'UI-INTERACT-49',
+    title: "Unescaped Error Message Rendering in UI Alert",
+    category: "Security & UX",
+    clichePattern: "Displaying raw backend stack traces or database errors directly in user alert banners",
+    whyAiDoesIt: "AI prints error.message directly into user-facing notification",
+    zelsisSolution: "Map internal errors to user-friendly messages and log raw errors privately."
+  },
+  {
+    id: 1250,
+    code: 'UI-INTERACT-50',
+    title: "Scanner Countdown Missing Zero-Second Transition",
+    category: "Workflow Automation",
+    clichePattern: "Countdown reaches 0s and hangs indefinitely without triggering auto-completion",
+    whyAiDoesIt: "AI forgets to invoke completion callback when countdown reaches zero",
+    zelsisSolution: "Invoke completion callback immediately when countdown hits zero."
+  }
+];

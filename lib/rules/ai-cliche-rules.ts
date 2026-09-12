@@ -723,33 +723,1304 @@ export function evaluateAiClicheRules(
     logs.push(`[${ts}] 🎨 CLICHE-25: Stock team photo detected (${file.path}:${lineNum})`);
   }
 
-  // CLICHE-26: Awkward Navigation Personalization & Pulsing CTA Cliché
-  const isNavScope = /nav|navbar|header|sidebar/i.test(file.path);
-  const hasParenthesizedNameInCta = /Dashboard\s*\(\s*\{.*name|Go\s*to\s*Dashboard\s*\(\s*\{.*name|Dashboard\s*\([a-zA-Z0-9_\s]+\)/i.test(cleanContent);
-  const hasNavPulsingDot = isNavScope && /animate-pulse.*(?:bg-emerald|bg-green|bg-cyan)/i.test(cleanContent);
-  if (isNavScope && (hasParenthesizedNameInCta || hasNavPulsingDot)) {
-    const matchLineIdx = lines.findIndex(l => /Dashboard\s*\(|animate-pulse/i.test(l));
+  // CLICHE-26: Rainbow Animated Conic Gradient Card Borders
+  if (/conic-gradient.*(?:red|blue|pink|yellow)|animate-border.*conic|rainbow-border/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-26|rainbow/i.test(l) || lines.indexOf(l) === 0));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,
       ruleId: 226,
       type: 'VIBEPOLISH',
-      title: 'CLICHE-26: Awkward Navigation Button Personalization or Pulsing Dot',
+      title: 'CLICHE-26: Rainbow Animated Conic Gradient Card Borders',
       severity: 'LOW',
-      category: 'Navigation & Micro-copy',
+      category: "AI Clich\u00e9 & Visual",
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || '<span>Dashboard ({currentUser.name})</span>',
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
       reproductionSteps: [
-        `Scanned navigation component in ${file.path}:${lineNum}.`,
-        'Detected user first-name interpolated into navigation CTA button or decorative pulsing indicator in primary header navigation.'
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected rainbow-border animation: Continuous spinning conic rainbow border around every feature card"
       ],
-      remediationPrompt: `Simplify navigation link in ${file.path} to a clean "Dashboard" label without parenthesized user names. Place user identity in a dedicated avatar or account dropdown menu.`,
+      remediationPrompt: "Use subtle solid borders with stateful hover highlights instead of distracting spinning gradients.",
       status: 'OPEN',
       owner: 'UI Architect',
       falsePositive: false
     });
-    logs.push(`[${ts}] 🎨 CLICHE-26: Navigation personalization cliché detected (${file.path}:${lineNum})`);
+    logs.push(`[${ts}] 🎨 CLICHE-26: Rainbow Animated Conic Gradient Card Borders detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-27: Monotonous Matrix Grid Background Overlays
+  if (/(?:bg-grid|bg-matrix|radial-gradient\(.*grid).*(?:opacity-10|opacity-20|opacity-5)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-27|monotonous/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 227,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-27: Monotonous Matrix Grid Background Overlays',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Background",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected monotonous background grid overlay: Dark background blanketed with low-opacity square grid lines and radial spotlight mask"
+      ],
+      remediationPrompt: "Use purposeful background treatment or generous clean negative space.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-27: Monotonous Matrix Grid Background Overlays detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-28: Fabricated "Active Now" Pulsing Ping Dot
+  if (/animate-ping.*(?:Users\s*Active|Online\s*Now|Live\s*Users)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-28|fabricated/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 228,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-28: Fabricated "Active Now" Pulsing Ping Dot',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected fabricated live pulsing ping dot: Artificial animate-ping green badge indicating \"1,420 Users Active Now\""
+      ],
+      remediationPrompt: "Show genuine live presence only when backed by real WebSocket / Redis telemetry.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-28: Fabricated "Active Now" Pulsing Ping Dot detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-29: Generic Archetype Testimonial Persona Titles
+  if (/(?:Tech\s*Enthusiast|Early\s*Adopter|Digital\s*Nomad|Product\s*Guy)\b/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-29|generic/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 229,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-29: Generic Archetype Testimonial Persona Titles',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected generic testimonial persona title: Testimonials signed by \"Tech Enthusiast\", \"Early Adopter\", or \"Digital Nomad\""
+      ],
+      remediationPrompt: "Include real customer names, verified LinkedIn handles, and concrete company roles.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-29: Generic Archetype Testimonial Persona Titles detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-30: Asymmetric Bento Grid with Empty Filler Cards
+  if (/(?:bento-grid|grid-cols-4.*bento).*(?:empty-card|spacer-card|decorative-box)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-30|asymmetric/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 230,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-30: Asymmetric Bento Grid with Empty Filler Cards',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Layout",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected asymmetric bento grid filler card: Bento grid layout where 2 cards have content and 3 cards have decorative shapes"
+      ],
+      remediationPrompt: "Select layouts that naturally fit your actual feature set rather than forcing arbitrary grids.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-30: Asymmetric Bento Grid with Empty Filler Cards detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-31: Floating Geometric Wireframe Polyhedra
+  if (/(?:wireframe-(?:cube|sphere|polyhedron)|floating-(?:shapes|poly))/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-31|floating/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 231,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-31: Floating Geometric Wireframe Polyhedra',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected floating wireframe 3D polyhedra: 3D wireframe cubes, spheres, and donuts floating in landing page whitespace"
+      ],
+      remediationPrompt: "Replace abstract 3D shapes with product interface walkthroughs or data architecture diagrams.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-31: Floating Geometric Wireframe Polyhedra detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-32: Artificial Scarcity Countdown Banner
+  if (/(?:Only\s*\d+\s*spots?\s*left|Tier\s*closing\s*in\s*\d+|Price\s*increases\s*in\s*\d+)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-32|artificial/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 232,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-32: Artificial Scarcity Countdown Banner',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected artificial scarcity countdown banner: Permanent \"Only 3 spots remaining at this price!\" or recurring 15-minute countdown"
+      ],
+      remediationPrompt: "Provide honest, predictable pricing without manipulative countdown timers.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-32: Artificial Scarcity Countdown Banner detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-33: Generic Robot / Brain / Neon Mascot Logo
+  if (/header|navbar|logo/i.test(file.path) && /(?:lucide-bot|lucide-brain|robot-mascot|brain-sparkle)\b/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-33|generic/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 233,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-33: Generic Robot / Brain / Neon Mascot Logo',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Branding",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected generic robot/brain mascot logo: Landing page logo consisting of a generic Lucide Bot, Brain, or Sparkles icon in a square"
+      ],
+      remediationPrompt: "Design a distinctive, purpose-driven brandmark tailored to product identity.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-33: Generic Robot / Brain / Neon Mascot Logo detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-34: Arbitrary "Most Popular" Inverted Pricing Card
+  if (/(?:scale-110.*popular|scale-105.*most-popular|pricing.*invert.*popular)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-34|arbitrary/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 234,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-34: Arbitrary "Most Popular" Inverted Pricing Card',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Layout",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected arbitrary inverted pricing card: Inverting colors and scaling 1.1x on an enterprise tier with zero rationale"
+      ],
+      remediationPrompt: "Highlight tiers based on user personas and explain specifically why each tier fits the buyer.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-34: Arbitrary "Most Popular" Inverted Pricing Card detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-35: Endless Infinite One-Page Landing Monolith
+  if ((cleanContent.match(/<section\b/gi) || []).length > 12) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-35|endless/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 235,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-35: Endless Infinite One-Page Landing Monolith',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Layout",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected endless 12+ section landing page monolith: Stretching landing page to 14 sprawling sections with repetitive marketing claims"
+      ],
+      remediationPrompt: "Prioritize information density, clear sub-page routing, and focused user flows.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-35: Endless Infinite One-Page Landing Monolith detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-36: Unreadable Frosted Glass over High-Contrast Text
+  if (/backdrop-blur-(?:sm|md)\s+bg-white\/5\s+text-white\/30/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-36|unreadable/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 236,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-36: Unreadable Frosted Glass over High-Contrast Text',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Contrast",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected illegible frosted glass over low contrast: Backdrop-blur cards overlaid directly on busy animated canvas backgrounds"
+      ],
+      remediationPrompt: "Ensure minimum 4.5:1 WCAG contrast ratio with solid background opacity layers.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-36: Unreadable Frosted Glass over High-Contrast Text detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-37: Fabricated FAANG Customer Logo Parade
+  if (/(?:Trusted\s*by|Used\s*by).*(?:Google|Apple|Meta|Netflix|Microsoft)\s*logos/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-37|fabricated/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 237,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-37: Fabricated FAANG Customer Logo Parade',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected fabricated FAANG customer logo parade: Displaying Google, Meta, and Apple logos with ambiguous \"Works With\" claim"
+      ],
+      remediationPrompt: "Display verified customer case studies with attributed quotes and direct permission.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-37: Fabricated FAANG Customer Logo Parade detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-38: Uniform Rounded-3xl Corner Inflation
+  if ((cleanContent.match(/rounded-(?:3xl|\[2rem\]|\[24px\])/gi) || []).length > 8) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-38|uniform/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 238,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-38: Uniform Rounded-3xl Corner Inflation',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Layout",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected uniform rounded-3xl corner inflation: Applying rounded-3xl or rounded-[2rem] to every container, button, and input box"
+      ],
+      remediationPrompt: "Adopt a balanced radius hierarchy: smaller radius for micro-elements, structured radius for surfaces.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-38: Uniform Rounded-3xl Corner Inflation detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-39: Persistent Sticky Banner Blocking Mobile Viewport
+  if (/(?:fixed\s+bottom-0.*fixed\s+top-0.*sticky|sticky\s+top-0.*fixed\s+bottom-0.*cookie)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-39|persistent/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 239,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-39: Persistent Sticky Banner Blocking Mobile Viewport',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Mobile",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected viewport blocking mobile banner collision: Combining sticky cookie bar, top promo ticker, and bottom CTA taking 45% of screen"
+      ],
+      remediationPrompt: "Collapse non-critical persistent banners on small viewports to maintain content readability.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-39: Persistent Sticky Banner Blocking Mobile Viewport detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-40: Blinding Radial Spotlight Halo Behind Hero Button
+  if (/(?:blur-2xl|blur-3xl).*-inset-1.*bg-gradient/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-40|blinding/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 240,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-40: Blinding Radial Spotlight Halo Behind Hero Button',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected blinding radial spotlight button halo: Gigantic 200px blurred gradient orb pulsing behind a single primary CTA"
+      ],
+      remediationPrompt: "Create visual hierarchy through high contrast, clean typography, and whitespace.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-40: Blinding Radial Spotlight Halo Behind Hero Button detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-41: Static Fake Product Hunt "#1 Product of the Day" Badge
+  if (/(?:producthunt.*medal|product-of-the-day\.svg|ph-badge)/i.test(cleanContent) && !/https:\/\/www\.producthunt\.com/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-41|static/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 241,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-41: Static Fake Product Hunt "#1 Product of the Day" Badge',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected unlinked static Product Hunt badge: Embedding an unlinked, non-verifiable Product Hunt medal SVG"
+      ],
+      remediationPrompt: "Embed live, clickable official Product Hunt badges or omit if unverified.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-41: Static Fake Product Hunt "#1 Product of the Day" Badge detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-42: Buzzword Soup Hero Headline ("Supercharge Your Workflow")
+  if (/(?:Supercharge|Revolutionize|Synergize|Unleash\s*the\s*Power).*(?:Workflow|Productivity|Potential)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-42|buzzword/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 242,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-42: Buzzword Soup Hero Headline ("Supercharge Your Workflow")',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected hyperbolic buzzword hero headline: Vague headlines claiming to \"Supercharge, Revolutionize, and Transform your Future\""
+      ],
+      remediationPrompt: "State clearly what the product does, who it is for, and the concrete outcome it delivers.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-42: Buzzword Soup Hero Headline ("Supercharge Your Workflow") detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-43: Decorative Non-Functional Terminal with Fake Logs
+  if (/(?:fake-terminal|mock-console|pseudo-terminal).*(?:Compiling\.\.\.|Bundling\.\.\.)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-43|decorative/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 243,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-43: Decorative Non-Functional Terminal with Fake Logs',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected decorative non-functional terminal with fake logs: Mock terminal window printing fake compile logs with zero interactive capability"
+      ],
+      remediationPrompt: "Provide copyable CLI installation commands or an actual interactive interactive playground.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-43: Decorative Non-Functional Terminal with Fake Logs detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-44: Monospace Body Text Misuse
+  if (/font-mono\s+text-(?:base|lg)\s+leading-relaxed/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-44|monospace/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 244,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-44: Monospace Body Text Misuse',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Typography",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected monospace font misused for body paragraphs: Rendering entire multi-paragraph feature descriptions in JetBrains Mono or Courier"
+      ],
+      remediationPrompt: "Restrict monospace fonts strictly to code blocks, hashes, timestamps, and numeric tabular data.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-44: Monospace Body Text Misuse detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-45: Uncontrollable Auto-Playing Testimonial Carousel
+  if (/(?:autoPlay|autoplay).*interval:\s*(?:1000|2000)\b/i.test(cleanContent) && !/pauseOnHover/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-45|uncontrollable/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 245,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-45: Uncontrollable Auto-Playing Testimonial Carousel',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Usability",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected uncontrollable rapid auto-scrolling carousel: Testimonial cards spinning horizontally every 2 seconds without pause-on-hover"
+      ],
+      remediationPrompt: "Provide manual swipe/arrow controls and pause animation immediately on pointer hover or focus.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-45: Uncontrollable Auto-Playing Testimonial Carousel detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-46: Blown-Out Neon Box Shadow Glows
+  if (/shadow-\[0_0_(?:40|50|60|80)px/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-46|blown-out/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 246,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-46: Blown-Out Neon Box Shadow Glows',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected blown-out saturated neon box shadow glow: Extreme box-shadow values with 100% saturation neon colors causing visual haze"
+      ],
+      remediationPrompt: "Use subtle, multi-layered neutral drop shadows with realistic ambient occlusion.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-46: Blown-Out Neon Box Shadow Glows detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-47: Formulaic Cliché Feature Comparison Matrix
+  if (/(?:comparison-table|vs-competitors).*(?:Check.*X.*Check.*X|100%.*0%)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-47|formulaic/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 247,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-47: Formulaic Cliché Feature Comparison Matrix',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Content",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected biased formulaic comparison matrix: Comparison table where competitors have 10 red (X) icons and our app has 10 green checkmarks"
+      ],
+      remediationPrompt: "Build honest, nuanced comparison tables highlighting specific architectural differences.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-47: Formulaic Cliché Feature Comparison Matrix detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-48: Unlabeled Toggle Switch Interactive Ambiguity
+  if (/<(?:Switch|Toggle)\b(?![^>]*(?:aria-label|aria-labelledby|<label))/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-48|unlabeled/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 248,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-48: Unlabeled Toggle Switch Interactive Ambiguity',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Accessibility",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected unlabeled toggle switch component: Toggle switch component rendering without associated label or active status indicator"
+      ],
+      remediationPrompt: "Pair every toggle with an explicit textual state label and aria-checked binding.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-48: Unlabeled Toggle Switch Interactive Ambiguity detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-49: Decorative Hand-Drawn SVG Scribble Arrows
+  if (/(?:scribble-arrow|hand-drawn-arrow|doodle-arrow)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-49|decorative/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 249,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-49: Decorative Hand-Drawn SVG Scribble Arrows',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected decorative hand-drawn scribble arrow SVG: Hand-drawn marker arrows pointing from sub-copy to primary button (\"Click here!\")"
+      ],
+      remediationPrompt: "Rely on intuitive layout hierarchy to guide user action without crude visual pointers.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-49: Decorative Hand-Drawn SVG Scribble Arrows detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-50: Orphaned Dead Social Media Footer Anchors
+  if (/href=["\']https?:\/\/(?:twitter|x|facebook|instagram)\.com\/?["\']/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-50|orphaned/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 250,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-50: Orphaned Dead Social Media Footer Anchors',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Navigation",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected orphaned dead social media root link in footer: Twitter, Facebook, Instagram icons linking to root domains without company handle"
+      ],
+      remediationPrompt: "Link only to verified, active corporate channels or omit unused platforms completely.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-50: Orphaned Dead Social Media Footer Anchors detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-51: Hyper-Saturated Particle Canvas CPU Drain
+  if (/(?:tsparticles|particle-canvas|particles-bg)/i.test(cleanContent) && !/prefers-reduced-motion/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-51|hyper-saturated/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 251,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-51: Hyper-Saturated Particle Canvas CPU Drain',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Performance",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected un-throttled continuous particle canvas: Background tsParticles or canvas drawing hundreds of bouncing nodes constantly at 60fps"
+      ],
+      remediationPrompt: "Limit canvas animations, throttle to requestAnimationFrame, and honor prefers-reduced-motion.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-51: Hyper-Saturated Particle Canvas CPU Drain detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-52: Generic Intercom Chat Bubble Impersonation
+  if (/(?:chat-bubble|intercom-bubble|live-support-bubble).*(?:mailto:|href="#")/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-52|generic/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 252,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-52: Generic Intercom Chat Bubble Impersonation',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & UX",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected fake live chat trigger disguised as contact email: Floating bottom-right button with generic agent avatar that opens a mailto: link"
+      ],
+      remediationPrompt: "Label contact triggers accurately (\"Send us an email\") rather than mimicking live chat.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-52: Generic Intercom Chat Bubble Impersonation detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-53: 5-Star Rating Badge Without Review Count or Source
+  if (/(?:Rated\s*5\.0|5\s*Stars?\s*Rating).*(?:top\s*companies|thousands\s*of\s*users)/i.test(cleanContent) && !/g2|capterra|trustpilot/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-53|5-star/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 253,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-53: 5-Star Rating Badge Without Review Count or Source',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected unverified 5-star rating claim: Yellow 5-star SVGs accompanied by vague \"Rated 5.0 by top companies\""
+      ],
+      remediationPrompt: "Attribute star ratings to verified third-party aggregators with direct link.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-53: 5-Star Rating Badge Without Review Count or Source detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-54: Full-Bleed Unpadded Table Layout on Mobile
+  if (/<table[\s>]/g.test(cleanContent) && !/overflow-x|overflow/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-54|full-bleed/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 254,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-54: Full-Bleed Unpadded Table Layout on Mobile',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Mobile",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected full-bleed unpadded table on mobile viewports: Table layout overflowing viewport with zero padding and cut-off right border"
+      ],
+      remediationPrompt: "Wrap tables in responsive overflow containers with scroll affordance indicators.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-54: Full-Bleed Unpadded Table Layout on Mobile detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-55: Default Native Select Menu in Polished Dark Mode
+  if (/<select\b(?![^>]*(?:bg-|className))/i.test(cleanContent) && /dark/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-55|default/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 255,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-55: Default Native Select Menu in Polished Dark Mode',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected unstyled native select element in dark mode: Dark theme form using unstyled native HTML <select> opening blinding white dropdown OS menu"
+      ],
+      remediationPrompt: "Style select options using dark popovers or custom accessible dropdown components.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-55: Default Native Select Menu in Polished Dark Mode detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-56: Fixed Floating Call-to-Action Masking Footer Links
+  if (/fixed\s+bottom-0\s+left-0\s+right-0/i.test(cleanContent) && !/pb-|padding-bottom/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-56|fixed/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 256,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-56: Fixed Floating Call-to-Action Masking Footer Links',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Usability",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected fixed floating CTA covering bottom layout elements: Floating sticky mobile action bar covering the legal and copyright footer"
+      ],
+      remediationPrompt: "Add safe-area-inset bottom padding to page container equal to floating bar height.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-56: Fixed Floating Call-to-Action Masking Footer Links detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-57: Nested Scroll Containers Causing Scrolljacking Traps
+  if (/(?:overflow-y-scroll|overflow-y-auto)\s+h-(?:40|48|64)\b/i.test(cleanContent) && /card|feature/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-57|nested/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 257,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-57: Nested Scroll Containers Causing Scrolljacking Traps',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Usability",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected nested scroll container causing scrolljacking: Feature card containing internal scrollable text box that captures mousewheel scroll"
+      ],
+      remediationPrompt: "Avoid nested scrollable boxes on marketing pages; display full text or use disclosure modals.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-57: Nested Scroll Containers Causing Scrolljacking Traps detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-58: Misaligned Hero Headline Gradient Cutoff
+  if (/bg-clip-text\s+text-transparent/i.test(cleanContent) && !/pb-|leading-(?:tight|normal|relaxed)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-58|misaligned/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 258,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-58: Misaligned Hero Headline Gradient Cutoff',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Typography",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected headline gradient clipping typographic descenders: Applying bg-clip-text gradient with descenders (g, y, p, q) clipped at the baseline"
+      ],
+      remediationPrompt: "Add pb-1 or appropriate leading so typographic descenders remain fully rendered.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-58: Misaligned Hero Headline Gradient Cutoff detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-59: Fake "Built for Enterprise" Security Shield Badges
+  if (/(?:Military\s*Grade\s*256-bit|SOC2\s*Type\s*II\s*Ready|Bank-Grade\s*Security)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-59|fake/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 259,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-59: Fake "Built for Enterprise" Security Shield Badges',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected fabricated security shield marketing slogan: Generic lock SVG with \"Military Grade 256-bit Encryption\" and \"SOC2 Type II Ready\""
+      ],
+      remediationPrompt: "State concrete security controls (e.g. \"AES-256 at rest, TLS 1.3 in transit, automated pentests\").",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-59: Fake "Built for Enterprise" Security Shield Badges detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-60: Redundant Breadcrumb Navigation on 2-Level Site
+  if (/(?:Home\s*>\s*Dashboard|Home\s*\/\s*App)\b/i.test(cleanContent) && !/breadcrumbs/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-60|redundant/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 260,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-60: Redundant Breadcrumb Navigation on 2-Level Site',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Navigation",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected redundant shallow breadcrumb navigation on 2-page app: Displaying \"Home > Dashboard\" on a single-page web app with no deeper hierarchy"
+      ],
+      remediationPrompt: "Use breadcrumbs only when information architecture is 3+ levels deep.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-60: Redundant Breadcrumb Navigation on 2-Level Site detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-61: Missing Input Placeholder Contrast in Dark Theme
+  if (/placeholder:(?:text-white\/10|text-gray-600|text-slate-700)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-61|missing/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 261,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-61: Missing Input Placeholder Contrast in Dark Theme',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Accessibility",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected invisible low-contrast input placeholder in dark mode: Input placeholder text styled with opacity-20 making it completely invisible"
+      ],
+      remediationPrompt: "Use placeholder text with minimum 3:1 contrast against input background.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-61: Missing Input Placeholder Contrast in Dark Theme detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-62: Inflexible Fixed-Width Container Breakpoints
+  if (/className=["\'][^"\']*\bw-\[1200px\]/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-62|inflexible/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 262,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-62: Inflexible Fixed-Width Container Breakpoints',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Responsive",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected inflexible fixed-width desktop container without responsive bounds: Using fixed w-[1200px] instead of max-w-7xl with responsive percentage margins"
+      ],
+      remediationPrompt: "Always use fluid percentage widths with max-width bounding constraints.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-62: Inflexible Fixed-Width Container Breakpoints detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-63: Fake "Press Mentions" Banner with Generic Icons
+  if (/(?:As\s*seen\s*on|Featured\s*in).*(?:TechCrunch|Forbes|Bloomberg)/i.test(cleanContent) && !/href=/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-63|fake/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 263,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-63: Fake "Press Mentions" Banner with Generic Icons',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected unlinked fake press mention logo bar: Displaying \"As seen in TechCrunch, Forbes, Bloomberg\" without any actual article links"
+      ],
+      remediationPrompt: "Link directly to verified third-party coverage or omit media mention bars entirely.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-63: Fake "Press Mentions" Banner with Generic Icons detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-64: Misplaced Skeuomorphic Glass Reflection Strokes
+  if (/border-gradient.*glass-reflection|reflection-stroke/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-64|misplaced/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 264,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-64: Misplaced Skeuomorphic Glass Reflection Strokes',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected skeuomorphic glass reflection border stroke on data table: Applying 1px gradient borders simulating glass reflections on flat data tables"
+      ],
+      remediationPrompt: "Maintain consistent surface styling across the entire design system.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-64: Misplaced Skeuomorphic Glass Reflection Strokes detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-65: Interactive Elements Disguised as Static Text
+  if (/<a\b[^>]*className=["\'][^"\']*(?:text-inherit|text-current)(?![^"\']*underline)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-65|interactive/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 265,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-65: Interactive Elements Disguised as Static Text',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Affordance",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected interactive action link disguised as plain static text: Clickable action links rendered in plain body text color without underline or hover state"
+      ],
+      remediationPrompt: "Ensure interactive links have distinct color, underline on hover, or clear button styling.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-65: Interactive Elements Disguised as Static Text detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-66: Static Video Player Mockup with Fake Play Button
+  if (/(?:video-mockup|video-preview).*(?:play-button|lucide-play)/i.test(cleanContent) && !/(?:<video|iframe|src=)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-66|static/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 266,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-66: Static Video Player Mockup with Fake Play Button',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & UX",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected static video player mockup with fake non-functional play button: Big video preview image with centered play button that does nothing or opens modal with dead YouTube link"
+      ],
+      remediationPrompt: "Embed real, functioning video player or use animated GIF/WEBM interface preview.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-66: Static Video Player Mockup with Fake Play Button detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-67: Unstyled Skeleton Screen Flickering
+  if (/skeleton\b.*bg-white(?:\s|\/)/i.test(cleanContent) && /dark/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-67|unstyled/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 267,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-67: Unstyled Skeleton Screen Flickering',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Performance",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected high-contrast white skeleton loader flashing in dark theme: Displaying high-contrast white skeleton boxes on dark background before data loads"
+      ],
+      remediationPrompt: "Style skeleton loaders with theme-matched subtle pulse animations.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-67: Unstyled Skeleton Screen Flickering detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-68: Missing Tab Indicator Transition on Navigation
+  if (/<Tab\b[^>]*onClick/i.test(cleanContent) && !/layoutId|transition/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-68|missing/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 268,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-68: Missing Tab Indicator Transition on Navigation',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Interaction",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected navigation tab bar lacking active indicator motion transition: Tab bars where the active indicator teleports abruptly with zero animation"
+      ],
+      remediationPrompt: "Use layoutId or smooth transition transitions on active tab indicator pill.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-68: Missing Tab Indicator Transition on Navigation detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-69: Arbitrary "Beta" Pill Attached Indefinitely
+  if (/(?:badge|pill).*(?:BETA|Beta)\b/i.test(cleanContent) && /copyright.*(?:2021|2022|2023)/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-69|arbitrary/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 269,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-69: Arbitrary "Beta" Pill Attached Indefinitely',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Trust",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected indefinite beta pill attached to mature production app: Software operating for 3 years still showing glowing \"BETA\" pill next to brand name"
+      ],
+      remediationPrompt: "Remove beta labels once product is commercially released with paid subscriptions.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-69: Arbitrary "Beta" Pill Attached Indefinitely detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-70: Inconsistent Icon Stroke Widths across Sections
+  if (/strokeWidth=["\'](?:1|1\.25)["\']/i.test(cleanContent) && /strokeWidth=["\'](?:2\.5|3)["\']/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-70|inconsistent/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 270,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-70: Inconsistent Icon Stroke Widths across Sections',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Visual",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected inconsistent mixed icon stroke weights across sections: Mixing 1px, 1.5px, and 2.5px icon line weights from different icon libraries"
+      ],
+      remediationPrompt: "Standardize on a single icon library with uniform stroke width across all views.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-70: Inconsistent Icon Stroke Widths across Sections detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-71: Ambiguous Back Button Navigation on Subpages
+  if (/(?:router\.back\(\)|history\.back\(\))/i.test(cleanContent) && !/fallbackUrl|parentPath/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-71|ambiguous/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 271,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-71: Ambiguous Back Button Navigation on Subpages',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Usability",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected ambiguous browser history back navigation on subpages: Back button that executes router.back() into external referrer instead of parent page"
+      ],
+      remediationPrompt: "Direct back buttons explicitly to logical parent section or provide fallback.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-71: Ambiguous Back Button Navigation on Subpages detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-72: Inverted Hero Visual Dominating Primary Action
+  if (/(?:hero-graphic|hero-animation).*(?:w-full|h-\[600px\])/i.test(cleanContent) && !/cta-container/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-72|inverted/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 272,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-72: Inverted Hero Visual Dominating Primary Action',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Layout",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected oversized hero visual dominating primary conversion action: Massive glowing animation so prominent that user completely misses the sign-up CTA"
+      ],
+      remediationPrompt: "Ensure primary call-to-action has the highest visual weight in the hero section.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-72: Inverted Hero Visual Dominating Primary Action detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-73: Broken Mobile Hamburger Menu Scroll Lock
+  if ((/mobileMenuOpen|isMobileNav/i.test(cleanContent) && !/overflow-hidden|useLockBodyScroll|style\.overflow\s*=/i.test(cleanContent))) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-73|broken/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 273,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-73: Broken Mobile Hamburger Menu Scroll Lock',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Mobile",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected mobile navigation drawer lacking body scroll lock: Mobile navigation drawer open while background page continues scrolling underneath"
+      ],
+      remediationPrompt: "Apply overflow-hidden to document body when mobile navigation is active.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-73: Broken Mobile Hamburger Menu Scroll Lock detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-74: Unannounced External Link Navigation
+  if (/<a\b[^>]*target=["\']_blank["\'](?![^>]*(?:rel=|noopener|ExternalLink))/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-74|unannounced/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 274,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-74: Unannounced External Link Navigation',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Accessibility",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected unannounced external link navigation missing security attributes: Links navigating to external third-party sites without target=\"_blank\" or external icon"
+      ],
+      remediationPrompt: "Indicate external links clearly with an ExternalLink icon and screen-reader notice.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-74: Unannounced External Link Navigation detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-75: Formulaic "Frequently Asked Questions" Subtitle Cliché
+  if (/(?:Frequently\s*Asked\s*Questions|FAQ).*Everything\s*you\s*need\s*to\s*know\s*about/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (/cliche-75|formulaic/i.test(l) || lines.indexOf(l) === 0));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 275,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-75: Formulaic "Frequently Asked Questions" Subtitle Cliché',
+      severity: 'LOW',
+      category: "AI Clich\u00e9 & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<detected cliche pattern>',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        "Detected boilerplate generic FAQ subtitle formula: \"Everything you need to know about our product and billing\" repeating on every site"
+      ],
+      remediationPrompt: "Write authentic section descriptions explaining how customer questions are handled.",
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🎨 CLICHE-75: Formulaic "Frequently Asked Questions" Subtitle Cliché detected (${file.path}:${lineNum})`);
   }
 
   return { findings, logs };

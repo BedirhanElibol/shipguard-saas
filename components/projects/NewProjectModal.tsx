@@ -1,4 +1,4 @@
-﻿// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React, { useState } from 'react';
@@ -136,7 +136,11 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             <button type="button" className="btn btn-secondary flex-1 py-2.5 text-xs" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary flex-1 py-2.5 text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200">
+            <button
+              type="submit"
+              disabled={!name.trim() || !repoUrl.trim()}
+              className="btn btn-primary flex-1 py-2.5 text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Connect &amp; Audit
             </button>
           </div>

@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Lock, User, Github, ArrowRight, CheckCircle2, KeyRound, AlertCircle } from 'lucide-react';
+import { X, Mail, Lock, User, Github, ArrowRight, CheckCircle2, KeyRound, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignInWithOAuth, isSupabaseConfigured } from '@/lib/supabase';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 
@@ -37,6 +37,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -379,12 +380,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Lock size={15} className="text-[#A1A1AA]" />
                   <input
                     aria-label="Password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="bg-transparent text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 w-full"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="text-[#A1A1AA] hover:text-white transition-colors p-1"
+                  >
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
                 </div>
               </div>
             )}

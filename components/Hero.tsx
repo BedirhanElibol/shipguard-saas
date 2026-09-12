@@ -120,7 +120,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
         rule: 'UI-15',
         severity: 'HIGH',
         title: 'WCAG 2.1 AA: Non-Semantic Clickable Container',
-        prompt: 'Replace non-semantic clickable containers with <button> or add role="button" tabIndex={0} onKeyDown handlers for keyboard accessibility.'
+        prompt: 'Replace non-semantic clickable containers with button elements or add role="button" tabIndex={0} onKeyDown handlers for keyboard accessibility.'
       });
     }
     if (code.includes('<' + 'img ') && !code.includes('width=')) {

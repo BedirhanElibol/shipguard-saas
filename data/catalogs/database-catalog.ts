@@ -1,0 +1,560 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+import { InfraRule } from '../schema';
+
+/**
+ * Zelsis Master Database & ORM Performance Catalog (50 Rules)
+ * Rules DB-PERF-01 to DB-PERF-50.
+ * Eliminates N+1 query loops, unindexed foreign keys, deep pagination, and connection leaks.
+ */
+export const DATABASE_PERF_CATALOG: InfraRule[] = [
+  {
+    id: 6001,
+    code: 'DB-PERF-01',
+    title: "Prisma / ORM N+1 Query in Loop",
+    category: "Query Optimization",
+    targetStack: "Prisma/ORM",
+    riskLevel: 'HIGH',
+    description: "Executing individual database queries inside for/map iteration loops instead of batching.",
+    verificationControl: "Zero nested ORM queries inside loop constructs; use include or in-clause batching.",
+    remediationPrompt: "Refactor loop into a single batch query using include or where: { id: { in: ids } }."
+  },
+  {
+    id: 6002,
+    code: 'DB-PERF-02',
+    title: "Missing Index on Foreign Key Columns",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Foreign key columns referencing other tables without dedicated B-Tree indexes.",
+    verificationControl: "Every foreign key constraint column has an index (CREATE INDEX idx_... ON ...).",
+    remediationPrompt: "Add CREATE INDEX IF NOT EXISTS idx_table_fk ON table(fk_id); to migrations."
+  },
+  {
+    id: 6003,
+    code: 'DB-PERF-03',
+    title: "Deep Offset Pagination Performance Trap",
+    category: "Pagination & Keyset",
+    targetStack: "SQL / ORM",
+    riskLevel: 'MEDIUM',
+    description: "Using OFFSET > 1000 or skip(1000) forcing database to scan and discard thousands of rows.",
+    verificationControl: "Use cursor-based keyset pagination (WHERE id > cursor LIMIT 20) for large tables.",
+    remediationPrompt: "Replace OFFSET/skip with keyset cursor pagination on indexed timestamp or ID column."
+  },
+  {
+    id: 6004,
+    code: 'DB-PERF-04',
+    title: "Unbounded SELECT * Full Table Scan",
+    category: "Query Optimization",
+    targetStack: "SQL / ORM",
+    riskLevel: 'HIGH',
+    description: "Executing SELECT * without LIMIT clause on high-volume production tables.",
+    verificationControl: "All client-facing queries declare explicit column selects and enforce default LIMIT.",
+    remediationPrompt: "Add explicit column selection and LIMIT/take bounds to all database queries."
+  },
+  {
+    id: 6005,
+    code: 'DB-PERF-05',
+    title: "Direct Unpooled Database Connection in Edge / Serverless",
+    category: "Connection Pooling",
+    targetStack: "Serverless / Next.js",
+    riskLevel: 'CRITICAL',
+    description: "Instantiating new Pool() or raw pg Client on each serverless API request without pooler.",
+    verificationControl: "Serverless functions connect through PgBouncer / Supavisor connection poolers.",
+    remediationPrompt: "Connect serverless functions through pooled port 6543 / Supavisor with connection limits."
+  },
+  {
+    id: 6006,
+    code: 'DB-PERF-06',
+    title: "Missing Composite Index on Multi-Column Filters",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Frequent compound WHERE a = ? AND b = ? queries executing without composite index.",
+    verificationControl: "Create composite index (a, b) matching query filter and sorting order.",
+    remediationPrompt: "Add CREATE INDEX idx_table_a_b ON table(a, b); to database migration."
+  },
+  {
+    id: 6007,
+    code: 'DB-PERF-07',
+    title: "Unindexed Leading Wildcard LIKE Query",
+    category: "Query Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Using LIKE '%search%' or ILIKE '%...%' which completely disables standard B-Tree indexes.",
+    verificationControl: "Use pg_trgm trigram indexes or full-text search (tsvector) for substring searches.",
+    remediationPrompt: "Create pg_trgm GIN index: CREATE INDEX idx_trgm ON table USING gin(col gin_trgm_ops);"
+  },
+  {
+    id: 6008,
+    code: 'DB-PERF-08',
+    title: "Missing ON DELETE Strategy on Foreign Key Constraints",
+    category: "Data Integrity",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Foreign keys lacking explicit ON DELETE CASCADE / RESTRICT / SET NULL rules.",
+    verificationControl: "All foreign key relationships declare explicit ON DELETE behavior.",
+    remediationPrompt: "Specify ON DELETE CASCADE or ON DELETE RESTRICT on all foreign key constraints."
+  },
+  {
+    id: 6009,
+    code: 'DB-PERF-09',
+    title: "Long-Running External API Call Inside DB Transaction",
+    category: "Concurrency & Locks",
+    targetStack: "Prisma / Node.js",
+    riskLevel: 'CRITICAL',
+    description: "Awaiting external HTTP or AI completion calls while holding active database transaction.",
+    verificationControl: "Zero external network calls inside database transaction blocks ($transaction).",
+    remediationPrompt: "Move external API/LLM calls outside transaction; use optimistic concurrency or sagas."
+  },
+  {
+    id: 6010,
+    code: 'DB-PERF-10',
+    title: "Supabase Public Table Missing Row Level Security",
+    category: "Database Security",
+    targetStack: "Supabase / Postgres",
+    riskLevel: 'CRITICAL',
+    description: "Public database tables created without ALTER TABLE ... ENABLE ROW LEVEL SECURITY.",
+    verificationControl: "RLS enabled on 100% of public database tables.",
+    remediationPrompt: "Execute ALTER TABLE public.table_name ENABLE ROW LEVEL SECURITY;"
+  },
+  {
+    id: 6011,
+    code: 'DB-PERF-11',
+    title: "Non-Deterministic findFirst without OrderBy",
+    category: "Data Integrity",
+    targetStack: "Prisma / ORM",
+    riskLevel: 'MEDIUM',
+    description: "Using findFirst() or LIMIT 1 without explicit orderBy clause, returning arbitrary rows.",
+    verificationControl: "Every findFirst() or LIMIT 1 query specifies deterministic orderBy criteria.",
+    remediationPrompt: "Add orderBy: { createdAt: 'desc' } to guarantee deterministic query results."
+  },
+  {
+    id: 6012,
+    code: 'DB-PERF-12',
+    title: "Unbounded Bulk Insert Batch Exhaustion",
+    category: "Write Performance",
+    targetStack: "SQL / ORM",
+    riskLevel: 'HIGH',
+    description: "Inserting thousands of records in a single batch without chunking, risking packet size limit.",
+    verificationControl: "Batch inserts chunked into 500-1000 record slices.",
+    remediationPrompt: "Chunk bulk insert arrays into batches of 500 rows using array chunking utility."
+  },
+  {
+    id: 6013,
+    code: 'DB-PERF-13',
+    title: "Missing Connection Pool Acquisition Timeout",
+    category: "Connection Pooling",
+    targetStack: "Node.js / SQL",
+    riskLevel: 'HIGH',
+    description: "Database pool configured with indefinite connection acquisition timeout, freezing server.",
+    verificationControl: "Connection pool declares explicit connectionTimeoutMillis (e.g. 5000ms).",
+    remediationPrompt: "Configure pool with connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000."
+  },
+  {
+    id: 6014,
+    code: 'DB-PERF-14',
+    title: "Unindexed UUID Primary Key Fragmenting B-Tree",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "High-write volume tables using random UUIDv4 as clustered primary key causing index bloat.",
+    verificationControl: "Use sequential UUIDs (UUIDv7) or BIGINT IDENTITY for high-ingestion tables.",
+    remediationPrompt: "Migrate random UUIDv4 to sequential UUIDv7 or BIGSERIAL for write-heavy tables."
+  },
+  {
+    id: 6015,
+    code: 'DB-PERF-15',
+    title: "Uncommitted Database Transaction Connection Leak",
+    category: "Connection Pooling",
+    targetStack: "Node.js / SQL",
+    riskLevel: 'CRITICAL',
+    description: "Acquiring client from pool without ensuring client.release() in finally block.",
+    verificationControl: "100% of acquired pool connections released in try/finally blocks.",
+    remediationPrompt: "Always wrap client acquisition in try { ... } finally { client.release(); }."
+  },
+  {
+    id: 6016,
+    code: 'DB-PERF-16',
+    title: "Missing Dead-Letter Queue on CDC / Event Stream",
+    category: "Event-Driven DB",
+    targetStack: "Supabase / Kafka",
+    riskLevel: 'HIGH',
+    description: "Database change stream triggers lacking dead-letter queues for unparseable payloads.",
+    verificationControl: "All webhook / CDC listeners route poison messages to dead-letter storage.",
+    remediationPrompt: "Add try-catch and DLQ fallback table for unhandled CDC webhook payloads."
+  },
+  {
+    id: 6017,
+    code: 'DB-PERF-17',
+    title: "Redundant Duplicate Indexes on Same Column Prefix",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Having both INDEX(a) and INDEX(a, b) on table, wasting memory and write I/O.",
+    verificationControl: "Consolidate redundant indexes; the composite index covers queries on the prefix.",
+    remediationPrompt: "Drop single-column index when composite index with identical leading column exists."
+  },
+  {
+    id: 6018,
+    code: 'DB-PERF-18',
+    title: "Unbounded JSONB Column Bloat Without Size Cap",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Storing multi-megabyte JSONB documents in frequently queried operational tables.",
+    verificationControl: "Large document payloads offloaded to S3/Supabase Storage with reference pointer.",
+    remediationPrompt: "Store large JSON payloads in object storage and save reference URI in database."
+  },
+  {
+    id: 6019,
+    code: 'DB-PERF-19',
+    title: "Missing Statement Timeout on Production Database",
+    category: "Resource Protection",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Database operating without statement_timeout, allowing rogue queries to run for hours.",
+    verificationControl: "statement_timeout configured globally or per-user (e.g. 15s - 30s).",
+    remediationPrompt: "Set statement_timeout = '15000' in PostgreSQL database configuration."
+  },
+  {
+    id: 6020,
+    code: 'DB-PERF-20',
+    title: "Case-Insensitive Query Missing Functional Index",
+    category: "Query Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Querying WHERE LOWER(email) = ? without functional index ON LOWER(email).",
+    verificationControl: "Functional index created on lowercase transformed columns.",
+    remediationPrompt: "Add CREATE INDEX idx_table_lower_email ON table(LOWER(email));"
+  },
+  {
+    id: 6021,
+    code: 'DB-PERF-21',
+    title: "Uncached Read-Heavy System Settings Queries",
+    category: "Caching Strategy",
+    targetStack: "SQL / ORM",
+    riskLevel: 'MEDIUM',
+    description: "Querying static system configuration or tenant settings on every single HTTP request.",
+    verificationControl: "Static system settings cached in Redis or in-memory with TTL.",
+    remediationPrompt: "Wrap settings queries in Redis cache layer with 10-minute TTL and invalidation hook."
+  },
+  {
+    id: 6022,
+    code: 'DB-PERF-22',
+    title: "Missing Table Partitioning on High-Volume Event Tables",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Audit log or analytics tables exceeding 10M rows without monthly/weekly partitioning.",
+    verificationControl: "Time-series event tables partitioned by range (PARTITION BY RANGE (created_at)).",
+    remediationPrompt: "Implement declarative table partitioning on high-volume event tables."
+  },
+  {
+    id: 6023,
+    code: 'DB-PERF-23',
+    title: "Un-indexed Array Containment Query (@>)",
+    category: "Query Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Querying array columns with ANY() or @> without GIN index support.",
+    verificationControl: "Array columns queried with containment operators backed by GIN indexes.",
+    remediationPrompt: "Create GIN index on array column: CREATE INDEX idx_tags ON table USING gin(tags);"
+  },
+  {
+    id: 6024,
+    code: 'DB-PERF-24',
+    title: "Lock Contention from Table Alters in Production",
+    category: "Zero Downtime",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Adding columns with non-null defaults without PostgreSQL 11+ metadata optimization.",
+    verificationControl: "Migrations run with lock_timeout and add columns safely without table locks.",
+    remediationPrompt: "Set lock_timeout = '5s' before executing DDL migrations in production."
+  },
+  {
+    id: 6025,
+    code: 'DB-PERF-25',
+    title: "Missing Optimistic Concurrency Version Column",
+    category: "Concurrency & Locks",
+    targetStack: "SQL / ORM",
+    riskLevel: 'MEDIUM',
+    description: "Read-modify-write workflows lacking version or updated_at checks, causing lost updates.",
+    verificationControl: "Enforce optimistic locking with version column: WHERE id = ? AND version = ?.",
+    remediationPrompt: "Add version INT DEFAULT 1 and verify version match on concurrent updates."
+  },
+  {
+    id: 6026,
+    code: 'DB-PERF-26',
+    title: "Missing Index on Polymorphic Relationship Columns",
+    category: "Schema Optimization",
+    targetStack: "SQL / ORM",
+    riskLevel: 'HIGH',
+    description: "Polymorphic references (type, entity_id) lacking composite index.",
+    verificationControl: "Composite index exists on (entity_type, entity_id).",
+    remediationPrompt: "Add CREATE INDEX idx_poly ON table(entity_type, entity_id);"
+  },
+  {
+    id: 6027,
+    code: 'DB-PERF-27',
+    title: "Direct COUNT(*) Query on Giant Table",
+    category: "Query Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Running SELECT COUNT(*) on multi-million row table for UI pagination total count.",
+    verificationControl: "Use estimated counts (pg_class.reltuples) or cached counter tables.",
+    remediationPrompt: "Replace exact COUNT(*) with pg_class reltuples estimate or Redis counter."
+  },
+  {
+    id: 6028,
+    code: 'DB-PERF-28',
+    title: "Missing pg_stat_statements Query Monitoring",
+    category: "Observability",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Production database lacking pg_stat_statements extension for slow query tracking.",
+    verificationControl: "pg_stat_statements enabled in shared_preload_libraries.",
+    remediationPrompt: "Add pg_stat_statements to PostgreSQL configuration to log slow queries."
+  },
+  {
+    id: 6029,
+    code: 'DB-PERF-29',
+    title: "Supabase Realtime Channel Flooding Without Filter",
+    category: "Resource Protection",
+    targetStack: "Supabase / Realtime",
+    riskLevel: 'HIGH',
+    description: "Subscribing to Supabase Realtime channel on entire table without filter parameter.",
+    verificationControl: "Realtime channels always declare specific row filter (filter: `user_id=eq.${id}`).",
+    remediationPrompt: "Add row filter parameter to Supabase Realtime channel subscription."
+  },
+  {
+    id: 6030,
+    code: 'DB-PERF-30',
+    title: "Prisma Schema Missing @@index on Search Columns",
+    category: "ORM Optimization",
+    targetStack: "Prisma / SQL",
+    riskLevel: 'HIGH',
+    description: "Prisma model queried by status or tenantId without @@index in schema.prisma.",
+    verificationControl: "All queried columns declared in @@index definitions in schema.prisma.",
+    remediationPrompt: "Add @@index([tenantId, status]) to model in schema.prisma and migrate."
+  },
+  {
+    id: 6031,
+    code: 'DB-PERF-31',
+    title: "Implicit Type Coercion Preventing Index Scan",
+    category: "Query Optimization",
+    targetStack: "SQL / ORM",
+    riskLevel: 'MEDIUM',
+    description: "Comparing VARCHAR column with integer literal, forcing full table scan.",
+    verificationControl: "Query parameters match exact column data types to ensure index usage.",
+    remediationPrompt: "Ensure query parameters are cast to exact column type (e.g. String(id))."
+  },
+  {
+    id: 6032,
+    code: 'DB-PERF-32',
+    title: "Unindexed Soft-Delete (deleted_at) Queries",
+    category: "Schema Optimization",
+    targetStack: "SQL / ORM",
+    riskLevel: 'MEDIUM',
+    description: "Filtering WHERE deleted_at IS NULL on every query without partial index.",
+    verificationControl: "Create partial index: CREATE INDEX idx_active ON table(id) WHERE deleted_at IS NULL.",
+    remediationPrompt: "Add partial index for active non-deleted rows to eliminate table scans."
+  },
+  {
+    id: 6033,
+    code: 'DB-PERF-33',
+    title: "Missing Foreign Key Cascade Delete Lock Warning",
+    category: "Concurrency & Locks",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Deleting parent row in high-traffic table cascading to 100k child rows, locking tables.",
+    verificationControl: "Batch large cascade deletions in background worker jobs.",
+    remediationPrompt: "Delete child rows in small batched transactions prior to deleting parent entity."
+  },
+  {
+    id: 6034,
+    code: 'DB-PERF-34',
+    title: "Unbounded In-Memory Array Sorting in ORM",
+    category: "Query Optimization",
+    targetStack: "Node.js / ORM",
+    riskLevel: 'HIGH',
+    description: "Fetching all rows into Node.js memory and sorting with .sort(), crashing process.",
+    verificationControl: "Always sort records in database query via ORDER BY / orderBy.",
+    remediationPrompt: "Move array sorting into database query via orderBy: { createdAt: 'desc' }."
+  },
+  {
+    id: 6035,
+    code: 'DB-PERF-35',
+    title: "Missing Database Backup Automated Verification",
+    category: "Disaster Recovery",
+    targetStack: "Database Operations",
+    riskLevel: 'CRITICAL',
+    description: "Database automated backups running without periodic restoration drills.",
+    verificationControl: "Automated test restoration script executes weekly verifying backup integrity.",
+    remediationPrompt: "Implement automated script testing database dump restoration in staging weekly."
+  },
+  {
+    id: 6036,
+    code: 'DB-PERF-36',
+    title: "Prisma include Over-Fetching Nested Graphs",
+    category: "ORM Optimization",
+    targetStack: "Prisma / ORM",
+    riskLevel: 'HIGH',
+    description: "Using include: { deepRel: { include: { ... } } } fetching 500KB JSON payload per row.",
+    verificationControl: "Use select to fetch only necessary scalar fields from related models.",
+    remediationPrompt: "Replace broad include with specific select projection for related entities."
+  },
+  {
+    id: 6037,
+    code: 'DB-PERF-37',
+    title: "Missing Unique Constraint on Natural Key Columns",
+    category: "Data Integrity",
+    targetStack: "Schema Design",
+    riskLevel: 'HIGH',
+    description: "Enforcing uniqueness only in application code without database UNIQUE constraint.",
+    verificationControl: "Database UNIQUE index enforces uniqueness at the schema storage layer.",
+    remediationPrompt: "Add ALTER TABLE table ADD CONSTRAINT uq_col UNIQUE (col); to migrations."
+  },
+  {
+    id: 6038,
+    code: 'DB-PERF-38',
+    title: "Database Connection String with Plaintext Password in Repo",
+    category: "Secret Isolation",
+    targetStack: "Database Credentials",
+    riskLevel: 'CRITICAL',
+    description: "Direct database credentials committed in codebase or client configuration.",
+    verificationControl: "Database credentials loaded strictly through secure environment variables.",
+    remediationPrompt: "Move DATABASE_URL into .env and load securely via process.env."
+  },
+  {
+    id: 6039,
+    code: 'DB-PERF-39',
+    title: "Missing Deadlock Detection & Automatic Retry",
+    category: "Fault Tolerance",
+    targetStack: "Node.js / SQL",
+    riskLevel: 'HIGH',
+    description: "Database transactions failing permanently on serialization/deadlock errors (40P01).",
+    verificationControl: "Transaction runner implements exponential backoff retry on deadlock errors.",
+    remediationPrompt: "Wrap database transactions in retry runner handling error code 40P01."
+  },
+  {
+    id: 6040,
+    code: 'DB-PERF-40',
+    title: "Unindexed Date Range Query Bottleneck",
+    category: "Query Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Filtering WHERE created_at BETWEEN ? AND ? on unindexed timestamp column.",
+    verificationControl: "BRIN or B-Tree index exists on chronological timestamp columns.",
+    remediationPrompt: "Add CREATE INDEX idx_created_at ON table USING brin(created_at);"
+  },
+  {
+    id: 6041,
+    code: 'DB-PERF-41',
+    title: "Synchronous Heavy Aggregation in User Request Path",
+    category: "Architecture",
+    targetStack: "SQL / Analytics",
+    riskLevel: 'HIGH',
+    description: "Executing complex GROUP BY across 5M rows on user dashboard page load.",
+    verificationControl: "Pre-aggregate analytical metrics into materialized views or background rollups.",
+    remediationPrompt: "Pre-calculate dashboard metrics in a scheduled background rollup table."
+  },
+  {
+    id: 6042,
+    code: 'DB-PERF-42',
+    title: "Missing Autovacuum Tuning on High-Churn Tables",
+    category: "Database Maintenance",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "High-update queue/job tables suffering from table bloat due to default autovacuum.",
+    verificationControl: "Configure aggressive autovacuum_vacuum_scale_factor (0.05) on churn tables.",
+    remediationPrompt: "Set (autovacuum_vacuum_scale_factor = 0.05) on high-write table storage params."
+  },
+  {
+    id: 6043,
+    code: 'DB-PERF-43',
+    title: "Unprepared Dynamic SQL Query Injections",
+    category: "Database Security",
+    targetStack: "SQL / Node.js",
+    riskLevel: 'CRITICAL',
+    description: "Concatenating raw user variables into SQL strings without parameterized bindings.",
+    verificationControl: "100% of SQL queries use parameterized placeholders ($1, $2) or type-safe ORM.",
+    remediationPrompt: "Replace string template queries with parameterized query placeholders."
+  },
+  {
+    id: 6044,
+    code: 'DB-PERF-44',
+    title: "Missing Read Replica Routing for Analytical Queries",
+    category: "Read Scaling",
+    targetStack: "Database Architecture",
+    riskLevel: 'HIGH',
+    description: "Running long analytical export queries directly on primary write database replica.",
+    verificationControl: "Route analytical read queries to read replicas using secondary connection pool.",
+    remediationPrompt: "Configure secondary Prisma/pg client pointed to read replica for reports."
+  },
+  {
+    id: 6045,
+    code: 'DB-PERF-45',
+    title: "Unindexed Enum Column Filtering",
+    category: "Schema Optimization",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'MEDIUM',
+    description: "Frequently filtering by enum column (status = 'PENDING') on table with 1M rows.",
+    verificationControl: "Create partial index on hot enum values: WHERE status = 'PENDING'.",
+    remediationPrompt: "Add partial index: CREATE INDEX idx_pending ON table(id) WHERE status = 'PENDING';"
+  },
+  {
+    id: 6046,
+    code: 'DB-PERF-46',
+    title: "Missing Redis Lock on Database Mutation Race Condition",
+    category: "Concurrency & Locks",
+    targetStack: "Node.js / Redis",
+    riskLevel: 'HIGH',
+    description: "Simultaneous webhook callbacks updating same user balance without distributed lock.",
+    verificationControl: "Use Redlock or PostgreSQL advisory locks for balance mutations.",
+    remediationPrompt: "Acquire distributed lock before executing balance adjustments."
+  },
+  {
+    id: 6047,
+    code: 'DB-PERF-47',
+    title: "Un-batched ORM DeleteMany Cascade Contention",
+    category: "Write Performance",
+    targetStack: "ORM / SQL",
+    riskLevel: 'HIGH',
+    description: "Executing deleteMany() across 100k rows holding exclusive table lock.",
+    verificationControl: "Execute large deletions in chunked loops with small sleep intervals.",
+    remediationPrompt: "Delete in batches of 1000 rows in a loop until zero rows remain."
+  },
+  {
+    id: 6048,
+    code: 'DB-PERF-48',
+    title: "Missing SSL/TLS Enforcement on Production DB Connections",
+    category: "Database Security",
+    targetStack: "PostgreSQL / Network",
+    riskLevel: 'CRITICAL',
+    description: "Database connection string missing sslmode=require or ssl=true parameter.",
+    verificationControl: "All production database connections enforce TLS encryption in transit.",
+    remediationPrompt: "Append ?sslmode=require to all production database connection strings."
+  },
+  {
+    id: 6049,
+    code: 'DB-PERF-49',
+    title: "Unbounded Connection Spike on HTTP Traffic Burst",
+    category: "Connection Pooling",
+    targetStack: "Serverless / Next.js",
+    riskLevel: 'HIGH',
+    description: "Traffic surge opening 500 simultaneous serverless connections, exceeding DB max_connections.",
+    verificationControl: "Set connection pool max limit per instance and enable serverless pooler.",
+    remediationPrompt: "Enforce max connection bounds (e.g. max: 5) per serverless lambda instance."
+  },
+  {
+    id: 6050,
+    code: 'DB-PERF-50',
+    title: "Missing Transaction Isolation Level Specification",
+    category: "Concurrency & Locks",
+    targetStack: "PostgreSQL / SQL",
+    riskLevel: 'HIGH',
+    description: "Financial balance transfers operating under default READ COMMITTED, risking race condition.",
+    verificationControl: "Financial transactions explicitly set ISOLATION LEVEL SERIALIZABLE or REPEATABLE READ.",
+    remediationPrompt: "Declare SET TRANSACTION ISOLATION LEVEL SERIALIZABLE for financial ledgers."
+  }
+];

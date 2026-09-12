@@ -110,6 +110,11 @@ import { evaluateEdgeAiModelQuantizationRules } from './rules/edge-ai-model-quan
 import { evaluateQuantumRandomNumberGenerationRules } from './rules/quantum-random-number-generation-rules';
 import { evaluateMedicalDeviceSoftwareRules } from './rules/medical-device-software-rules';
 import { evaluateServerlessVectorCacheRules } from './rules/serverless-vector-cache-rules';
+import { evaluateDnaDataStorageRules } from './rules/dna-data-storage-rules';
+import { evaluateSubseaCableMeshRules } from './rules/subsea-cable-mesh-rules';
+import { evaluateZeroKnowledgeRollupRules } from './rules/zero-knowledge-rollup-rules';
+import { evaluateAviationAvionicsSafetyRules } from './rules/aviation-avionics-safety-rules';
+import { evaluateOpticalPacketSwitchingRules } from './rules/optical-packet-switching-rules';
 
 export interface CodeFile {
   path: string;
@@ -268,6 +273,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const qrngMatch = trimmed.match(/^QRNG-?(\d+)$/i);
     const medDevMatch = trimmed.match(/^MED-DEV-?(\d+)$/i);
     const vecCacheMatch = trimmed.match(/^VEC-CACHE-?(\d+)$/i);
+    const dnaStoreMatch = trimmed.match(/^DNA-STORE-?(\d+)$/i);
+    const subseaOptMatch = trimmed.match(/^SUBSEA-OPT-?(\d+)$/i);
+    const zkRollupMatch = trimmed.match(/^ZK-ROLLUP-?(\d+)$/i);
+    const do178cMatch = trimmed.match(/^DO178C-?(\d+)$/i);
+    const optSwitchMatch = trimmed.match(/^OPT-SWITCH-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -818,6 +828,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(vecCacheMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(17600 + num);
+      }
+    } else if (dnaStoreMatch) {
+      const num = parseInt(dnaStoreMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17700 + num);
+      }
+    } else if (subseaOptMatch) {
+      const num = parseInt(subseaOptMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17800 + num);
+      }
+    } else if (zkRollupMatch) {
+      const num = parseInt(zkRollupMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17900 + num);
+      }
+    } else if (do178cMatch) {
+      const num = parseInt(do178cMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18000 + num);
+      }
+    } else if (optSwitchMatch) {
+      const num = parseInt(optSwitchMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3259,6 +3294,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...vecCacheResult.logs);
+
+    // Wave 23 Enterprise Release Gate Engines (Milestone 5,850 Rules):
+    // 105. Synthetic DNA Data Storage & Fountain Error Correction Gate (DNA-STORE-01 to 50, Rule IDs 17701-17750)
+    const dnaStoreCounter = { count: findingCounter };
+    const dnaStoreResult = evaluateDnaDataStorageRules(file, lines, cleanContent, dnaStoreCounter);
+    findingCounter = dnaStoreCounter.count;
+    for (const item of dnaStoreResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...dnaStoreResult.logs);
+
+    // 106. Transoceanic Subsea Optical Cable Mesh & ROADM Gate (SUBSEA-OPT-01 to 50, Rule IDs 17801-17850)
+    const subseaOptCounter = { count: findingCounter };
+    const subseaOptResult = evaluateSubseaCableMeshRules(file, lines, cleanContent, subseaOptCounter);
+    findingCounter = subseaOptCounter.count;
+    for (const item of subseaOptResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...subseaOptResult.logs);
+
+    // 107. Zero-Knowledge Rollup & Arithmetic Circuit Gate (ZK-ROLLUP-01 to 50, Rule IDs 17901-17950)
+    const zkRollupCounter = { count: findingCounter };
+    const zkRollupResult = evaluateZeroKnowledgeRollupRules(file, lines, cleanContent, zkRollupCounter);
+    findingCounter = zkRollupCounter.count;
+    for (const item of zkRollupResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...zkRollupResult.logs);
+
+    // 108. RTCA DO-178C Level A & ARINC 653 Avionics Safety Gate (DO178C-01 to 50, Rule IDs 18001-18050)
+    const do178cCounter = { count: findingCounter };
+    const do178cResult = evaluateAviationAvionicsSafetyRules(file, lines, cleanContent, do178cCounter);
+    findingCounter = do178cCounter.count;
+    for (const item of do178cResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...do178cResult.logs);
+
+    // 109. All-Optical Packet Switching & Silicon Photonics Gate (OPT-SWITCH-01 to 50, Rule IDs 18101-18150)
+    const optSwitchCounter = { count: findingCounter };
+    const optSwitchResult = evaluateOpticalPacketSwitchingRules(file, lines, cleanContent, optSwitchCounter);
+    findingCounter = optSwitchCounter.count;
+    for (const item of optSwitchResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...optSwitchResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

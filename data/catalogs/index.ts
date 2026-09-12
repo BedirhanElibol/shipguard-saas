@@ -104,3 +104,8 @@ export { EDGE_AI_MODEL_QUANTIZATION_RULES } from './edgeAiModelQuantizationRules
 export { QUANTUM_RANDOM_NUMBER_GENERATION_RULES } from './quantumRandomNumberGenerationRules';
 export { MEDICAL_DEVICE_SOFTWARE_RULES } from './medicalDeviceSoftwareRules';
 export { SERVERLESS_VECTOR_CACHE_RULES } from './serverlessVectorCacheRules';
+export { DNA_DATA_STORAGE_RULES } from './dnaDataStorageRules';
+export { SUBSEA_CABLE_MESH_RULES } from './subseaCableMeshRules';
+export { ZERO_KNOWLEDGE_ROLLUP_RULES } from './zeroKnowledgeRollupRules';
+export { AVIATION_AVIONICS_SAFETY_RULES } from './aviationAvionicsSafetyRules';
+export { OPTICAL_PACKET_SWITCHING_RULES } from './opticalPacketSwitchingRules';

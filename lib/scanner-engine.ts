@@ -135,6 +135,11 @@ import { evaluateRailPositiveTrainControlRules } from './rules/rail-positive-tra
 import { evaluateSmartGridSynchrophasorRules } from './rules/smart-grid-synchrophasor-rules';
 import { evaluateAtomicLayerEtchPlasmaRules } from './rules/atomic-layer-etch-plasma-rules';
 import { evaluateDecentralizedIdentityCredentialsRules } from './rules/decentralized-identity-credentials-rules';
+import { evaluateSubmarineNuclearPropulsionRules } from './rules/submarine-nuclear-propulsion-rules';
+import { evaluateSpaceLidarWindProfilingRules } from './rules/space-lidar-wind-profiling-rules';
+import { evaluateOrderFlowToxicityDefenseRules } from './rules/order-flow-toxicity-defense-rules';
+import { evaluateSolidStateBatteryPressureRules } from './rules/solid-state-battery-pressure-rules';
+import { evaluateUnderwaterAcousticModemRules } from './rules/underwater-acoustic-modem-rules';
 
 export interface CodeFile {
   path: string;
@@ -318,6 +323,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const synchroPmuMatch = trimmed.match(/^SYNCHRO-PMU-?(\d+)$/i);
     const alePlasmaMatch = trimmed.match(/^ALE-PLASMA-?(\d+)$/i);
     const didCredMatch = trimmed.match(/^DID-CRED-?(\d+)$/i);
+    const subReactorMatch = trimmed.match(/^SUB-REACTOR-?(\d+)$/i);
+    const lidarSpaceMatch = trimmed.match(/^LIDAR-SPACE-?(\d+)$/i);
+    const flowToxicMatch = trimmed.match(/^FLOW-TOXIC-?(\d+)$/i);
+    const ssbAnodeMatch = trimmed.match(/^SSB-ANODE-?(\d+)$/i);
+    const subseaAcouMatch = trimmed.match(/^SUBSEA-ACOU-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -993,6 +1003,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(didCredMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(20100 + num);
+      }
+    } else if (subReactorMatch) {
+      const num = parseInt(subReactorMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20200 + num);
+      }
+    } else if (lidarSpaceMatch) {
+      const num = parseInt(lidarSpaceMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20300 + num);
+      }
+    } else if (flowToxicMatch) {
+      const num = parseInt(flowToxicMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20400 + num);
+      }
+    } else if (ssbAnodeMatch) {
+      const num = parseInt(ssbAnodeMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20500 + num);
+      }
+    } else if (subseaAcouMatch) {
+      const num = parseInt(subseaAcouMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3714,6 +3749,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...didCredResult.logs);
+
+    // Wave 28 Enterprise Release Gate Engines (Milestone 7,100 Rules):
+    // 130. Submarine Nuclear Propulsion & Reactor Safety Gate (SUB-REACTOR-01 to 50, Rule IDs 20201-20250)
+    const subReactorCounter = { count: findingCounter };
+    const subReactorResult = evaluateSubmarineNuclearPropulsionRules(file, lines, cleanContent, subReactorCounter);
+    findingCounter = subReactorCounter.count;
+    for (const item of subReactorResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...subReactorResult.logs);
+
+    // 131. Atmospheric Spaceborne Doppler Lidar Gate (LIDAR-SPACE-01 to 50, Rule IDs 20301-20350)
+    const lidarSpaceCounter = { count: findingCounter };
+    const lidarSpaceResult = evaluateSpaceLidarWindProfilingRules(file, lines, cleanContent, lidarSpaceCounter);
+    findingCounter = lidarSpaceCounter.count;
+    for (const item of lidarSpaceResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...lidarSpaceResult.logs);
+
+    // 132. AMM Dynamic Order Flow Toxicity & LVR Guard Gate (FLOW-TOXIC-01 to 50, Rule IDs 20401-20450)
+    const flowToxicCounter = { count: findingCounter };
+    const flowToxicResult = evaluateOrderFlowToxicityDefenseRules(file, lines, cleanContent, flowToxicCounter);
+    findingCounter = flowToxicCounter.count;
+    for (const item of flowToxicResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...flowToxicResult.logs);
+
+    // 133. Solid-State Lithium Battery Stack Mechanical Pressure Gate (SSB-ANODE-01 to 50, Rule IDs 20501-20550)
+    const ssbAnodeCounter = { count: findingCounter };
+    const ssbAnodeResult = evaluateSolidStateBatteryPressureRules(file, lines, cleanContent, ssbAnodeCounter);
+    findingCounter = ssbAnodeCounter.count;
+    for (const item of ssbAnodeResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...ssbAnodeResult.logs);
+
+    // 134. Underwater Acoustic Modem & Subsea Communications Gate (SUBSEA-ACOU-01 to 50, Rule IDs 20601-20650)
+    const subseaAcouCounter = { count: findingCounter };
+    const subseaAcouResult = evaluateUnderwaterAcousticModemRules(file, lines, cleanContent, subseaAcouCounter);
+    findingCounter = subseaAcouCounter.count;
+    for (const item of subseaAcouResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...subseaAcouResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

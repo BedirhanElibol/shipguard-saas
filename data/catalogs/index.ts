@@ -129,3 +129,8 @@ export { RAIL_POSITIVE_TRAIN_CONTROL_RULES } from './railPositiveTrainControlRul
 export { SMART_GRID_SYNCHROPHASOR_RULES } from './smartGridSynchrophasorRules';
 export { ATOMIC_LAYER_ETCH_PLASMA_RULES } from './atomicLayerEtchPlasmaRules';
 export { DECENTRALIZED_IDENTITY_CREDENTIALS_RULES } from './decentralizedIdentityCredentialsRules';
+export { SUBMARINE_NUCLEAR_PROPULSION_RULES } from './submarineNuclearPropulsionRules';
+export { SPACE_LIDAR_WIND_PROFILING_RULES } from './spaceLidarWindProfilingRules';
+export { ORDER_FLOW_TOXICITY_DEFENSE_RULES } from './orderFlowToxicityDefenseRules';
+export { SOLID_STATE_BATTERY_PRESSURE_RULES } from './solidStateBatteryPressureRules';
+export { UNDERWATER_ACOUSTIC_MODEM_RULES } from './underwaterAcousticModemRules';

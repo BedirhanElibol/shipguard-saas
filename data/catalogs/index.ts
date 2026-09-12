@@ -79,3 +79,8 @@ export { CSPM_CLOUD_POSTURE_RULES } from './cspmCloudPostureRules';
 export { GLBA_COMPLIANCE_RULES } from './glbaComplianceRules';
 export { GEO_DISTRIBUTED_DB_RULES } from './geoDistributedDbRules';
 export { CYBER_DECEPTION_RULES } from './cyberDeceptionRules';
+export { WASM_EDGE_RUNTIME_RULES } from './wasmEdgeRuntimeRules';
+export { PQC_POST_QUANTUM_CRYPTO_RULES } from './pqcPostQuantumCryptoRules';
+export { EU_NIS2_COMPLIANCE_RULES } from './euNis2ComplianceRules';
+export { DATABASE_SHARDING_RULES } from './databaseShardingRules';
+export { THREAT_INTELLIGENCE_RULES } from './threatIntelligenceRules';

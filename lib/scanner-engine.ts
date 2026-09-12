@@ -85,6 +85,11 @@ import { evaluateCspmCloudPostureRules } from './rules/cspm-cloud-posture-rules'
 import { evaluateGlbaComplianceRules } from './rules/glba-compliance-rules';
 import { evaluateGeoDistributedDbRules } from './rules/geo-distributed-db-rules';
 import { evaluateCyberDeceptionRules } from './rules/cyber-deception-rules';
+import { evaluateWasmEdgeRuntimeRules } from './rules/wasm-edge-runtime-rules';
+import { evaluatePqcPostQuantumCryptoRules } from './rules/pqc-post-quantum-crypto-rules';
+import { evaluateEuNis2ComplianceRules } from './rules/eu-nis2-compliance-rules';
+import { evaluateDatabaseShardingRules } from './rules/database-sharding-rules';
+import { evaluateThreatIntelligenceRules } from './rules/threat-intelligence-rules';
 
 export interface CodeFile {
   path: string;
@@ -218,6 +223,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const glbaMatch = trimmed.match(/^GLBA-?(\d+)$/i);
     const geodistMatch = trimmed.match(/^GEODIST-?(\d+)$/i);
     const deceptionMatch = trimmed.match(/^DECEPTION-?(\d+)$/i);
+    const wasmEdgeMatch = trimmed.match(/^WASM-EDGE-?(\d+)$/i);
+    const pqcMatch = trimmed.match(/^PQC-?(\d+)$/i);
+    const nis2Match = trimmed.match(/^NIS2-?(\d+)$/i);
+    const shardMatch = trimmed.match(/^SHARD-?(\d+)$/i);
+    const ctiMatch = trimmed.match(/^CTI-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -643,6 +653,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(deceptionMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(15100 + num);
+      }
+    } else if (wasmEdgeMatch) {
+      const num = parseInt(wasmEdgeMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15200 + num);
+      }
+    } else if (pqcMatch) {
+      const num = parseInt(pqcMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15300 + num);
+      }
+    } else if (nis2Match) {
+      const num = parseInt(nis2Match[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15400 + num);
+      }
+    } else if (shardMatch) {
+      const num = parseInt(shardMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15500 + num);
+      }
+    } else if (ctiMatch) {
+      const num = parseInt(ctiMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2804,6 +2839,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...deceptionResult.logs);
+
+    // Wave 18 Enterprise Release Gate Engines (Milestone 4,600 Rules):
+    // 80. WebAssembly Edge Runtime Sandboxing Gate (WASM-EDGE-01 to 50, Rule IDs 15201-15250)
+    const wasmEdgeCounter = { count: findingCounter };
+    const wasmEdgeResult = evaluateWasmEdgeRuntimeRules(file, lines, cleanContent, wasmEdgeCounter);
+    findingCounter = wasmEdgeCounter.count;
+    for (const item of wasmEdgeResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...wasmEdgeResult.logs);
+
+    // 81. Post-Quantum Cryptography & ML-KEM Migration Gate (PQC-01 to 50, Rule IDs 15301-15350)
+    const pqcCounter = { count: findingCounter };
+    const pqcResult = evaluatePqcPostQuantumCryptoRules(file, lines, cleanContent, pqcCounter);
+    findingCounter = pqcCounter.count;
+    for (const item of pqcResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...pqcResult.logs);
+
+    // 82. EU NIS2 Critical Infrastructure Compliance Gate (NIS2-01 to 50, Rule IDs 15401-15450)
+    const nis2Counter = { count: findingCounter };
+    const nis2Result = evaluateEuNis2ComplianceRules(file, lines, cleanContent, nis2Counter);
+    findingCounter = nis2Counter.count;
+    for (const item of nis2Result.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...nis2Result.logs);
+
+    // 83. Horizontal Database Sharding & VSchema Gate (SHARD-01 to 50, Rule IDs 15501-15550)
+    const shardCounter = { count: findingCounter };
+    const shardResult = evaluateDatabaseShardingRules(file, lines, cleanContent, shardCounter);
+    findingCounter = shardCounter.count;
+    for (const item of shardResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...shardResult.logs);
+
+    // 84. Cyber Threat Intelligence (CTI) & STIX/TAXII Gate (CTI-01 to 50, Rule IDs 15601-15650)
+    const ctiCounter = { count: findingCounter };
+    const ctiResult = evaluateThreatIntelligenceRules(file, lines, cleanContent, ctiCounter);
+    findingCounter = ctiCounter.count;
+    for (const item of ctiResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...ctiResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

@@ -35,6 +35,11 @@ import { evaluateHipaaComplianceRules } from './rules/hipaa-compliance-rules';
 import { evaluateOtelObservabilityRules } from './rules/otel-observability-rules';
 import { evaluateCppMemoryRules } from './rules/cpp-memory-rules';
 import { evaluateEcommInventoryRules } from './rules/ecomm-inventory-rules';
+import { evaluateGrpcProtobufRules } from './rules/grpc-protobuf-rules';
+import { evaluatePgvectorPostgresRules } from './rules/pgvector-postgres-rules';
+import { evaluateWafEdgeRules } from './rules/waf-edge-rules';
+import { evaluateWebsocketRealtimeRules } from './rules/websocket-realtime-rules';
+import { evaluateSoc2AuditRules } from './rules/soc2-audit-rules';
 
 export interface CodeFile {
   path: string;
@@ -118,6 +123,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const otelMatch = trimmed.match(/^OTEL-?(\d+)$/i);
     const cppMatch = trimmed.match(/^(?:CPP-SEC|CPP)-?(\d+)$/i);
     const ecommMatch = trimmed.match(/^ECOMM-?(\d+)$/i);
+    const grpcMatch = trimmed.match(/^GRPC-?(\d+)$/i);
+    const pgMatch = trimmed.match(/^PG-?(\d+)$/i);
+    const wafMatch = trimmed.match(/^WAF-?(\d+)$/i);
+    const wsMatch = trimmed.match(/^WS-?(\d+)$/i);
+    const soc2Match = trimmed.match(/^SOC2-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -293,6 +303,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(ecommMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(10100 + num);
+      }
+    } else if (grpcMatch) {
+      const num = parseInt(grpcMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10200 + num);
+      }
+    } else if (pgMatch) {
+      const num = parseInt(pgMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10300 + num);
+      }
+    } else if (wafMatch) {
+      const num = parseInt(wafMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10400 + num);
+      }
+    } else if (wsMatch) {
+      const num = parseInt(wsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10500 + num);
+      }
+    } else if (soc2Match) {
+      const num = parseInt(soc2Match[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(10600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1894,6 +1929,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...ecommResult.logs);
+
+    // Wave 8 Enterprise Release Gate Engines (Milestone 2,100 Rules):
+    // 30. High-Performance gRPC & Protobuf RPC Architecture (GRPC-01 to 50, Rule IDs 10201-10250)
+    const grpcCounter = { count: findingCounter };
+    const grpcResult = evaluateGrpcProtobufRules(file, lines, cleanContent, grpcCounter);
+    findingCounter = grpcCounter.count;
+    for (const item of grpcResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...grpcResult.logs);
+
+    // 31. PostgreSQL Internals, pgvector & Advanced Optimization (PG-01 to 50, Rule IDs 10301-10350)
+    const pgCounter = { count: findingCounter };
+    const pgResult = evaluatePgvectorPostgresRules(file, lines, cleanContent, pgCounter);
+    findingCounter = pgCounter.count;
+    for (const item of pgResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...pgResult.logs);
+
+    // 32. Cloud WAF, DDoS Protection & Edge Security (WAF-01 to 50, Rule IDs 10401-10450)
+    const wafCounter = { count: findingCounter };
+    const wafResult = evaluateWafEdgeRules(file, lines, cleanContent, wafCounter);
+    findingCounter = wafCounter.count;
+    for (const item of wafResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...wafResult.logs);
+
+    // 33. Real-Time WebSocket & Event Stream Gate (WS-01 to 50, Rule IDs 10501-10550)
+    const wsCounter = { count: findingCounter };
+    const wsResult = evaluateWebsocketRealtimeRules(file, lines, cleanContent, wsCounter);
+    findingCounter = wsCounter.count;
+    for (const item of wsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...wsResult.logs);
+
+    // 34. AICPA SOC 2 Type II Trust Services Criteria (SOC2-01 to 50, Rule IDs 10601-10650)
+    const soc2Counter = { count: findingCounter };
+    const soc2Result = evaluateSoc2AuditRules(file, lines, cleanContent, soc2Counter);
+    findingCounter = soc2Counter.count;
+    for (const item of soc2Result.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...soc2Result.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

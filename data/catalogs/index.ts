@@ -29,3 +29,8 @@ export { HIPAA_COMPLIANCE_CATALOG } from './hipaa-compliance-catalog';
 export { OTEL_OBSERVABILITY_CATALOG } from './otel-observability-catalog';
 export { CPP_MEMORY_CATALOG } from './cpp-memory-catalog';
 export { ECOMM_INVENTORY_CATALOG } from './ecomm-inventory-catalog';
+export { GRPC_PROTOBUF_CATALOG } from './grpc-protobuf-catalog';
+export { PGVECTOR_POSTGRES_CATALOG } from './pgvector-postgres-catalog';
+export { WAF_EDGE_CATALOG } from './waf-edge-catalog';
+export { WEBSOCKET_REALTIME_CATALOG } from './websocket-realtime-catalog';
+export { SOC2_AUDIT_CATALOG } from './soc2-audit-catalog';

@@ -130,6 +130,11 @@ import { evaluateCoPackagedOpticsHardwareRules } from './rules/co-packaged-optic
 import { evaluateAmmLiquidityMevDefenseRules } from './rules/amm-liquidity-mev-defense-rules';
 import { evaluateBioreactorMetabolicControlRules } from './rules/bioreactor-metabolic-control-rules';
 import { evaluateHapsStratosphericFlightRules } from './rules/haps-stratospheric-flight-rules';
+import { evaluateDirectAirCaptureCarbonRules } from './rules/direct-air-capture-carbon-rules';
+import { evaluateRailPositiveTrainControlRules } from './rules/rail-positive-train-control-rules';
+import { evaluateSmartGridSynchrophasorRules } from './rules/smart-grid-synchrophasor-rules';
+import { evaluateAtomicLayerEtchPlasmaRules } from './rules/atomic-layer-etch-plasma-rules';
+import { evaluateDecentralizedIdentityCredentialsRules } from './rules/decentralized-identity-credentials-rules';
 
 export interface CodeFile {
   path: string;
@@ -308,6 +313,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const mevDefenseMatch = trimmed.match(/^MEV-DEFENSE-?(\d+)$/i);
     const bioreactEngMatch = trimmed.match(/^BIOREACT-ENG-?(\d+)$/i);
     const hapsStratMatch = trimmed.match(/^HAPS-STRAT-?(\d+)$/i);
+    const dacCarbonMatch = trimmed.match(/^DAC-CARBON-?(\d+)$/i);
+    const railPtcMatch = trimmed.match(/^RAIL-PTC-?(\d+)$/i);
+    const synchroPmuMatch = trimmed.match(/^SYNCHRO-PMU-?(\d+)$/i);
+    const alePlasmaMatch = trimmed.match(/^ALE-PLASMA-?(\d+)$/i);
+    const didCredMatch = trimmed.match(/^DID-CRED-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -958,6 +968,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(hapsStratMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(19600 + num);
+      }
+    } else if (dacCarbonMatch) {
+      const num = parseInt(dacCarbonMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19700 + num);
+      }
+    } else if (railPtcMatch) {
+      const num = parseInt(railPtcMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19800 + num);
+      }
+    } else if (synchroPmuMatch) {
+      const num = parseInt(synchroPmuMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19900 + num);
+      }
+    } else if (alePlasmaMatch) {
+      const num = parseInt(alePlasmaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20000 + num);
+      }
+    } else if (didCredMatch) {
+      const num = parseInt(didCredMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3623,6 +3658,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...hapsStratResult.logs);
+
+    // Wave 27 Enterprise Release Gate Engines (Milestone 6,850 Rules):
+    // 125. Direct Air Capture & Carbon Dioxide Sequestration Gate (DAC-CARBON-01 to 50, Rule IDs 19701-19750)
+    const dacCarbonCounter = { count: findingCounter };
+    const dacCarbonResult = evaluateDirectAirCaptureCarbonRules(file, lines, cleanContent, dacCarbonCounter);
+    findingCounter = dacCarbonCounter.count;
+    for (const item of dacCarbonResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...dacCarbonResult.logs);
+
+    // 126. Autonomous Rail Positive Train Control (PTC) Safety Gate (RAIL-PTC-01 to 50, Rule IDs 19801-19850)
+    const railPtcCounter = { count: findingCounter };
+    const railPtcResult = evaluateRailPositiveTrainControlRules(file, lines, cleanContent, railPtcCounter);
+    findingCounter = railPtcCounter.count;
+    for (const item of railPtcResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...railPtcResult.logs);
+
+    // 127. Smart Grid Synchrophasor PMU & IEEE C37.118 PDC Gate (SYNCHRO-PMU-01 to 50, Rule IDs 19901-19950)
+    const synchroPmuCounter = { count: findingCounter };
+    const synchroPmuResult = evaluateSmartGridSynchrophasorRules(file, lines, cleanContent, synchroPmuCounter);
+    findingCounter = synchroPmuCounter.count;
+    for (const item of synchroPmuResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...synchroPmuResult.logs);
+
+    // 128. Semiconductor Atomic Layer Etch (ALE) Plasma Control Gate (ALE-PLASMA-01 to 50, Rule IDs 20001-20050)
+    const alePlasmaCounter = { count: findingCounter };
+    const alePlasmaResult = evaluateAtomicLayerEtchPlasmaRules(file, lines, cleanContent, alePlasmaCounter);
+    findingCounter = alePlasmaCounter.count;
+    for (const item of alePlasmaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...alePlasmaResult.logs);
+
+    // 129. Decentralized Identity (DID) & W3C Verifiable Credentials Gate (DID-CRED-01 to 50, Rule IDs 20101-20150)
+    const didCredCounter = { count: findingCounter };
+    const didCredResult = evaluateDecentralizedIdentityCredentialsRules(file, lines, cleanContent, didCredCounter);
+    findingCounter = didCredCounter.count;
+    for (const item of didCredResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...didCredResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

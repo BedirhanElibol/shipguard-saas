@@ -124,3 +124,8 @@ export { CO_PACKAGED_OPTICS_HARDWARE_RULES } from './coPackagedOpticsHardwareRul
 export { AMM_LIQUIDITY_MEV_DEFENSE_RULES } from './ammLiquidityMevDefenseRules';
 export { BIOREACTOR_METABOLIC_CONTROL_RULES } from './bioreactorMetabolicControlRules';
 export { HAPS_STRATOSPHERIC_FLIGHT_RULES } from './hapsStratosphericFlightRules';
+export { DIRECT_AIR_CAPTURE_CARBON_RULES } from './directAirCaptureCarbonRules';
+export { RAIL_POSITIVE_TRAIN_CONTROL_RULES } from './railPositiveTrainControlRules';
+export { SMART_GRID_SYNCHROPHASOR_RULES } from './smartGridSynchrophasorRules';
+export { ATOMIC_LAYER_ETCH_PLASMA_RULES } from './atomicLayerEtchPlasmaRules';
+export { DECENTRALIZED_IDENTITY_CREDENTIALS_RULES } from './decentralizedIdentityCredentialsRules';

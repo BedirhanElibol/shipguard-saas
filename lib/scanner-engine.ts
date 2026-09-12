@@ -115,6 +115,11 @@ import { evaluateSubseaCableMeshRules } from './rules/subsea-cable-mesh-rules';
 import { evaluateZeroKnowledgeRollupRules } from './rules/zero-knowledge-rollup-rules';
 import { evaluateAviationAvionicsSafetyRules } from './rules/aviation-avionics-safety-rules';
 import { evaluateOpticalPacketSwitchingRules } from './rules/optical-packet-switching-rules';
+import { evaluateBciTelemetrySafetyRules } from './rules/bci-telemetry-safety-rules';
+import { evaluateScadaCriticalInfraRules } from './rules/scada-critical-infra-rules';
+import { evaluateSpacecraftGncAttitudeRules } from './rules/spacecraft-gnc-attitude-rules';
+import { evaluateEuvSemiconductorLithoRules } from './rules/euv-semiconductor-litho-rules';
+import { evaluateIaeaNuclearSafeguardsRules } from './rules/iaea-nuclear-safeguards-rules';
 
 export interface CodeFile {
   path: string;
@@ -278,6 +283,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const zkRollupMatch = trimmed.match(/^ZK-ROLLUP-?(\d+)$/i);
     const do178cMatch = trimmed.match(/^DO178C-?(\d+)$/i);
     const optSwitchMatch = trimmed.match(/^OPT-SWITCH-?(\d+)$/i);
+    const bciSecMatch = trimmed.match(/^BCI-SEC-?(\d+)$/i);
+    const scadaSecMatch = trimmed.match(/^SCADA-SEC-?(\d+)$/i);
+    const spaceGncMatch = trimmed.match(/^SPACE-GNC-?(\d+)$/i);
+    const euvLithoMatch = trimmed.match(/^EUV-LITHO-?(\d+)$/i);
+    const iaeaSafeMatch = trimmed.match(/^IAEA-SAFE-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -853,6 +863,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(optSwitchMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(18100 + num);
+      }
+    } else if (bciSecMatch) {
+      const num = parseInt(bciSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18200 + num);
+      }
+    } else if (scadaSecMatch) {
+      const num = parseInt(scadaSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18300 + num);
+      }
+    } else if (spaceGncMatch) {
+      const num = parseInt(spaceGncMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18400 + num);
+      }
+    } else if (euvLithoMatch) {
+      const num = parseInt(euvLithoMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18500 + num);
+      }
+    } else if (iaeaSafeMatch) {
+      const num = parseInt(iaeaSafeMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3350,6 +3385,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...optSwitchResult.logs);
+
+    // Wave 24 Enterprise Release Gate Engines (Milestone 6,100 Rules — 6,000 Historic Milestone):
+    // 110. Brain-Computer Interface & Neural Telemetry Security Gate (BCI-SEC-01 to 50, Rule IDs 18201-18250)
+    const bciSecCounter = { count: findingCounter };
+    const bciSecResult = evaluateBciTelemetrySafetyRules(file, lines, cleanContent, bciSecCounter);
+    findingCounter = bciSecCounter.count;
+    for (const item of bciSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...bciSecResult.logs);
+
+    // 111. SCADA & Critical Infrastructure Defense Gate (SCADA-SEC-01 to 50, Rule IDs 18301-18350)
+    const scadaSecCounter = { count: findingCounter };
+    const scadaSecResult = evaluateScadaCriticalInfraRules(file, lines, cleanContent, scadaSecCounter);
+    findingCounter = scadaSecCounter.count;
+    for (const item of scadaSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...scadaSecResult.logs);
+
+    // 112. Spacecraft GNC & Attitude Control Gate (SPACE-GNC-01 to 50, Rule IDs 18401-18450)
+    const spaceGncCounter = { count: findingCounter };
+    const spaceGncResult = evaluateSpacecraftGncAttitudeRules(file, lines, cleanContent, spaceGncCounter);
+    findingCounter = spaceGncCounter.count;
+    for (const item of spaceGncResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...spaceGncResult.logs);
+
+    // 113. EUV Semiconductor Lithography & Mask Quality Gate (EUV-LITHO-01 to 50, Rule IDs 18501-18550)
+    const euvLithoCounter = { count: findingCounter };
+    const euvLithoResult = evaluateEuvSemiconductorLithoRules(file, lines, cleanContent, euvLithoCounter);
+    findingCounter = euvLithoCounter.count;
+    for (const item of euvLithoResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...euvLithoResult.logs);
+
+    // 114. IAEA Nuclear Safeguards & Material Accountability Gate (IAEA-SAFE-01 to 50, Rule IDs 18601-18650)
+    const iaeaSafeCounter = { count: findingCounter };
+    const iaeaSafeResult = evaluateIaeaNuclearSafeguardsRules(file, lines, cleanContent, iaeaSafeCounter);
+    findingCounter = iaeaSafeCounter.count;
+    for (const item of iaeaSafeResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...iaeaSafeResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

@@ -18,6 +18,8 @@ import { evaluateZeroTrustRules } from './rules/zero-trust-rules';
 import { evaluatePrivacyComplianceRules } from './rules/privacy-compliance-rules';
 import { evaluateIacRules } from './rules/iac-rules';
 import { evaluateChaosResilienceRules } from './rules/chaos-resilience-rules';
+import { evaluateGraphqlSecurityRules } from './rules/graphql-security-rules';
+import { evaluateModernFullstackRules } from './rules/modern-fullstack-rules';
 
 export interface CodeFile {
   path: string;
@@ -84,6 +86,8 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const privacyMatch = trimmed.match(/^PRIVACY-?(\d+)$/i);
     const iacMatch = trimmed.match(/^IAC-?(\d+)$/i);
     const chaosMatch = trimmed.match(/^CHAOS-?(\d+)$/i);
+    const gqlMatch = trimmed.match(/^GQL-?(\d+)$/i);
+    const next15Match = trimmed.match(/^(?:NEXT15|NEXT)-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -174,6 +178,16 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(chaosMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(8400 + num);
+      }
+    } else if (gqlMatch) {
+      const num = parseInt(gqlMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8500 + num);
+      }
+    } else if (next15Match) {
+      const num = parseInt(next15Match[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1584,6 +1598,29 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...chaosResult.logs);
+
+    // Wave 4 Enterprise Release Gate Engines (Milestone 1,100 Rules):
+    // 13. GraphQL & Modern API Security (GQL-01 to 50, Rule IDs 8501-8550)
+    const gqlCounter = { count: findingCounter };
+    const gqlResult = evaluateGraphqlSecurityRules(file, lines, cleanContent, gqlCounter);
+    findingCounter = gqlCounter.count;
+    for (const item of gqlResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...gqlResult.logs);
+
+    // 14. Modern Fullstack Next.js 15 & React 19 (NEXT15-01 to 50, Rule IDs 8601-8650)
+    const next15Counter = { count: findingCounter };
+    const next15Result = evaluateModernFullstackRules(file, lines, cleanContent, next15Counter);
+    findingCounter = next15Counter.count;
+    for (const item of next15Result.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...next15Result.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

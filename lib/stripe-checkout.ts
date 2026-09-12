@@ -78,7 +78,9 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
         const parsed = JSON.parse(savedUserStr);
         if (parsed?.email) storedEmail = parsed.email;
       }
-    } catch {}
+    } catch (_err) {
+      // Ignore localStorage read errors in restricted contexts
+    }
   }
 
   const candidateEmails = [

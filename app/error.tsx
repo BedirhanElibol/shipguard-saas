@@ -44,7 +44,9 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
         localStorage.removeItem('shipguard_projects');
         localStorage.removeItem('shipguard_selected_project_id');
         sessionStorage.clear();
-      } catch {}
+      } catch (_err) {
+        // Storage access may fail if cookies or storage are restricted
+      }
       window.location.href = '/dashboard';
     }
   };

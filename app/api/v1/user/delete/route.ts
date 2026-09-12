@@ -42,7 +42,9 @@ export async function DELETE(req: NextRequest) {
       if (body?.confirmation && body.confirmation !== 'DELETE') {
         return NextResponse.json({ error: 'Confirmation mismatch. Expected confirmation: DELETE' }, { status: 400 });
       }
-    } catch {}
+    } catch (_err) {
+      // Body payload is optional for deletion requests
+    }
 
     logger.info(`[GDPR Erasure] Processing verified account deletion for user ID: ${userId} (${userEmail || 'unknown email'})`);
 

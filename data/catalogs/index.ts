@@ -12,3 +12,5 @@ export { ZERO_TRUST_CATALOG } from './zero-trust-catalog';
 export { PRIVACY_COMPLIANCE_CATALOG } from './privacy-compliance-catalog';
 export { IAC_CATALOG } from './iac-catalog';
 export { CHAOS_RESILIENCE_CATALOG } from './chaos-resilience-catalog';
+export { GRAPHQL_SECURITY_CATALOG } from './graphql-security-catalog';
+export { MODERN_FULLSTACK_CATALOG } from './modern-fullstack-catalog';

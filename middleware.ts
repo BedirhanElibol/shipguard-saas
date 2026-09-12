@@ -34,14 +34,18 @@ if (nextPublicUrl) {
   try {
     const formatted = nextPublicUrl.startsWith('http') ? nextPublicUrl : `https://${nextPublicUrl}`;
     ALLOWED_ORIGINS.add(new URL(formatted).origin);
-  } catch {}
+  } catch (_err) {
+    // Ignore malformed NEXT_PUBLIC_APP_URL
+  }
 }
 
 const vercelUrl = process.env.VERCEL_URL;
 if (vercelUrl) {
   try {
     ALLOWED_ORIGINS.add(new URL(`https://${vercelUrl}`).origin);
-  } catch {}
+  } catch (_err) {
+    // Ignore malformed VERCEL_URL
+  }
 }
 
 /**

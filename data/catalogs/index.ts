@@ -99,3 +99,8 @@ export { SPACE_TERRESTRIAL_MESH_RULES } from './spaceTerrestrialMeshRules';
 export { AI_AGENT_ETHICS_GOVERNANCE_RULES } from './aiAgentEthicsGovernanceRules';
 export { HOMOMORPHIC_ENCRYPTION_RULES } from './homomorphicEncryptionRules';
 export { NEUROMORPHIC_SPIKING_COMPUTE_RULES } from './neuromorphicSpikingComputeRules';
+export { AUTONOMOUS_VEHICLE_SAFETY_RULES } from './autonomousVehicleSafetyRules';
+export { EDGE_AI_MODEL_QUANTIZATION_RULES } from './edgeAiModelQuantizationRules';
+export { QUANTUM_RANDOM_NUMBER_GENERATION_RULES } from './quantumRandomNumberGenerationRules';
+export { MEDICAL_DEVICE_SOFTWARE_RULES } from './medicalDeviceSoftwareRules';
+export { SERVERLESS_VECTOR_CACHE_RULES } from './serverlessVectorCacheRules';

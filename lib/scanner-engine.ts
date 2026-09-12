@@ -105,6 +105,11 @@ import { evaluateSpaceTerrestrialMeshRules } from './rules/space-terrestrial-mes
 import { evaluateAiAgentEthicsGovernanceRules } from './rules/ai-agent-ethics-governance-rules';
 import { evaluateHomomorphicEncryptionRules } from './rules/homomorphic-encryption-rules';
 import { evaluateNeuromorphicSpikingComputeRules } from './rules/neuromorphic-spiking-compute-rules';
+import { evaluateAutonomousVehicleSafetyRules } from './rules/autonomous-vehicle-safety-rules';
+import { evaluateEdgeAiModelQuantizationRules } from './rules/edge-ai-model-quantization-rules';
+import { evaluateQuantumRandomNumberGenerationRules } from './rules/quantum-random-number-generation-rules';
+import { evaluateMedicalDeviceSoftwareRules } from './rules/medical-device-software-rules';
+import { evaluateServerlessVectorCacheRules } from './rules/serverless-vector-cache-rules';
 
 export interface CodeFile {
   path: string;
@@ -258,6 +263,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const aiEthicsMatch = trimmed.match(/^AI-ETHICS-?(\d+)$/i);
     const fheSecMatch = trimmed.match(/^FHE-SEC-?(\d+)$/i);
     const neuroCompMatch = trimmed.match(/^NEURO-COMP-?(\d+)$/i);
+    const avSafetyMatch = trimmed.match(/^AV-SAFETY-?(\d+)$/i);
+    const edgeAiOptMatch = trimmed.match(/^EDGE-AI-OPT-?(\d+)$/i);
+    const qrngMatch = trimmed.match(/^QRNG-?(\d+)$/i);
+    const medDevMatch = trimmed.match(/^MED-DEV-?(\d+)$/i);
+    const vecCacheMatch = trimmed.match(/^VEC-CACHE-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -783,6 +793,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(neuroCompMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(17100 + num);
+      }
+    } else if (avSafetyMatch) {
+      const num = parseInt(avSafetyMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17200 + num);
+      }
+    } else if (edgeAiOptMatch) {
+      const num = parseInt(edgeAiOptMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17300 + num);
+      }
+    } else if (qrngMatch) {
+      const num = parseInt(qrngMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17400 + num);
+      }
+    } else if (medDevMatch) {
+      const num = parseInt(medDevMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17500 + num);
+      }
+    } else if (vecCacheMatch) {
+      const num = parseInt(vecCacheMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(17600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3168,6 +3203,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...neuroCompResult.logs);
+
+    // Wave 22 Enterprise Release Gate Engines (Milestone 5,600 Rules):
+    // 100. Autonomous Vehicle Functional Safety & SecOC Gate (AV-SAFETY-01 to 50, Rule IDs 17201-17250)
+    const avSafetyCounter = { count: findingCounter };
+    const avSafetyResult = evaluateAutonomousVehicleSafetyRules(file, lines, cleanContent, avSafetyCounter);
+    findingCounter = avSafetyCounter.count;
+    for (const item of avSafetyResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...avSafetyResult.logs);
+
+    // 101. Edge AI Model Quantization & TensorRT Gate (EDGE-AI-OPT-01 to 50, Rule IDs 17301-17350)
+    const edgeAiOptCounter = { count: findingCounter };
+    const edgeAiOptResult = evaluateEdgeAiModelQuantizationRules(file, lines, cleanContent, edgeAiOptCounter);
+    findingCounter = edgeAiOptCounter.count;
+    for (const item of edgeAiOptResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...edgeAiOptResult.logs);
+
+    // 102. Quantum Random Number Generation & Min-Entropy Gate (QRNG-01 to 50, Rule IDs 17401-17450)
+    const qrngCounter = { count: findingCounter };
+    const qrngResult = evaluateQuantumRandomNumberGenerationRules(file, lines, cleanContent, qrngCounter);
+    findingCounter = qrngCounter.count;
+    for (const item of qrngResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...qrngResult.logs);
+
+    // 103. Medical Device Software Lifecycle & Cyber Resilience Gate (MED-DEV-01 to 50, Rule IDs 17501-17550)
+    const medDevCounter = { count: findingCounter };
+    const medDevResult = evaluateMedicalDeviceSoftwareRules(file, lines, cleanContent, medDevCounter);
+    findingCounter = medDevCounter.count;
+    for (const item of medDevResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...medDevResult.logs);
+
+    // 104. Serverless Edge Vector Caching & Semantic ANN Gate (VEC-CACHE-01 to 50, Rule IDs 17601-17650)
+    const vecCacheCounter = { count: findingCounter };
+    const vecCacheResult = evaluateServerlessVectorCacheRules(file, lines, cleanContent, vecCacheCounter);
+    findingCounter = vecCacheCounter.count;
+    for (const item of vecCacheResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...vecCacheResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

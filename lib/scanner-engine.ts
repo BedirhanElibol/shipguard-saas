@@ -75,6 +75,11 @@ import { evaluateOwaspAsvsRules } from './rules/owasp-asvs-rules';
 import { evaluateFedrampComplianceRules } from './rules/fedramp-compliance-rules';
 import { evaluateTimeSeriesDbRules } from './rules/time-series-db-rules';
 import { evaluateSlsaProvenanceRules } from './rules/slsa-provenance-rules';
+import { evaluateEbpfObservabilityRules } from './rules/ebpf-observability-rules';
+import { evaluateOwaspApiSecurityRules } from './rules/owasp-api-security-rules';
+import { evaluateHipaaSecurityRules } from './rules/hipaa-security-rules';
+import { evaluateMessageQueueOptRules } from './rules/message-queue-opt-rules';
+import { evaluateRaspAntiTamperRules } from './rules/rasp-anti-tamper-rules';
 
 export interface CodeFile {
   path: string;
@@ -198,6 +203,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const fedrampMatch = trimmed.match(/^FEDRAMP-?(\d+)$/i);
     const tsdbMatch = trimmed.match(/^TSDB-?(\d+)$/i);
     const slsaMatch = trimmed.match(/^SLSA-?(\d+)$/i);
+    const ebpfMatch = trimmed.match(/^EBPF-?(\d+)$/i);
+    const apidefMatch = trimmed.match(/^APIDEF-?(\d+)$/i);
+    const hipaasecMatch = trimmed.match(/^HIPAASEC-?(\d+)$/i);
+    const mqoptMatch = trimmed.match(/^MQOPT-?(\d+)$/i);
+    const raspMatch = trimmed.match(/^RASP-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -573,6 +583,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(slsaMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(14100 + num);
+      }
+    } else if (ebpfMatch) {
+      const num = parseInt(ebpfMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14200 + num);
+      }
+    } else if (apidefMatch) {
+      const num = parseInt(apidefMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14300 + num);
+      }
+    } else if (hipaasecMatch) {
+      const num = parseInt(hipaasecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14400 + num);
+      }
+    } else if (mqoptMatch) {
+      const num = parseInt(mqoptMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14500 + num);
+      }
+    } else if (raspMatch) {
+      const num = parseInt(raspMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2622,6 +2657,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...slsaResult.logs);
+
+    // Wave 16 Enterprise Release Gate Engines (Milestone 4,100 Rules):
+    // 70. eBPF Kernel Observability & Cilium Security (EBPF-01 to 50, Rule IDs 14201-14250)
+    const ebpfCounter = { count: findingCounter };
+    const ebpfResult = evaluateEbpfObservabilityRules(file, lines, cleanContent, ebpfCounter);
+    findingCounter = ebpfCounter.count;
+    for (const item of ebpfResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...ebpfResult.logs);
+
+    // 71. OWASP API Security Top 10 2023 Protocol Defense (APIDEF-01 to 50, Rule IDs 14301-14350)
+    const apidefCounter = { count: findingCounter };
+    const apidefResult = evaluateOwaspApiSecurityRules(file, lines, cleanContent, apidefCounter);
+    findingCounter = apidefCounter.count;
+    for (const item of apidefResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...apidefResult.logs);
+
+    // 72. HIPAA Security Rule Safeguards & Audit Trails (HIPAASEC-01 to 50, Rule IDs 14401-14450)
+    const hipaasecCounter = { count: findingCounter };
+    const hipaasecResult = evaluateHipaaSecurityRules(file, lines, cleanContent, hipaasecCounter);
+    findingCounter = hipaasecCounter.count;
+    for (const item of hipaasecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hipaasecResult.logs);
+
+    // 73. RabbitMQ & NATS JetStream Message Ingestion Governance (MQOPT-01 to 50, Rule IDs 14501-14550)
+    const mqoptCounter = { count: findingCounter };
+    const mqoptResult = evaluateMessageQueueOptRules(file, lines, cleanContent, mqoptCounter);
+    findingCounter = mqoptCounter.count;
+    for (const item of mqoptResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...mqoptResult.logs);
+
+    // 74. Runtime Application Self-Protection & Binary Anti-Tamper (RASP-01 to 50, Rule IDs 14601-14650)
+    const raspCounter = { count: findingCounter };
+    const raspResult = evaluateRaspAntiTamperRules(file, lines, cleanContent, raspCounter);
+    findingCounter = raspCounter.count;
+    for (const item of raspResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...raspResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

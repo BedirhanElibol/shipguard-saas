@@ -69,3 +69,8 @@ export { OWASP_ASVS_RULES } from './owaspAsvsRules';
 export { FEDRAMP_COMPLIANCE_RULES } from './fedrampComplianceRules';
 export { TIME_SERIES_DB_RULES } from './timeSeriesDbRules';
 export { SLSA_PROVENANCE_RULES } from './slsaProvenanceRules';
+export { EBPF_OBSERVABILITY_RULES } from './ebpfObservabilityRules';
+export { OWASP_API_SECURITY_RULES } from './owaspApiSecurityRules';
+export { HIPAA_SECURITY_RULES } from './hipaaSecurityRules';
+export { MESSAGE_QUEUE_OPT_RULES } from './messageQueueOptRules';
+export { RASP_ANTI_TAMPER_RULES } from './raspAntiTamperRules';

@@ -14,3 +14,8 @@ export { IAC_CATALOG } from './iac-catalog';
 export { CHAOS_RESILIENCE_CATALOG } from './chaos-resilience-catalog';
 export { GRAPHQL_SECURITY_CATALOG } from './graphql-security-catalog';
 export { MODERN_FULLSTACK_CATALOG } from './modern-fullstack-catalog';
+export { WEB3_SECURITY_CATALOG } from './web3-security-catalog';
+export { PYTHON_ENTERPRISE_CATALOG } from './python-enterprise-catalog';
+export { K8S_HARDENING_CATALOG } from './k8s-hardening-catalog';
+export { GO_MICROSERVICES_CATALOG } from './go-microservices-catalog';
+export { TENANT_ISOLATION_CATALOG } from './tenant-isolation-catalog';

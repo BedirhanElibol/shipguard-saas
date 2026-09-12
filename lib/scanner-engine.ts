@@ -20,6 +20,11 @@ import { evaluateIacRules } from './rules/iac-rules';
 import { evaluateChaosResilienceRules } from './rules/chaos-resilience-rules';
 import { evaluateGraphqlSecurityRules } from './rules/graphql-security-rules';
 import { evaluateModernFullstackRules } from './rules/modern-fullstack-rules';
+import { evaluateWeb3SecurityRules } from './rules/web3-security-rules';
+import { evaluatePythonEnterpriseRules } from './rules/python-enterprise-rules';
+import { evaluateK8sHardeningRules } from './rules/k8s-hardening-rules';
+import { evaluateGoMicroservicesRules } from './rules/go-microservices-rules';
+import { evaluateTenantIsolationRules } from './rules/tenant-isolation-rules';
 
 export interface CodeFile {
   path: string;
@@ -88,6 +93,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const chaosMatch = trimmed.match(/^CHAOS-?(\d+)$/i);
     const gqlMatch = trimmed.match(/^GQL-?(\d+)$/i);
     const next15Match = trimmed.match(/^(?:NEXT15|NEXT)-?(\d+)$/i);
+    const web3Match = trimmed.match(/^WEB3-?(\d+)$/i);
+    const pyMatch = trimmed.match(/^(?:PY-SEC|PY)-?(\d+)$/i);
+    const k8sMatch = trimmed.match(/^K8S-?(\d+)$/i);
+    const goMatch = trimmed.match(/^GO-?(\d+)$/i);
+    const tenantMatch = trimmed.match(/^TENANT-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -188,6 +198,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(next15Match[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(8600 + num);
+      }
+    } else if (web3Match) {
+      const num = parseInt(web3Match[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8700 + num);
+      }
+    } else if (pyMatch) {
+      const num = parseInt(pyMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8800 + num);
+      }
+    } else if (k8sMatch) {
+      const num = parseInt(k8sMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8900 + num);
+      }
+    } else if (goMatch) {
+      const num = parseInt(goMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9000 + num);
+      }
+    } else if (tenantMatch) {
+      const num = parseInt(tenantMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1621,6 +1656,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...next15Result.logs);
+
+    // Wave 5 Enterprise Release Gate Engines (Milestone 1,350 Rules):
+    // 15. Web3 & Smart Contract Security (WEB3-01 to 50, Rule IDs 8701-8750)
+    const web3Counter = { count: findingCounter };
+    const web3Result = evaluateWeb3SecurityRules(file, lines, cleanContent, web3Counter);
+    findingCounter = web3Counter.count;
+    for (const item of web3Result.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...web3Result.logs);
+
+    // 16. Python & FastAPI / Django Enterprise Gate (PY-SEC-01 to 50, Rule IDs 8801-8850)
+    const pyCounter = { count: findingCounter };
+    const pyResult = evaluatePythonEnterpriseRules(file, lines, cleanContent, pyCounter);
+    findingCounter = pyCounter.count;
+    for (const item of pyResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...pyResult.logs);
+
+    // 17. Kubernetes & Cloud Orchestration Hardening (K8S-01 to 50, Rule IDs 8901-8950)
+    const k8sCounter = { count: findingCounter };
+    const k8sResult = evaluateK8sHardeningRules(file, lines, cleanContent, k8sCounter);
+    findingCounter = k8sCounter.count;
+    for (const item of k8sResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...k8sResult.logs);
+
+    // 18. Go & Cloud Native Microservices Resilience (GO-01 to 50, Rule IDs 9001-9050)
+    const goCounter = { count: findingCounter };
+    const goResult = evaluateGoMicroservicesRules(file, lines, cleanContent, goCounter);
+    findingCounter = goCounter.count;
+    for (const item of goResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...goResult.logs);
+
+    // 19. Multi-Tenant SaaS & Data Isolation Gate (TENANT-01 to 50, Rule IDs 9101-9150)
+    const tenantCounter = { count: findingCounter };
+    const tenantResult = evaluateTenantIsolationRules(file, lines, cleanContent, tenantCounter);
+    findingCounter = tenantCounter.count;
+    for (const item of tenantResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...tenantResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

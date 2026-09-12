@@ -89,3 +89,8 @@ export { ISO20022_FINTECH_RULES } from './iso20022FintechRules';
 export { TIME_SERIES_DB_OPT_RULES } from './timeSeriesDbOptRules';
 export { AI_RED_TEAM_SECURITY_RULES } from './aiRedTeamSecurityRules';
 export { SERVICE_FABRIC_RESILIENCE_RULES } from './serviceFabricResilienceRules';
+export { QUANTITATIVE_RISK_RULES } from './quantitativeRiskRules';
+export { MULTI_AGENT_ORCHESTRATION_RULES } from './multiAgentOrchestrationRules';
+export { CONFIDENTIAL_COMPUTING_RULES } from './confidentialComputingRules';
+export { FEDERATED_LEARNING_RULES } from './federatedLearningRules';
+export { VECTOR_INDEX_OPTIMIZATION_RULES } from './vectorIndexOptimizationRules';

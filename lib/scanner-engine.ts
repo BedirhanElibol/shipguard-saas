@@ -95,6 +95,11 @@ import { evaluateIso20022FintechRules } from './rules/iso20022-fintech-rules';
 import { evaluateTimeSeriesDbOptRules } from './rules/time-series-db-opt-rules';
 import { evaluateAiRedTeamSecurityRules } from './rules/ai-red-team-security-rules';
 import { evaluateServiceFabricResilienceRules } from './rules/service-fabric-resilience-rules';
+import { evaluateQuantitativeRiskRules } from './rules/quantitative-risk-rules';
+import { evaluateMultiAgentOrchestrationRules } from './rules/multi-agent-orchestration-rules';
+import { evaluateConfidentialComputingRules } from './rules/confidential-computing-rules';
+import { evaluateFederatedLearningRules } from './rules/federated-learning-rules';
+import { evaluateVectorIndexOptimizationRules } from './rules/vector-index-optimization-rules';
 
 export interface CodeFile {
   path: string;
@@ -238,6 +243,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const tsdbOptMatch = trimmed.match(/^TSDB-OPT-?(\d+)$/i);
     const aiRedMatch = trimmed.match(/^AI-RED-?(\d+)$/i);
     const fabricMatch = trimmed.match(/^FABRIC-?(\d+)$/i);
+    const quantRiskMatch = trimmed.match(/^QUANT-RISK-?(\d+)$/i);
+    const llmOrchMatch = trimmed.match(/^LLM-ORCH-?(\d+)$/i);
+    const confComputeMatch = trimmed.match(/^CONF-COMPUTE-?(\d+)$/i);
+    const fedLearnMatch = trimmed.match(/^FED-LEARN-?(\d+)$/i);
+    const vecOptMatch = trimmed.match(/^VEC-OPT-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -713,6 +723,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(fabricMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(16100 + num);
+      }
+    } else if (quantRiskMatch) {
+      const num = parseInt(quantRiskMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16200 + num);
+      }
+    } else if (llmOrchMatch) {
+      const num = parseInt(llmOrchMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16300 + num);
+      }
+    } else if (confComputeMatch) {
+      const num = parseInt(confComputeMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16400 + num);
+      }
+    } else if (fedLearnMatch) {
+      const num = parseInt(fedLearnMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16500 + num);
+      }
+    } else if (vecOptMatch) {
+      const num = parseInt(vecOptMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2986,6 +3021,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...fabricResult.logs);
+
+    // Wave 20 Enterprise Release Gate Engines (Milestone 5,100 Rules — 5,000 Barrier Crossed):
+    // 90. Basel III & FRTB Quantitative Risk / VaR Gate (QUANT-RISK-01 to 50, Rule IDs 16201-16250)
+    const quantRiskCounter = { count: findingCounter };
+    const quantRiskResult = evaluateQuantitativeRiskRules(file, lines, cleanContent, quantRiskCounter);
+    findingCounter = quantRiskCounter.count;
+    for (const item of quantRiskResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...quantRiskResult.logs);
+
+    // 91. LangGraph & Multi-Agent State Machine Gate (LLM-ORCH-01 to 50, Rule IDs 16301-16350)
+    const llmOrchCounter = { count: findingCounter };
+    const llmOrchResult = evaluateMultiAgentOrchestrationRules(file, lines, cleanContent, llmOrchCounter);
+    findingCounter = llmOrchCounter.count;
+    for (const item of llmOrchResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...llmOrchResult.logs);
+
+    // 92. AMD SEV-SNP & Intel SGX Hardware Enclave Gate (CONF-COMPUTE-01 to 50, Rule IDs 16401-16450)
+    const confComputeCounter = { count: findingCounter };
+    const confComputeResult = evaluateConfidentialComputingRules(file, lines, cleanContent, confComputeCounter);
+    findingCounter = confComputeCounter.count;
+    for (const item of confComputeResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...confComputeResult.logs);
+
+    // 93. Federated Learning Differential Privacy Gate (FED-LEARN-01 to 50, Rule IDs 16501-16550)
+    const fedLearnCounter = { count: findingCounter };
+    const fedLearnResult = evaluateFederatedLearningRules(file, lines, cleanContent, fedLearnCounter);
+    findingCounter = fedLearnCounter.count;
+    for (const item of fedLearnResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...fedLearnResult.logs);
+
+    // 94. Vector Index Quantization & SIMD Latency Gate (VEC-OPT-01 to 50, Rule IDs 16601-16650)
+    const vecOptCounter = { count: findingCounter };
+    const vecOptResult = evaluateVectorIndexOptimizationRules(file, lines, cleanContent, vecOptCounter);
+    findingCounter = vecOptCounter.count;
+    for (const item of vecOptResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...vecOptResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

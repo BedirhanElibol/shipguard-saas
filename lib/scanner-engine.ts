@@ -13,6 +13,11 @@ import { evaluateCloudNativeRules } from './rules/cloud-native-rules';
 import { evaluateWebVitalsRules } from './rules/web-vitals-rules';
 import { evaluateApiRules } from './rules/api-rules';
 import { evaluateSupplyChainRules } from './rules/supply-chain-rules';
+import { evaluateAiSafetyRules } from './rules/ai-safety-rules';
+import { evaluateZeroTrustRules } from './rules/zero-trust-rules';
+import { evaluatePrivacyComplianceRules } from './rules/privacy-compliance-rules';
+import { evaluateIacRules } from './rules/iac-rules';
+import { evaluateChaosResilienceRules } from './rules/chaos-resilience-rules';
 
 export interface CodeFile {
   path: string;
@@ -74,6 +79,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const webPerfMatch = trimmed.match(/^(?:WEB-PERF|PERF)-?(\d+)$/i);
     const apiMatch = trimmed.match(/^API-?(\d+)$/i);
     const supplyMatch = trimmed.match(/^(?:SUPPLY|SBOM)-?(\d+)$/i);
+    const llmSecMatch = trimmed.match(/^LLM-SEC-?(\d+)$/i);
+    const zeroAuthMatch = trimmed.match(/^ZERO-AUTH-?(\d+)$/i);
+    const privacyMatch = trimmed.match(/^PRIVACY-?(\d+)$/i);
+    const iacMatch = trimmed.match(/^IAC-?(\d+)$/i);
+    const chaosMatch = trimmed.match(/^CHAOS-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -139,6 +149,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(supplyMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(7300 + num);
+      }
+    } else if (llmSecMatch) {
+      const num = parseInt(llmSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8000 + num);
+      }
+    } else if (zeroAuthMatch) {
+      const num = parseInt(zeroAuthMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8100 + num);
+      }
+    } else if (privacyMatch) {
+      const num = parseInt(privacyMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8200 + num);
+      }
+    } else if (iacMatch) {
+      const num = parseInt(iacMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8300 + num);
+      }
+    } else if (chaosMatch) {
+      const num = parseInt(chaosMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(8400 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1493,6 +1528,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...supplyResult.logs);
+
+    // Wave 3 Enterprise Release Gate Engines (Milestone 1,000 Rules):
+    // 8. AI Safety & LLM Guardrails (LLM-SEC-01 to 60, Rule IDs 8001-8060)
+    const aiSafetyCounter = { count: findingCounter };
+    const aiSafetyResult = evaluateAiSafetyRules(file, lines, cleanContent, aiSafetyCounter);
+    findingCounter = aiSafetyCounter.count;
+    for (const item of aiSafetyResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...aiSafetyResult.logs);
+
+    // 9. Zero Trust & Authentication Resilience (ZERO-AUTH-01 to 55, Rule IDs 8101-8155)
+    const zeroTrustCounter = { count: findingCounter };
+    const zeroTrustResult = evaluateZeroTrustRules(file, lines, cleanContent, zeroTrustCounter);
+    findingCounter = zeroTrustCounter.count;
+    for (const item of zeroTrustResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...zeroTrustResult.logs);
+
+    // 10. Data Privacy & GDPR Compliance (PRIVACY-01 to 50, Rule IDs 8201-8250)
+    const privacyCounter = { count: findingCounter };
+    const privacyResult = evaluatePrivacyComplianceRules(file, lines, cleanContent, privacyCounter);
+    findingCounter = privacyCounter.count;
+    for (const item of privacyResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...privacyResult.logs);
+
+    // 11. Infrastructure as Code & Container Hardening (IAC-01 to 50, Rule IDs 8301-8350)
+    const iacCounter = { count: findingCounter };
+    const iacResult = evaluateIacRules(file, lines, cleanContent, iacCounter);
+    findingCounter = iacCounter.count;
+    for (const item of iacResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...iacResult.logs);
+
+    // 12. Enterprise Reliability & Chaos Engineering (CHAOS-01 to 48, Rule IDs 8401-8448)
+    const chaosCounter = { count: findingCounter };
+    const chaosResult = evaluateChaosResilienceRules(file, lines, cleanContent, chaosCounter);
+    findingCounter = chaosCounter.count;
+    for (const item of chaosResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...chaosResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

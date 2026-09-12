@@ -9,6 +9,11 @@ import {
   WEB_VITALS_CATALOG,
   API_RULES_CATALOG,
   SUPPLY_CHAIN_CATALOG,
+  AI_SAFETY_CATALOG,
+  ZERO_TRUST_CATALOG,
+  PRIVACY_COMPLIANCE_CATALOG,
+  IAC_CATALOG,
+  CHAOS_RESILIENCE_CATALOG,
 } from './catalogs';
 export {
   UI_CLICHE_CATALOG,
@@ -19,6 +24,11 @@ export {
   WEB_VITALS_CATALOG,
   API_RULES_CATALOG,
   SUPPLY_CHAIN_CATALOG,
+  AI_SAFETY_CATALOG,
+  ZERO_TRUST_CATALOG,
+  PRIVACY_COMPLIANCE_CATALOG,
+  IAC_CATALOG,
+  CHAOS_RESILIENCE_CATALOG,
 };
 
 export const SECURITY_RULES_CATALOG: SecurityRule[] = [
@@ -434,6 +444,8 @@ export const SECURITY_RULES_CATALOG: SecurityRule[] = [
   ...SECRETS_RULES_CATALOG,
   ...API_RULES_CATALOG,
   ...SUPPLY_CHAIN_CATALOG,
+  ...AI_SAFETY_CATALOG,
+  ...ZERO_TRUST_CATALOG,
 ];
 
 export const UI_RULES_CATALOG: UiRule[] = [
@@ -1119,8 +1131,7 @@ export const COMPLIANCE_RULES_CATALOG: ComplianceRule[] = [
     verificationControl: 'Emails must never contain raw passwords or permanent tokens; authentication must use ephemeral, time-limited magic links.',
     remediationPrompt: 'Never email plaintext passwords or permanent API keys. Send one-time time-limited magic login links (max expiry 15 minutes) instead.',
   },
-
-
+  ...PRIVACY_COMPLIANCE_CATALOG,
 ];
 
 export const INFRA_RULES_CATALOG: InfraRule[] = [
@@ -1332,6 +1343,8 @@ export const INFRA_RULES_CATALOG: InfraRule[] = [
 
   ...DATABASE_PERF_CATALOG,
   ...CLOUD_NATIVE_CATALOG,
+  ...IAC_CATALOG,
+  ...CHAOS_RESILIENCE_CATALOG,
 ];
 
 export const DEMO_AUDIT_FINDINGS: Finding[] = SHOWCASE_DEMO_FINDINGS;

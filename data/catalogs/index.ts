@@ -134,3 +134,8 @@ export { SPACE_LIDAR_WIND_PROFILING_RULES } from './spaceLidarWindProfilingRules
 export { ORDER_FLOW_TOXICITY_DEFENSE_RULES } from './orderFlowToxicityDefenseRules';
 export { SOLID_STATE_BATTERY_PRESSURE_RULES } from './solidStateBatteryPressureRules';
 export { UNDERWATER_ACOUSTIC_MODEM_RULES } from './underwaterAcousticModemRules';
+export { NEUTRON_RADIOGRAPHY_TESTING_RULES } from './neutronRadiographyTestingRules';
+export { HYPERSPECTRAL_SATELLITE_SENSING_RULES } from './hyperspectralSatelliteSensingRules';
+export { HVDC_SUBSEA_CONVERTER_RULES } from './hvdcSubseaConverterRules';
+export { CRYOGENIC_HYDROGEN_BOILOFF_RULES } from './cryogenicHydrogenBoiloffRules';
+export { ZKML_PROOF_CIRCUIT_RULES } from './zkmlProofCircuitRules';

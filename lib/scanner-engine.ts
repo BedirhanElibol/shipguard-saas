@@ -140,6 +140,11 @@ import { evaluateSpaceLidarWindProfilingRules } from './rules/space-lidar-wind-p
 import { evaluateOrderFlowToxicityDefenseRules } from './rules/order-flow-toxicity-defense-rules';
 import { evaluateSolidStateBatteryPressureRules } from './rules/solid-state-battery-pressure-rules';
 import { evaluateUnderwaterAcousticModemRules } from './rules/underwater-acoustic-modem-rules';
+import { evaluateNeutronRadiographyTestingRules } from './rules/neutron-radiography-testing-rules';
+import { evaluateHyperspectralSatelliteSensingRules } from './rules/hyperspectral-satellite-sensing-rules';
+import { evaluateHvdcSubseaConverterRules } from './rules/hvdc-subsea-converter-rules';
+import { evaluateCryogenicHydrogenBoiloffRules } from './rules/cryogenic-hydrogen-boiloff-rules';
+import { evaluateZkmlProofCircuitRules } from './rules/zkml-proof-circuit-rules';
 
 export interface CodeFile {
   path: string;
@@ -328,6 +333,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const flowToxicMatch = trimmed.match(/^FLOW-TOXIC-?(\d+)$/i);
     const ssbAnodeMatch = trimmed.match(/^SSB-ANODE-?(\d+)$/i);
     const subseaAcouMatch = trimmed.match(/^SUBSEA-ACOU-?(\d+)$/i);
+    const neutronNdtMatch = trimmed.match(/^NEUTRON-NDT-?(\d+)$/i);
+    const hyperSpectMatch = trimmed.match(/^HYPER-SPECT-?(\d+)$/i);
+    const hvdcGridMatch = trimmed.match(/^HVDC-GRID-?(\d+)$/i);
+    const cryoHydroMatch = trimmed.match(/^CRYO-HYDRO-?(\d+)$/i);
+    const zkmlProofMatch = trimmed.match(/^ZKML-PROOF-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -1028,6 +1038,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(subseaAcouMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(20600 + num);
+      }
+    } else if (neutronNdtMatch) {
+      const num = parseInt(neutronNdtMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20700 + num);
+      }
+    } else if (hyperSpectMatch) {
+      const num = parseInt(hyperSpectMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20800 + num);
+      }
+    } else if (hvdcGridMatch) {
+      const num = parseInt(hvdcGridMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(20900 + num);
+      }
+    } else if (cryoHydroMatch) {
+      const num = parseInt(cryoHydroMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21000 + num);
+      }
+    } else if (zkmlProofMatch) {
+      const num = parseInt(zkmlProofMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3805,6 +3840,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...subseaAcouResult.logs);
+
+    // Wave 29 Enterprise Release Gate Engines (Milestone 7,350 Rules):
+    // 135. Neutron Radiography Non-Destructive Testing Gate (NEUTRON-NDT-01 to 50, Rule IDs 20701-20750)
+    const neutronNdtCounter = { count: findingCounter };
+    const neutronNdtResult = evaluateNeutronRadiographyTestingRules(file, lines, cleanContent, neutronNdtCounter);
+    findingCounter = neutronNdtCounter.count;
+    for (const item of neutronNdtResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...neutronNdtResult.logs);
+
+    // 136. Hyperspectral Satellite Sensing & Remote Imaging Gate (HYPER-SPECT-01 to 50, Rule IDs 20801-20850)
+    const hyperSpectCounter = { count: findingCounter };
+    const hyperSpectResult = evaluateHyperspectralSatelliteSensingRules(file, lines, cleanContent, hyperSpectCounter);
+    findingCounter = hyperSpectCounter.count;
+    for (const item of hyperSpectResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hyperSpectResult.logs);
+
+    // 137. HVDC Subsea Converter & Grid Interconnector Gate (HVDC-GRID-01 to 50, Rule IDs 20901-20950)
+    const hvdcGridCounter = { count: findingCounter };
+    const hvdcGridResult = evaluateHvdcSubseaConverterRules(file, lines, cleanContent, hvdcGridCounter);
+    findingCounter = hvdcGridCounter.count;
+    for (const item of hvdcGridResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hvdcGridResult.logs);
+
+    // 138. Cryogenic Liquid Hydrogen Boiloff Management Gate (CRYO-HYDRO-01 to 50, Rule IDs 21001-21050)
+    const cryoHydroCounter = { count: findingCounter };
+    const cryoHydroResult = evaluateCryogenicHydrogenBoiloffRules(file, lines, cleanContent, cryoHydroCounter);
+    findingCounter = cryoHydroCounter.count;
+    for (const item of cryoHydroResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cryoHydroResult.logs);
+
+    // 139. zkML Zero-Knowledge Machine Learning Proof Circuit Gate (ZKML-PROOF-01 to 50, Rule IDs 21101-21150)
+    const zkmlProofCounter = { count: findingCounter };
+    const zkmlProofResult = evaluateZkmlProofCircuitRules(file, lines, cleanContent, zkmlProofCounter);
+    findingCounter = zkmlProofCounter.count;
+    for (const item of zkmlProofResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...zkmlProofResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

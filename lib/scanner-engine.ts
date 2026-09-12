@@ -120,6 +120,11 @@ import { evaluateScadaCriticalInfraRules } from './rules/scada-critical-infra-ru
 import { evaluateSpacecraftGncAttitudeRules } from './rules/spacecraft-gnc-attitude-rules';
 import { evaluateEuvSemiconductorLithoRules } from './rules/euv-semiconductor-litho-rules';
 import { evaluateIaeaNuclearSafeguardsRules } from './rules/iaea-nuclear-safeguards-rules';
+import { evaluateHypersonicFlightSafetyRules } from './rules/hypersonic-flight-safety-rules';
+import { evaluateMaritimeColregsSafetyRules } from './rules/maritime-colregs-safety-rules';
+import { evaluateHighFreqTradingRiskRules } from './rules/high-freq-trading-risk-rules';
+import { evaluatePathogenGenomicScreeningRules } from './rules/pathogen-genomic-screening-rules';
+import { evaluateGeothermalDeepDrillingRules } from './rules/geothermal-deep-drilling-rules';
 
 export interface CodeFile {
   path: string;
@@ -288,6 +293,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const spaceGncMatch = trimmed.match(/^SPACE-GNC-?(\d+)$/i);
     const euvLithoMatch = trimmed.match(/^EUV-LITHO-?(\d+)$/i);
     const iaeaSafeMatch = trimmed.match(/^IAEA-SAFE-?(\d+)$/i);
+    const hypersFltMatch = trimmed.match(/^HYPERS-FLT-?(\d+)$/i);
+    const maritimeColMatch = trimmed.match(/^MARITIME-COL-?(\d+)$/i);
+    const hftSecMatch = trimmed.match(/^HFT-SEC-?(\d+)$/i);
+    const pathogenBioMatch = trimmed.match(/^PATHOGEN-BIO-?(\d+)$/i);
+    const geothermEngMatch = trimmed.match(/^GEOTHERM-ENG-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -888,6 +898,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(iaeaSafeMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(18600 + num);
+      }
+    } else if (hypersFltMatch) {
+      const num = parseInt(hypersFltMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18700 + num);
+      }
+    } else if (maritimeColMatch) {
+      const num = parseInt(maritimeColMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18800 + num);
+      }
+    } else if (hftSecMatch) {
+      const num = parseInt(hftSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(18900 + num);
+      }
+    } else if (pathogenBioMatch) {
+      const num = parseInt(pathogenBioMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19000 + num);
+      }
+    } else if (geothermEngMatch) {
+      const num = parseInt(geothermEngMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3441,6 +3476,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...iaeaSafeResult.logs);
+
+    // Wave 25 Enterprise Release Gate Engines (Milestone 6,350 Rules):
+    // 115. Hypersonic Flight Dynamics & Thermal Protection Gate (HYPERS-FLT-01 to 50, Rule IDs 18701-18750)
+    const hypersFltCounter = { count: findingCounter };
+    const hypersFltResult = evaluateHypersonicFlightSafetyRules(file, lines, cleanContent, hypersFltCounter);
+    findingCounter = hypersFltCounter.count;
+    for (const item of hypersFltResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hypersFltResult.logs);
+
+    // 116. Autonomous Container Ship Maritime Navigation & COLREGS Gate (MARITIME-COL-01 to 50, Rule IDs 18801-18850)
+    const maritimeColCounter = { count: findingCounter };
+    const maritimeColResult = evaluateMaritimeColregsSafetyRules(file, lines, cleanContent, maritimeColCounter);
+    findingCounter = maritimeColCounter.count;
+    for (const item of maritimeColResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...maritimeColResult.logs);
+
+    // 117. High-Frequency Trading Risk Controls & SEC Rule 15c3-5 Gate (HFT-SEC-01 to 50, Rule IDs 18901-18950)
+    const hftSecCounter = { count: findingCounter };
+    const hftSecResult = evaluateHighFreqTradingRiskRules(file, lines, cleanContent, hftSecCounter);
+    findingCounter = hftSecCounter.count;
+    for (const item of hftSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hftSecResult.logs);
+
+    // 118. Pathogen Genomic Screening & Dual-Use Biosecurity Gate (PATHOGEN-BIO-01 to 50, Rule IDs 19001-19050)
+    const pathogenBioCounter = { count: findingCounter };
+    const pathogenBioResult = evaluatePathogenGenomicScreeningRules(file, lines, cleanContent, pathogenBioCounter);
+    findingCounter = pathogenBioCounter.count;
+    for (const item of pathogenBioResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...pathogenBioResult.logs);
+
+    // 119. Geothermal Deep Drilling & Wellbore Hydraulic Integrity Gate (GEOTHERM-ENG-01 to 50, Rule IDs 19101-19150)
+    const geothermEngCounter = { count: findingCounter };
+    const geothermEngResult = evaluateGeothermalDeepDrillingRules(file, lines, cleanContent, geothermEngCounter);
+    findingCounter = geothermEngCounter.count;
+    for (const item of geothermEngResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...geothermEngResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

@@ -114,3 +114,8 @@ export { SCADA_CRITICAL_INFRA_RULES } from './scadaCriticalInfraRules';
 export { SPACECRAFT_GNC_ATTITUDE_RULES } from './spacecraftGncAttitudeRules';
 export { EUV_SEMICONDUCTOR_LITHO_RULES } from './euvSemiconductorLithoRules';
 export { IAEA_NUCLEAR_SAFEGUARDS_RULES } from './iaeaNuclearSafeguardsRules';
+export { HYPERSONIC_FLIGHT_SAFETY_RULES } from './hypersonicFlightSafetyRules';
+export { MARITIME_COLREGS_SAFETY_RULES } from './maritimeColregsSafetyRules';
+export { HIGH_FREQ_TRADING_RISK_RULES } from './highFreqTradingRiskRules';
+export { PATHOGEN_GENOMIC_SCREENING_RULES } from './pathogenGenomicScreeningRules';
+export { GEOTHERMAL_DEEP_DRILLING_RULES } from './geothermalDeepDrillingRules';

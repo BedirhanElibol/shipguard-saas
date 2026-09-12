@@ -45,6 +45,11 @@ import { evaluateIso27001ComplianceRules } from './rules/iso27001-compliance-rul
 import { evaluateOauthOidcRules } from './rules/oauth-oidc-rules';
 import { evaluateTerraformIacRules } from './rules/terraform-iac-rules';
 import { evaluateEdgeCdnRules } from './rules/edge-cdn-rules';
+import { evaluateServiceMeshRules } from './rules/service-mesh-rules';
+import { evaluateServerlessLambdaRules } from './rules/serverless-lambda-rules';
+import { evaluateApiGatewayRules } from './rules/api-gateway-rules';
+import { evaluateDataPipelineRules } from './rules/data-pipeline-rules';
+import { evaluateEuAiActRules } from './rules/eu-ai-act-rules';
 
 export interface CodeFile {
   path: string;
@@ -138,6 +143,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const oauthMatch = trimmed.match(/^OAUTH-?(\d+)$/i);
     const tfMatch = trimmed.match(/^TF-?(\d+)$/i);
     const cdnMatch = trimmed.match(/^CDN-?(\d+)$/i);
+    const meshMatch = trimmed.match(/^MESH-?(\d+)$/i);
+    const slsMatch = trimmed.match(/^SLS-?(\d+)$/i);
+    const gwMatch = trimmed.match(/^GW-?(\d+)$/i);
+    const dataMatch = trimmed.match(/^DATA-?(\d+)$/i);
+    const aiactMatch = trimmed.match(/^AIACT-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -363,6 +373,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(cdnMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(11100 + num);
+      }
+    } else if (meshMatch) {
+      const num = parseInt(meshMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11200 + num);
+      }
+    } else if (slsMatch) {
+      const num = parseInt(slsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11300 + num);
+      }
+    } else if (gwMatch) {
+      const num = parseInt(gwMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11400 + num);
+      }
+    } else if (dataMatch) {
+      const num = parseInt(dataMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11500 + num);
+      }
+    } else if (aiactMatch) {
+      const num = parseInt(aiactMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2076,6 +2111,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...cdnResult.logs);
+
+    // Wave 10 Enterprise Release Gate Engines (Milestone 2,600 Rules):
+    // 40. Service Mesh, Istio & Envoy Traffic Resilience (MESH-01 to 50, Rule IDs 11201-11250)
+    const meshCounter = { count: findingCounter };
+    const meshResult = evaluateServiceMeshRules(file, lines, cleanContent, meshCounter);
+    findingCounter = meshCounter.count;
+    for (const item of meshResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...meshResult.logs);
+
+    // 41. Serverless Functions & AWS Lambda Reliability (SLS-01 to 50, Rule IDs 11301-11350)
+    const slsCounter = { count: findingCounter };
+    const slsResult = evaluateServerlessLambdaRules(file, lines, cleanContent, slsCounter);
+    findingCounter = slsCounter.count;
+    for (const item of slsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...slsResult.logs);
+
+    // 42. API Gateway, Rate Limiting & Abuse Defense (GW-01 to 50, Rule IDs 11401-11450)
+    const gwCounter = { count: findingCounter };
+    const gwResult = evaluateApiGatewayRules(file, lines, cleanContent, gwCounter);
+    findingCounter = gwCounter.count;
+    for (const item of gwResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...gwResult.logs);
+
+    // 43. Data Engineering, ETL Pipeline & Data Lake Governance (DATA-01 to 50, Rule IDs 11501-11550)
+    const dataCounter = { count: findingCounter };
+    const dataResult = evaluateDataPipelineRules(file, lines, cleanContent, dataCounter);
+    findingCounter = dataCounter.count;
+    for (const item of dataResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...dataResult.logs);
+
+    // 44. EU AI Act & Trustworthy Artificial Intelligence Governance (AIACT-01 to 50, Rule IDs 11601-11650)
+    const aiactCounter = { count: findingCounter };
+    const aiactResult = evaluateEuAiActRules(file, lines, cleanContent, aiactCounter);
+    findingCounter = aiactCounter.count;
+    for (const item of aiactResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...aiactResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

@@ -39,3 +39,8 @@ export { ISO27001_COMPLIANCE_CATALOG } from './iso27001-compliance-catalog';
 export { OAUTH_OIDC_CATALOG } from './oauth-oidc-catalog';
 export { TERRAFORM_IAC_CATALOG } from './terraform-iac-catalog';
 export { EDGE_CDN_CATALOG } from './edge-cdn-catalog';
+export { SERVICE_MESH_CATALOG } from './service-mesh-catalog';
+export { SERVERLESS_LAMBDA_CATALOG } from './serverless-lambda-catalog';
+export { API_GATEWAY_CATALOG } from './api-gateway-catalog';
+export { DATA_PIPELINE_CATALOG } from './data-pipeline-catalog';
+export { EU_AI_ACT_CATALOG } from './eu-ai-act-catalog';

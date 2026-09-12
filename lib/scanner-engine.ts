@@ -125,6 +125,11 @@ import { evaluateMaritimeColregsSafetyRules } from './rules/maritime-colregs-saf
 import { evaluateHighFreqTradingRiskRules } from './rules/high-freq-trading-risk-rules';
 import { evaluatePathogenGenomicScreeningRules } from './rules/pathogen-genomic-screening-rules';
 import { evaluateGeothermalDeepDrillingRules } from './rules/geothermal-deep-drilling-rules';
+import { evaluateSuborbitalRocketLaunchSafetyRules } from './rules/suborbital-rocket-launch-safety-rules';
+import { evaluateCoPackagedOpticsHardwareRules } from './rules/co-packaged-optics-hardware-rules';
+import { evaluateAmmLiquidityMevDefenseRules } from './rules/amm-liquidity-mev-defense-rules';
+import { evaluateBioreactorMetabolicControlRules } from './rules/bioreactor-metabolic-control-rules';
+import { evaluateHapsStratosphericFlightRules } from './rules/haps-stratospheric-flight-rules';
 
 export interface CodeFile {
   path: string;
@@ -298,6 +303,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const hftSecMatch = trimmed.match(/^HFT-SEC-?(\d+)$/i);
     const pathogenBioMatch = trimmed.match(/^PATHOGEN-BIO-?(\d+)$/i);
     const geothermEngMatch = trimmed.match(/^GEOTHERM-ENG-?(\d+)$/i);
+    const launchFaaMatch = trimmed.match(/^LAUNCH-FAA-?(\d+)$/i);
+    const cpoOpticsMatch = trimmed.match(/^CPO-OPTICS-?(\d+)$/i);
+    const mevDefenseMatch = trimmed.match(/^MEV-DEFENSE-?(\d+)$/i);
+    const bioreactEngMatch = trimmed.match(/^BIOREACT-ENG-?(\d+)$/i);
+    const hapsStratMatch = trimmed.match(/^HAPS-STRAT-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -923,6 +933,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(geothermEngMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(19100 + num);
+      }
+    } else if (launchFaaMatch) {
+      const num = parseInt(launchFaaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19200 + num);
+      }
+    } else if (cpoOpticsMatch) {
+      const num = parseInt(cpoOpticsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19300 + num);
+      }
+    } else if (mevDefenseMatch) {
+      const num = parseInt(mevDefenseMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19400 + num);
+      }
+    } else if (bioreactEngMatch) {
+      const num = parseInt(bioreactEngMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19500 + num);
+      }
+    } else if (hapsStratMatch) {
+      const num = parseInt(hapsStratMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(19600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3532,6 +3567,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...geothermEngResult.logs);
+
+    // Wave 26 Enterprise Release Gate Engines (Milestone 6,600 Rules):
+    // 120. Suborbital Rocket Launch Trajectory & FAA Part 450 Safety Gate (LAUNCH-FAA-01 to 50, Rule IDs 19201-19250)
+    const launchFaaCounter = { count: findingCounter };
+    const launchFaaResult = evaluateSuborbitalRocketLaunchSafetyRules(file, lines, cleanContent, launchFaaCounter);
+    findingCounter = launchFaaCounter.count;
+    for (const item of launchFaaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...launchFaaResult.logs);
+
+    // 121. Silicon Photonic Co-Packaged Optics (CPO) Gate (CPO-OPTICS-01 to 50, Rule IDs 19301-19350)
+    const cpoOpticsCounter = { count: findingCounter };
+    const cpoOpticsResult = evaluateCoPackagedOpticsHardwareRules(file, lines, cleanContent, cpoOpticsCounter);
+    findingCounter = cpoOpticsCounter.count;
+    for (const item of cpoOpticsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cpoOpticsResult.logs);
+
+    // 122. AMM Liquidity Pool & MEV Flash Loan Defense Gate (MEV-DEFENSE-01 to 50, Rule IDs 19401-19450)
+    const mevDefenseCounter = { count: findingCounter };
+    const mevDefenseResult = evaluateAmmLiquidityMevDefenseRules(file, lines, cleanContent, mevDefenseCounter);
+    findingCounter = mevDefenseCounter.count;
+    for (const item of mevDefenseResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...mevDefenseResult.logs);
+
+    // 123. Bioreactor Metabolic Control & Fermentation Scale-Up Gate (BIOREACT-ENG-01 to 50, Rule IDs 19501-19550)
+    const bioreactEngCounter = { count: findingCounter };
+    const bioreactEngResult = evaluateBioreactorMetabolicControlRules(file, lines, cleanContent, bioreactEngCounter);
+    findingCounter = bioreactEngCounter.count;
+    for (const item of bioreactEngResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...bioreactEngResult.logs);
+
+    // 124. High-Altitude Pseudo-Satellite (HAPS) Solar Flight Gate (HAPS-STRAT-01 to 50, Rule IDs 19601-19650)
+    const hapsStratCounter = { count: findingCounter };
+    const hapsStratResult = evaluateHapsStratosphericFlightRules(file, lines, cleanContent, hapsStratCounter);
+    findingCounter = hapsStratCounter.count;
+    for (const item of hapsStratResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...hapsStratResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

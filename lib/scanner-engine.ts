@@ -70,6 +70,11 @@ import { evaluateCryptoKmsRules } from './rules/crypto-kms-rules';
 import { evaluateSoxComplianceRules } from './rules/sox-compliance-rules';
 import { evaluateVectorDbRules } from './rules/vector-db-rules';
 import { evaluateThreatDetectionRules } from './rules/threat-detection-rules';
+import { evaluateGraphqlFederationRules } from './rules/graphql-federation-rules';
+import { evaluateOwaspAsvsRules } from './rules/owasp-asvs-rules';
+import { evaluateFedrampComplianceRules } from './rules/fedramp-compliance-rules';
+import { evaluateTimeSeriesDbRules } from './rules/time-series-db-rules';
+import { evaluateSlsaProvenanceRules } from './rules/slsa-provenance-rules';
 
 export interface CodeFile {
   path: string;
@@ -188,6 +193,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const soxMatch = trimmed.match(/^SOX-?(\d+)$/i);
     const vectorMatch = trimmed.match(/^VECTOR-?(\d+)$/i);
     const threatMatch = trimmed.match(/^THREAT-?(\d+)$/i);
+    const fedMatch = trimmed.match(/^FED-?(\d+)$/i);
+    const asvsMatch = trimmed.match(/^ASVS-?(\d+)$/i);
+    const fedrampMatch = trimmed.match(/^FEDRAMP-?(\d+)$/i);
+    const tsdbMatch = trimmed.match(/^TSDB-?(\d+)$/i);
+    const slsaMatch = trimmed.match(/^SLSA-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -538,6 +548,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(threatMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(13600 + num);
+      }
+    } else if (fedMatch) {
+      const num = parseInt(fedMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13700 + num);
+      }
+    } else if (asvsMatch) {
+      const num = parseInt(asvsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13800 + num);
+      }
+    } else if (fedrampMatch) {
+      const num = parseInt(fedrampMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13900 + num);
+      }
+    } else if (tsdbMatch) {
+      const num = parseInt(tsdbMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14000 + num);
+      }
+    } else if (slsaMatch) {
+      const num = parseInt(slsaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(14100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2531,6 +2566,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...threatResult.logs);
+
+    // Wave 15 Enterprise Release Gate Engines (Milestone 3,850 Rules):
+    // 65. Apollo Federation & GraphQL Subgraph Gate (FED-01 to 50, Rule IDs 13701-13750)
+    const fedCounter = { count: findingCounter };
+    const fedResult = evaluateGraphqlFederationRules(file, lines, cleanContent, fedCounter);
+    findingCounter = fedCounter.count;
+    for (const item of fedResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...fedResult.logs);
+
+    // 66. OWASP ASVS Level 3 Application Security Verification (ASVS-01 to 50, Rule IDs 13801-13850)
+    const asvsCounter = { count: findingCounter };
+    const asvsResult = evaluateOwaspAsvsRules(file, lines, cleanContent, asvsCounter);
+    findingCounter = asvsCounter.count;
+    for (const item of asvsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...asvsResult.logs);
+
+    // 67. FedRAMP High Baseline Cloud Compliance Gate (FEDRAMP-01 to 50, Rule IDs 13901-13950)
+    const fedrampCounter = { count: findingCounter };
+    const fedrampResult = evaluateFedrampComplianceRules(file, lines, cleanContent, fedrampCounter);
+    findingCounter = fedrampCounter.count;
+    for (const item of fedrampResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...fedrampResult.logs);
+
+    // 68. Time-Series Databases & Columnar Query Optimization (TSDB-01 to 50, Rule IDs 14001-14050)
+    const tsdbCounter = { count: findingCounter };
+    const tsdbResult = evaluateTimeSeriesDbRules(file, lines, cleanContent, tsdbCounter);
+    findingCounter = tsdbCounter.count;
+    for (const item of tsdbResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...tsdbResult.logs);
+
+    // 69. SLSA Level 4 & In-Toto Supply Chain Provenance (SLSA-01 to 50, Rule IDs 14101-14150)
+    const slsaCounter = { count: findingCounter };
+    const slsaResult = evaluateSlsaProvenanceRules(file, lines, cleanContent, slsaCounter);
+    findingCounter = slsaCounter.count;
+    for (const item of slsaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...slsaResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

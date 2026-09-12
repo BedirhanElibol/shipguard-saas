@@ -64,3 +64,8 @@ export { CRYPTO_KMS_RULES } from './cryptoKmsRules';
 export { SOX_COMPLIANCE_RULES } from './soxComplianceRules';
 export { VECTOR_DB_RULES } from './vectorDbRules';
 export { THREAT_DETECTION_RULES } from './threatDetectionRules';
+export { GRAPHQL_FEDERATION_RULES } from './graphqlFederationRules';
+export { OWASP_ASVS_RULES } from './owaspAsvsRules';
+export { FEDRAMP_COMPLIANCE_RULES } from './fedrampComplianceRules';
+export { TIME_SERIES_DB_RULES } from './timeSeriesDbRules';
+export { SLSA_PROVENANCE_RULES } from './slsaProvenanceRules';

@@ -90,6 +90,11 @@ import { evaluatePqcPostQuantumCryptoRules } from './rules/pqc-post-quantum-cryp
 import { evaluateEuNis2ComplianceRules } from './rules/eu-nis2-compliance-rules';
 import { evaluateDatabaseShardingRules } from './rules/database-sharding-rules';
 import { evaluateThreatIntelligenceRules } from './rules/threat-intelligence-rules';
+import { evaluateLinuxKernelSecurityRules } from './rules/linux-kernel-security-rules';
+import { evaluateIso20022FintechRules } from './rules/iso20022-fintech-rules';
+import { evaluateTimeSeriesDbOptRules } from './rules/time-series-db-opt-rules';
+import { evaluateAiRedTeamSecurityRules } from './rules/ai-red-team-security-rules';
+import { evaluateServiceFabricResilienceRules } from './rules/service-fabric-resilience-rules';
 
 export interface CodeFile {
   path: string;
@@ -228,6 +233,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const nis2Match = trimmed.match(/^NIS2-?(\d+)$/i);
     const shardMatch = trimmed.match(/^SHARD-?(\d+)$/i);
     const ctiMatch = trimmed.match(/^CTI-?(\d+)$/i);
+    const kernSecMatch = trimmed.match(/^KERN-SEC-?(\d+)$/i);
+    const iso20022Match = trimmed.match(/^ISO20022-?(\d+)$/i);
+    const tsdbOptMatch = trimmed.match(/^TSDB-OPT-?(\d+)$/i);
+    const aiRedMatch = trimmed.match(/^AI-RED-?(\d+)$/i);
+    const fabricMatch = trimmed.match(/^FABRIC-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -678,6 +688,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(ctiMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(15600 + num);
+      }
+    } else if (kernSecMatch) {
+      const num = parseInt(kernSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15700 + num);
+      }
+    } else if (iso20022Match) {
+      const num = parseInt(iso20022Match[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15800 + num);
+      }
+    } else if (tsdbOptMatch) {
+      const num = parseInt(tsdbOptMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(15900 + num);
+      }
+    } else if (aiRedMatch) {
+      const num = parseInt(aiRedMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16000 + num);
+      }
+    } else if (fabricMatch) {
+      const num = parseInt(fabricMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(16100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2895,6 +2930,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...ctiResult.logs);
+
+    // Wave 19 Enterprise Release Gate Engines (Milestone 4,850 Rules):
+    // 85. Linux Kernel Hardening & Capabilities Gate (KERN-SEC-01 to 50, Rule IDs 15701-15750)
+    const kernSecCounter = { count: findingCounter };
+    const kernSecResult = evaluateLinuxKernelSecurityRules(file, lines, cleanContent, kernSecCounter);
+    findingCounter = kernSecCounter.count;
+    for (const item of kernSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...kernSecResult.logs);
+
+    // 86. ISO 20022 Financial Messaging & SLA Gate (ISO20022-01 to 50, Rule IDs 15801-15850)
+    const iso20022Counter = { count: findingCounter };
+    const iso20022Result = evaluateIso20022FintechRules(file, lines, cleanContent, iso20022Counter);
+    findingCounter = iso20022Counter.count;
+    for (const item of iso20022Result.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...iso20022Result.logs);
+
+    // 87. Time-Series DB Chunk & Partition Optimization Gate (TSDB-OPT-01 to 50, Rule IDs 15901-15950)
+    const tsdbOptCounter = { count: findingCounter };
+    const tsdbOptResult = evaluateTimeSeriesDbOptRules(file, lines, cleanContent, tsdbOptCounter);
+    findingCounter = tsdbOptCounter.count;
+    for (const item of tsdbOptResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...tsdbOptResult.logs);
+
+    // 88. AI Red Teaming & Jailbreak Defense Gate (AI-RED-01 to 50, Rule IDs 16001-16050)
+    const aiRedCounter = { count: findingCounter };
+    const aiRedResult = evaluateAiRedTeamSecurityRules(file, lines, cleanContent, aiRedCounter);
+    findingCounter = aiRedCounter.count;
+    for (const item of aiRedResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...aiRedResult.logs);
+
+    // 89. Edge Service Fabric & Anycast Resilience Gate (FABRIC-01 to 50, Rule IDs 16101-16150)
+    const fabricCounter = { count: findingCounter };
+    const fabricResult = evaluateServiceFabricResilienceRules(file, lines, cleanContent, fabricCounter);
+    findingCounter = fabricCounter.count;
+    for (const item of fabricResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...fabricResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

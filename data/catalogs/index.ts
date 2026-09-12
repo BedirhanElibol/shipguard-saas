@@ -84,3 +84,8 @@ export { PQC_POST_QUANTUM_CRYPTO_RULES } from './pqcPostQuantumCryptoRules';
 export { EU_NIS2_COMPLIANCE_RULES } from './euNis2ComplianceRules';
 export { DATABASE_SHARDING_RULES } from './databaseShardingRules';
 export { THREAT_INTELLIGENCE_RULES } from './threatIntelligenceRules';
+export { LINUX_KERNEL_SECURITY_RULES } from './linuxKernelSecurityRules';
+export { ISO20022_FINTECH_RULES } from './iso20022FintechRules';
+export { TIME_SERIES_DB_OPT_RULES } from './timeSeriesDbOptRules';
+export { AI_RED_TEAM_SECURITY_RULES } from './aiRedTeamSecurityRules';
+export { SERVICE_FABRIC_RESILIENCE_RULES } from './serviceFabricResilienceRules';

@@ -59,3 +59,8 @@ export { ENTERPRISE_SSO_RULES_CATALOG } from './enterprise-sso-catalog';
 export { PCI_DSS_V4_RULES_CATALOG } from './pci-dss-v4-catalog';
 export { SEARCH_ENGINE_RULES_CATALOG } from './search-engine-catalog';
 export { ZERO_TRUST_NETWORK_RULES_CATALOG } from './zero-trust-network-catalog';
+export { OPA_POLICY_RULES } from './opaPolicyRules';
+export { CRYPTO_KMS_RULES } from './cryptoKmsRules';
+export { SOX_COMPLIANCE_RULES } from './soxComplianceRules';
+export { VECTOR_DB_RULES } from './vectorDbRules';
+export { THREAT_DETECTION_RULES } from './threatDetectionRules';

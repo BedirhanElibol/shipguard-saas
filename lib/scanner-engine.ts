@@ -65,6 +65,11 @@ import { evaluateEnterpriseSsoRules } from './rules/enterprise-sso-rules';
 import { evaluatePciDssV4Rules } from './rules/pci-dss-v4-rules';
 import { evaluateSearchEngineRules } from './rules/search-engine-rules';
 import { evaluateZeroTrustNetworkRules } from './rules/zero-trust-network-rules';
+import { evaluateOpaPolicyRules } from './rules/opa-policy-rules';
+import { evaluateCryptoKmsRules } from './rules/crypto-kms-rules';
+import { evaluateSoxComplianceRules } from './rules/sox-compliance-rules';
+import { evaluateVectorDbRules } from './rules/vector-db-rules';
+import { evaluateThreatDetectionRules } from './rules/threat-detection-rules';
 
 export interface CodeFile {
   path: string;
@@ -178,6 +183,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const pci4Match = trimmed.match(/^PCI4-?(\d+)$/i);
     const searchMatch = trimmed.match(/^SEARCH-?(\d+)$/i);
     const sdpMatch = trimmed.match(/^SDP-?(\d+)$/i);
+    const opaMatch = trimmed.match(/^OPA-?(\d+)$/i);
+    const cryptoMatch = trimmed.match(/^CRYPTO-?(\d+)$/i);
+    const soxMatch = trimmed.match(/^SOX-?(\d+)$/i);
+    const vectorMatch = trimmed.match(/^VECTOR-?(\d+)$/i);
+    const threatMatch = trimmed.match(/^THREAT-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -503,6 +513,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(sdpMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(13100 + num);
+      }
+    } else if (opaMatch) {
+      const num = parseInt(opaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13200 + num);
+      }
+    } else if (cryptoMatch) {
+      const num = parseInt(cryptoMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13300 + num);
+      }
+    } else if (soxMatch) {
+      const num = parseInt(soxMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13400 + num);
+      }
+    } else if (vectorMatch) {
+      const num = parseInt(vectorMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13500 + num);
+      }
+    } else if (threatMatch) {
+      const num = parseInt(threatMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(13600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2440,6 +2475,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...sdpResult.logs);
+
+    // Wave 14 Enterprise Release Gate Engines (Milestone 3,600 Rules):
+    // 60. Open Policy Agent & Rego Admission Guardrails (OPA-01 to 50, Rule IDs 13201-13250)
+    const opaCounter = { count: findingCounter };
+    const opaResult = evaluateOpaPolicyRules(file, lines, cleanContent, opaCounter);
+    findingCounter = opaCounter.count;
+    for (const item of opaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...opaResult.logs);
+
+    // 61. Enterprise KMS, HSM & Cryptographic Hygiene (CRYPTO-01 to 50, Rule IDs 13301-13350)
+    const cryptoCounter = { count: findingCounter };
+    const cryptoResult = evaluateCryptoKmsRules(file, lines, cleanContent, cryptoCounter);
+    findingCounter = cryptoCounter.count;
+    for (const item of cryptoResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cryptoResult.logs);
+
+    // 62. SOX Section 404 ITGC Financial Control Compliance (SOX-01 to 50, Rule IDs 13401-13450)
+    const soxCounter = { count: findingCounter };
+    const soxResult = evaluateSoxComplianceRules(file, lines, cleanContent, soxCounter);
+    findingCounter = soxCounter.count;
+    for (const item of soxResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...soxResult.logs);
+
+    // 63. Milvus & Qdrant Vector Search Performance & Reliability (VECTOR-01 to 50, Rule IDs 13501-13550)
+    const vectorCounter = { count: findingCounter };
+    const vectorResult = evaluateVectorDbRules(file, lines, cleanContent, vectorCounter);
+    findingCounter = vectorCounter.count;
+    for (const item of vectorResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...vectorResult.logs);
+
+    // 64. MITRE ATT&CK Threat Hunting & Canary Deception (THREAT-01 to 50, Rule IDs 13601-13650)
+    const threatCounter = { count: findingCounter };
+    const threatResult = evaluateThreatDetectionRules(file, lines, cleanContent, threatCounter);
+    findingCounter = threatCounter.count;
+    for (const item of threatResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...threatResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

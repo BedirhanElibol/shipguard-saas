@@ -25,6 +25,11 @@ import { evaluatePythonEnterpriseRules } from './rules/python-enterprise-rules';
 import { evaluateK8sHardeningRules } from './rules/k8s-hardening-rules';
 import { evaluateGoMicroservicesRules } from './rules/go-microservices-rules';
 import { evaluateTenantIsolationRules } from './rules/tenant-isolation-rules';
+import { evaluateCloudSecurityRules } from './rules/cloud-security-rules';
+import { evaluateMobileSecurityRules } from './rules/mobile-security-rules';
+import { evaluateEventStreamingRules } from './rules/event-streaming-rules';
+import { evaluateCicdSupplyChainRules } from './rules/cicd-supplychain-rules';
+import { evaluateRustSystemsRules } from './rules/rust-systems-rules';
 
 export interface CodeFile {
   path: string;
@@ -98,6 +103,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const k8sMatch = trimmed.match(/^K8S-?(\d+)$/i);
     const goMatch = trimmed.match(/^GO-?(\d+)$/i);
     const tenantMatch = trimmed.match(/^TENANT-?(\d+)$/i);
+    const cloudSecMatch = trimmed.match(/^CLOUD-SEC-?(\d+)$/i);
+    const mobSecMatch = trimmed.match(/^MOB-SEC-?(\d+)$/i);
+    const eventMatch = trimmed.match(/^EVENT-?(\d+)$/i);
+    const cicdSecMatch = trimmed.match(/^CICD-SEC-?(\d+)$/i);
+    const rustMatch = trimmed.match(/^RUST-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -223,6 +233,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(tenantMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(9100 + num);
+      }
+    } else if (cloudSecMatch) {
+      const num = parseInt(cloudSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9200 + num);
+      }
+    } else if (mobSecMatch) {
+      const num = parseInt(mobSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9300 + num);
+      }
+    } else if (eventMatch) {
+      const num = parseInt(eventMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9400 + num);
+      }
+    } else if (cicdSecMatch) {
+      const num = parseInt(cicdSecMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9500 + num);
+      }
+    } else if (rustMatch) {
+      const num = parseInt(rustMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(9600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -1712,6 +1747,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...tenantResult.logs);
+
+    // Wave 6 Enterprise Release Gate Engines (Milestone 1,600 Rules):
+    // 20. Multi-Cloud AWS/GCP/Azure Security (CLOUD-SEC-01 to 50, Rule IDs 9201-9250)
+    const cloudSecCounter = { count: findingCounter };
+    const cloudSecResult = evaluateCloudSecurityRules(file, lines, cleanContent, cloudSecCounter);
+    findingCounter = cloudSecCounter.count;
+    for (const item of cloudSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cloudSecResult.logs);
+
+    // 21. Mobile App Security & Integrity Gate (MOB-SEC-01 to 50, Rule IDs 9301-9350)
+    const mobSecCounter = { count: findingCounter };
+    const mobSecResult = evaluateMobileSecurityRules(file, lines, cleanContent, mobSecCounter);
+    findingCounter = mobSecCounter.count;
+    for (const item of mobSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...mobSecResult.logs);
+
+    // 22. Kafka & Event Streaming Hardening (EVENT-01 to 50, Rule IDs 9401-9450)
+    const eventCounter = { count: findingCounter };
+    const eventResult = evaluateEventStreamingRules(file, lines, cleanContent, eventCounter);
+    findingCounter = eventCounter.count;
+    for (const item of eventResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...eventResult.logs);
+
+    // 23. CI/CD Pipeline & Supply Chain Hardening (CICD-SEC-01 to 50, Rule IDs 9501-9550)
+    const cicdSecCounter = { count: findingCounter };
+    const cicdSecResult = evaluateCicdSupplyChainRules(file, lines, cleanContent, cicdSecCounter);
+    findingCounter = cicdSecCounter.count;
+    for (const item of cicdSecResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cicdSecResult.logs);
+
+    // 24. Rust & Memory-Safe Systems Gate (RUST-01 to 50, Rule IDs 9601-9650)
+    const rustCounter = { count: findingCounter };
+    const rustResult = evaluateRustSystemsRules(file, lines, cleanContent, rustCounter);
+    findingCounter = rustCounter.count;
+    for (const item of rustResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...rustResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

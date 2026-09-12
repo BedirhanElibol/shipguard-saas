@@ -50,6 +50,11 @@ import { evaluateServerlessLambdaRules } from './rules/serverless-lambda-rules';
 import { evaluateApiGatewayRules } from './rules/api-gateway-rules';
 import { evaluateDataPipelineRules } from './rules/data-pipeline-rules';
 import { evaluateEuAiActRules } from './rules/eu-ai-act-rules';
+import { evaluateCronSchedulerRules } from './rules/cron-scheduler-rules';
+import { evaluateDnsSecurityRules } from './rules/dns-security-rules';
+import { evaluateNistSp80053Rules } from './rules/nist-sp800-53-rules';
+import { evaluateGraphDatabaseRules } from './rules/graph-database-rules';
+import { evaluateSiemAuditLoggingRules } from './rules/siem-audit-logging-rules';
 
 export interface CodeFile {
   path: string;
@@ -148,6 +153,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const gwMatch = trimmed.match(/^GW-?(\d+)$/i);
     const dataMatch = trimmed.match(/^DATA-?(\d+)$/i);
     const aiactMatch = trimmed.match(/^AIACT-?(\d+)$/i);
+    const cronMatch = trimmed.match(/^CRON-?(\d+)$/i);
+    const dnsMatch = trimmed.match(/^DNS-?(\d+)$/i);
+    const nistMatch = trimmed.match(/^NIST-?(\d+)$/i);
+    const grphMatch = trimmed.match(/^GRPH-?(\d+)$/i);
+    const auditMatch = trimmed.match(/^AUDIT-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -398,6 +408,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(aiactMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(11600 + num);
+      }
+    } else if (cronMatch) {
+      const num = parseInt(cronMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11700 + num);
+      }
+    } else if (dnsMatch) {
+      const num = parseInt(dnsMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11800 + num);
+      }
+    } else if (nistMatch) {
+      const num = parseInt(nistMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(11900 + num);
+      }
+    } else if (grphMatch) {
+      const num = parseInt(grphMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12000 + num);
+      }
+    } else if (auditMatch) {
+      const num = parseInt(auditMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(12100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -2167,6 +2202,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...aiactResult.logs);
+
+    // Wave 11 Enterprise Release Gate Engines (Milestone 2,850 Rules):
+    // 45. Distributed Job Scheduling & Cron Reliability (CRON-01 to 50, Rule IDs 11701-11750)
+    const cronCounter = { count: findingCounter };
+    const cronResult = evaluateCronSchedulerRules(file, lines, cleanContent, cronCounter);
+    findingCounter = cronCounter.count;
+    for (const item of cronResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...cronResult.logs);
+
+    // 46. DNSSEC, BGP & Anycast Routing Defense (DNS-01 to 50, Rule IDs 11801-11850)
+    const dnsCounter = { count: findingCounter };
+    const dnsResult = evaluateDnsSecurityRules(file, lines, cleanContent, dnsCounter);
+    findingCounter = dnsCounter.count;
+    for (const item of dnsResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...dnsResult.logs);
+
+    // 47. NIST SP 800-53 Rev. 5 & FedRAMP Cloud Controls (NIST-01 to 50, Rule IDs 11901-11950)
+    const nistCounter = { count: findingCounter };
+    const nistResult = evaluateNistSp80053Rules(file, lines, cleanContent, nistCounter);
+    findingCounter = nistCounter.count;
+    for (const item of nistResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...nistResult.logs);
+
+    // 48. Graph Database & Cypher Traversal Governance (GRPH-01 to 50, Rule IDs 12001-12050)
+    const grphCounter = { count: findingCounter };
+    const grphResult = evaluateGraphDatabaseRules(file, lines, cleanContent, grphCounter);
+    findingCounter = grphCounter.count;
+    for (const item of grphResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...grphResult.logs);
+
+    // 49. Enterprise SIEM & Syslog Audit Integrity (AUDIT-01 to 50, Rule IDs 12101-12150)
+    const auditCounter = { count: findingCounter };
+    const auditResult = evaluateSiemAuditLoggingRules(file, lines, cleanContent, auditCounter);
+    findingCounter = auditCounter.count;
+    for (const item of auditResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...auditResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

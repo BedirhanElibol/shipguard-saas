@@ -44,3 +44,8 @@ export { SERVERLESS_LAMBDA_CATALOG } from './serverless-lambda-catalog';
 export { API_GATEWAY_CATALOG } from './api-gateway-catalog';
 export { DATA_PIPELINE_CATALOG } from './data-pipeline-catalog';
 export { EU_AI_ACT_CATALOG } from './eu-ai-act-catalog';
+export { CRON_SCHEDULER_RULES_CATALOG } from './cron-scheduler-catalog';
+export { DNS_SECURITY_RULES_CATALOG } from './dns-security-catalog';
+export { NIST_SP800_53_RULES_CATALOG } from './nist-sp800-53-catalog';
+export { GRAPH_DATABASE_RULES_CATALOG } from './graph-database-catalog';
+export { SIEM_AUDIT_LOGGING_RULES_CATALOG } from './siem-audit-logging-catalog';

@@ -150,6 +150,11 @@ import { evaluateSatelliteFormationFlyingSwarmRules } from './rules/satellite-fo
 import { evaluatePhotonicQuantumComputingRules } from './rules/photonic-quantum-computing-rules';
 import { evaluateDeepSeaMiningRovSafetyRules } from './rules/deep-sea-mining-rov-safety-rules';
 import { evaluateSyntheticBiologyGeneCircuitRules } from './rules/synthetic-biology-gene-circuit-rules';
+import { evaluateBciNeuralSpikeSortingRules } from './rules/bci-neural-spike-sorting-rules';
+import { evaluateAeroTrajectory4dConflictRules } from './rules/aero-trajectory-4d-conflict-rules';
+import { evaluateDivertorSputteringErosionRules } from './rules/divertor-sputtering-erosion-rules';
+import { evaluateOrganOnChipMicrofluidicsRules } from './rules/organ-on-chip-microfluidics-rules';
+import { evaluateQuantumBellEntanglementRules } from './rules/quantum-bell-entanglement-rules';
 
 export interface CodeFile {
   path: string;
@@ -348,6 +353,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const photonQcMatch = trimmed.match(/^PHOTON-QC-?(\d+)$/i);
     const deepseaRovMatch = trimmed.match(/^DEEPSEA-ROV-?(\d+)$/i);
     const synbioGeneMatch = trimmed.match(/^SYNBIO-GENE-?(\d+)$/i);
+    const bciNeuralMatch = trimmed.match(/^BCI-NEURAL-?(\d+)$/i);
+    const aeroTrajectMatch = trimmed.match(/^AERO-TRAJECT-?(\d+)$/i);
+    const divertorErosionMatch = trimmed.match(/^DIVERTOR-EROSION-?(\d+)$/i);
+    const organChipMatch = trimmed.match(/^ORGAN-CHIP-?(\d+)$/i);
+    const quantumBellMatch = trimmed.match(/^QUANTUM-BELL-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -1098,6 +1108,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(synbioGeneMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(21600 + num);
+      }
+    } else if (bciNeuralMatch) {
+      const num = parseInt(bciNeuralMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21700 + num);
+      }
+    } else if (aeroTrajectMatch) {
+      const num = parseInt(aeroTrajectMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21800 + num);
+      }
+    } else if (divertorErosionMatch) {
+      const num = parseInt(divertorErosionMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21900 + num);
+      }
+    } else if (organChipMatch) {
+      const num = parseInt(organChipMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(22000 + num);
+      }
+    } else if (quantumBellMatch) {
+      const num = parseInt(quantumBellMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(22100 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3987,6 +4022,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...synbioGeneResult.logs);
+
+    // Wave 31 Enterprise Release Gate Engines (Milestone 7,850 Rules - Grand Finale):
+    // 145. Brain-Computer Interface Neural Spike Sorting Gate (BCI-NEURAL-01 to 50, Rule IDs 21701-21750)
+    const bciNeuralCounter = { count: findingCounter };
+    const bciNeuralResult = evaluateBciNeuralSpikeSortingRules(file, lines, cleanContent, bciNeuralCounter);
+    findingCounter = bciNeuralCounter.count;
+    for (const item of bciNeuralResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...bciNeuralResult.logs);
+
+    // 146. Autonomous Air Traffic Control ADS-B 4D-Trajectory Gate (AERO-TRAJECT-01 to 50, Rule IDs 21801-21850)
+    const aeroTrajectCounter = { count: findingCounter };
+    const aeroTrajectResult = evaluateAeroTrajectory4dConflictRules(file, lines, cleanContent, aeroTrajectCounter);
+    findingCounter = aeroTrajectCounter.count;
+    for (const item of aeroTrajectResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...aeroTrajectResult.logs);
+
+    // 147. Nuclear Fusion Magnetic Divertor Sputtering & Erosion Gate (DIVERTOR-EROSION-01 to 50, Rule IDs 21901-21950)
+    const divertorErosionCounter = { count: findingCounter };
+    const divertorErosionResult = evaluateDivertorSputteringErosionRules(file, lines, cleanContent, divertorErosionCounter);
+    findingCounter = divertorErosionCounter.count;
+    for (const item of divertorErosionResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...divertorErosionResult.logs);
+
+    // 148. Biomedical Organ-on-Chip Microfluidics Automation Gate (ORGAN-CHIP-01 to 50, Rule IDs 22001-22050)
+    const organChipCounter = { count: findingCounter };
+    const organChipResult = evaluateOrganOnChipMicrofluidicsRules(file, lines, cleanContent, organChipCounter);
+    findingCounter = organChipCounter.count;
+    for (const item of organChipResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...organChipResult.logs);
+
+    // 149. Quantum Entanglement Distribution & Bell State Verification Gate (QUANTUM-BELL-01 to 50, Rule IDs 22101-22150)
+    const quantumBellCounter = { count: findingCounter };
+    const quantumBellResult = evaluateQuantumBellEntanglementRules(file, lines, cleanContent, quantumBellCounter);
+    findingCounter = quantumBellCounter.count;
+    for (const item of quantumBellResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...quantumBellResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

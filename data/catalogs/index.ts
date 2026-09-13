@@ -144,3 +144,8 @@ export { SATELLITE_FORMATION_FLYING_SWARM_RULES } from './satelliteFormationFlyi
 export { PHOTONIC_QUANTUM_COMPUTING_RULES } from './photonicQuantumComputingRules';
 export { DEEP_SEA_MINING_ROV_SAFETY_RULES } from './deepSeaMiningRovSafetyRules';
 export { SYNTHETIC_BIOLOGY_GENE_CIRCUIT_RULES } from './syntheticBiologyGeneCircuitRules';
+export { BCI_NEURAL_SPIKE_SORTING_RULES } from './bciNeuralSpikeSortingRules';
+export { AERO_TRAJECTORY_4D_CONFLICT_RULES } from './aeroTrajectory4dConflictRules';
+export { DIVERTOR_SPUTTERING_EROSION_RULES } from './divertorSputteringErosionRules';
+export { ORGAN_ON_CHIP_MICROFLUIDICS_RULES } from './organOnChipMicrofluidicsRules';
+export { QUANTUM_BELL_ENTANGLEMENT_RULES } from './quantumBellEntanglementRules';

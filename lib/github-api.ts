@@ -11,6 +11,24 @@ export interface GithubRepoInfo {
   files: CodeFile[];
 }
 
+const GITHUB_RATE_LIMIT_MESSAGE =
+  'GitHub API rate limit reached (60 req/hr). Add a GitHub Personal Access Token (PAT) in Settings to unlock 5,000 req/hr.';
+
+/**
+ * Checks whether a GitHub API response indicates a primary or secondary rate limit.
+ */
+function isGitHubRateLimited(status: number, headers: Headers, bodyText: string = '', hasToken: boolean = false): boolean {
+  if (status === 429) return true;
+  if (headers.get('x-ratelimit-remaining') === '0') return true;
+  if (headers.has('retry-after')) return true;
+  if (status === 403) {
+    if (headers.get('x-ratelimit-remaining') === '0') return true;
+    if (/rate limit|secondary rate|abuse detection/i.test(bodyText)) return true;
+    if (!hasToken) return true;
+  }
+  return false;
+}
+
 export function sanitizeTargetUrl(url: string): string {
   if (!url || typeof url !== 'string') return '';
   let clean = url.trim();
@@ -79,16 +97,89 @@ export async function fetchGithubRepositoryData(
       const proxyRes = await fetch(proxyEndpoint, { headers: proxyHeaders, signal });
       if (proxyRes.ok) {
         const data = await proxyRes.json();
-        if (data && data.files) {
-          return {
-            name: data.name || parsed.repo,
-            fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
-            description: data.description || 'GitHub Application Repository',
-            defaultBranch: data.defaultBranch || 'main',
-            stars: data.stars || 0,
-            language: data.language || 'TypeScript',
-            files: data.files
-          };
+        if (data) {
+          // Handle rate limit response from proxy
+          if (data.error === 'RATE_LIMIT_EXCEEDED' || data.description?.includes('rate limit') || data.description?.includes('60 req/hr')) {
+            return {
+              name: data.name || parsed.repo,
+              fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+              description: GITHUB_RATE_LIMIT_MESSAGE,
+              defaultBranch: data.defaultBranch || 'main',
+              stars: data.stars || 0,
+              language: data.language || 'TypeScript',
+              files: [
+                {
+                  path: 'RATE_LIMIT_NOTICE.md',
+                  content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
+                }
+              ]
+            };
+          }
+
+          // Handle private or unauthenticated from proxy
+          if (data.error === 'PRIVATE_OR_UNAUTHENTICATED') {
+            return {
+              name: data.name || parsed.repo,
+              fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+              description: data.description || 'Private or Unauthenticated GitHub Repository. Provide a GitHub PAT token in Settings to access private repos.',
+              defaultBranch: data.defaultBranch || 'main',
+              stars: data.stars || 0,
+              language: data.language || 'TypeScript',
+              files: [
+                {
+                  path: 'repository-manifest.json',
+                  content: JSON.stringify(
+                    {
+                      repository: `${parsed.owner}/${parsed.repo}`,
+                      status: 'PRIVATE_OR_UNAUTHENTICATED',
+                      notice: 'This repository is private or unauthenticated. Provide a GitHub Personal Access Token (PAT) in Settings to enable full source file AST scanning.'
+                    },
+                    null,
+                    2
+                  )
+                }
+              ]
+            };
+          }
+
+          // Handle empty repository gracefully
+          if (data.isEmpty || (Array.isArray(data.files) && data.files.length === 0 && !data.error)) {
+            return {
+              name: data.name || parsed.repo,
+              fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+              description: data.description || 'Empty GitHub repository (no commits or files yet)',
+              defaultBranch: data.defaultBranch || 'main',
+              stars: data.stars || 0,
+              language: data.language || 'None',
+              files: [
+                {
+                  path: 'README.md',
+                  content: `# ${data.name || parsed.repo}\n\nEmpty repository. No source files committed yet.`
+                }
+              ]
+            };
+          }
+
+          if (Array.isArray(data.files) && data.files.length > 0) {
+            // Apply 200KB per-file cap to prevent ReDoS or memory exhaustion across rules
+            const files: CodeFile[] = data.files.map((f: { path: string; content?: string }) => {
+              let content = typeof f.content === 'string' ? f.content : '';
+              if (content.length > 200000) {
+                content = content.slice(0, 200000);
+              }
+              return { path: f.path, content };
+            });
+
+            return {
+              name: data.name || parsed.repo,
+              fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+              description: data.description || 'GitHub Application Repository',
+              defaultBranch: data.defaultBranch || 'main',
+              stars: data.stars || 0,
+              language: data.language || 'TypeScript',
+              files
+            };
+          }
         }
       }
     } catch (err: any) {
@@ -111,53 +202,233 @@ export async function fetchGithubRepositoryData(
   }
 
   try {
-    let repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers,
       signal: signal || AbortSignal.timeout(8000)
     });
-    let defaultBranch = 'main';
-    let repoData: Record<string, unknown> | null = null;
 
-    if (repoRes.ok) {
-      repoData = (await repoRes.json()) as Record<string, unknown>;
-      defaultBranch = typeof repoData.default_branch === 'string' ? repoData.default_branch : 'main';
+    if (!repoRes.ok) {
+      let bodyText = '';
+      try {
+        bodyText = await repoRes.text();
+      } catch {
+        bodyText = '';
+      }
+
+      const isRateLimit = isGitHubRateLimited(repoRes.status, repoRes.headers, bodyText, Boolean(effectiveToken));
+
+      if (isRateLimit) {
+        return {
+          name: repo,
+          fullName: `${owner}/${repo}`,
+          description: GITHUB_RATE_LIMIT_MESSAGE,
+          defaultBranch: 'main',
+          stars: 0,
+          language: 'TypeScript',
+          files: [
+            {
+              path: 'RATE_LIMIT_NOTICE.md',
+              content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
+            }
+          ]
+        };
+      }
+
+      return {
+        name: repo,
+        fullName: `${owner}/${repo}`,
+        description: 'Private or Unauthenticated GitHub Repository. Provide a GitHub PAT token in Settings to access private repos.',
+        defaultBranch: 'main',
+        stars: 0,
+        language: 'TypeScript',
+        files: [
+          {
+            path: 'repository-manifest.json',
+            content: JSON.stringify(
+              {
+                repository: `${owner}/${repo}`,
+                status: 'PRIVATE_OR_UNAUTHENTICATED',
+                notice: 'This repository is private or unauthenticated. Provide a GitHub Personal Access Token (PAT) in Settings to enable full source file AST scanning.'
+              },
+              null,
+              2
+            )
+          }
+        ]
+      };
+    }
+
+    const repoData = (await repoRes.json()) as Record<string, unknown>;
+    const detectedBranch = typeof repoData?.default_branch === 'string' && repoData.default_branch ? repoData.default_branch : 'main';
+
+    // Handle empty repository immediately if size is 0
+    if (typeof repoData?.size === 'number' && repoData.size === 0) {
+      return {
+        name: (repoData?.name as string) || repo,
+        fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
+        description: (repoData?.description as string) || 'Empty GitHub repository (no commits or files yet)',
+        defaultBranch: detectedBranch,
+        stars: (repoData?.stargazers_count as number) || 0,
+        language: (repoData?.language as string) || 'None',
+        files: [
+          {
+            path: 'README.md',
+            content: `# ${(repoData?.name as string) || repo}\n\nEmpty repository. No source files committed yet.`
+          }
+        ]
+      };
     }
 
     if (signal?.aborted) return null;
 
-    const treeRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`,
-      { headers, signal: signal || AbortSignal.timeout(10000) }
+    // Default branch detection with fallback checks for main, master, and develop
+    const candidateBranches = Array.from(
+      new Set([detectedBranch, 'main', 'master', 'develop'].filter(Boolean))
     );
+    let treeRes: Response | null = null;
+    let resolvedBranch = detectedBranch;
 
-    let treeFiles: { type: string; path: string }[] = [];
-    if (treeRes.ok) {
-      const treeData = (await treeRes.json()) as { tree?: { type: string; path: string }[] };
-      treeFiles = (treeData.tree || [])
-        .filter(
-          (item) =>
-            item.type === 'blob' &&
-            (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|c|cpp|cc|cxx|h|hpp|java|kt|kts|go|rs|php|cs|rb|swift|md|mdx|zelsisignore|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)|((?:^|\/)(?:dockerfile|makefile)$)/i.test(item.path)) &&
-            !item.path.includes('node_modules') &&
-            !item.path.includes('.next') &&
-            !item.path.includes('.git') &&
-            !item.path.includes('vendor/') &&
-            !item.path.includes('dist/') &&
-            !item.path.includes('build/') &&
-            !item.path.includes('.agent') &&
-            !item.path.includes('.antigravity') &&
-            !item.path.includes('artifacts') &&
-            !item.path.includes('venv/') &&
-            !item.path.includes('.venv/') &&
-            !item.path.includes('__pycache__/')
-        )
-        .slice(0, 150);
+    for (const branch of candidateBranches) {
+      if (signal?.aborted) return null;
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`,
+          { headers, signal: signal || AbortSignal.timeout(10000) }
+        );
+        if (res.ok) {
+          treeRes = res;
+          resolvedBranch = branch;
+          break;
+        } else if (res.status === 409) {
+          // GitHub returns 409 Conflict when repository is empty
+          treeRes = res;
+          resolvedBranch = branch;
+          break;
+        } else if (res.status === 403 || res.status === 429 || res.headers.get('x-ratelimit-remaining') === '0') {
+          treeRes = res;
+          break;
+        }
+      } catch (err: unknown) {
+        const errObj = err as { name?: string; message?: string };
+        if (errObj?.name === 'AbortError' || signal?.aborted) return null;
+      }
     }
+
+    if (signal?.aborted) return null;
+
+    // Handle tree fetch failure or empty repo or rate limit
+    if (!treeRes || !treeRes.ok) {
+      if (treeRes && treeRes.status === 409) {
+        return {
+          name: (repoData?.name as string) || repo,
+          fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
+          description: (repoData?.description as string) || 'Empty GitHub repository (no commits or files yet)',
+          defaultBranch: resolvedBranch,
+          stars: (repoData?.stargazers_count as number) || 0,
+          language: (repoData?.language as string) || 'None',
+          files: [
+            {
+              path: 'README.md',
+              content: `# ${(repoData?.name as string) || repo}\n\nEmpty repository. No source files committed yet.`
+            }
+          ]
+        };
+      }
+
+      let treeBody = '';
+      try {
+        if (treeRes) treeBody = await treeRes.text();
+      } catch {
+        treeBody = '';
+      }
+
+      const isTreeRateLimit =
+        treeRes && (
+          treeRes.status === 429 ||
+          treeRes.headers.get('x-ratelimit-remaining') === '0' ||
+          treeRes.headers.has('retry-after') ||
+          (treeRes.status === 403 && (/rate limit|secondary rate|abuse detection/i.test(treeBody) || !effectiveToken))
+        );
+
+      if (isTreeRateLimit) {
+        return {
+          name: (repoData?.name as string) || repo,
+          fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
+          description: GITHUB_RATE_LIMIT_MESSAGE,
+          defaultBranch: resolvedBranch,
+          stars: (repoData?.stargazers_count as number) || 0,
+          language: (repoData?.language as string) || 'TypeScript',
+          files: [
+            {
+              path: 'RATE_LIMIT_NOTICE.md',
+              content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
+            }
+          ]
+        };
+      }
+
+      return {
+        name: (repoData?.name as string) || repo,
+        fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
+        description: (repoData?.description as string) || 'GitHub repository files could not be retrieved',
+        defaultBranch: resolvedBranch,
+        stars: (repoData?.stargazers_count as number) || 0,
+        language: (repoData?.language as string) || 'TypeScript',
+        files: [
+          {
+            path: 'EMPTY_REPO_NOTICE.md',
+            content: `# ${(repoData?.name as string) || repo}\n\nNo branch trees could be loaded. Ensure the repository has committed files.`
+          }
+        ]
+      };
+    }
+
+    let treeData: { tree?: Array<{ type: string; path: string; size?: number }> } = {};
+    try {
+      treeData = (await treeRes.json()) as { tree?: Array<{ type: string; path: string; size?: number }> };
+    } catch {
+      treeData = { tree: [] };
+    }
+
+    const treeFiles = (treeData.tree || [])
+      .filter(
+        (item) =>
+          item.type === 'blob' &&
+          typeof item.path === 'string' &&
+          (!item.size || item.size <= 2000000) &&
+          (/(\.(ts|tsx|js|jsx|json|css|sql|html|py|yml|yaml|toml|sh|ps1|c|cpp|cc|cxx|h|hpp|java|kt|kts|go|rs|php|cs|rb|swift|md|mdx|zelsisignore|shipguardignore)$)|(\.env(\.[a-zA-Z0-9_\-]+)?$)|((?:^|\/)(?:dockerfile|makefile)$)/i.test(item.path)) &&
+          !item.path.includes('node_modules') &&
+          !item.path.includes('.next') &&
+          !item.path.includes('.git') &&
+          !item.path.includes('dist/') &&
+          !item.path.includes('build/') &&
+          !item.path.includes('vendor/') &&
+          !item.path.includes('.agent') &&
+          !item.path.includes('.antigravity') &&
+          !item.path.includes('artifacts') &&
+          !item.path.includes('venv/') &&
+          !item.path.includes('.venv/') &&
+          !item.path.includes('__pycache__/')
+      )
+      .slice(0, 150);
 
     if (signal?.aborted) return null;
 
     if (treeFiles.length === 0) {
-      console.warn('[GitHub API] Zero scannable files returned in repo tree, applying empty state fallback.');
+      return {
+        name: (repoData?.name as string) || repo,
+        fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
+        description: (repoData?.description as string) || 'Empty GitHub repository (0 scannable files)',
+        defaultBranch: resolvedBranch,
+        stars: (repoData?.stargazers_count as number) || 0,
+        language: (repoData?.language as string) || 'None',
+        files: [
+          {
+            path: 'README.md',
+            content: `# ${(repoData?.name as string) || repo}\n\nEmpty repository. No scannable source files found on branch ${resolvedBranch}.`
+          }
+        ]
+      };
     }
 
     const CHUNK_SIZE = 15;
@@ -169,15 +440,20 @@ export async function fetchGithubRepositoryData(
       const chunkResults = await Promise.all(
         chunk.map(async (file) => {
           try {
+            const encodedPath = file.path.split('/').map(encodeURIComponent).join('/');
             const rawRes = await fetch(
-              `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/${file.path}`,
+              `https://raw.githubusercontent.com/${owner}/${repo}/${resolvedBranch}/${encodedPath}`,
               {
-                headers: token ? { Authorization: `Bearer ${token.trim()}` } : {},
-                signal: signal || AbortSignal.timeout(5000)
+                headers: effectiveToken ? { Authorization: `token ${effectiveToken.trim()}` } : {},
+                signal: signal || AbortSignal.timeout(6000)
               }
             );
             if (rawRes.ok) {
-              const content = await rawRes.text();
+              let content = await rawRes.text();
+              // File size guard: cap at 200KB per-file limit to avoid ReDoS or memory exhaustion across rules
+              if (content.length > 200000) {
+                content = content.slice(0, 200000);
+              }
               return { path: file.path, content };
             }
           } catch (err: unknown) {
@@ -199,7 +475,7 @@ export async function fetchGithubRepositoryData(
         name: (repoData?.name as string) || repo,
         fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
         description: (repoData?.description as string) || 'GitHub Application Repository',
-        defaultBranch,
+        defaultBranch: resolvedBranch,
         stars: (repoData?.stargazers_count as number) || 0,
         language: (repoData?.language as string) || 'TypeScript',
         files: codeFiles
@@ -207,31 +483,23 @@ export async function fetchGithubRepositoryData(
     }
 
     return {
-      name: repo,
-      fullName: `${owner}/${repo}`,
-      description: 'Private GitHub Repository (AST Telemetry Audit Mode)',
-      defaultBranch: 'main',
-      stars: 0,
-      language: 'TypeScript',
+      name: (repoData?.name as string) || repo,
+      fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
+      description: (repoData?.description as string) || 'GitHub repository with no downloadable source files',
+      defaultBranch: resolvedBranch,
+      stars: (repoData?.stargazers_count as number) || 0,
+      language: (repoData?.language as string) || 'TypeScript',
       files: [
         {
-          path: 'repository-manifest.json',
-          content: JSON.stringify(
-            {
-              repository: `${owner}/${repo}`,
-              status: 'PRIVATE_OR_UNAUTHENTICATED',
-              notice: 'This repository is private. Provide a GitHub Personal Access Token (PAT) in Settings to enable full source file AST scanning.'
-            },
-            null,
-            2
-          )
+          path: 'EMPTY_REPO_NOTICE.md',
+          content: `# ${(repoData?.name as string) || repo}\n\nRaw source file content could not be retrieved.`
         }
       ]
     };
   } catch (err: unknown) {
     const errObj = err as { name?: string; message?: string };
     if (errObj?.name !== 'AbortError' && !signal?.aborted) {
-      console.warn(`Live GitHub API Fetch notice:`, errObj?.message || err);
+      console.warn('Live GitHub API Fetch notice:', errObj?.message || err);
     }
     return null;
   }

@@ -1,115 +1,74 @@
-# Universal Production Release Gatekeeper: Full-Spectrum SaaS Evolution (v17.0.0)
+# Master Orchestration Plan (v18.0.0)
+## Autonomous Browser Testing & Multi-Repository Stress-Audit
 
-Transform ShipGuard from a niche "AI Slop / Vibe Code" auditor into the definitive **Universal Production Release Gatekeeper** for all modern web and cloud engineering teams (Next.js, React, Node.js, Python, Fullstack, Cloud/DevOps).
-
----
-
-## User Review Required
-
-> [!IMPORTANT]
-> **Resolution for Question 3 ("Karar veremedim"):**
-> Instead of picking only one differentiator, we synthesize them into the **"Detect ➔ Gate ➔ Remediate" Triad**:
-> 1. **Automated CI/CD Gate:** Blocks non-compliant PRs automatically via `.github/workflows/shipguard-gate.yml` (`?failOnBlock=true`).
-> 2. **Instant 1-Click Fix:** Delivers unified `.patch` diffs and prompt directives (Claude/Cursor) so engineers don't waste time researching fixes.
-> 3. **Backlog Deliverables:** Exports directly to Jira / Linear / RFC 4180 CSV for sprint velocity.
-> This three-pillar value loop completely separates ShipGuard from noisy legacy scanners (like SonarQube or ESLint) and justifies $29–$99/month subscriptions.
-
-> [!NOTE]
-> All code, documentation, comments, and commit messages will strictly adhere to **100% Native English**. Turkish will be used for user-facing chat communication.
+### Executive Summary
+The user requested: `"/orchestrate /browser edip app'i rasgele repolarda deneyelim çalışma prensibimizde buglar var mı"`
+This plan establishes an end-to-end autonomous stress-testing and browser validation protocol for the Zelsis SaaS application (`https://shipguard-saas.vercel.app` and local runtime).
+The objective is to systematically test the repository scanning lifecycle on real, diverse, and randomly selected open-source GitHub repositories to uncover edge cases, architectural bottlenecks, API proxy rate limits, UI state locks, and rule engine evaluation defects.
 
 ---
 
-## Proposed Changes
+## 1. Test Matrix: Selected Public GitHub Repositories
 
-### Component 1: Universal Brand Positioning & Landing Experience
+To thoroughly stress-test all operational dimensions, we define a 5-tier repository test matrix:
 
-Eradicate the "AI-only hobby toy" stigma while maintaining modern AI-code awareness as a high-value subset.
-
-#### [MODIFY] [Hero.tsx](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/components/Hero.tsx)
-- Upgrade headline from *"The Release Gate for AI-Generated Software"* to:
-  **"The Production Release Gate for Modern Web & Cloud Applications."**
-- Upgrade subheadline to emphasize universal protection:
-  *"Ship with uncompromising confidence. ShipGuard automatically evaluates critical security vulnerabilities, UI/UX performance flaws, and cloud infrastructure risks before your code ever merges into production."*
-- Enhance the Live Interactive Code Auditor presets:
-  - Preset 1: 🚨 **Critical OWASP & Secret Exposure** (Hardcoded JWT/Stripe key, unauthenticated mutation, permissive RLS).
-  - Preset 2: ⚡ **UI Performance & Accessibility Defect** (Missing keyboard handlers, CLS layout shifts, unoptimized images).
-  - Preset 3: ☁️ **Cloud Infra & Docker Risk** (Root execution, missing memory limits, exposed internal ports).
-  - Preset 4: 🛡️ **Verified Production-Grade Release** (Zero findings, green release gate clearance).
-- Add clear visual badge highlighting the **"Detect ➔ Gate ➔ Remediate" Triad**.
-
-#### [MODIFY] [Navbar.tsx](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/components/Navbar.tsx)
-- Update brand tagline / descriptor from "AI Code Auditor" to "Production Release Gatekeeper".
-- Ensure navigation links reflect universal enterprise capabilities: *Security Audit, UI/UX Performance, Cloud Infra, CI/CD Gate, Pricing*.
-
-#### [MODIFY] [About.tsx](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/components/About.tsx) & [Services.tsx](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/components/Services.tsx)
-- Shift copy from "cleaning AI vibe code" to "pre-flight deployment clearance for modern engineering teams (human & AI-assisted)".
+| # | Target Repository | Domain / Language | Scale & Characteristics | Purpose |
+|---|---|---|---|---|
+| **R1** | `expressjs/express` | Node.js / JavaScript | Established mature web framework (~100 source files, middleware, route handlers) | Verify JS/Node backend rule triggers, auth patterns, and AST traversal. |
+| **R2** | `pallets/flask` | Python / WSGI | Core Python microframework (~40 Python modules, WSGI routing, CLI) | Verify Python enterprise rules, packaging patterns, and decorators. |
+| **R3** | `facebook/react` (sub-package / core) | TypeScript / React Web | Modern frontend component architecture (hooks, JSX, fiber reconciler) | Verify VibePolish, UI/UX accessibility, and React best practice rules. |
+| **R4** | `octocat/Hello-World` | Minimal / Git test | Micro-scale single README repository (1-2 files) | Verify boundary conditions: empty code trees, minimal file handling, clean zero-crash completion. |
+| **R5** | `vercel/next.js` (or sample Next.js template) | Fullstack Next.js App Router | Modern React 19, Server Components, edge routes, middleware | Verify Next.js App Router specific rules, edge security, and middleware analysis. |
 
 ---
 
-### Component 2: Full-Spectrum Rule Engine Expansion
+## 2. Core Functional Dimensions to Validate
 
-Expand the scanning engines to cover enterprise production standards across all 4 pillars:
+### A. Repository Ingestion & Validation
+1. **URL Sanitization & Parsing**: Validate `sanitizeTargetUrl` and `parseGithubUrl` against shorthand formats (`owner/repo`), SSH URLs (`git@github.com:...`), trailing slashes, and branch deep-links (`/tree/main/...`).
+2. **Modal Connection Flow**: Validate `ConnectTargetModal` state transitions, error messages on invalid input, and reactive addition to the project drawer.
 
-#### [MODIFY] [security-rules.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/lib/rules/security-rules.ts)
-Add universal enterprise rules:
-- **SEC-13 (CRITICAL): Dangerous XSS / Unsanitized HTML Injection**
-  - Detect unescaped `dangerouslySetInnerHTML={{ __html: ... }}` or `innerHTML = ...` without DOMPurify/sanitization.
-  - Provide unified `.patch` with sanitized input and explanation.
-- **SEC-14 (HIGH): Insecure JWT & Session Secret Fallbacks**
-  - Detect patterns like `process.env.JWT_SECRET || 'secret'` or `|| 'development'` in production auth logic.
-  - Provide immediate fix requiring strict environment variable enforcement.
-- **SEC-15 (HIGH): Unauthenticated API Mutation Route Handler**
-  - Detect Next.js `export async function POST / PUT / DELETE` handlers missing session verification or CSRF headers.
+### B. GitHub Proxy & Live Tree Fetching (`/api/v1/github-proxy`)
+1. **Tree API Chunking**: Test recursive Git tree retrieval (`/git/trees/{branch}?recursive=1`) and 25-file chunked raw content streaming.
+2. **Rate Limit Resilience**: Verify graceful fallback behavior when unauthenticated GitHub API encounters HTTP 403 / secondary rate limits (`x-ratelimit-remaining: 0`).
+3. **Binary / Non-Code Exclusion**: Ensure lockfiles, media, binaries, and giant artifacts are strictly excluded from the scan payload.
 
-#### [MODIFY] [frontend-rules.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/lib/rules/frontend-rules.ts)
-Add universal UI/UX, Performance, and Accessibility rules:
-- **UI-15 (HIGH): Inaccessible Clickable Container (WCAG 2.1 AA Violation)**
-  - Detect non-semantic clickable elements (`<div onClick=...>`, `<span onClick=...>`) missing `role="button"`, `tabIndex={0}`, and keyboard `onKeyDown` handlers.
-  - Provide `.patch` converting to `<button>` or adding full ARIA keyboard accessibility.
-- **UI-16 (MEDIUM): Cumulative Layout Shift (CLS) Hazard**
-  - Detect dynamic media or banner elements rendered conditionally without reserve height/skeleton containers.
-- **UI-17 (MEDIUM): Unmemoized Complex React Array Mapping**
-  - Detect unkeyed items (`.map((item) => <div>...</div>)`) or array index keys leading to React state corruption.
+### C. Static Scan Execution Across 7,850 Rules (`ScanRunnerView.tsx` & `scanner-engine.ts`)
+1. **Rule Engine Execution**: Run all 7,850 active rules (`SECURITY`, `UI_UX`, `LEGAL_COMPLIANCE`, `INFRA_DATABASE`) against real ingested source files.
+2. **Log Streaming & Animation**: Verify real-time log terminal formatting, time replacement, progress bar (0% -> 100%), and background tab throttling resilience.
+3. **Score & Status Calculation**: Ensure `calculateReadinessScore` and `calculateGateStatus` produce mathematically sound, non-negative scores (0-100) and proper gate statuses (`PASSED`, `WARNING`, `FAILED`).
 
-#### [MODIFY] [infra-rules.ts](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/lib/rules/infra-rules.ts)
-Add enterprise cloud and container rules:
-- **INFRA-06 (HIGH): Docker Container Running as Root User**
-  - Detect production Dockerfiles missing a dedicated non-root user (`USER node`, `USER appuser`, or `USER 1001`).
-- **INFRA-07 (MEDIUM): Missing Kubernetes Resource Limits (DoS Risk)**
-  - Detect Deployment/Pod specs lacking `resources.limits.cpu` and `resources.limits.memory`.
-- **INFRA-08 (MEDIUM): Missing Production Health Check Endpoint**
-  - Check whether projects define `/api/health` or `/healthz` for Kubernetes/AWS ALB liveness probes.
+### D. Audit Completion & View Transition
+1. **Countdown Auto-Transition**: Verify that when `countdownSeconds` reaches 0, `onCompleteScanRef.current(scanResult)` is reliably invoked without UI lockup.
+2. **Report View Population**: Verify that the findings list, severity counts (Critical, High, Medium, Low), and remediation diff patches render properly for the selected repository.
 
 ---
 
-### Component 3: Dashboard & Finding Inspector Polish
+## 3. Phase 2 Implementation Work Breakdown (3+ Specialized Agents)
 
-Ensure the dashboard interface clearly presents findings under universal engineering categories:
+Upon user approval, the following agents will execute concurrently:
 
-#### [MODIFY] [FindingDetailModal.tsx](file:///C:/Users/Bedirhan/.gemini/antigravity/worktrees/newday/evaluate_app_deployment_readiness/components/findings/FindingDetailModal.tsx)
-- Categorize findings clearly into: **Security (OWASP), UI/UX & A11y (WCAG), Cloud & DevOps, and Code Hygiene**.
-- Highlight the **"Detect ➔ Gate ➔ Remediate"** action flow on each finding:
-  - Tab 1: **Fix Patch** (One-click unified diff).
-  - Tab 2: **AI Remediation Directive** (Claude/Cursor prompt).
-  - Tab 3: **Jira / Linear** (One-click sprint ticket format).
+### Agent 1: `browser` (Automated Browser UI & End-to-End Journey Verification)
+- Navigate `https://shipguard-saas.vercel.app` in automated browser context.
+- Open `Connect Target` modal, input target repositories from the test matrix.
+- Initiate live scans, capture UI screenshots of scan progression, log streamer, and final audit report view.
+- Audit browser DevTools console for uncaught exceptions, unhandled Promise rejections, or network failures.
+
+### Agent 2: `backend-specialist` (GitHub Proxy & Ingestion Hardening)
+- Audit `lib/github-api.ts` and `app/api/v1/github-proxy/route.ts` against network timeouts, rate limit starvation, and oversized repository payloads.
+- Implement enhanced fallback handling for repos without default `main` branch (e.g. `master`, `dev`) and large file truncation guards.
+- Ensure 100% Native English in all logs and error messages.
+
+### Agent 3: `test-engineer` (Automated Repository Stress Runner & Assertions)
+- Create `scratch/stress_test_random_repos.ts` executing end-to-end API and engine scans across all 5 test matrix repositories.
+- Assert that every repository completes within acceptable time bounds (<30s), produces valid `ScanResult` schema, and experiences zero unhandled crashes.
+- Run `checklist.py`, `security_scan.py`, `tsc --noEmit`, and `npm run build`.
 
 ---
 
-## Verification Plan
-
-### Automated Tests
-1. **Rule Engine Unit Tests:**
-   - Run scratch test script validating all newly added SEC, UI, and INFRA rules against genuine code samples and false-positive edge cases.
-2. **TypeScript Compilation:**
-   - Execute `npx tsc --noEmit` to guarantee 0 type errors across the entire codebase.
-3. **Next.js Production Build:**
-   - Run `npm run build` to verify all 26 static and dynamic routes generate cleanly.
-4. **Antigravity Quality Suite:**
-   - Run `python .agent/scripts/checklist.py .` to ensure 100% compliance across Security, Lint, Schema, Tests, UX, and SEO.
-
-### Live Production Deployment Verification
-1. Synchronize changes to `C:\Users\Bedirhan\Desktop\newday`.
-2. Commit with descriptive semantic message:
-   `feat(platform): transform ShipGuard into universal production release gate for modern web and cloud applications (v17.0.0)`.
-3. Push to `origin main` and monitor Vercel production deployment.
-4. Execute `scratch/audit_saas_standards_v16.py` against live production URL to verify all routes return HTTP 200 with low latency.
+## 4. Acceptance Criteria
+- [ ] At least 4 distinct public GitHub repositories successfully ingested and scanned.
+- [ ] Zero unhandled exceptions or infinite loading states during scan runs.
+- [ ] Scan runner cleanly transitions to the completed audit report with exact finding counts.
+- [ ] GitHub proxy handles rate limits gracefully with informative user guidance.
+- [ ] All quality gates pass: 0 TypeScript errors, 100% Native English, 26/26 Next.js routes building cleanly.

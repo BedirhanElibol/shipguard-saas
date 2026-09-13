@@ -15,139 +15,204 @@ function CallbackHandler() {
 
   useEffect(() => {
     let isMounted = true;
+    let authSubscription: { unsubscribe: () => void } | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let isHandled = false;
 
-    async function processAuth() {
-      const errorParam = searchParams.get('error') || searchParams.get('error_description');
-      if (errorParam) {
-        if (isMounted) {
-          setStatus('error');
-          setMessage(decodeURIComponent(errorParam));
-        }
-        return;
+    const finalizeAuth = (user: any) => {
+      if (isHandled || !isMounted) return;
+      isHandled = true;
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
       }
 
-      const supabase = getSupabase();
-      if (!supabase) {
-        if (isMounted) {
-          setStatus('error');
-          setMessage('Supabase connection is not configured yet.');
-        }
-        return;
+      if (authSubscription) {
+        try {
+          authSubscription.unsubscribe();
+          authSubscription = null;
+        } catch {}
       }
 
       try {
+        const profile = mapSupabaseUserToProfile(user);
+        const finalProfile = mergeWithExistingSession(profile);
+
+        setStatus('success');
+        setMessage(`Welcome, @${finalProfile.name || 'User'}! Redirecting to dashboard...`);
+
+        setTimeout(() => {
+          if (isMounted) {
+            router.push('/dashboard');
+          }
+        }, 600);
+      } catch (finalizeErr: any) {
+        console.error('[Zelsis OAuth] Finalize session error:', finalizeErr);
+        setStatus('error');
+        setMessage('Failed to complete session setup. Please try again.');
+      }
+    };
+
+    const mergeWithExistingSession = (rawProfile: any) => {
+      const userEmail = (rawProfile.email || '').toLowerCase().trim();
+      const rawName = (rawProfile.name || '').toLowerCase().trim();
+      const isPlatformAdmin =
+        userEmail === 'bedirelibol7@gmail.com' ||
+        rawName === 'bedirhan elibol' ||
+        userEmail.endsWith('@zelsis.dev') ||
+        userEmail.endsWith('@zelsis.app');
+
+      let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (rawProfile.tier || 'Free');
+      let effectiveExpiresAt = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : rawProfile.expiresAt;
+      let effectiveStatus = rawProfile.status || 'active';
+
+      if (effectiveTier === 'Free') {
+        const savedLocalUserStr = localStorage.getItem('zelsis_user');
+        if (savedLocalUserStr) {
+          try {
+            const parsedLocal = JSON.parse(savedLocalUserStr);
+            const localEmail = (parsedLocal?.email || '').toLowerCase().trim();
+            // Strict account isolation: only adopt local session if email matches exactly
+            if (parsedLocal && localEmail && localEmail === userEmail && (parsedLocal.tier === 'Pro' || parsedLocal.tier === 'Enterprise')) {
+              const isNotExpired = !parsedLocal.expiresAt || new Date(parsedLocal.expiresAt).getTime() > Date.now();
+              if (isNotExpired) {
+                effectiveTier = parsedLocal.tier;
+                effectiveExpiresAt = parsedLocal.expiresAt;
+                effectiveStatus = parsedLocal.status || 'active';
+              }
+            }
+          } catch {}
+        }
+
+        const savedLic = localStorage.getItem('zelsis_license_key');
+        if (savedLic) {
+          const licResult = verifyLicenseKey(savedLic, userEmail);
+          if (licResult.valid && (licResult.tier === 'Pro' || licResult.tier === 'Enterprise')) {
+            effectiveTier = licResult.tier;
+            effectiveExpiresAt = licResult.expiresAt;
+          } else {
+            // Remove license key if it belonged to another account
+            localStorage.removeItem('zelsis_license_key');
+            localStorage.removeItem('shipguard_license_key');
+          }
+        }
+      }
+
+      if (effectiveTier !== 'Free' && !effectiveExpiresAt) {
+        effectiveExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      const merged = {
+        ...rawProfile,
+        name: rawProfile.name || (userEmail ? userEmail.split('@')[0] : 'User'),
+        tier: effectiveTier,
+        expiresAt: effectiveExpiresAt,
+        status: effectiveStatus,
+        lastVerifiedAt: Date.now(),
+      };
+
+      try {
+        localStorage.setItem('zelsis_user', JSON.stringify(merged));
+        localStorage.removeItem('shipguard_user');
+        if (typeof document !== 'undefined') {
+          const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+          document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(merged))}; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
+          document.cookie = `shipguard_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
+        }
+      } catch (storageErr) {
+        console.warn('[Zelsis OAuth] Storage write notice:', storageErr);
+      }
+
+      if (effectiveTier !== 'Free' && rawProfile.tier === 'Free') {
+        syncUserProfileToSupabase(merged).catch(() => {});
+      }
+
+      return merged;
+    };
+
+    async function processAuth() {
+      try {
+        const errorParam = searchParams.get('error') || searchParams.get('error_description');
+        if (errorParam) {
+          if (isMounted) {
+            setStatus('error');
+            setMessage(decodeURIComponent(errorParam));
+          }
+          return;
+        }
+
+        const supabase = getSupabase();
+        if (!supabase) {
+          if (isMounted) {
+            setStatus('error');
+            setMessage('Authentication service is currently unavailable.');
+          }
+          return;
+        }
+
         const code = searchParams.get('code');
         if (code) {
           setMessage('Verifying authorization code...');
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) {
-            console.warn('[Zelsis OAuth] Code exchange warning:', exchangeError.message);
+          try {
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+            if (exchangeError) {
+              console.warn('[Zelsis OAuth] Code exchange notice:', exchangeError.message);
+            }
+          } catch (codeExErr) {
+            console.warn('[Zelsis OAuth] exchangeCodeForSession exception:', codeExErr);
           }
         }
 
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-
-        const mergeWithExistingSession = (rawProfile: any) => {
-          const userEmail = (rawProfile.email || '').toLowerCase().trim();
-          const rawName = (rawProfile.name || '').toLowerCase().trim();
-          const isPlatformAdmin =
-            userEmail === 'bedirelibol7@gmail.com' ||
-            rawName === 'bedirhan elibol' ||
-            userEmail.endsWith('@zelsis.dev') ||
-            userEmail.endsWith('@zelsis.app');
-
-          let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (rawProfile.tier || 'Free');
-          let effectiveExpiresAt = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : rawProfile.expiresAt;
-          let effectiveStatus = rawProfile.status || 'active';
-
-          if (effectiveTier === 'Free') {
-            const savedLocalUserStr = localStorage.getItem('zelsis_user');
-            if (savedLocalUserStr) {
-              try {
-                const parsedLocal = JSON.parse(savedLocalUserStr);
-                const localEmail = (parsedLocal?.email || '').toLowerCase().trim();
-                // Strict account isolation: only adopt local session if email matches exactly
-                if (parsedLocal && (!localEmail || localEmail === userEmail) && (parsedLocal.tier === 'Pro' || parsedLocal.tier === 'Enterprise')) {
-                  const isNotExpired = !parsedLocal.expiresAt || new Date(parsedLocal.expiresAt).getTime() > Date.now();
-                  if (isNotExpired) {
-                    effectiveTier = parsedLocal.tier;
-                    effectiveExpiresAt = parsedLocal.expiresAt;
-                    effectiveStatus = parsedLocal.status || 'active';
-                  }
-                }
-              } catch {}
-            }
-
-            const savedLic = localStorage.getItem('zelsis_license_key');
-            if (savedLic) {
-              const licResult = verifyLicenseKey(savedLic, userEmail);
-              if (licResult.valid && (licResult.tier === 'Pro' || licResult.tier === 'Enterprise')) {
-                effectiveTier = licResult.tier;
-                effectiveExpiresAt = licResult.expiresAt;
-              }
-            }
-          }
-
-          if (effectiveTier !== 'Free' && !effectiveExpiresAt) {
-            effectiveExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-          }
-
-          const merged = {
-            ...rawProfile,
-            tier: effectiveTier,
-            expiresAt: effectiveExpiresAt,
-            status: effectiveStatus,
-            lastVerifiedAt: Date.now(),
-          };
-
-          localStorage.setItem('zelsis_user', JSON.stringify(merged));
-          if (typeof document !== 'undefined') {
-            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(merged))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-          }
-
-          if (effectiveTier !== 'Free' && rawProfile.tier === 'Free') {
-            syncUserProfileToSupabase(merged).catch(() => {});
-          }
-
-          return merged;
-        };
-
-        if (session && session.user) {
-          const profile = mapSupabaseUserToProfile(session.user);
-          const finalProfile = mergeWithExistingSession(profile);
-
-          if (isMounted) {
-            setStatus('success');
-            setMessage(`Welcome, @${finalProfile.name}! Redirecting to dashboard...`);
-          }
-
-          setTimeout(() => {
-            router.push('/dashboard');
-          }, 800);
-        } else {
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-            if (newSession && newSession.user && isMounted) {
-              const profile = mapSupabaseUserToProfile(newSession.user);
-              mergeWithExistingSession(profile);
-              setStatus('success');
-              setMessage('Sign in successful! Redirecting...');
-              subscription.unsubscribe();
-              setTimeout(() => {
-                router.push('/dashboard');
-              }, 800);
-            }
-          });
-
-          setTimeout(() => {
-            if (isMounted && status === 'loading') {
-              setStatus('error');
-              setMessage('Session timed out or authorization could not be completed.');
-            }
-          }, 6000);
+        // 1. Check if session is already available
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (!sessionError && sessionData?.session?.user) {
+          finalizeAuth(sessionData.session.user);
+          return;
         }
+
+        // 2. Set listener for session state changes (handles PKCE or hash-fragment completion)
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+          try {
+            if (newSession?.user && isMounted && !isHandled) {
+              finalizeAuth(newSession.user);
+            }
+          } catch (eventErr) {
+            console.error('[Zelsis OAuth] Event handler error:', eventErr);
+          }
+        });
+        authSubscription = authListener?.subscription || null;
+
+        // If the listener synchronously fired and finalized, unsubscribe immediately
+        if (isHandled) {
+          if (authSubscription) {
+            try {
+              authSubscription.unsubscribe();
+              authSubscription = null;
+            } catch {}
+          }
+          return;
+        }
+
+        // 3. Set a safety timeout
+        timeoutId = setTimeout(async () => {
+          if (!isMounted || isHandled) return;
+          try {
+            const { data: finalCheck } = await supabase.auth.getSession();
+            if (finalCheck?.session?.user) {
+              finalizeAuth(finalCheck.session.user);
+              return;
+            }
+          } catch {}
+
+          if (isMounted && status === 'loading') {
+            setStatus('error');
+            setMessage('Authentication timed out. Please return to the homepage and try signing in again.');
+          }
+        }, 7000);
+
       } catch (err: any) {
-        console.error('[Zelsis OAuth] Callback error:', err);
+        console.error('[Zelsis OAuth] Callback exception:', err);
         if (isMounted) {
           setStatus('error');
           setMessage(err?.message || 'An unexpected error occurred during authentication.');
@@ -159,8 +224,16 @@ function CallbackHandler() {
 
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      if (authSubscription) {
+        try {
+          authSubscription.unsubscribe();
+        } catch {}
+      }
     };
-  }, [router, searchParams, status]);
+  }, [router, searchParams]);
 
   return (
     <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-2xl backdrop-blur-xl text-center">
@@ -176,7 +249,7 @@ function CallbackHandler() {
       </div>
 
       <h1 className="text-xl font-bold text-white mb-2">
-        {status === 'loading' && 'Signing in with GitHub'}
+        {status === 'loading' && 'Authenticating with Provider'}
         {status === 'success' && 'Signed in Successfully'}
         {status === 'error' && 'Authentication Failed'}
       </h1>

@@ -145,10 +145,10 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   email_confirmed_at?: string | null;
 }): UserProfile {
   const metadata = supabaseUser?.user_metadata || {};
-  const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || supabaseUser?.email?.split('@')[0] || 'User';
-  const avatar = (metadata.avatar_url as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
-  
   const userEmailNorm = (supabaseUser?.email || '').toLowerCase().trim();
+  const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || (userEmailNorm ? userEmailNorm.split('@')[0] : 'User');
+  const avatar = (metadata.avatar_url as string) || (metadata.picture as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
+  
   const userNameNorm = ((metadata.user_name as string) || '').toLowerCase().trim();
   const rawNameNorm = rawName.toLowerCase().trim();
 
@@ -178,12 +178,17 @@ export function mapSupabaseUserToProfile(supabaseUser: {
     : ((metadata.billingCycle as 'monthly' | 'annual') || undefined);
 
   return {
-    name: rawName,
+    name: rawName || 'User',
     email: supabaseUser?.email || '',
     avatarUrl: avatar,
     tier,
     isLoggedIn: true,
-    emailVerified: Boolean(supabaseUser?.email_confirmed_at != null || supabaseUser?.app_metadata?.provider === 'github'),
+    emailVerified: Boolean(
+      supabaseUser?.email_confirmed_at != null ||
+      supabaseUser?.app_metadata?.provider === 'github' ||
+      supabaseUser?.app_metadata?.provider === 'google' ||
+      metadata.email_verified === true
+    ),
     expiresAt,
     status,
     gracePeriodUntil,

@@ -39,13 +39,19 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
   const handleResetCache = () => {
     if (typeof window !== 'undefined') {
       try {
+        localStorage.removeItem('zelsis_user');
         localStorage.removeItem('zelsis_projects');
         localStorage.removeItem('zelsis_selected_project_id');
+        localStorage.removeItem('zelsis_license_key');
+        localStorage.removeItem('shipguard_user');
         localStorage.removeItem('shipguard_projects');
         localStorage.removeItem('shipguard_selected_project_id');
+        localStorage.removeItem('shipguard_license_key');
         sessionStorage.clear();
-      } catch (_err) {
-        // Storage access may fail if cookies or storage are restricted
+        document.cookie = 'zelsis_user=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
+      } catch (err) {
+        console.warn('[Zelsis Error] Cache reset notice:', err);
       }
       window.location.href = '/dashboard';
     }
@@ -80,9 +86,16 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
                 {error.name || 'Error'}: {error.message || 'Unknown runtime error'}
               </p>
             ) : (
-              <p className="font-semibold text-white mb-1">
-                We encountered an issue completing this operation. Your audit data and local settings are safely preserved.
-              </p>
+              <div>
+                <p className="font-semibold text-white mb-1">
+                  We encountered an issue completing this operation. Your audit data and local settings are safely preserved.
+                </p>
+                {error?.message && (
+                  <p className="text-[0.72rem] text-zinc-400 mt-1 font-mono">
+                    Diagnostic: {error.message}
+                  </p>
+                )}
+              </div>
             )}
             {error.digest && (
               <p className="text-[0.7rem] text-[#A1A1AA] mt-2 border-t border-white/10 pt-2">

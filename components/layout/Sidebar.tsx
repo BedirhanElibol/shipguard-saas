@@ -188,7 +188,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {user.avatarUrl ? (
                 <Image
                   src={user.avatarUrl}
-                  alt={user.name}
+                  alt={user.name || 'User'}
                   width={32}
                   height={32}
                   className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
@@ -196,12 +196,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
-                  {user.name.charAt(0).toUpperCase()}
+                  {(user.name || 'User').charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-white truncate leading-tight group-hover:text-emerald-400 transition-colors">
-                  {user.name}
+                  {user.name || 'User'}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
                   <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${

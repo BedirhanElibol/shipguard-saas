@@ -200,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
                 {user.avatarUrl ? (
                   <Image
                     src={user.avatarUrl}
-                    alt={user.name}
+                    alt={user.name || 'User'}
                     width={28}
                     height={28}
                     className="w-7 h-7 rounded-full object-cover border border-white/20 shrink-0"
@@ -208,11 +208,11 @@ export const Header: React.FC<HeaderProps> = ({
                   />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-[10px] text-white shrink-0">
-                    {user.name.charAt(0).toUpperCase()}
+                    {(user.name || 'User').charAt(0).toUpperCase()}
                   </div>
                 )}
                 <span className="hidden sm:inline font-bold text-white max-w-[110px] truncate">
-                  {user.name}
+                  {user.name || 'User'}
                 </span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                   user.tier === 'Free'
@@ -232,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
                       {user.avatarUrl ? (
                         <Image
                           src={user.avatarUrl}
-                          alt={user.name}
+                          alt={user.name || 'User'}
                           width={32}
                           height={32}
                           className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
@@ -240,11 +240,11 @@ export const Header: React.FC<HeaderProps> = ({
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
-                          {user.name.charAt(0).toUpperCase()}
+                          {(user.name || 'User').charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-white truncate">{user.name}</div>
+                        <div className="font-bold text-white truncate">{user.name || 'User'}</div>
                         <div className="text-[10px] text-[#A1A1AA] truncate">{user.email}</div>
                       </div>
                     </div>

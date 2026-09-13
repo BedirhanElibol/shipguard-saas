@@ -550,118 +550,126 @@ export function useDashboardState() {
     let authSubscription: { unsubscribe: () => void } | null = null;
     if (supabase) {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (session && session.user) {
-          const profile = mapSupabaseUserToProfile(session.user);
-          const email = (profile.email || session.user.email || '').toLowerCase().trim();
-          const rawName = (profile.name || '').toLowerCase().trim();
-          const isPlatformAdmin =
-            email === 'bedirelibol7@gmail.com' ||
-            rawName === 'bedirhan elibol' ||
-            email.endsWith('@zelsis.dev') ||
-            email.endsWith('@zelsis.app');
+        try {
+          if (session && session.user) {
+            const profile = mapSupabaseUserToProfile(session.user);
+            const email = (profile.email || session.user.email || '').toLowerCase().trim();
+            const rawName = (profile.name || '').toLowerCase().trim();
+            const isPlatformAdmin =
+              email === 'bedirelibol7@gmail.com' ||
+              rawName === 'bedirhan elibol' ||
+              email.endsWith('@zelsis.dev') ||
+              email.endsWith('@zelsis.app');
 
-          let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (profile.tier || 'Free');
-          let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : profile.expiresAt;
-          let savedStatus: 'active' | 'past_due' | 'canceled' = (profile.status as any) || 'active';
+            let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (profile.tier || 'Free');
+            let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : profile.expiresAt;
+            let savedStatus: 'active' | 'past_due' | 'canceled' = (profile.status as any) || 'active';
 
-          const savedUserStr = localStorage.getItem('zelsis_user');
-          if (savedUserStr) {
-            try {
-              const localParsed = JSON.parse(savedUserStr);
-              const localEmail = (localParsed?.email || '').toLowerCase().trim();
-              // Strict account isolation: only adopt local session if email matches exactly
-              if (localParsed && (!localEmail || localEmail === email)) {
-                if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
-                  const localExpiry = localParsed?.expiresAt ? new Date(localParsed.expiresAt).getTime() : 0;
-                  if (localExpiry > Date.now() || !localParsed.expiresAt) {
-                    resolvedTier = localParsed.tier;
-                    if (!savedExpiresAt) savedExpiresAt = localParsed.expiresAt;
-                    savedStatus = localParsed.status || 'active';
+            const savedUserStr = localStorage.getItem('zelsis_user');
+            if (savedUserStr) {
+              try {
+                const localParsed = JSON.parse(savedUserStr);
+                const localEmail = (localParsed?.email || '').toLowerCase().trim();
+                // Strict account isolation: only adopt local session if email matches exactly
+                if (localParsed && localEmail && localEmail === email) {
+                  if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
+                    const localExpiry = localParsed?.expiresAt ? new Date(localParsed.expiresAt).getTime() : 0;
+                    if (localExpiry > Date.now() || !localParsed.expiresAt) {
+                      resolvedTier = localParsed.tier;
+                      if (!savedExpiresAt) savedExpiresAt = localParsed.expiresAt;
+                      savedStatus = localParsed.status || 'active';
+                    }
                   }
                 }
+              } catch (err) {
+                void err;
               }
-            } catch (err) {
-              void err;
             }
-          }
 
-          const savedLic = localStorage.getItem('zelsis_license_key');
-          if (savedLic) {
-            const licCheck = verifyLicenseKey(savedLic, email);
-            if (licCheck.valid) {
-              resolvedTier = licCheck.tier;
-              if (!savedExpiresAt) savedExpiresAt = licCheck.expiresAt;
+            const savedLic = localStorage.getItem('zelsis_license_key');
+            if (savedLic) {
+              const licCheck = verifyLicenseKey(savedLic, email);
+              if (licCheck.valid) {
+                resolvedTier = licCheck.tier;
+                if (!savedExpiresAt) savedExpiresAt = licCheck.expiresAt;
+              } else {
+                localStorage.removeItem('zelsis_license_key');
+                localStorage.removeItem('shipguard_license_key');
+              }
             }
-          }
 
-          // Query subscription sync API to ensure local and remote tiers are synchronized
-          if (email && session?.access_token) {
-            try {
-              const syncRes = await fetch('/api/v1/subscription/sync', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({ email }),
-              });
-              if (syncRes.ok) {
-                const syncData = await syncRes.json();
-                if (syncData.active && (syncData.tier === 'Pro' || syncData.tier === 'Enterprise')) {
-                  resolvedTier = syncData.tier;
-                  savedExpiresAt = syncData.expiresAt;
-                  savedStatus = syncData.status || 'active';
-                } else {
-                  // Only downgrade to Free if the subscription period has genuinely elapsed
-                  const expiryTime = savedExpiresAt ? new Date(savedExpiresAt).getTime() : 0;
-                  if (expiryTime > 0 && Date.now() > expiryTime) {
-                    resolvedTier = 'Free';
-                    savedExpiresAt = undefined;
-                    savedStatus = 'canceled';
-                  } else if (expiryTime > 0 && Date.now() <= expiryTime) {
-                    // Active paid period remains sacrosanct: do not downgrade on refresh or sync latency
-                    console.info('[Zelsis Subscription] Sync returned inactive, but period is valid until', savedExpiresAt);
+            // Query subscription sync API to ensure local and remote tiers are synchronized
+            if (email && session?.access_token) {
+              try {
+                const syncRes = await fetch('/api/v1/subscription/sync', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                  },
+                  body: JSON.stringify({ email }),
+                });
+                if (syncRes.ok) {
+                  const syncData = await syncRes.json();
+                  if (syncData.active && (syncData.tier === 'Pro' || syncData.tier === 'Enterprise')) {
+                    resolvedTier = syncData.tier;
+                    savedExpiresAt = syncData.expiresAt;
+                    savedStatus = syncData.status || 'active';
+                  } else {
+                    // Only downgrade to Free if the subscription period has genuinely elapsed
+                    const expiryTime = savedExpiresAt ? new Date(savedExpiresAt).getTime() : 0;
+                    if (expiryTime > 0 && Date.now() > expiryTime) {
+                      resolvedTier = 'Free';
+                      savedExpiresAt = undefined;
+                      savedStatus = 'canceled';
+                    } else if (expiryTime > 0 && Date.now() <= expiryTime) {
+                      // Active paid period remains sacrosanct: do not downgrade on refresh or sync latency
+                      console.info('[Zelsis Subscription] Sync returned inactive, but period is valid until', savedExpiresAt);
+                    }
                   }
                 }
+              } catch (err) {
+                void err;
               }
-            } catch (err) {
-              void err;
             }
-          }
 
-          if (resolvedTier !== 'Free') {
-            if (!savedExpiresAt) {
-              savedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            if (resolvedTier !== 'Free') {
+              if (!savedExpiresAt) {
+                savedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+              }
+              const currentLic = localStorage.getItem('zelsis_license_key');
+              if (!currentLic || !verifyLicenseKey(currentLic, email).valid) {
+                const planId = resolvedTier === 'Enterprise' ? 'vibecare' : 'zelsis-core';
+                const newKey = generateLicenseKey(planId, email);
+                localStorage.setItem('zelsis_license_key', newKey);
+                localStorage.setItem('shipguard_license_key', newKey);
+              }
             }
-            const currentLic = localStorage.getItem('zelsis_license_key');
-            if (!currentLic || !verifyLicenseKey(currentLic, email).valid) {
-              const planId = resolvedTier === 'Enterprise' ? 'vibecare' : 'zelsis-core';
-              const newKey = generateLicenseKey(planId, email);
-              localStorage.setItem('zelsis_license_key', newKey);
-              localStorage.setItem('shipguard_license_key', newKey);
+
+            const mergedProfile: UserProfile = {
+              ...profile,
+              name: profile.name || (email ? email.split('@')[0] : 'User'),
+              tier: resolvedTier,
+              expiresAt: savedExpiresAt,
+              status: savedStatus,
+              gracePeriodUntil: undefined,
+              lastVerifiedAt: Date.now(),
+            };
+
+            setUser(mergedProfile);
+            localStorage.setItem('zelsis_user', JSON.stringify(mergedProfile));
+            localStorage.removeItem('shipguard_user');
+
+            if (resolvedTier !== 'Free' && profile.tier === 'Free') {
+              syncUserProfileToSupabase(mergedProfile).catch(() => {});
             }
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            localStorage.removeItem('zelsis_user');
+            localStorage.removeItem('shipguard_user');
           }
-
-          const mergedProfile: UserProfile = {
-            ...profile,
-            tier: resolvedTier,
-            expiresAt: savedExpiresAt,
-            status: savedStatus,
-            gracePeriodUntil: undefined,
-            lastVerifiedAt: Date.now(),
-          };
-
-          setUser(mergedProfile);
-          localStorage.setItem('zelsis_user', JSON.stringify(mergedProfile));
-          localStorage.removeItem('shipguard_user');
-
-          if (resolvedTier !== 'Free' && profile.tier === 'Free') {
-            syncUserProfileToSupabase(mergedProfile).catch(() => {});
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          localStorage.removeItem('zelsis_user');
-          localStorage.removeItem('shipguard_user');
+        } catch (listenerErr) {
+          console.warn('[Zelsis Auth] State change listener notice:', listenerErr);
         }
       });
       authSubscription = data?.subscription || null;

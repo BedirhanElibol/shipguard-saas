@@ -139,3 +139,8 @@ export { HYPERSPECTRAL_SATELLITE_SENSING_RULES } from './hyperspectralSatelliteS
 export { HVDC_SUBSEA_CONVERTER_RULES } from './hvdcSubseaConverterRules';
 export { CRYOGENIC_HYDROGEN_BOILOFF_RULES } from './cryogenicHydrogenBoiloffRules';
 export { ZKML_PROOF_CIRCUIT_RULES } from './zkmlProofCircuitRules';
+export { TOKAMAK_FUSION_PLASMA_CONTROL_RULES } from './tokamakFusionPlasmaControlRules';
+export { SATELLITE_FORMATION_FLYING_SWARM_RULES } from './satelliteFormationFlyingSwarmRules';
+export { PHOTONIC_QUANTUM_COMPUTING_RULES } from './photonicQuantumComputingRules';
+export { DEEP_SEA_MINING_ROV_SAFETY_RULES } from './deepSeaMiningRovSafetyRules';
+export { SYNTHETIC_BIOLOGY_GENE_CIRCUIT_RULES } from './syntheticBiologyGeneCircuitRules';

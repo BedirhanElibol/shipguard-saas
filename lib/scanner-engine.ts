@@ -145,6 +145,11 @@ import { evaluateHyperspectralSatelliteSensingRules } from './rules/hyperspectra
 import { evaluateHvdcSubseaConverterRules } from './rules/hvdc-subsea-converter-rules';
 import { evaluateCryogenicHydrogenBoiloffRules } from './rules/cryogenic-hydrogen-boiloff-rules';
 import { evaluateZkmlProofCircuitRules } from './rules/zkml-proof-circuit-rules';
+import { evaluateTokamakFusionPlasmaControlRules } from './rules/tokamak-fusion-plasma-control-rules';
+import { evaluateSatelliteFormationFlyingSwarmRules } from './rules/satellite-formation-flying-swarm-rules';
+import { evaluatePhotonicQuantumComputingRules } from './rules/photonic-quantum-computing-rules';
+import { evaluateDeepSeaMiningRovSafetyRules } from './rules/deep-sea-mining-rov-safety-rules';
+import { evaluateSyntheticBiologyGeneCircuitRules } from './rules/synthetic-biology-gene-circuit-rules';
 
 export interface CodeFile {
   path: string;
@@ -338,6 +343,11 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
     const hvdcGridMatch = trimmed.match(/^HVDC-GRID-?(\d+)$/i);
     const cryoHydroMatch = trimmed.match(/^CRYO-HYDRO-?(\d+)$/i);
     const zkmlProofMatch = trimmed.match(/^ZKML-PROOF-?(\d+)$/i);
+    const tokamakPlasmaMatch = trimmed.match(/^TOKAMAK-PLASMA-?(\d+)$/i);
+    const satSwarmMatch = trimmed.match(/^SAT-SWARM-?(\d+)$/i);
+    const photonQcMatch = trimmed.match(/^PHOTON-QC-?(\d+)$/i);
+    const deepseaRovMatch = trimmed.match(/^DEEPSEA-ROV-?(\d+)$/i);
+    const synbioGeneMatch = trimmed.match(/^SYNBIO-GENE-?(\d+)$/i);
 
     const upper = trimmed.toUpperCase();
     if (upper === 'UI-A11Y-01' || upper === 'UI-A11Y' || upper === 'UI-26') {
@@ -1063,6 +1073,31 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
       const num = parseInt(zkmlProofMatch[1], 10);
       if (!isNaN(num)) {
         ignoredRuleIds.add(21100 + num);
+      }
+    } else if (tokamakPlasmaMatch) {
+      const num = parseInt(tokamakPlasmaMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21200 + num);
+      }
+    } else if (satSwarmMatch) {
+      const num = parseInt(satSwarmMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21300 + num);
+      }
+    } else if (photonQcMatch) {
+      const num = parseInt(photonQcMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21400 + num);
+      }
+    } else if (deepseaRovMatch) {
+      const num = parseInt(deepseaRovMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21500 + num);
+      }
+    } else if (synbioGeneMatch) {
+      const num = parseInt(synbioGeneMatch[1], 10);
+      if (!isNaN(num)) {
+        ignoredRuleIds.add(21600 + num);
       }
     } else if (uiMatch) {
       const num = parseInt(uiMatch[1], 10);
@@ -3896,6 +3931,62 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...zkmlProofResult.logs);
+
+    // Wave 30 Enterprise Release Gate Engines (Milestone 7,600 Rules):
+    // 140. Tokamak Fusion Plasma Control Gate (TOKAMAK-PLASMA-01 to 50, Rule IDs 21201-21250)
+    const tokamakPlasmaCounter = { count: findingCounter };
+    const tokamakPlasmaResult = evaluateTokamakFusionPlasmaControlRules(file, lines, cleanContent, tokamakPlasmaCounter);
+    findingCounter = tokamakPlasmaCounter.count;
+    for (const item of tokamakPlasmaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...tokamakPlasmaResult.logs);
+
+    // 141. Satellite Formation Flying Swarm Gate (SAT-SWARM-01 to 50, Rule IDs 21301-21350)
+    const satSwarmCounter = { count: findingCounter };
+    const satSwarmResult = evaluateSatelliteFormationFlyingSwarmRules(file, lines, cleanContent, satSwarmCounter);
+    findingCounter = satSwarmCounter.count;
+    for (const item of satSwarmResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...satSwarmResult.logs);
+
+    // 142. Photonic Quantum Computing Gate (PHOTON-QC-01 to 50, Rule IDs 21401-21450)
+    const photonQcCounter = { count: findingCounter };
+    const photonQcResult = evaluatePhotonicQuantumComputingRules(file, lines, cleanContent, photonQcCounter);
+    findingCounter = photonQcCounter.count;
+    for (const item of photonQcResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...photonQcResult.logs);
+
+    // 143. Deep Sea Mining ROV Safety Gate (DEEPSEA-ROV-01 to 50, Rule IDs 21501-21550)
+    const deepseaRovCounter = { count: findingCounter };
+    const deepseaRovResult = evaluateDeepSeaMiningRovSafetyRules(file, lines, cleanContent, deepseaRovCounter);
+    findingCounter = deepseaRovCounter.count;
+    for (const item of deepseaRovResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...deepseaRovResult.logs);
+
+    // 144. Synthetic Biology Gene Circuit Gate (SYNBIO-GENE-01 to 50, Rule IDs 21601-21650)
+    const synbioGeneCounter = { count: findingCounter };
+    const synbioGeneResult = evaluateSyntheticBiologyGeneCircuitRules(file, lines, cleanContent, synbioGeneCounter);
+    findingCounter = synbioGeneCounter.count;
+    for (const item of synbioGeneResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...synbioGeneResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

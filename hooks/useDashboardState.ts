@@ -750,13 +750,47 @@ export function useDashboardState() {
       const res = await supabaseSignUp(email, pass, name || '');
       if (res.error) throw new Error(res.error);
       const derivedName = name?.trim() || res.user?.name || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
+
+      let resolvedSignUpTier: 'Free' | 'Pro' | 'Enterprise' = res.user?.tier || 'Free';
+      let resolvedSignUpExpiresAt: string | undefined = undefined;
+
+      const savedUserStr = localStorage.getItem('zelsis_user');
+      if (savedUserStr) {
+        try {
+          const parsed = JSON.parse(savedUserStr);
+          if (parsed && (parsed.tier === 'Pro' || parsed.tier === 'Enterprise')) {
+            const isNotExpired = !parsed.expiresAt || new Date(parsed.expiresAt).getTime() > Date.now();
+            if (isNotExpired) {
+              resolvedSignUpTier = parsed.tier;
+              resolvedSignUpExpiresAt = parsed.expiresAt;
+            }
+          }
+        } catch {}
+      }
+
+      const savedLic = localStorage.getItem('zelsis_license_key');
+      if (savedLic) {
+        const lic = verifyLicenseKey(savedLic, email.trim());
+        if (lic.valid && (lic.tier === 'Pro' || lic.tier === 'Enterprise')) {
+          resolvedSignUpTier = lic.tier;
+          resolvedSignUpExpiresAt = lic.expiresAt;
+        }
+      }
+
+      if (resolvedSignUpTier !== 'Free' && !resolvedSignUpExpiresAt) {
+        resolvedSignUpExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+
       const newUser: UserProfile = {
         name: derivedName,
         email: email.trim(),
         avatarUrl: res.user?.avatarUrl || undefined,
-        tier: res.user?.tier || 'Free',
+        tier: resolvedSignUpTier,
         isLoggedIn: true,
-        emailVerified: res.user?.emailVerified ?? false
+        emailVerified: res.user?.emailVerified ?? false,
+        expiresAt: resolvedSignUpExpiresAt,
+        status: 'active',
+        lastVerifiedAt: Date.now(),
       };
       setUser(newUser);
       safeSetStorageItem('zelsis_user', JSON.stringify(newUser));
@@ -764,6 +798,13 @@ export function useDashboardState() {
       if (typeof document !== 'undefined') {
         document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(newUser))}; path=/; max-age=2592000; SameSite=Lax`;
         document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
+      }
+      if (resolvedSignUpTier !== 'Free') {
+        const planId = resolvedSignUpTier === 'Enterprise' ? 'vibecare' : 'zelsis-core';
+        const validKey = generateLicenseKey(planId, email.trim());
+        localStorage.setItem('zelsis_license_key', validKey);
+        localStorage.setItem('shipguard_license_key', validKey);
+        syncUserProfileToSupabase(newUser).catch(() => {});
       }
     } else {
       const res = await supabaseSignIn(email, pass);

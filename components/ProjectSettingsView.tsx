@@ -110,17 +110,21 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             message: `Active ${data.tier} subscription confirmed! Renews / valid until: ${dateStr}`,
           });
         } else {
-          // Guard against false downgrades: check if local subscription period is still active
+          // Guard against false downgrades: check if local subscription period is still active or valid license held
+          const currentLic = typeof window !== 'undefined' ? localStorage.getItem('zelsis_license_key') : null;
+          const hasValidLicense = Boolean(
+            currentLic && verifyLicenseKey(currentLic, user.email).valid
+          );
           const isLocallyActive = Boolean(
             user.tier !== 'Free' &&
             (!user.expiresAt || new Date(user.expiresAt).getTime() > Date.now())
           );
 
-          if (isLocallyActive) {
+          if (isLocallyActive || hasValidLicense) {
             const dateStr = formatRenewalDate(user.expiresAt);
             setSyncFeedback({
               status: 'success',
-              message: `Active ${user.tier} plan verified via local authorization. Renews / valid until: ${dateStr}`,
+              message: `Active ${user.tier} plan preserved (offline/grace verification). Renews / valid until: ${dateStr}`,
             });
           } else {
             const updatedUser: UserProfile = {
@@ -177,7 +181,10 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       if (onUpdateUser && user) {
         onUpdateUser({
           ...user,
-          tier: result.tier
+          tier: result.tier,
+          expiresAt: result.expiresAt,
+          status: 'active',
+          lastVerifiedAt: Date.now(),
         });
       }
     } else {
@@ -210,12 +217,18 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       return;
     }
     const updatedUser: UserProfile = {
+      ...user,
       name: profileName.trim() || user.name || 'User',
       email: profileEmail.trim() || user.email || '',
       avatarUrl: profileAvatarUrl.trim() || undefined,
       tier: user.tier || 'Free',
       isLoggedIn: true,
-      emailVerified: user.emailVerified ?? true
+      emailVerified: user.emailVerified ?? true,
+      expiresAt: user.expiresAt,
+      status: user.status,
+      gracePeriodUntil: user.gracePeriodUntil,
+      billingCycle: user.billingCycle,
+      lastVerifiedAt: user.lastVerifiedAt || Date.now(),
     };
     if (onUpdateUser) {
       onUpdateUser(updatedUser);

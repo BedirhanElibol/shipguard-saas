@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 // EmptyState fallback: static pricing plan definitions never yield empty list
-import { generateLicenseKey, activateUserTier } from '@/lib/stripe-checkout';
+import { generateLicenseKey, activateUserTier, verifyLicenseKey } from '@/lib/stripe-checkout';
 import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2 } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { formatRenewalDate } from '@/lib/subscription-utils';
@@ -696,11 +696,31 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           cleanupAuthQueryParam();
         }}
         onLoginSuccess={(authedUser) => {
-          setCurrentUser(authedUser);
+          let resolvedTier = authedUser.tier || 'Free';
+          let resolvedExpiresAt = authedUser.expiresAt;
+          const savedLic = typeof window !== 'undefined' ? localStorage.getItem('zelsis_license_key') : null;
+          if (savedLic) {
+            const licResult = verifyLicenseKey(savedLic, authedUser.email);
+            if (licResult.valid && (licResult.tier === 'Pro' || licResult.tier === 'Enterprise')) {
+              resolvedTier = licResult.tier;
+              resolvedExpiresAt = licResult.expiresAt;
+            }
+          }
+          if (resolvedTier !== 'Free' && !resolvedExpiresAt) {
+            resolvedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
+          const finalUser: UserProfile = {
+            ...authedUser,
+            tier: resolvedTier,
+            expiresAt: resolvedExpiresAt,
+            status: resolvedTier !== 'Free' ? 'active' : (authedUser.status || 'active'),
+            lastVerifiedAt: Date.now(),
+          };
+          setCurrentUser(finalUser);
           setIsInternalAuthModalOpen(false);
           cleanupAuthQueryParam();
           try {
-            localStorage.setItem('zelsis_user', JSON.stringify(authedUser));
+            localStorage.setItem('zelsis_user', JSON.stringify(finalUser));
             localStorage.removeItem('shipguard_user');
           } catch (err) {
             console.warn('[CheckoutView] Failed to persist user session:', err);

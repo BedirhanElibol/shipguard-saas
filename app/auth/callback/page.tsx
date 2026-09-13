@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getSupabase, mapSupabaseUserToProfile } from '@/lib/supabase';
+import { getSupabase, mapSupabaseUserToProfile, syncUserProfileToSupabase } from '@/lib/supabase';
+import { verifyLicenseKey } from '@/lib/stripe-checkout';
 import { Shield, Loader2, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -47,16 +48,69 @@ function CallbackHandler() {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
 
+        const mergeWithExistingSession = (rawProfile: any) => {
+          const userEmail = (rawProfile.email || '').toLowerCase().trim();
+          let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = rawProfile.tier || 'Free';
+          let effectiveExpiresAt = rawProfile.expiresAt;
+          let effectiveStatus = rawProfile.status || 'active';
+
+          if (effectiveTier === 'Free') {
+            const savedLocalUserStr = localStorage.getItem('zelsis_user');
+            if (savedLocalUserStr) {
+              try {
+                const parsedLocal = JSON.parse(savedLocalUserStr);
+                if (parsedLocal && (parsedLocal.tier === 'Pro' || parsedLocal.tier === 'Enterprise')) {
+                  const isNotExpired = !parsedLocal.expiresAt || new Date(parsedLocal.expiresAt).getTime() > Date.now();
+                  if (isNotExpired) {
+                    effectiveTier = parsedLocal.tier;
+                    effectiveExpiresAt = parsedLocal.expiresAt;
+                    effectiveStatus = parsedLocal.status || 'active';
+                  }
+                }
+              } catch {}
+            }
+
+            const savedLic = localStorage.getItem('zelsis_license_key');
+            if (savedLic) {
+              const licResult = verifyLicenseKey(savedLic, userEmail);
+              if (licResult.valid && (licResult.tier === 'Pro' || licResult.tier === 'Enterprise')) {
+                effectiveTier = licResult.tier;
+                effectiveExpiresAt = licResult.expiresAt;
+              }
+            }
+          }
+
+          if (effectiveTier !== 'Free' && !effectiveExpiresAt) {
+            effectiveExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
+
+          const merged = {
+            ...rawProfile,
+            tier: effectiveTier,
+            expiresAt: effectiveExpiresAt,
+            status: effectiveStatus,
+            lastVerifiedAt: Date.now(),
+          };
+
+          localStorage.setItem('zelsis_user', JSON.stringify(merged));
+          if (typeof document !== 'undefined') {
+            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(merged))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
+          }
+
+          if (effectiveTier !== 'Free' && rawProfile.tier === 'Free') {
+            syncUserProfileToSupabase(merged).catch(() => {});
+          }
+
+          return merged;
+        };
+
         if (session && session.user) {
           const profile = mapSupabaseUserToProfile(session.user);
-          localStorage.setItem('zelsis_user', JSON.stringify(profile));
-          if (typeof document !== 'undefined') {
-            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-          }
+          const finalProfile = mergeWithExistingSession(profile);
 
           if (isMounted) {
             setStatus('success');
-            setMessage(`Welcome, @${profile.name}! Redirecting to dashboard...`);
+            setMessage(`Welcome, @${finalProfile.name}! Redirecting to dashboard...`);
           }
 
           setTimeout(() => {
@@ -66,10 +120,7 @@ function CallbackHandler() {
           const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
             if (newSession && newSession.user && isMounted) {
               const profile = mapSupabaseUserToProfile(newSession.user);
-              localStorage.setItem('zelsis_user', JSON.stringify(profile));
-              if (typeof document !== 'undefined') {
-                document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(profile))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-              }
+              mergeWithExistingSession(profile);
               setStatus('success');
               setMessage('Sign in successful! Redirecting...');
               subscription.unsubscribe();

@@ -95,22 +95,45 @@ export async function POST(req: NextRequest) {
 
         logger.info(`[Stripe Webhook] Checkout completed for email: ${customerEmail}, ref: ${clientReferenceId}, tier: ${tier}`);
 
-        // Synchronize tier to Supabase profiles table if available
-        const supabase = getSupabase();
-        if (supabase && customerEmail) {
-          try {
-            const { error: dbError } = await supabase
-              .from('profiles')
-              .update({ tier, updated_at: new Date().toISOString() })
-              .eq('email', customerEmail);
-
-            if (dbError) {
-              logger.warn(`[Stripe Webhook] Failed to update profile tier in Supabase: ${dbError.message}`);
-            } else {
-              logger.info(`[Stripe Webhook] Supabase profile tier updated to "${tier}" for ${customerEmail}`);
+        // Synchronize tier to Supabase using service role if configured
+        if (customerEmail) {
+          const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          if (serviceRoleKey && supabaseUrl) {
+            try {
+              const { createClient } = await import('@supabase/supabase-js');
+              const adminClient = createClient(supabaseUrl, serviceRoleKey);
+              const { data: users } = await adminClient.auth.admin.listUsers();
+              const matchedUser = users?.users?.find(
+                (u: { email?: string; id: string }) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+              );
+              if (matchedUser) {
+                await adminClient.auth.admin.updateUserById(matchedUser.id, {
+                  user_metadata: { tier, subscriptionStatus: 'active' }
+                });
+                await adminClient.from('subscriptions').upsert({
+                  user_id: matchedUser.id,
+                  plan_tier: tier,
+                  status: 'active',
+                  current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+              }
+            } catch (adminErr: any) {
+              logger.warn(`[Stripe Webhook] Admin sync notice: ${adminErr?.message}`);
             }
-          } catch (syncErr: any) {
-            logger.warn(`[Stripe Webhook] Supabase sync exception: ${syncErr?.message}`);
+          }
+
+          const supabase = getSupabase();
+          if (supabase) {
+            try {
+              await supabase
+                .from('profiles')
+                .update({ tier, updated_at: new Date().toISOString() })
+                .eq('email', customerEmail);
+            } catch (syncErr: any) {
+              logger.warn(`[Stripe Webhook] Supabase sync exception: ${syncErr?.message}`);
+            }
           }
         }
         break;
@@ -130,6 +153,32 @@ export async function POST(req: NextRequest) {
         
         // Downgrade user tier to Free
         if (cancelEmail) {
+          const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          if (serviceRoleKey && supabaseUrl) {
+            try {
+              const { createClient } = await import('@supabase/supabase-js');
+              const adminClient = createClient(supabaseUrl, serviceRoleKey);
+              const { data: users } = await adminClient.auth.admin.listUsers();
+              const matchedUser = users?.users?.find(
+                (u: { email?: string; id: string }) => u.email?.toLowerCase() === cancelEmail.toLowerCase()
+              );
+              if (matchedUser) {
+                await adminClient.auth.admin.updateUserById(matchedUser.id, {
+                  user_metadata: { tier: 'Free', subscriptionStatus: 'canceled' }
+                });
+                await adminClient.from('subscriptions').upsert({
+                  user_id: matchedUser.id,
+                  plan_tier: 'Free',
+                  status: 'canceled',
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+              }
+            } catch (adminErr: any) {
+              logger.warn(`[Stripe Webhook] Admin cancel notice: ${adminErr?.message}`);
+            }
+          }
+
           const supabase = getSupabase();
           if (supabase) {
             await supabase
@@ -156,6 +205,26 @@ export async function POST(req: NextRequest) {
         // After 3 failed attempts, downgrade to Free
         const attemptCount = invoice?.attempt_count || 0;
         if (failedEmail && attemptCount >= 3) {
+          const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          if (serviceRoleKey && supabaseUrl) {
+            try {
+              const { createClient } = await import('@supabase/supabase-js');
+              const adminClient = createClient(supabaseUrl, serviceRoleKey);
+              const { data: users } = await adminClient.auth.admin.listUsers();
+              const matchedUser = users?.users?.find(
+                (u: { email?: string; id: string }) => u.email?.toLowerCase() === failedEmail.toLowerCase()
+              );
+              if (matchedUser) {
+                await adminClient.auth.admin.updateUserById(matchedUser.id, {
+                  user_metadata: { tier: 'Free', subscriptionStatus: 'past_due' }
+                });
+              }
+            } catch (adminErr: any) {
+              logger.warn(`[Stripe Webhook] Admin failed payment notice: ${adminErr?.message}`);
+            }
+          }
+
           const supabase = getSupabase();
           if (supabase) {
             await supabase

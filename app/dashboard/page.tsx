@@ -23,6 +23,7 @@ import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
 import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter } from 'next/navigation';
+import { verifyLicenseKey } from '@/lib/stripe-checkout';
 import { ShieldCheck, Plus } from 'lucide-react';
 import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
 
@@ -418,7 +419,27 @@ function DashboardContent() {
           }
         }}
         onLoginSuccess={(loggedUser) => {
-          setUser(loggedUser);
+          let resolvedTier = loggedUser.tier || 'Free';
+          let resolvedExpiresAt = loggedUser.expiresAt;
+          const savedLic = typeof window !== 'undefined' ? localStorage.getItem('zelsis_license_key') : null;
+          if (savedLic) {
+            const licResult = verifyLicenseKey(savedLic, loggedUser.email);
+            if (licResult.valid && (licResult.tier === 'Pro' || licResult.tier === 'Enterprise')) {
+              resolvedTier = licResult.tier;
+              resolvedExpiresAt = licResult.expiresAt;
+            }
+          }
+          if (resolvedTier !== 'Free' && !resolvedExpiresAt) {
+            resolvedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
+          const finalUser: UserProfile = {
+            ...loggedUser,
+            tier: resolvedTier,
+            expiresAt: resolvedExpiresAt,
+            status: resolvedTier !== 'Free' ? 'active' : (loggedUser.status || 'active'),
+            lastVerifiedAt: Date.now(),
+          };
+          setUser(finalUser);
           setIsAuthModalOpen(false);
           if (typeof window !== 'undefined') {
             const cleanUrl = new URL(window.location.href);
@@ -428,8 +449,8 @@ function DashboardContent() {
             }
           }
           try {
-            localStorage.setItem('zelsis_user', JSON.stringify(loggedUser));
-            localStorage.setItem('shipguard_user', JSON.stringify(loggedUser));
+            localStorage.setItem('zelsis_user', JSON.stringify(finalUser));
+            localStorage.setItem('shipguard_user', JSON.stringify(finalUser));
           } catch (e: unknown) {
             console.warn('[Zelsis Auth] Failed to persist user session:', e);
           }

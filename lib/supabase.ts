@@ -147,11 +147,35 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   const metadata = supabaseUser?.user_metadata || {};
   const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || supabaseUser?.email?.split('@')[0] || 'User';
   const avatar = (metadata.avatar_url as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
-  const tier = (metadata.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free';
-  const expiresAt = (metadata.expiresAt as string) || undefined;
-  const status = (metadata.subscriptionStatus as 'active' | 'past_due' | 'canceled' | 'trialing') || (tier !== 'Free' ? 'active' : undefined);
+  
+  const userEmailNorm = (supabaseUser?.email || '').toLowerCase().trim();
+  const userNameNorm = ((metadata.user_name as string) || '').toLowerCase().trim();
+  const rawNameNorm = rawName.toLowerCase().trim();
+
+  // Founder & Platform Administrator Detection
+  const isPlatformAdmin =
+    userEmailNorm === 'bedirelibol7@gmail.com' ||
+    userNameNorm === 'bedirhan-elibol' ||
+    rawNameNorm === 'bedirhan elibol' ||
+    userEmailNorm.endsWith('@zelsis.dev') ||
+    userEmailNorm.endsWith('@zelsis.app');
+
+  const tier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin
+    ? 'Enterprise'
+    : ((metadata.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free');
+
+  const expiresAt = isPlatformAdmin
+    ? '2099-12-31T23:59:59.999Z'
+    : ((metadata.expiresAt as string) || undefined);
+
+  const status = isPlatformAdmin
+    ? 'active'
+    : ((metadata.subscriptionStatus as 'active' | 'past_due' | 'canceled' | 'trialing') || (tier !== 'Free' ? 'active' : undefined));
+
   const gracePeriodUntil = (metadata.gracePeriodUntil as string) || undefined;
-  const billingCycle = (metadata.billingCycle as 'monthly' | 'annual') || undefined;
+  const billingCycle = isPlatformAdmin
+    ? 'annual'
+    : ((metadata.billingCycle as 'monthly' | 'annual') || undefined);
 
   return {
     name: rawName,

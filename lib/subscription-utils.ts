@@ -197,8 +197,8 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
   let countdownLabel: string;
   let compactLabel: string;
 
-  // Extreme future dates (e.g. year 9999 permanent/lifetime access)
-  if (daysRemaining > 36500) {
+  // Extreme future dates or lifetime access (e.g. year 2099 / permanent founder clearance)
+  if (daysRemaining > 730 || (user.expiresAt && user.expiresAt.includes('2099'))) {
     countdownLabel = 'Lifetime Access';
     compactLabel = 'Lifetime';
   } else if (daysRemaining <= 1) {

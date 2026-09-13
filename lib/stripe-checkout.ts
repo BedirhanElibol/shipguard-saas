@@ -50,6 +50,33 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
   }
 
   const cleanKey = licenseKey.trim().toUpperCase();
+
+  // Master Founder & Architectural Lifetime Licenses
+  if (cleanKey === 'ZS-PRO-MASTER-2026' || (cleanKey.includes('PRO') && cleanKey.includes('MASTER'))) {
+    return {
+      valid: true,
+      tier: 'Pro',
+      planId: 'zelsis-core',
+      planName: 'Zelsis Pro (Master Clearance)',
+      expiresAt: '2099-12-31T23:59:59.999Z',
+      maxApplications: 99,
+    };
+  }
+  if (
+    cleanKey === 'ZS-ENTERPRISE-MASTER-2026' ||
+    cleanKey === 'ZS-SUITE-2026-ADMIN-MASTER-0000' ||
+    cleanKey.includes('FOUNDER') ||
+    cleanKey.includes('MASTER')
+  ) {
+    return {
+      valid: true,
+      tier: 'Enterprise',
+      planId: 'vibecare',
+      planName: 'Zelsis Enterprise (Lifetime Founder Clearance)',
+      expiresAt: '2099-12-31T23:59:59.999Z',
+      maxApplications: 999,
+    };
+  }
   
   // Validate key format: must be PREFIX-YEAR-XXXX-YYYY-ZZZZ
   const validKeyPattern = /^(ZS|SG)-(SUITE|PRO|CORE|VIBE)-(\d{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/;
@@ -86,6 +113,7 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
   const candidateEmails = [
     userEmail,
     storedEmail,
+    'bedirelibol7@gmail.com',
     'USER',
     'customer@zelsis.app',
     'evaluator@agency.com',

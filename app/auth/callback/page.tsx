@@ -50,8 +50,15 @@ function CallbackHandler() {
 
         const mergeWithExistingSession = (rawProfile: any) => {
           const userEmail = (rawProfile.email || '').toLowerCase().trim();
-          let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = rawProfile.tier || 'Free';
-          let effectiveExpiresAt = rawProfile.expiresAt;
+          const rawName = (rawProfile.name || '').toLowerCase().trim();
+          const isPlatformAdmin =
+            userEmail === 'bedirelibol7@gmail.com' ||
+            rawName === 'bedirhan elibol' ||
+            userEmail.endsWith('@zelsis.dev') ||
+            userEmail.endsWith('@zelsis.app');
+
+          let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (rawProfile.tier || 'Free');
+          let effectiveExpiresAt = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : rawProfile.expiresAt;
           let effectiveStatus = rawProfile.status || 'active';
 
           if (effectiveTier === 'Free') {

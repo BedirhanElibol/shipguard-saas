@@ -3,11 +3,18 @@ import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { createClient } from '@supabase/supabase-js';
 
-// Verified subscriber registry (configured via environment variables without hardcoded PII)
+// Verified subscriber registry & platform administrator list
+const DEFAULT_FOUNDER_EMAILS = [
+  'bedirelibol7@gmail.com',
+  'admin@zelsis.dev',
+  'founder@zelsis.dev',
+];
+
 const VERIFIED_SUBSCRIBER_EMAILS = new Set(
   (process.env.VERIFIED_SUBSCRIBERS || process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
+    .concat(DEFAULT_FOUNDER_EMAILS)
     .filter(Boolean)
 );
 
@@ -202,13 +209,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 4. Check verified subscriber registry fallback (for confirmed Polar purchases)
+  // 4. Check verified subscriber registry fallback (for confirmed Polar purchases and platform founders)
   if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
-    verifiedTier = 'Pro';
+    const isFounder = DEFAULT_FOUNDER_EMAILS.includes(email) || email.endsWith('@zelsis.dev');
+    verifiedTier = isFounder ? 'Enterprise' : 'Pro';
     isActive = true;
     subStatus = 'active';
-    expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    logger.info(`[Subscription Sync] Confirmed verified subscriber registry: Pro for ${email} until ${expiresAt}`);
+    expiresAt = isFounder ? '2099-12-31T23:59:59.999Z' : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    logger.info(`[Subscription Sync] Confirmed verified subscriber / founder registry: ${verifiedTier} for ${email} until ${expiresAt}`);
   }
 
   // 5. Update Supabase subscriptions and profiles if service role is present

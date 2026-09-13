@@ -51,31 +51,29 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
 
   const cleanKey = licenseKey.trim().toUpperCase();
 
-  // Master Founder & Architectural Lifetime Licenses
-  if (cleanKey === 'ZS-PRO-MASTER-2026' || (cleanKey.includes('PRO') && cleanKey.includes('MASTER'))) {
-    return {
-      valid: true,
-      tier: 'Pro',
-      planId: 'zelsis-core',
-      planName: 'Zelsis Pro (Master Clearance)',
-      expiresAt: '2099-12-31T23:59:59.999Z',
-      maxApplications: 99,
-    };
-  }
-  if (
+  const normalizedUserEmail = (userEmail || '').trim().toLowerCase();
+
+  // Master Founder & Architectural Lifetime Licenses (Strictly restricted to bedirelibol7@gmail.com)
+  const isMasterKey =
+    cleanKey === 'ZS-PRO-MASTER-2026' ||
     cleanKey === 'ZS-ENTERPRISE-MASTER-2026' ||
     cleanKey === 'ZS-SUITE-2026-ADMIN-MASTER-0000' ||
     cleanKey.includes('FOUNDER') ||
-    cleanKey.includes('MASTER')
-  ) {
-    return {
-      valid: true,
-      tier: 'Enterprise',
-      planId: 'vibecare',
-      planName: 'Zelsis Enterprise (Lifetime Founder Clearance)',
-      expiresAt: '2099-12-31T23:59:59.999Z',
-      maxApplications: 999,
-    };
+    cleanKey.includes('MASTER');
+
+  if (isMasterKey) {
+    if (normalizedUserEmail === 'bedirelibol7@gmail.com') {
+      const isEnterprise = cleanKey.includes('ENTERPRISE') || cleanKey.includes('SUITE') || cleanKey.includes('FOUNDER');
+      return {
+        valid: true,
+        tier: isEnterprise ? 'Enterprise' : 'Pro',
+        planId: isEnterprise ? 'vibecare' : 'zelsis-core',
+        planName: isEnterprise ? 'Zelsis Enterprise (Lifetime Founder Clearance)' : 'Zelsis Pro (Master Clearance)',
+        expiresAt: '2099-12-31T23:59:59.999Z',
+        maxApplications: isEnterprise ? 999 : 99,
+      };
+    }
+    return invalidResult('Master clearance restricted to platform founder');
   }
   
   // Validate key format: must be PREFIX-YEAR-XXXX-YYYY-ZZZZ
@@ -96,37 +94,14 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
   const tier: 'Pro' | 'Enterprise' = isEnterprise ? 'Enterprise' : 'Pro';
   const planId = isEnterprise ? 'vibecare' : 'zelsis-core';
 
-  // Extract candidate emails to verify checksum against
-  let storedEmail = '';
-  if (typeof window !== 'undefined') {
-    try {
-      const savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
-      if (savedUserStr) {
-        const parsed = JSON.parse(savedUserStr);
-        if (parsed?.email) storedEmail = parsed.email;
-      }
-    } catch (parseErr) {
-      void parseErr;
-    }
+  // Strict Account Isolation: Verify checksum against the exact authenticated user email
+  if (!normalizedUserEmail) {
+    return invalidResult('Email binding required for license validation');
   }
 
-  const candidateEmails = [
-    userEmail,
-    storedEmail,
-    'bedirelibol7@gmail.com',
-    'USER',
-    'customer@zelsis.app',
-    'evaluator@agency.com',
-    'developer@company.com'
-  ].filter((e): e is string => Boolean(e && e.trim()));
-
-  const hasValidChecksum = candidateEmails.some((candidate) => {
-    const expected = computeLicenseChecksum(candidate, planId);
-    return expected === checksum;
-  });
-
-  if (!hasValidChecksum) {
-    return invalidResult('Invalid License Checksum');
+  const expectedChecksum = computeLicenseChecksum(normalizedUserEmail, planId);
+  if (expectedChecksum !== checksum) {
+    return invalidResult('Invalid License Checksum for Account');
   }
 
   const planObj = (ZELSIS_PRICING_PLANS || SHIPGUARD_PRICING_PLANS).find((p) => p.id === planId);

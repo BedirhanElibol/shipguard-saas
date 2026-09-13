@@ -562,8 +562,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   {/* Sandbox / Demo Simulator Section */}
                   {(process.env.NODE_ENV !== 'production' ||
                     (typeof window !== 'undefined' && (window.location.search.includes('sandbox=true') || window.location.search.includes('demo=true'))) ||
-                    currentUser?.email === 'bedirelibol7@gmail.com' ||
-                    (currentUser?.name || '').toLowerCase() === 'bedirhan elibol') && (
+                    currentUser?.email === 'bedirelibol7@gmail.com') && (
                     <div className="mt-6 p-5 rounded-xl bg-[#0A0A0A] border border-dashed border-white/20 flex flex-col gap-3">
                       <div className="flex items-center gap-2">
                         <Terminal size={16} className="text-white" />

@@ -180,12 +180,8 @@ export function useDashboardState() {
             const parsedUser = JSON.parse(savedUserStr);
             if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
               const email = (parsedUser.email || '').toLowerCase().trim();
-              const rawName = (parsedUser.name || '').toLowerCase().trim();
-              const isPlatformAdmin =
-                email === 'bedirelibol7@gmail.com' ||
-                rawName === 'bedirhan elibol' ||
-                email.endsWith('@zelsis.dev') ||
-                email.endsWith('@zelsis.app');
+              // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
+              const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
 
               let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (parsedUser.tier || 'Free');
               let expiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : parsedUser.expiresAt;
@@ -193,22 +189,27 @@ export function useDashboardState() {
               // Ensure Pro/Enterprise tiers always have a guaranteed valid expiration date anchor (+30 days)
               if (resolvedTier !== 'Free' && !expiresAt) {
                 expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+              } else if (resolvedTier === 'Free') {
+                expiresAt = undefined;
               }
 
-              // License Key check: If valid license key exists, preserve Pro/Enterprise tier
+              // License Key check: Strictly tied to matching user email
               const savedLicenseKey = localStorage.getItem('zelsis_license_key');
-              if (savedLicenseKey) {
+              if (savedLicenseKey && email) {
                 const licResult = verifyLicenseKey(savedLicenseKey, email);
                 if (licResult.valid) {
                   resolvedTier = licResult.tier;
                   if (!expiresAt) expiresAt = licResult.expiresAt;
+                } else {
+                  localStorage.removeItem('zelsis_license_key');
+                  localStorage.removeItem('shipguard_license_key');
                 }
               }
 
               // Expiry Check: Only downgrade to Free if subscription period has genuinely elapsed
-              if (resolvedTier !== 'Free' && expiresAt) {
+              if (resolvedTier !== 'Free' && !isPlatformAdmin && expiresAt) {
                 const expiryTime = new Date(expiresAt).getTime();
-                if (!isNaN(expiryTime) && Date.now() > expiryTime && !savedLicenseKey) {
+                if (!isNaN(expiryTime) && Date.now() > expiryTime) {
                   console.info('[Zelsis Subscription] Subscription expired on', expiresAt, '- downgrading to Free tier.');
                   resolvedTier = 'Free';
                   expiresAt = undefined;
@@ -428,25 +429,34 @@ export function useDashboardState() {
         const { user: supabaseUser, session } = await supabaseGetSession();
         if (supabaseUser) {
           const email = (supabaseUser.email || '').toLowerCase().trim();
-          const rawName = (supabaseUser.name || '').toLowerCase().trim();
-          const isPlatformAdmin =
-            email === 'bedirelibol7@gmail.com' ||
-            rawName === 'bedirhan elibol' ||
-            email.endsWith('@zelsis.dev') ||
-            email.endsWith('@zelsis.app');
+          // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
+          const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
 
-          // Tier preservation: Check if user already has verified Pro tier in local storage or license
-          let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (supabaseUser.tier || 'Free');
-          let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : (supabaseUser as any).expiresAt;
-          let savedStatus: 'active' | 'past_due' | 'canceled' = 'active';
-
+          // Strict account isolation: Check if local storage belongs to a different email
           const savedUserStr = localStorage.getItem('zelsis_user');
           if (savedUserStr) {
             try {
               const localParsed = JSON.parse(savedUserStr);
               const localEmail = (localParsed?.email || '').toLowerCase().trim();
-              // Strict account isolation: only adopt local session if email matches exactly
-              if (localParsed && (!localEmail || localEmail === email)) {
+              if (localEmail && localEmail !== email) {
+                // Foreign account detected: wipe previous account's cache and licenses completely
+                localStorage.removeItem('zelsis_user');
+                localStorage.removeItem('shipguard_user');
+                localStorage.removeItem('zelsis_license_key');
+                localStorage.removeItem('shipguard_license_key');
+              }
+            } catch {}
+          }
+
+          let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (supabaseUser.tier || 'Free');
+          let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : (supabaseUser as any).expiresAt;
+          let savedStatus: 'active' | 'past_due' | 'canceled' = 'active';
+
+          if (savedUserStr) {
+            try {
+              const localParsed = JSON.parse(savedUserStr);
+              const localEmail = (localParsed?.email || '').toLowerCase().trim();
+              if (localParsed && localEmail && localEmail === email) {
                 if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
                   const localExpiry = localParsed?.expiresAt ? new Date(localParsed.expiresAt).getTime() : 0;
                   if (localExpiry > Date.now() || !localParsed.expiresAt) {
@@ -462,11 +472,14 @@ export function useDashboardState() {
           }
 
           const savedLic = localStorage.getItem('zelsis_license_key');
-          if (savedLic) {
+          if (savedLic && email) {
             const licCheck = verifyLicenseKey(savedLic, email);
             if (licCheck.valid) {
               resolvedTier = licCheck.tier;
               if (!savedExpiresAt) savedExpiresAt = licCheck.expiresAt;
+            } else {
+              localStorage.removeItem('zelsis_license_key');
+              localStorage.removeItem('shipguard_license_key');
             }
           }
 
@@ -516,6 +529,8 @@ export function useDashboardState() {
               localStorage.setItem('zelsis_license_key', newKey);
               localStorage.setItem('shipguard_license_key', newKey);
             }
+          } else {
+            savedExpiresAt = undefined;
           }
 
           const mergedUser: UserProfile = {
@@ -554,18 +569,29 @@ export function useDashboardState() {
           if (session && session.user) {
             const profile = mapSupabaseUserToProfile(session.user);
             const email = (profile.email || session.user.email || '').toLowerCase().trim();
-            const rawName = (profile.name || '').toLowerCase().trim();
-            const isPlatformAdmin =
-              email === 'bedirelibol7@gmail.com' ||
-              rawName === 'bedirhan elibol' ||
-              email.endsWith('@zelsis.dev') ||
-              email.endsWith('@zelsis.app');
+            // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
+            const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
+
+            // Strict account isolation: Check if local storage belongs to a different email
+            const savedUserStr = localStorage.getItem('zelsis_user');
+            if (savedUserStr) {
+              try {
+                const localParsed = JSON.parse(savedUserStr);
+                const localEmail = (localParsed?.email || '').toLowerCase().trim();
+                if (localEmail && localEmail !== email) {
+                  // Foreign account detected: wipe previous account's cache and licenses completely
+                  localStorage.removeItem('zelsis_user');
+                  localStorage.removeItem('shipguard_user');
+                  localStorage.removeItem('zelsis_license_key');
+                  localStorage.removeItem('shipguard_license_key');
+                }
+              } catch {}
+            }
 
             let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (profile.tier || 'Free');
             let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : profile.expiresAt;
             let savedStatus: 'active' | 'past_due' | 'canceled' = (profile.status as any) || 'active';
 
-            const savedUserStr = localStorage.getItem('zelsis_user');
             if (savedUserStr) {
               try {
                 const localParsed = JSON.parse(savedUserStr);
@@ -644,6 +670,8 @@ export function useDashboardState() {
                 localStorage.setItem('zelsis_license_key', newKey);
                 localStorage.setItem('shipguard_license_key', newKey);
               }
+            } else {
+              savedExpiresAt = undefined;
             }
 
             const mergedProfile: UserProfile = {

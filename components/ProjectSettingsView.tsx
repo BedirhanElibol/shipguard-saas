@@ -426,7 +426,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$49 / mo' : '$0 / Lifetime'}
+                  {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$49 / mo' : '$0 / Free Tier'}
                 </span>
               </div>
 
@@ -481,7 +481,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               ) : (
                 <div className="flex items-center gap-1.5 text-xs text-[#A1A1AA]">
                   <Calendar size={13} className="text-emerald-400 shrink-0" />
-                  <span>Free Tier &bull; Lifetime Access</span>
+                  <span>Free Tier &bull; Standard Access</span>
                 </div>
               )}
 

@@ -136,7 +136,7 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
       isCriticalUrgency: false,
       isExpired: false,
       daysRemaining: null,
-      formattedRenewalDate: 'Lifetime Access',
+      formattedRenewalDate: 'Standard Access',
       countdownLabel: 'Free Plan - Active',
       compactLabel: 'Free',
       cycleProgressPercent: 100,
@@ -197,10 +197,15 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
   let countdownLabel: string;
   let compactLabel: string;
 
-  // Extreme future dates or lifetime access (e.g. year 2099 / permanent founder clearance)
-  if (daysRemaining > 730 || (user.expiresAt && user.expiresAt.includes('2099'))) {
+  // Extreme future dates or lifetime access (strictly restricted to platform founder bedirelibol7@gmail.com or extreme future dates)
+  const isFounder = (user.email || '').toLowerCase().trim() === 'bedirelibol7@gmail.com';
+  if ((daysRemaining > 36500) || ((daysRemaining > 730 || (user.expiresAt && user.expiresAt.includes('2099'))) && isFounder)) {
     countdownLabel = 'Lifetime Access';
     compactLabel = 'Lifetime';
+  } else if (daysRemaining > 730) {
+    const yearsRemaining = Math.round(daysRemaining / 365);
+    countdownLabel = `${yearsRemaining} years remaining`;
+    compactLabel = `${yearsRemaining}y left`;
   } else if (daysRemaining <= 1) {
     countdownLabel = 'Renews today';
     compactLabel = 'Today';

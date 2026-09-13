@@ -152,13 +152,8 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   const userNameNorm = ((metadata.user_name as string) || '').toLowerCase().trim();
   const rawNameNorm = rawName.toLowerCase().trim();
 
-  // Founder & Platform Administrator Detection
-  const isPlatformAdmin =
-    userEmailNorm === 'bedirelibol7@gmail.com' ||
-    userNameNorm === 'bedirhan-elibol' ||
-    rawNameNorm === 'bedirhan elibol' ||
-    userEmailNorm.endsWith('@zelsis.dev') ||
-    userEmailNorm.endsWith('@zelsis.app');
+  // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
+  const isPlatformAdmin = userEmailNorm === 'bedirelibol7@gmail.com';
 
   const tier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin
     ? 'Enterprise'

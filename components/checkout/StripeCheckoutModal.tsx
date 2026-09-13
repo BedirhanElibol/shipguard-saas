@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CreditCard, ShieldCheck, Zap, Check, Lock, User } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
-import { activateUserTier } from '@/lib/stripe-checkout';
+import { activateUserTier, generateLicenseKey } from '@/lib/stripe-checkout';
 
 interface StripeCheckoutModalProps {
   isOpen: boolean;
@@ -93,7 +93,9 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
-      activateUserTier(selectedPlan);
+      const planId = selectedPlan === 'Enterprise' ? 'vibecare' : 'zelsis-core';
+      const key = generateLicenseKey(planId, user?.email || 'customer@zelsis.dev');
+      activateUserTier(selectedPlan, key);
 
       setTimeout(() => {
         onUpgradeSuccess(selectedPlan);

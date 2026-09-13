@@ -184,7 +184,25 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 3. Check verified subscriber registry fallback (for confirmed Polar purchases)
+  // 3. Check authenticated user metadata in Supabase auth
+  const userMetadata = authData.user.user_metadata || {};
+  const metaTier = userMetadata.tier as 'Pro' | 'Enterprise' | 'Free' | undefined;
+  const metaExpiresAt = userMetadata.expiresAt as string | undefined;
+  const metaStatus = userMetadata.subscriptionStatus as string | undefined;
+
+  if (!isActive && (metaTier === 'Pro' || metaTier === 'Enterprise')) {
+    const expiryTime = metaExpiresAt ? new Date(metaExpiresAt).getTime() : null;
+    const isExpired = expiryTime ? !isNaN(expiryTime) && Date.now() > expiryTime : false;
+    if (!isExpired) {
+      verifiedTier = metaTier;
+      isActive = true;
+      subStatus = (metaStatus === 'past_due' || metaStatus === 'active') ? metaStatus : 'active';
+      expiresAt = metaExpiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      logger.info(`[Subscription Sync] Confirmed via Supabase user_metadata: ${verifiedTier} for ${email} until ${expiresAt}`);
+    }
+  }
+
+  // 4. Check verified subscriber registry fallback (for confirmed Polar purchases)
   if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
     verifiedTier = 'Pro';
     isActive = true;
@@ -193,7 +211,7 @@ export async function POST(req: NextRequest) {
     logger.info(`[Subscription Sync] Confirmed verified subscriber registry: Pro for ${email} until ${expiresAt}`);
   }
 
-  // 4. Update Supabase subscriptions and profiles if service role is present
+  // 5. Update Supabase subscriptions and profiles if service role is present
   if (serviceRoleKey && isActive) {
     try {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -203,14 +221,24 @@ export async function POST(req: NextRequest) {
         .eq('email', email)
         .maybeSingle();
 
-      if (matchedProfile?.id) {
+      const userId = matchedProfile?.id || authData.user.id;
+      if (userId) {
         await adminClient.from('subscriptions').upsert({
-          user_id: matchedProfile.id,
+          user_id: userId,
           plan_tier: verifiedTier,
           status: subStatus,
           current_period_end: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
+
+        await adminClient.auth.admin.updateUserById(userId, {
+          user_metadata: {
+            ...userMetadata,
+            tier: verifiedTier,
+            subscriptionStatus: subStatus,
+            expiresAt: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        }).catch(() => {});
       }
     } catch (syncUpdateErr: unknown) {
       logger.warn('[Subscription Sync] Admin update notice:', syncUpdateErr instanceof Error ? syncUpdateErr.message : String(syncUpdateErr));

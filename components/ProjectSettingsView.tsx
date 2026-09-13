@@ -92,36 +92,52 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       if (res.ok) {
         const data = await res.json();
         if (data.active && (data.tier === 'Pro' || data.tier === 'Enterprise')) {
+          const validExpiresAt = data.expiresAt || user.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
           const updatedUser: UserProfile = {
             ...user,
             tier: data.tier,
-            expiresAt: data.expiresAt || user.expiresAt,
+            expiresAt: validExpiresAt,
             billingCycle: data.billingCycle || user.billingCycle,
+            status: 'active',
           };
           if (onUpdateUser) {
             onUpdateUser(updatedUser);
           }
           localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
-          const dateStr = formatRenewalDate(data.expiresAt);
+          const dateStr = formatRenewalDate(validExpiresAt);
           setSyncFeedback({
             status: 'success',
-            message: `✓ Active ${data.tier} subscription confirmed! Renews / valid until: ${dateStr}`,
+            message: `Active ${data.tier} subscription confirmed! Renews / valid until: ${dateStr}`,
           });
         } else {
-          // If subscription ended or inactive, auto-downgrade to Free
-          const updatedUser: UserProfile = {
-            ...user,
-            tier: 'Free',
-            expiresAt: undefined,
-          };
-          if (onUpdateUser) {
-            onUpdateUser(updatedUser);
+          // Guard against false downgrades: check if local subscription period is still active
+          const isLocallyActive = Boolean(
+            user.tier !== 'Free' &&
+            (!user.expiresAt || new Date(user.expiresAt).getTime() > Date.now())
+          );
+
+          if (isLocallyActive) {
+            const dateStr = formatRenewalDate(user.expiresAt);
+            setSyncFeedback({
+              status: 'success',
+              message: `Active ${user.tier} plan verified via local authorization. Renews / valid until: ${dateStr}`,
+            });
+          } else {
+            const updatedUser: UserProfile = {
+              ...user,
+              tier: 'Free',
+              expiresAt: undefined,
+              status: 'canceled',
+            };
+            if (onUpdateUser) {
+              onUpdateUser(updatedUser);
+            }
+            localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+            setSyncFeedback({
+              status: 'error',
+              message: `Subscription period ended for ${user.email}. Account reverted to Free Tier.`,
+            });
           }
-          localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
-          setSyncFeedback({
-            status: 'error',
-            message: `No active Polar subscription found for ${user.email}. Account reverted to Free Tier.`,
-          });
         }
       } else {
         setSyncFeedback({

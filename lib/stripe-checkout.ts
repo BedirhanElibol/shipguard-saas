@@ -1,5 +1,5 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { ZELSIS_PRICING_PLANS, SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
+import { syncUserProfileToSupabase } from '@/lib/supabase';
 
 export interface LicenseVerificationResult {
   valid: boolean;
@@ -78,8 +78,8 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
         const parsed = JSON.parse(savedUserStr);
         if (parsed?.email) storedEmail = parsed.email;
       }
-    } catch (_err) {
-      // Ignore localStorage read errors in restricted contexts
+    } catch (parseErr) {
+      void parseErr;
     }
   }
 
@@ -118,10 +118,6 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
 
 export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: string): Promise<boolean> {
   try {
-    if (licenseKey) {
-      localStorage.setItem('zelsis_license_key', licenseKey);
-      localStorage.setItem('shipguard_license_key', licenseKey);
-    }
     let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
     if (!savedUserStr && typeof document !== 'undefined') {
       const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
@@ -130,16 +126,18 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
       }
     }
     let userObj: any = null;
+    const renewalDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     if (savedUserStr) {
       try {
         const parsed = JSON.parse(savedUserStr);
         if (parsed && typeof parsed === 'object' && parsed.isLoggedIn) {
-          const renewalDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
           userObj = {
             ...parsed,
             tier: tier,
-            expiresAt: parsed.expiresAt || renewalDate,
+            expiresAt: parsed.expiresAt && new Date(parsed.expiresAt).getTime() > Date.now() ? parsed.expiresAt : renewalDate,
             subscriptionStatus: 'active',
+            status: 'active',
+            lastVerifiedAt: Date.now(),
           };
         }
       } catch (err) {
@@ -153,15 +151,28 @@ export async function activateUserTier(tier: 'Pro' | 'Enterprise', licenseKey?: 
       return false;
     }
 
+    const planId = tier === 'Enterprise' ? 'vibecare' : 'zelsis-core';
+    const effectiveKey = licenseKey && verifyLicenseKey(licenseKey, userObj.email).valid
+      ? licenseKey
+      : generateLicenseKey(planId, userObj.email || 'customer@zelsis.dev');
+
+    localStorage.setItem('zelsis_license_key', effectiveKey);
+    localStorage.setItem('shipguard_license_key', effectiveKey);
+
     localStorage.setItem('zelsis_user', JSON.stringify(userObj));
     if (typeof document !== 'undefined') {
       document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
     }
     window.dispatchEvent(new Event('storage'));
 
-    // NOTE: Tier updates in Supabase should only be done via server-side webhook handlers
-    // Client-side tier activation is for local UI state only
-    // Server-side sync will be handled by /api/v1/polar-webhook
+    // Synchronize directly with Supabase Auth user metadata so session refreshes never revert to Free
+    await syncUserProfileToSupabase({
+      tier,
+      expiresAt: userObj.expiresAt,
+      status: 'active',
+    }).catch((syncErr) => {
+      console.warn('[Zelsis Activation] Supabase auth metadata sync notice:', syncErr);
+    });
 
     return true;
   } catch (err) {

@@ -148,6 +148,10 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || supabaseUser?.email?.split('@')[0] || 'User';
   const avatar = (metadata.avatar_url as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
   const tier = (metadata.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free';
+  const expiresAt = (metadata.expiresAt as string) || undefined;
+  const status = (metadata.subscriptionStatus as 'active' | 'past_due' | 'canceled' | 'trialing') || (tier !== 'Free' ? 'active' : undefined);
+  const gracePeriodUntil = (metadata.gracePeriodUntil as string) || undefined;
+  const billingCycle = (metadata.billingCycle as 'monthly' | 'annual') || undefined;
 
   return {
     name: rawName,
@@ -155,8 +159,37 @@ export function mapSupabaseUserToProfile(supabaseUser: {
     avatarUrl: avatar,
     tier,
     isLoggedIn: true,
-    emailVerified: Boolean(supabaseUser?.email_confirmed_at != null || supabaseUser?.app_metadata?.provider === 'github')
+    emailVerified: Boolean(supabaseUser?.email_confirmed_at != null || supabaseUser?.app_metadata?.provider === 'github'),
+    expiresAt,
+    status,
+    gracePeriodUntil,
+    billingCycle
   };
+}
+
+export async function syncUserProfileToSupabase(user: Partial<UserProfile>): Promise<boolean> {
+  const supabase = getSupabase();
+  if (!supabase || !isSupabaseConfigured()) return false;
+  try {
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        ...(user.name ? { full_name: user.name } : {}),
+        ...(user.tier ? { tier: user.tier } : {}),
+        ...(user.expiresAt ? { expiresAt: user.expiresAt } : {}),
+        ...(user.status ? { subscriptionStatus: user.status } : {}),
+        ...(user.gracePeriodUntil ? { gracePeriodUntil: user.gracePeriodUntil } : {}),
+        ...(user.billingCycle ? { billingCycle: user.billingCycle } : {}),
+      }
+    });
+    if (error) {
+      console.warn('[Zelsis Auth] Failed to sync profile to Supabase metadata:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('[Zelsis Auth] syncUserProfileToSupabase error:', err);
+    return false;
+  }
 }
 
 export async function supabaseSignInWithOAuth(

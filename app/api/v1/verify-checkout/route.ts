@@ -79,7 +79,12 @@ export async function POST(req: NextRequest) {
       if (matched) {
         // Update user metadata in auth.users
         await adminClient.auth.admin.updateUserById(matched.id, {
-          user_metadata: { tier: resolvedTier, subscriptionStatus: 'active' }
+          user_metadata: {
+            ...(matched.user_metadata || {}),
+            tier: resolvedTier,
+            subscriptionStatus: 'active',
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          }
         });
 
         // Upsert subscriptions record

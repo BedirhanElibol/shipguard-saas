@@ -27,6 +27,7 @@ interface CheckoutViewProps {
   onBackToPricing?: () => void;
   user?: UserProfile | null;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+  onUpgradeSuccess?: (tier: 'Pro' | 'Enterprise') => void;
 }
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({
@@ -37,6 +38,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   onBackToPricing,
   user,
   onOpenAuth,
+  onUpgradeSuccess,
 }) => {
   const router = useRouter();
   const [selectedPlanId, setSelectedPlanId] = useState<string>(() => resolvePlanAlias(initialPlanId));
@@ -174,7 +176,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
             const userEmail = data.email || currentUser?.email || email || 'customer@zelsis.dev';
             const key = generateLicenseKey(selectedPlanId, userEmail);
             setActiveLicenseKey(key);
-            activateUserTier(verifiedTier, key);
+            activateUserTier(verifiedTier, key, {
+              name: fullName || currentUser?.name,
+              email: userEmail,
+            });
+            if (onUpgradeSuccess) {
+              onUpgradeSuccess(verifiedTier);
+            }
             setIsSubmitted(true);
           } else {
             setVerificationError(data.message || 'Polar checkout verification is pending or unconfirmed.');
@@ -247,9 +255,16 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       return;
     }
     const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-    const key = generateLicenseKey(selectedPlanId, email || currentUser?.email || 'developer@company.com');
+    const userEmail = email || currentUser?.email || 'developer@company.com';
+    const key = generateLicenseKey(selectedPlanId, userEmail);
     setActiveLicenseKey(key);
-    activateUserTier(tier, key);
+    activateUserTier(tier, key, {
+      name: fullName || currentUser?.name,
+      email: userEmail,
+    });
+    if (onUpgradeSuccess) {
+      onUpgradeSuccess(tier);
+    }
     setIsSubmitted(true);
   };
 

@@ -142,11 +142,16 @@ export async function POST(req: NextRequest) {
   let body: {
     type?: string;
     data?: {
+      id?: string;
+      subscription_id?: string;
+      metadata?: Record<string, unknown>;
       customer?: { email?: string };
       user?: { email?: string };
       product?: { name?: string };
       current_period_end?: string | null;
       subscription?: {
+        id?: string;
+        metadata?: Record<string, unknown>;
         current_period_end?: string | null;
         product?: { name?: string };
       };
@@ -179,20 +184,42 @@ export async function POST(req: NextRequest) {
     // Determine tier and subscription status based on event
     let tier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
     let status: 'active' | 'past_due' | 'canceled' = 'canceled';
-    const currentPeriodEnd = data?.current_period_end || data?.subscription?.current_period_end || null;
+    const productName = (data?.product?.name || data?.subscription?.product?.name || '').toLowerCase();
+    const isAnnual = productName.includes('annual') || productName.includes('year');
+    const detectedTier: 'Pro' | 'Enterprise' =
+      productName.includes('enterprise') || productName.includes('suite') ? 'Enterprise' : 'Pro';
+
+    const rawPeriodEnd = data?.current_period_end || data?.subscription?.current_period_end || null;
+    const periodEndTime = rawPeriodEnd ? new Date(rawPeriodEnd).getTime() : 0;
+    const isFuturePeriodEnd = periodEndTime > Date.now();
 
     if (['subscription.created', 'subscription.updated', 'subscription.active', 'subscription.uncanceled', 'order.created'].includes(eventType)) {
-      const productName = (data?.product?.name || data?.subscription?.product?.name || '').toLowerCase();
-      tier = productName.includes('enterprise') || productName.includes('suite') ? 'Enterprise' : 'Pro';
+      tier = detectedTier;
       status = 'active';
     } else if (['subscription.past_due'].includes(eventType)) {
-      // Grace period: preserve Pro/Enterprise tier during the 3-day grace period
-      const productName = (data?.product?.name || data?.subscription?.product?.name || '').toLowerCase();
-      tier = productName.includes('enterprise') || productName.includes('suite') ? 'Enterprise' : 'Pro';
+      // Per strict user directive: zero grace period extension on renewal failure.
+      // If the current paid period is still valid, user keeps access until period ends.
+      // If already past period end, access is revoked immediately.
       status = 'past_due';
-    } else if (['subscription.canceled', 'subscription.revoked', 'order.refunded'].includes(eventType)) {
+      tier = isFuturePeriodEnd ? detectedTier : 'Free';
+    } else if (['subscription.canceled'].includes(eventType)) {
+      // Cancellation means do not renew next cycle; user keeps remaining paid time
+      status = 'canceled';
+      tier = isFuturePeriodEnd ? detectedTier : 'Free';
+    } else if (['subscription.revoked', 'order.refunded'].includes(eventType)) {
+      // Immediate revocation or refund drops tier instantly
       tier = 'Free';
       status = 'canceled';
+    }
+
+    let effectiveCurrentPeriodEnd: string;
+    if (rawPeriodEnd) {
+      effectiveCurrentPeriodEnd = new Date(rawPeriodEnd).toISOString();
+    } else if (status === 'active' || (tier !== 'Free' && isFuturePeriodEnd)) {
+      const daysToAdd = isAnnual ? 365 : 30;
+      effectiveCurrentPeriodEnd = new Date(Date.now() + daysToAdd * 24 * 60 * 60 * 1000).toISOString();
+    } else {
+      effectiveCurrentPeriodEnd = new Date().toISOString();
     }
 
     // Update Supabase profile and subscription records if service role key is available
@@ -203,50 +230,105 @@ export async function POST(req: NextRequest) {
       const { createClient } = await import('@supabase/supabase-js');
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
       
-      // Find user by email in auth.users
-      const { data: users } = await adminClient.auth.admin.listUsers();
-      const matchedUser = users?.users?.find(
-        (u: { email?: string; id: string }) => u.email?.toLowerCase() === customerEmail.toLowerCase()
-      );
+      const normalizedEmail = customerEmail.toLowerCase().trim();
+      const metadataUserId = (data?.metadata?.userId || data?.metadata?.user_id || data?.subscription?.metadata?.userId) as string | undefined;
+      let matchedUserId: string | null = metadataUserId || null;
+      let existingMetadata: Record<string, unknown> = {};
 
-      if (matchedUser) {
+      // 1. Direct query in profiles table by case-insensitive email
+      if (!matchedUserId) {
+        try {
+          const { data: profile } = await adminClient
+            .from('profiles')
+            .select('id, email')
+            .ilike('email', normalizedEmail)
+            .maybeSingle();
+          if (profile?.id) {
+            matchedUserId = profile.id;
+          }
+        } catch (profileLookupErr) {
+          void profileLookupErr;
+        }
+      }
+
+      // 2. Query auth.users via admin API with expanded perPage limit
+      if (!matchedUserId) {
+        try {
+          const { data: users } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+          const matchedUser = users?.users?.find(
+            (u: { email?: string; id: string; user_metadata?: Record<string, unknown> }) =>
+              u.email?.toLowerCase() === normalizedEmail
+          );
+          if (matchedUser) {
+            matchedUserId = matchedUser.id;
+            existingMetadata = matchedUser.user_metadata || {};
+          }
+        } catch (adminListErr) {
+          void adminListErr;
+        }
+      } else {
+        try {
+          const { data: userData } = await adminClient.auth.admin.getUserById(matchedUserId);
+          if (userData?.user?.user_metadata) {
+            existingMetadata = userData.user.user_metadata;
+          }
+        } catch (fetchUserErr) {
+          void fetchUserErr;
+        }
+      }
+
+      if (matchedUserId) {
         const formattedTier: 'Free' | 'Pro' | 'Enterprise' =
           tier === 'Enterprise' ? 'Enterprise' : (tier === 'Pro' ? 'Pro' : 'Free');
 
-        // 1. Update user metadata in auth.users
+        // A. Update user metadata in auth.users with complete subscription lifecycle properties
         try {
-          await adminClient.auth.admin.updateUserById(matchedUser.id, {
-            user_metadata: { tier: formattedTier, subscriptionStatus: status }
+          await adminClient.auth.admin.updateUserById(matchedUserId, {
+            user_metadata: {
+              ...existingMetadata,
+              tier: formattedTier,
+              subscriptionStatus: status,
+              expiresAt: effectiveCurrentPeriodEnd,
+              billingCycle: isAnnual ? 'annual' : 'monthly',
+              lastPaymentEvent: eventType,
+              lastPaymentDate: new Date().toISOString(),
+            }
           });
+          logger.info(`[Polar Webhook] Synced auth user_metadata for ${normalizedEmail} (ID: ${matchedUserId}) -> ${formattedTier} (expires: ${effectiveCurrentPeriodEnd})`);
         } catch (authMetaErr: unknown) {
           logger.warn('[Polar Webhook] User metadata update warning:', authMetaErr instanceof Error ? authMetaErr.message : String(authMetaErr));
         }
 
-        // 2. Upsert subscriptions record
+        // B. Upsert profiles table first to satisfy foreign key constraint on subscriptions
+        try {
+          await adminClient.from('profiles').upsert({
+            id: matchedUserId,
+            email: normalizedEmail,
+            tier: formattedTier,
+            status,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+          logger.info(`[Polar Webhook] Upserted profiles record for ${normalizedEmail} (tier: ${formattedTier}, status: ${status})`);
+        } catch (profileError: unknown) {
+          logger.warn(`[Polar Webhook] Profile upsert notice: ${profileError instanceof Error ? profileError.message : String(profileError)}`);
+        }
+
+        // C. Upsert subscriptions record with complete period end
         try {
           await adminClient.from('subscriptions').upsert({
-            user_id: matchedUser.id,
+            user_id: matchedUserId,
             plan_tier: formattedTier,
             status,
-            current_period_end: currentPeriodEnd,
+            current_period_end: effectiveCurrentPeriodEnd,
+            polar_subscription_id: data?.id || data?.subscription_id || null,
             updated_at: new Date().toISOString(),
           }, { onConflict: 'user_id' });
-          logger.info(`[Polar Webhook] Upserted subscriptions for ${customerEmail} tier ${formattedTier} (status: ${status})`);
+          logger.info(`[Polar Webhook] Upserted subscriptions record for ${normalizedEmail} (tier: ${formattedTier}, status: ${status})`);
         } catch (subErr: unknown) {
           logger.warn('[Polar Webhook] Subscriptions table update warning:', subErr instanceof Error ? subErr.message : String(subErr));
         }
-
-        // 3. Update profiles table updated_at
-        try {
-          await adminClient
-              .from('profiles')
-              .update({ updated_at: new Date().toISOString() })
-              .eq('id', matchedUser.id);
-        } catch (profileError: unknown) {
-          logger.warn(`[Polar Webhook] Profile update notice: ${profileError instanceof Error ? profileError.message : String(profileError)}`);
-        }
       } else {
-        logger.warn(`[Polar Webhook] No user found for email: ${customerEmail}`);
+        logger.warn(`[Polar Webhook] No registered user found for email: ${normalizedEmail}. Pending account registration.`);
       }
     } else {
       logger.warn('[Polar Webhook] SUPABASE_SERVICE_ROLE_KEY not configured - cannot update tier server-side');

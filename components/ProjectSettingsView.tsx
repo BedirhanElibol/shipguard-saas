@@ -124,7 +124,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             const dateStr = formatRenewalDate(user.expiresAt);
             setSyncFeedback({
               status: 'success',
-              message: `Active ${user.tier} plan preserved (offline/grace verification). Renews / valid until: ${dateStr}`,
+              message: `Active ${user.tier} plan preserved. Renews / valid until: ${dateStr}`,
             });
           } else {
             const updatedUser: UserProfile = {

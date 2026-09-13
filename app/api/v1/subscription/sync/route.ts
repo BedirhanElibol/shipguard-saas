@@ -94,43 +94,86 @@ export async function POST(req: NextRequest) {
   let expiresAt: string | undefined = undefined;
   let gracePeriodUntil: string | undefined = undefined;
 
-  // 1. Check Polar API if access token is available
+  // 1. Check Polar API using multi-stage customer and subscription resolution
   if (polarAccessToken) {
     try {
-      const polarRes = await fetch(`https://api.polar.sh/v1/subscriptions?customer_email=${encodeURIComponent(email)}`, {
+      // Step A: Look up Polar customer by email
+      const customerRes = await fetch(`https://api.polar.sh/v1/customers?email=${encodeURIComponent(email)}`, {
         headers: {
           'Authorization': `Bearer ${polarAccessToken}`,
           'Content-Type': 'application/json'
         }
       });
+      
+      let polarCustomerId: string | null = null;
+      if (customerRes.ok) {
+        const customerData = await customerRes.json();
+        polarCustomerId = customerData?.items?.[0]?.id || null;
+      }
+
+      // Step B: Query subscriptions for this customer ID
+      const queryParams = polarCustomerId ? `customer_id=${polarCustomerId}&active=true` : 'active=true';
+      const polarRes = await fetch(`https://api.polar.sh/v1/subscriptions?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${polarAccessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (polarRes.ok) {
         const polarData = await polarRes.json();
         const polarSub = (polarData.items || []).find(
-          (s: { status?: string; current_period_end?: string | null; product?: { name?: string } }) => s.status === 'active' || s.status === 'past_due'
+          (s: { customer_id?: string; status?: string; current_period_end?: string | null; product?: { name?: string }; customer?: { email?: string } }) => {
+            const matchesId = polarCustomerId && s.customer_id === polarCustomerId;
+            const matchesEmail = s.customer?.email && s.customer.email.toLowerCase() === email;
+            return (matchesId || matchesEmail) && (s.status === 'active' || s.status === 'past_due');
+          }
         );
-        if (polarSub) {
+
+          if (polarSub) {
           const periodEnd = polarSub.current_period_end ? new Date(polarSub.current_period_end) : null;
-          if (polarSub.status === 'past_due') {
-            // Failed renewal charge: grant 3-day grace period
-            const prodName = (polarSub.product?.name || '').toLowerCase();
-            verifiedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
-            isActive = true;
-            subStatus = 'past_due';
-            gracePeriodUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-            expiresAt = gracePeriodUntil;
-            logger.info(`[Subscription Sync] Polar subscription past_due for ${email}. Grace period until ${gracePeriodUntil}`);
-          } else if (periodEnd && periodEnd.getTime() < Date.now()) {
+          const prodName = (polarSub.product?.name || '').toLowerCase();
+          const detectedTier: 'Pro' | 'Enterprise' = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
+
+          if (periodEnd && periodEnd.getTime() <= Date.now()) {
+            // Strictly expired: zero grace period
             logger.info(`[Subscription Sync] Polar subscription expired on ${periodEnd.toISOString()}`);
             isActive = false;
-            subStatus = 'canceled';
+            subStatus = polarSub.status === 'past_due' ? 'past_due' : 'canceled';
             verifiedTier = 'Free';
           } else {
-            const prodName = (polarSub.product?.name || '').toLowerCase();
+            // Still within valid paid period
+            verifiedTier = detectedTier;
+            isActive = true;
+            subStatus = polarSub.status === 'past_due' ? 'past_due' : 'active';
+            expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            logger.info(`[Subscription Sync] Polar active subscription confirmed: ${verifiedTier} for ${email} until ${expiresAt}`);
+          }
+        }
+      }
+
+      // Step C: If still not active and customer exists on Polar, check orders
+      if (!isActive && polarCustomerId) {
+        const ordersRes = await fetch(`https://api.polar.sh/v1/orders?customer_id=${polarCustomerId}`, {
+          headers: {
+            'Authorization': `Bearer ${polarAccessToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (ordersRes.ok) {
+          const ordersData = await ordersRes.json();
+          const paidOrder = (ordersData.items || []).find(
+            (o: { status?: string; product?: { name?: string }; created_at?: string }) =>
+              o.status === 'paid' || o.status === 'succeeded'
+          );
+          if (paidOrder) {
+            const prodName = (paidOrder.product?.name || '').toLowerCase();
             verifiedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
             isActive = true;
             subStatus = 'active';
-            expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-            logger.info(`[Subscription Sync] Polar active subscription confirmed: ${verifiedTier} for ${email} until ${expiresAt}`);
+            const orderDate = paidOrder.created_at ? new Date(paidOrder.created_at).getTime() : Date.now();
+            expiresAt = new Date(orderDate + 30 * 24 * 60 * 60 * 1000).toISOString();
+            logger.info(`[Subscription Sync] Confirmed via Polar order: ${verifiedTier} for ${email}`);
           }
         }
       }
@@ -145,43 +188,65 @@ export async function POST(req: NextRequest) {
     if (keyToUse) {
       try {
         const client = createClient(supabaseUrl, keyToUse);
-        // Find user by email in profiles
-        const { data: profile } = await client
-          .from('profiles')
-          .select('id, email')
-          .eq('email', email)
-          .maybeSingle();
 
-        if (profile?.id) {
-          // Check subscriptions table for tier and status
-          const { data: sub } = await client
+        // A. Primary direct lookup by authenticated user_id
+        let subRecord: { plan_tier?: string; status?: string; current_period_end?: string | null } | null = null;
+        
+        if (authData?.user?.id) {
+          const { data: subByUserId } = await client
             .from('subscriptions')
             .select('plan_tier, status, current_period_end')
-            .eq('user_id', profile.id)
+            .eq('user_id', authData.user.id)
+            .maybeSingle();
+          if (subByUserId) subRecord = subByUserId;
+        }
+
+        // B. Secondary lookup in profiles table by case-insensitive email
+        if (!subRecord) {
+          const { data: profile } = await client
+            .from('profiles')
+            .select('id, email, tier, status')
+            .ilike('email', email)
             .maybeSingle();
 
-          const rawPlanTier = sub?.plan_tier as string | undefined;
+          if (profile?.id) {
+            const { data: subByProfile } = await client
+              .from('subscriptions')
+              .select('plan_tier, status, current_period_end')
+              .eq('user_id', profile.id)
+              .maybeSingle();
+            if (subByProfile) {
+              subRecord = subByProfile;
+            } else if (profile.tier === 'Pro' || profile.tier === 'Enterprise') {
+              subRecord = {
+                plan_tier: profile.tier,
+                status: profile.status || 'active',
+                current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+              };
+            }
+          }
+        }
+
+        if (subRecord) {
+          const rawPlanTier = subRecord.plan_tier as string | undefined;
           const subPlanTier = rawPlanTier === 'Enterprise' ? 'Enterprise' : (rawPlanTier === 'Pro' ? 'Pro' : undefined);
 
           if (subPlanTier) {
-            const periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : null;
-            if (sub?.status === 'past_due') {
-              verifiedTier = subPlanTier;
-              isActive = true;
-              subStatus = 'past_due';
-              gracePeriodUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-              expiresAt = gracePeriodUntil;
-            } else if (periodEnd && periodEnd.getTime() < Date.now()) {
+            const periodEnd = subRecord.current_period_end ? new Date(subRecord.current_period_end) : null;
+
+            if (periodEnd && periodEnd.getTime() <= Date.now()) {
+              // Zero grace period: subscription period has elapsed
               logger.info(`[Subscription Sync] Supabase subscription expired on ${periodEnd.toISOString()}`);
               isActive = false;
-              subStatus = 'canceled';
+              subStatus = (subRecord.status === 'past_due' || subRecord.status === 'canceled') ? subRecord.status : 'canceled';
               verifiedTier = 'Free';
             } else {
+              // User has active valid time remaining (even if renewal is canceled or past_due)
               verifiedTier = subPlanTier;
               isActive = true;
-              subStatus = (sub?.status === 'past_due' || sub?.status === 'canceled') ? sub.status : 'active';
+              subStatus = (subRecord.status === 'past_due' || subRecord.status === 'canceled') ? subRecord.status : 'active';
               expiresAt = periodEnd ? periodEnd.toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-              logger.info(`[Subscription Sync] Supabase subscription confirmed: ${verifiedTier} for ${email}`);
+              logger.info(`[Subscription Sync] Supabase subscription confirmed: ${verifiedTier} for ${email} until ${expiresAt}`);
             }
           }
         }
@@ -199,7 +264,8 @@ export async function POST(req: NextRequest) {
 
   if (!isActive && (metaTier === 'Pro' || metaTier === 'Enterprise')) {
     const expiryTime = metaExpiresAt ? new Date(metaExpiresAt).getTime() : null;
-    const isExpired = expiryTime ? !isNaN(expiryTime) && Date.now() > expiryTime : false;
+    const isExpired = expiryTime ? Date.now() > expiryTime : false;
+
     if (!isExpired) {
       verifiedTier = metaTier;
       isActive = true;
@@ -223,14 +289,16 @@ export async function POST(req: NextRequest) {
   if (serviceRoleKey && isActive) {
     try {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      const { data: matchedProfile } = await adminClient
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
-
-      const userId = matchedProfile?.id || authData.user.id;
+      const userId = authData.user.id;
       if (userId) {
+        await adminClient.from('profiles').upsert({
+          id: userId,
+          email: email,
+          tier: verifiedTier,
+          status: subStatus,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
         await adminClient.from('subscriptions').upsert({
           user_id: userId,
           plan_tier: verifiedTier,

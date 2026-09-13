@@ -66,7 +66,9 @@ function CallbackHandler() {
             if (savedLocalUserStr) {
               try {
                 const parsedLocal = JSON.parse(savedLocalUserStr);
-                if (parsedLocal && (parsedLocal.tier === 'Pro' || parsedLocal.tier === 'Enterprise')) {
+                const localEmail = (parsedLocal?.email || '').toLowerCase().trim();
+                // Strict account isolation: only adopt local session if email matches exactly
+                if (parsedLocal && (!localEmail || localEmail === userEmail) && (parsedLocal.tier === 'Pro' || parsedLocal.tier === 'Enterprise')) {
                   const isNotExpired = !parsedLocal.expiresAt || new Date(parsedLocal.expiresAt).getTime() > Date.now();
                   if (isNotExpired) {
                     effectiveTier = parsedLocal.tier;

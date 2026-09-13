@@ -121,6 +121,22 @@ function CheckoutPageContent() {
           setAuthInitialMode(mode || 'signup');
           setIsAuthModalOpen(true);
         }}
+        onUpgradeSuccess={(newTier) => {
+          const updatedUser: UserProfile = {
+            ...(user || { name: 'Customer', email: 'customer@zelsis.dev', isLoggedIn: true, emailVerified: true }),
+            tier: newTier,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            status: 'active',
+            lastVerifiedAt: Date.now(),
+          };
+          setUser(updatedUser);
+          try {
+            localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+            localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
+          } catch (storageErr) {
+            void storageErr;
+          }
+        }}
       />
 
       <AuthModal

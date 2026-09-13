@@ -74,28 +74,74 @@ export async function POST(req: NextRequest) {
   if (isVerified && customerEmail && serviceRoleKey) {
     try {
       const adminClient = createClient(supabaseUrl, serviceRoleKey);
-      const { data: users } = await adminClient.auth.admin.listUsers();
-      const matched = users?.users?.find((u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase().trim());
-      if (matched) {
+      const normalizedEmail = customerEmail.toLowerCase().trim();
+      const effectiveExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      
+      let matchedUserId: string | null = null;
+      let existingMetadata: Record<string, unknown> = {};
+
+      // A. Direct query profiles table
+      try {
+        const { data: profile } = await adminClient
+          .from('profiles')
+          .select('id, email')
+          .ilike('email', normalizedEmail)
+          .maybeSingle();
+        if (profile?.id) {
+          matchedUserId = profile.id;
+        }
+      } catch {}
+
+      // B. Query auth.users via admin API with expanded limit
+      if (!matchedUserId) {
+        try {
+          const { data: users } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+          const matched = users?.users?.find((u: any) => u.email?.toLowerCase() === normalizedEmail);
+          if (matched) {
+            matchedUserId = matched.id;
+            existingMetadata = matched.user_metadata || {};
+          }
+        } catch {}
+      } else {
+        try {
+          const { data: userData } = await adminClient.auth.admin.getUserById(matchedUserId);
+          if (userData?.user?.user_metadata) {
+            existingMetadata = userData.user.user_metadata;
+          }
+        } catch {}
+      }
+
+      if (matchedUserId) {
         // Update user metadata in auth.users
-        await adminClient.auth.admin.updateUserById(matched.id, {
+        await adminClient.auth.admin.updateUserById(matchedUserId, {
           user_metadata: {
-            ...(matched.user_metadata || {}),
+            ...existingMetadata,
             tier: resolvedTier,
             subscriptionStatus: 'active',
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            expiresAt: effectiveExpiry,
+            billingCycle: 'monthly',
           }
         });
 
+        // Upsert profiles record first to satisfy foreign key constraint
+        await adminClient.from('profiles').upsert({
+          id: matchedUserId,
+          email: normalizedEmail,
+          tier: resolvedTier,
+          status: 'active',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
         // Upsert subscriptions record
         await adminClient.from('subscriptions').upsert({
-          user_id: matched.id,
+          user_id: matchedUserId,
           plan_tier: resolvedTier,
           status: 'active',
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          current_period_end: effectiveExpiry,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
-        logger.info(`[Verify Checkout] Persisted subscription tier to ${resolvedTier} for ${customerEmail}`);
+
+        logger.info(`[Verify Checkout] Persisted subscription tier ${resolvedTier} for ${normalizedEmail} (expires: ${effectiveExpiry})`);
       }
     } catch (dbErr: any) {
       logger.warn('[Verify Checkout] Database update notice:', dbErr?.message);

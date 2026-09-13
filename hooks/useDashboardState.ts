@@ -205,7 +205,7 @@ export function useDashboardState() {
                 }
               }
 
-              // Expiry Check: Only downgrade to Free if subscription period genuinely expired
+              // Expiry Check: Only downgrade to Free if subscription period has genuinely elapsed
               if (resolvedTier !== 'Free' && expiresAt) {
                 const expiryTime = new Date(expiresAt).getTime();
                 if (!isNaN(expiryTime) && Date.now() > expiryTime && !savedLicenseKey) {
@@ -224,7 +224,7 @@ export function useDashboardState() {
                 emailVerified: parsedUser.emailVerified !== undefined ? Boolean(parsedUser.emailVerified) : true,
                 expiresAt,
                 status: parsedUser.status || 'active',
-                gracePeriodUntil: parsedUser.gracePeriodUntil,
+                gracePeriodUntil: undefined,
                 lastVerifiedAt: parsedUser.lastVerifiedAt || Date.now(),
               };
               setUser(activeUser);
@@ -437,20 +437,25 @@ export function useDashboardState() {
 
           // Tier preservation: Check if user already has verified Pro tier in local storage or license
           let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (supabaseUser.tier || 'Free');
-          let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : undefined;
+          let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : (supabaseUser as any).expiresAt;
           let savedStatus: 'active' | 'past_due' | 'canceled' = 'active';
-          let savedGracePeriod: string | undefined = undefined;
 
           const savedUserStr = localStorage.getItem('zelsis_user');
           if (savedUserStr) {
             try {
               const localParsed = JSON.parse(savedUserStr);
-              if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
-                resolvedTier = localParsed.tier;
+              const localEmail = (localParsed?.email || '').toLowerCase().trim();
+              // Strict account isolation: only adopt local session if email matches exactly
+              if (localParsed && (!localEmail || localEmail === email)) {
+                if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
+                  const localExpiry = localParsed?.expiresAt ? new Date(localParsed.expiresAt).getTime() : 0;
+                  if (localExpiry > Date.now() || !localParsed.expiresAt) {
+                    resolvedTier = localParsed.tier;
+                    if (!savedExpiresAt) savedExpiresAt = localParsed.expiresAt;
+                    savedStatus = localParsed.status || 'active';
+                  }
+                }
               }
-              savedExpiresAt = localParsed?.expiresAt;
-              savedStatus = localParsed?.status || 'active';
-              savedGracePeriod = localParsed?.gracePeriodUntil;
             } catch (err) {
               void err;
             }
@@ -465,8 +470,8 @@ export function useDashboardState() {
             }
           }
 
-          // If still Free, query the subscription sync API in background
-          if (resolvedTier === 'Free' && email && session?.access_token) {
+          // Query subscription sync API to ensure local and remote tiers are synchronized
+          if (email && session?.access_token) {
             try {
               const syncRes = await fetch('/api/v1/subscription/sync', {
                 method: 'POST',
@@ -482,7 +487,17 @@ export function useDashboardState() {
                   resolvedTier = syncData.tier;
                   savedExpiresAt = syncData.expiresAt;
                   savedStatus = syncData.status || 'active';
-                  savedGracePeriod = syncData.gracePeriodUntil;
+                } else {
+                  // Only downgrade to Free if the subscription period has genuinely elapsed
+                  const expiryTime = savedExpiresAt ? new Date(savedExpiresAt).getTime() : 0;
+                  if (expiryTime > 0 && Date.now() > expiryTime) {
+                    resolvedTier = 'Free';
+                    savedExpiresAt = undefined;
+                    savedStatus = 'canceled';
+                  } else if (expiryTime > 0 && Date.now() <= expiryTime) {
+                    // Active paid period remains sacrosanct: do not downgrade on refresh or sync latency
+                    console.info('[Zelsis Subscription] Sync returned inactive, but period is valid until', savedExpiresAt);
+                  }
                 }
               }
             } catch (err) {
@@ -506,9 +521,9 @@ export function useDashboardState() {
           const mergedUser: UserProfile = {
             ...supabaseUser,
             tier: resolvedTier,
-            expiresAt: (supabaseUser as any).expiresAt || savedExpiresAt,
+            expiresAt: savedExpiresAt,
             status: savedStatus,
-            gracePeriodUntil: savedGracePeriod,
+            gracePeriodUntil: undefined,
             lastVerifiedAt: Date.now(),
           };
 
@@ -548,18 +563,23 @@ export function useDashboardState() {
           let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (profile.tier || 'Free');
           let savedExpiresAt: string | undefined = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : profile.expiresAt;
           let savedStatus: 'active' | 'past_due' | 'canceled' = (profile.status as any) || 'active';
-          let savedGracePeriod: string | undefined = profile.gracePeriodUntil;
 
           const savedUserStr = localStorage.getItem('zelsis_user');
           if (savedUserStr) {
             try {
               const localParsed = JSON.parse(savedUserStr);
-              if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
-                resolvedTier = localParsed.tier;
+              const localEmail = (localParsed?.email || '').toLowerCase().trim();
+              // Strict account isolation: only adopt local session if email matches exactly
+              if (localParsed && (!localEmail || localEmail === email)) {
+                if (localParsed?.tier === 'Pro' || localParsed?.tier === 'Enterprise') {
+                  const localExpiry = localParsed?.expiresAt ? new Date(localParsed.expiresAt).getTime() : 0;
+                  if (localExpiry > Date.now() || !localParsed.expiresAt) {
+                    resolvedTier = localParsed.tier;
+                    if (!savedExpiresAt) savedExpiresAt = localParsed.expiresAt;
+                    savedStatus = localParsed.status || 'active';
+                  }
+                }
               }
-              if (!savedExpiresAt) savedExpiresAt = localParsed?.expiresAt;
-              if (localParsed?.status) savedStatus = localParsed.status;
-              if (!savedGracePeriod) savedGracePeriod = localParsed?.gracePeriodUntil;
             } catch (err) {
               void err;
             }
@@ -574,7 +594,8 @@ export function useDashboardState() {
             }
           }
 
-          if (resolvedTier === 'Free' && email && session?.access_token) {
+          // Query subscription sync API to ensure local and remote tiers are synchronized
+          if (email && session?.access_token) {
             try {
               const syncRes = await fetch('/api/v1/subscription/sync', {
                 method: 'POST',
@@ -590,7 +611,17 @@ export function useDashboardState() {
                   resolvedTier = syncData.tier;
                   savedExpiresAt = syncData.expiresAt;
                   savedStatus = syncData.status || 'active';
-                  savedGracePeriod = syncData.gracePeriodUntil;
+                } else {
+                  // Only downgrade to Free if the subscription period has genuinely elapsed
+                  const expiryTime = savedExpiresAt ? new Date(savedExpiresAt).getTime() : 0;
+                  if (expiryTime > 0 && Date.now() > expiryTime) {
+                    resolvedTier = 'Free';
+                    savedExpiresAt = undefined;
+                    savedStatus = 'canceled';
+                  } else if (expiryTime > 0 && Date.now() <= expiryTime) {
+                    // Active paid period remains sacrosanct: do not downgrade on refresh or sync latency
+                    console.info('[Zelsis Subscription] Sync returned inactive, but period is valid until', savedExpiresAt);
+                  }
                 }
               }
             } catch (err) {
@@ -616,7 +647,7 @@ export function useDashboardState() {
             tier: resolvedTier,
             expiresAt: savedExpiresAt,
             status: savedStatus,
-            gracePeriodUntil: savedGracePeriod,
+            gracePeriodUntil: undefined,
             lastVerifiedAt: Date.now(),
           };
 

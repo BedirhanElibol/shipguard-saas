@@ -358,6 +358,9 @@ function DashboardContent() {
                 setAuthInitialMode(mode || 'signup');
                 setIsAuthModalOpen(true);
               }}
+              onUpgradeSuccess={(newTier) => {
+                handleUpdateUserProfile({ tier: newTier });
+              }}
             />
           )}
 

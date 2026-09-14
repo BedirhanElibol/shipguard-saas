@@ -26,7 +26,7 @@ export const WorkflowSteps: React.FC = () => {
       description:
         'Connect any public or private GitHub repository, pull request branch, or direct code snippet. Our engine inspects AST syntax tokens in ephemeral serverless memory.',
       codeSnippet: `// 1. Ingest via CLI, GitHub Action or Web Dashboard
-$ shipguard evaluate --repo github.com/enterprise/payment-gateway
+$ zelsis evaluate --repo github.com/enterprise/payment-gateway
 [INFO] Ephemeral AST stream opened. 
 [PRIVACY] Zero-retention enabled: In-memory evaluation only. No code written to disk.`,
       features: [
@@ -37,11 +37,11 @@ $ shipguard evaluate --repo github.com/enterprise/payment-gateway
     },
     {
       number: '02',
-      badge: '148-POINT AUDIT',
+      badge: 'DEEP RELEASE AUDIT',
       title: 'Real-Time Evaluation Across 4 Core Pillars',
       description:
-        'In under 3.2 seconds, 148 deterministic release rules inspect your application layers simultaneously, isolating regressions before staging or production builds.',
-      codeSnippet: `[EVALUATING 148 RELEASE GATES]
+        'Deterministic release rules inspect your application layers simultaneously, isolating regressions before staging or production builds.',
+      codeSnippet: `[EVALUATING PRODUCTION RELEASE GATES]
   ✓ SEC-01: No hardcoded client secrets detected ......... [PASSED]
   ✓ SEC-03: PostgreSQL Row Level Security enforces auth .. [PASSED]
   ✗ UI-15: Non-semantic clickable container in SearchBox . [FAILED]
@@ -66,7 +66,7 @@ $ shipguard evaluate --repo github.com/enterprise/payment-gateway
   "gateStatus": "PASSED",
   "auditChecksum": "sha256-e3b0c44298fc1c149afbf4c8996fb924",
   "compliance": ["SOC2_TYPE_II", "ISO27001_A12"],
-  "signature": "SIGNED_BY_SHIPGUARD_RELEASE_AUTHORITY"
+  "signature": "SIGNED_BY_ZELSIS_RELEASE_AUTHORITY"
 }`,
       features: [
         'Exportable release manifest (JSON / CSV) for change control records',
@@ -86,7 +86,7 @@ $ shipguard evaluate --repo github.com/enterprise/payment-gateway
             <span>OPERATIONAL ARCHITECTURE</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            How ShipGuard Protects Production in 3 Steps
+            How Zelsis Protects Production in 3 Steps
           </h2>
           <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed">
             Eliminate human oversight. Our deterministic pipeline delivers comprehensive release gate verification in the time it takes to review a single pull request line.
@@ -99,7 +99,7 @@ $ shipguard evaluate --repo github.com/enterprise/payment-gateway
             <button
               key={step.number}
               onClick={() => setActiveStep(idx)}
-              className={`p-6 rounded-xl text-left border transition-all flex flex-col justify-between gap-4 ${
+              className={`p-6 rounded-xl text-left border transition-all flex flex-col justify-between gap-4 cursor-pointer ${
                 activeStep === idx
                   ? 'bg-[#141414] border-white/30 shadow-xl'
                   : 'bg-[#0E0E10] border-white/5 hover:border-white/15 opacity-75 hover:opacity-100'

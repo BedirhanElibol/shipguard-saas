@@ -17,20 +17,20 @@ export const FaqSection: React.FC = () => {
     {
       question: 'Do you store or train AI models on our proprietary source code?',
       answer:
-        'Never. ShipGuard operates on a strict zero-retention architecture. Your repository payload is streamed directly into ephemeral worker memory, parsed via AST regex tokens, and immediately released. We never write your code to disk, never save repositories into databases, and never use customer data for AI model training.'
+        'Never. Zelsis operates on a strict zero-retention architecture. Your repository payload is streamed directly into ephemeral worker memory, parsed via AST regex tokens, and immediately released. We never write your code to disk, never save repositories into databases, and never use customer data for AI model training.'
     },
     {
-      question: 'Does ShipGuard work with private GitHub repositories?',
+      question: 'Does Zelsis work with private GitHub repositories?',
       answer:
         'Yes. You can connect private GitHub repositories using your authenticated GitHub token or by running our localized CLI. Because scans execute in-memory, your confidential intellectual property remains strictly within your authorized team perimeter.'
     },
     {
-      question: 'How does ShipGuard integrate into our existing CI/CD pipelines?',
+      question: 'How does Zelsis integrate into our existing CI/CD pipelines?',
       answer:
-        'ShipGuard can be invoked via automated webhooks, CLI pre-commit hooks, or GitHub Actions. It outputs deterministic exit codes and signed JSON/CSV release manifests. You can enforce a minimum release threshold (e.g. 90/100 readiness score) to block pull request merges containing critical vulnerabilities.'
+        'Zelsis can be invoked via automated webhooks, CLI pre-commit hooks, or GitHub Actions. It outputs deterministic exit codes and signed JSON/CSV release manifests. You can enforce a minimum release threshold (e.g. 90/100 readiness score) to block pull request merges containing critical vulnerabilities.'
     },
     {
-      question: 'How are the 148 release rules maintained and updated?',
+      question: 'How are the release gate and security rules maintained and updated?',
       answer:
         'Our rule inventory is continuously synchronized with the latest industry benchmarks, including OWASP Top 10 (2025/2026), OWASP API Security, Next.js 15 App Router best practices, WCAG 2.2 AA accessibility guidelines, and Kubernetes/Docker CIS benchmarks.'
     },
@@ -69,7 +69,7 @@ export const FaqSection: React.FC = () => {
             <div key={idx} className="py-6">
               <button
                 onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
-                className="w-full flex items-center justify-between gap-4 text-left group focus:outline-none"
+                className="w-full flex items-center justify-between gap-4 text-left group focus:outline-none cursor-pointer"
                 aria-expanded={openIdx === idx}
               >
                 <span className="text-base sm:text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
@@ -86,7 +86,7 @@ export const FaqSection: React.FC = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.15 }}
                     className="overflow-hidden"
                   >
                     <p className="mt-4 text-sm text-zinc-400 leading-relaxed font-sans pr-6">

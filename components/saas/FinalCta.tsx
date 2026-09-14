@@ -9,22 +9,12 @@ export const FinalCta: React.FC = () => {
   const router = useRouter();
 
   return (
-    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] relative overflow-hidden">
-      {/* Subtle Grid Lines */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-[0.02]"
-        style={{
-          backgroundImage: 'linear-gradient(to right, #EDEDED 1px, transparent 1px), linear-gradient(to bottom, #EDEDED 1px, transparent 1px)',
-          backgroundSize: '48px 48px'
-        }}
-        aria-hidden="true"
-      />
-
+    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] relative">
       <div className="max-w-5xl mx-auto rounded-3xl border border-white/20 bg-gradient-to-b from-[#141414] to-[#0E0E10] p-8 sm:p-16 shadow-2xl relative z-10 flex flex-col items-center text-center">
         {/* Release Status Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-6">
-          <ShieldCheck size={14} />
-          <span className="uppercase tracking-wider font-semibold">Immediate Pre-Flight Deployment</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-white/10 bg-white/[0.03] text-zinc-300 text-xs font-mono mb-6">
+          <ShieldCheck size={14} className="text-emerald-400" />
+          <span className="uppercase tracking-wider font-semibold text-[11px]">Immediate Pre-Flight Deployment</span>
         </div>
 
         {/* Big Headline */}
@@ -34,14 +24,14 @@ export const FinalCta: React.FC = () => {
 
         {/* Subtitle */}
         <p className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto mt-6 mb-10 font-sans leading-relaxed">
-          Test your repository against 148 deterministic release rules in under 3.2 seconds. No credit card required, zero code stored.
+          Test your repository against deterministic release rules in real time. No credit card required, zero code stored.
         </p>
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
           <button
             onClick={() => router.push('/dashboard')}
-            className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98]"
+            className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98] cursor-pointer"
           >
             <Play size={14} fill="#0A0A0A" />
             <span>Launch Full Audit Engine</span>
@@ -49,7 +39,7 @@ export const FinalCta: React.FC = () => {
 
           <a
             href="#pricing"
-            className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-white hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-white hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>View Pricing &amp; Plans</span>
             <ArrowRight size={14} />
@@ -62,7 +52,7 @@ export const FinalCta: React.FC = () => {
           <span className="text-zinc-700">•</span>
           <span>✓ 100% In-Memory Privacy</span>
           <span className="text-zinc-700">•</span>
-          <span>✓ 148 Deterministic Gates</span>
+          <span>✓ Comprehensive Rule Taxonomies</span>
         </div>
       </div>
     </section>

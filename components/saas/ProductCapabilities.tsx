@@ -26,7 +26,7 @@ interface CapabilityPillar {
   image: string;
   alt: string;
   tag: string;
-  metrics: { label: string; value: string }[];
+  architecturePills: string[];
   bulletPoints: string[];
 }
 
@@ -36,41 +36,41 @@ export const ProductCapabilities: React.FC = () => {
   const pillars: CapabilityPillar[] = [
     {
       id: 'rules',
-      badge: 'PILLAR 01 // 148 ACTIVE GATES',
-      title: 'Deterministic Multi-Pillar Release Rules',
-      subtitle: 'Configurable gate catalog covering security, performance, cloud infra, and compliance.',
+      badge: 'PILLAR 01 // RULE TAXONOMY',
+      title: 'Exhaustive Pre-Flight Release Rules',
+      subtitle: 'Continuous verification across OWASP Top 10, database isolation, and cloud architecture.',
       description:
-        'Audit your codebase against an exhaustive catalog of deterministic rules. Enforce zero day-one OWASP Top 10 vulnerabilities, verify Supabase Row Level Security, block wildcard CORS endpoints, and eliminate root container privilege escalation risks.',
+        'Audit your codebase against an extensive taxonomy of deterministic AST rules. Enforce zero day-one OWASP Top 10 vulnerabilities, verify Supabase Row Level Security policies, block wildcard CORS endpoints, and eliminate root container privilege escalation risks.',
       image: '/images/security_rules.png',
-      alt: 'ShipGuard 148 Multi-Pillar Release Gate Catalog and Configurator',
-      tag: '148 RULES ACTIVE',
-      metrics: [
-        { label: 'Security Rules', value: '42 Active' },
-        { label: 'UI/UX & A11y', value: '38 Active' },
-        { label: 'Cloud & Infra', value: '36 Active' },
-        { label: 'Legal & Privacy', value: '32 Active' }
+      alt: 'Zelsis Release Gate Rule Catalog and Policy Configurator',
+      tag: 'POLICY ENGINE',
+      architecturePills: [
+        'OWASP Top 10 (2025/2026)',
+        'PostgreSQL Row Level Security',
+        'Next.js 15 Server Components',
+        'Docker & K8s Security Context'
       ],
       bulletPoints: [
         'Deterministic AST inspection with zero false-positive rate hallucination',
-        'Granular severity overrides: Toggle CRITICAL, HIGH, MEDIUM per repository',
-        'Instant rule explanations mapped to CWE and OWASP 2025/2026 standards'
+        'Granular severity controls: Configure CRITICAL, HIGH, MEDIUM per repository',
+        'Clear explanations mapped to CWE standards and security best practices'
       ]
     },
     {
       id: 'findings',
       badge: 'PILLAR 02 // SURGICAL AST TRIAGE',
       title: 'Line-by-Line Vulnerability Triage & Context',
-      subtitle: 'Precise code diff context with copyable AI remediation prompts.',
+      subtitle: 'Pinpoint vulnerabilities down to the exact line number with 1-click AI remediation prompts.',
       description:
-        'Every detected issue is isolated down to the exact file line, AST node, and security risk context. Review line-by-line diffs and copy automated AI prompts to remediate issues instantly inside Cursor or Copilot.',
+        'Every detected flaw is isolated with its syntax context, risk severity, and remediation guidance. Review exact line-by-line diffs and copy automated AI prompts to remediate issues instantly inside Cursor, Copilot, or Claude Code.',
       image: '/images/audit_findings.png',
-      alt: 'ShipGuard Vulnerability Triage and Line-by-Line Code Findings',
+      alt: 'Zelsis Vulnerability Triage and Line-by-Line Code Findings',
       tag: 'SURGICAL DIFFS',
-      metrics: [
-        { label: 'Diff Precision', value: '100% Line Accuracy' },
-        { label: '1-Click Fix', value: 'AI Prompts' },
-        { label: 'Remediation Time', value: '<60 Seconds' },
-        { label: 'Export Formats', value: 'JSON & CSV' }
+      architecturePills: [
+        'Precise Line Number Isolation',
+        '1-Click AI Fix Prompts',
+        'CWE Risk Explanations',
+        'Exportable JSON & CSV'
       ],
       bulletPoints: [
         'Exact line numbers with syntax-highlighted code context',
@@ -81,40 +81,40 @@ export const ProductCapabilities: React.FC = () => {
     {
       id: 'sandbox',
       badge: 'PILLAR 03 // ZERO-INSTALL REPL',
-      title: 'Interactive Browser AST Sandbox & Tester',
-      subtitle: 'Test snippets, AST patterns, and custom regex rules in live browser memory.',
+      title: 'Interactive In-Memory AST Sandbox',
+      subtitle: 'Test production code snippets against clearance rules in live browser memory.',
       description:
-        'Experiment with production snippets before pushing to version control. Test API routes, Dockerfiles, and React components against the full ShipGuard engine without installing any CLI tools or npm packages.',
+        'Experiment with production snippets before pushing to version control. Test API routes, Dockerfiles, and React components against the full Zelsis engine without installing any local packages or daemons.',
       image: '/images/vulnerability_sandbox.png',
-      alt: 'ShipGuard Zero-Install Vulnerability Sandbox and AST Regex Playground',
+      alt: 'Zelsis In-Memory Vulnerability Sandbox and AST Regex Playground',
       tag: 'ZERO-INSTALL REPL',
-      metrics: [
-        { label: 'Install Overhead', value: '0 Seconds' },
-        { label: 'Built-in Presets', value: '5 Scenarios' },
-        { label: 'Execution Mode', value: 'In-Memory Client' },
-        { label: 'Code Privacy', value: 'Zero Egress' }
+      architecturePills: [
+        'Client-Side In-Memory Execution',
+        'Zero Data Egress / Full Privacy',
+        'Instant AST Pattern Evaluation',
+        '5 Built-in Production Presets'
       ],
       bulletPoints: [
         'Live AST evaluator running directly inside your browser viewport',
-        '1-click presets for OWASP secret leakage, permissive RLS, and container root',
+        '1-click presets for secret exposure, permissive RLS, and container root',
         'Real-time feedback as you type or paste production code'
       ]
     },
     {
       id: 'profiler',
-      badge: 'PILLAR 04 // CORE WEB VITALS & CLOUD',
+      badge: 'PILLAR 04 // WEB VITALS & INFRASTRUCTURE',
       title: 'Deep Bundle & Core Web Vitals Profiler',
-      subtitle: 'Analyze asset weight distribution, layout stability, and container resource limits.',
+      subtitle: 'Identify layout shifts, unoptimized asset weights, and container resource limits.',
       description:
-        'Catch client-side performance regressions and cloud resource exhaustion. Analyze Cumulative Layout Shift (CLS), unoptimized image payloads, and verify Docker CPU/Memory limits before deployment.',
+        'Catch client-side performance regressions and cloud resource misconfigurations. Analyze Cumulative Layout Shift (CLS), unoptimized assets, WCAG 2.1 AA keyboard accessibility, and verify Docker CPU/Memory limits before deployment.',
       image: '/images/bundle_profiler.png',
-      alt: 'ShipGuard Performance Bundle Profiler and Cloud Resource Analyzer',
+      alt: 'Zelsis Performance Bundle Profiler and Cloud Resource Analyzer',
       tag: 'PERFORMANCE GAUGE',
-      metrics: [
-        { label: 'Core Web Vitals', value: 'CLS & LCP' },
-        { label: 'Docker Defense', value: 'Non-Root User' },
-        { label: 'Asset Tracking', value: 'Tree-Shaking' },
-        { label: 'K8s Pod Limits', value: 'Automated' }
+      architecturePills: [
+        'Cumulative Layout Shift (CLS)',
+        'Largest Contentful Paint (LCP)',
+        'WCAG 2.1 AA Accessibility',
+        'Container Resource Quotas'
       ],
       bulletPoints: [
         'Cumulative Layout Shift (CLS) and Largest Contentful Paint (LCP) checks',
@@ -152,7 +152,7 @@ export const ProductCapabilities: React.FC = () => {
                   isReversed ? 'lg:flex-row-reverse' : 'lg:flex-row'
                 } gap-10 items-center`}
               >
-                {/* Text & Metrics Column (5 cols) */}
+                {/* Text & Architecture Pills Column (5 cols) */}
                 <div className="w-full lg:w-5/12 flex flex-col gap-6">
                   <div className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
                     <span>{pillar.badge}</span>
@@ -170,12 +170,12 @@ export const ProductCapabilities: React.FC = () => {
                     {pillar.description}
                   </p>
 
-                  {/* Key Metrics Grid */}
-                  <div className="grid grid-cols-2 gap-3 py-4 border-y border-white/10">
-                    {pillar.metrics.map((m, mIdx) => (
-                      <div key={mIdx} className="p-3 rounded-lg bg-[#0E0E10] border border-white/5">
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase block">{m.label}</span>
-                        <span className="text-sm font-mono font-bold text-white mt-0.5 block">{m.value}</span>
+                  {/* Architecture Capability Tags (No Fake Numbers) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-4 border-y border-white/10">
+                    {pillar.architecturePills.map((pill, pIdx) => (
+                      <div key={pIdx} className="p-2.5 rounded-lg bg-[#0E0E10] border border-white/5 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                        <span className="text-xs font-mono text-zinc-300">{pill}</span>
                       </div>
                     ))}
                   </div>

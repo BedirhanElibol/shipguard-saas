@@ -11,56 +11,56 @@ export const ComparisonTable: React.FC = () => {
   const comparisonRows = [
     {
       feature: 'Evaluation Time',
-      shipguard: 'Under 3.2 seconds',
+      zelsis: 'Real-Time In-Memory Stream',
       linters: '10–45 seconds',
-      enterprise: '5–20 minutes'
+      enterprise: '15–45 minutes'
     },
     {
       feature: 'Multi-Pillar Verification',
       detail: 'Security, UI/UX, Cloud Infra, and Legal Compliance combined',
-      shipguard: true,
+      zelsis: true,
       linters: false,
       enterprise: 'Partial (Security only)'
     },
     {
       feature: 'Zero-Retention Privacy',
       detail: 'Code is scanned purely in ephemeral memory, never stored or trained on',
-      shipguard: true,
+      zelsis: true,
       linters: true,
       enterprise: false
     },
     {
       feature: 'Setup Overhead',
       detail: 'Zero installation required; works directly with GitHub URLs & Webhooks',
-      shipguard: '0 minutes (Instant)',
+      zelsis: '0 minutes (Instant)',
       linters: '30+ min configuration',
       enterprise: 'Days of agent setup'
     },
     {
       feature: 'Surgical Line-by-Line AST Diffs',
       detail: 'Pinpoints exact file line with pre-engineered AI prompts for Cursor/Copilot',
-      shipguard: true,
+      zelsis: true,
       linters: 'Partial (Syntax only)',
       enterprise: false
     },
     {
       feature: 'Signed Release Manifest (SOC 2 / ISO 27001)',
       detail: 'Cryptographic certificate proving pre-flight compliance before merge',
-      shipguard: true,
+      zelsis: true,
       linters: false,
       enterprise: 'Add-on ($$$)'
     },
     {
       feature: 'Interactive Browser Sandbox & REPL',
       detail: 'Test code snippets and custom regex rules in browser memory without sign-up',
-      shipguard: true,
+      zelsis: true,
       linters: false,
       enterprise: false
     },
     {
       feature: 'Pricing Transparency',
       detail: 'Predictable self-serve plans vs opaque sales quotes',
-      shipguard: '$29 / month',
+      zelsis: '$29 / month',
       linters: 'Free (Low Scope)',
       enterprise: '$500 – $2,500+ / mo'
     }
@@ -91,10 +91,10 @@ export const ComparisonTable: React.FC = () => {
             <span>UNCOMPROMISING COMPARISON</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            Why Developers Choose ShipGuard
+            Why Developers Choose Zelsis
           </h2>
           <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed font-sans">
-            Traditional linters only check syntax formatting. Heavy enterprise scanners take 15 minutes and lock you into annual enterprise contracts. ShipGuard provides deterministic release gates in 3 seconds.
+            Traditional linters only check syntax formatting. Heavy enterprise scanners take 15–45 minutes and lock you into annual enterprise contracts. Zelsis provides deterministic release gates in real time.
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export const ComparisonTable: React.FC = () => {
                   <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/[0.04] border-x border-white/10 w-1/5">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      <span className="font-bold text-white">ShipGuard</span>
+                      <span className="font-bold text-white">Zelsis</span>
                     </div>
                   </th>
                   <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-1/5">
@@ -131,7 +131,7 @@ export const ComparisonTable: React.FC = () => {
                       )}
                     </td>
                     <td className="p-4 sm:p-6 bg-emerald-500/[0.03] border-x border-white/10 text-emerald-300 font-medium">
-                      {renderValue(row.shipguard)}
+                      {renderValue(row.zelsis)}
                     </td>
                     <td className="p-4 sm:p-6 text-zinc-400">
                       {renderValue(row.linters)}
@@ -153,7 +153,7 @@ export const ComparisonTable: React.FC = () => {
             </div>
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-6 py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-sm"
+              className="px-6 py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
             >
               <span>Test Your Repository</span>
               <ArrowRight size={14} />

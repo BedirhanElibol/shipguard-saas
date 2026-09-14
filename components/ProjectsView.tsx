@@ -11,7 +11,7 @@ interface ProjectsViewProps {
   projects: Project[];
   onSelectProject: (p: Project) => void;
   onAddNewProject: (p: Project) => void;
-  onTriggerScan: () => void;
+  onTriggerScan: (projectOverride?: Project) => void;
   onDeleteProject?: (id: string) => void;
   user?: UserProfile | null;
   onOpenCheckout?: () => void;
@@ -276,7 +276,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                   <button
                     onClick={() => {
                       onSelectProject(p);
-                      onTriggerScan();
+                      onTriggerScan(p);
                     }}
                     className="px-3 py-2 rounded-lg text-xs font-mono font-bold bg-white text-black hover:bg-neutral-200 flex items-center justify-center gap-1 transition-colors"
                     title="Run Release Gate Audit"

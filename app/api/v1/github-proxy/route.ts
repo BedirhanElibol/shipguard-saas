@@ -264,7 +264,7 @@ export async function GET(req: NextRequest) {
           !item.path.includes('.venv/') &&
           !item.path.includes('__pycache__/')
       )
-      .slice(0, 150);
+      .slice(0, 500);
 
     if (treeFiles.length === 0) {
       return NextResponse.json({
@@ -285,7 +285,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch raw file contents in parallel chunks from GitHub
-    const CHUNK_SIZE = 25;
+    const CHUNK_SIZE = 40;
     const fetchedFiles: Array<{ path: string; content: string }> = [];
 
     for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {

@@ -15,7 +15,7 @@ interface AppShellProps {
   projects: Project[];
   selectedProject: Project;
   onSelectProject: (p: Project) => void;
-  onTriggerScan: () => void;
+  onTriggerScan: (projectOverride?: Project) => void;
   onNavigateLanding?: () => void;
   onAddNewProject?: (p: Project) => void;
   user?: UserProfile | null;

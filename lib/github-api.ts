@@ -409,7 +409,7 @@ export async function fetchGithubRepositoryData(
           !item.path.includes('.venv/') &&
           !item.path.includes('__pycache__/')
       )
-      .slice(0, 150);
+      .slice(0, 500);
 
     if (signal?.aborted) return null;
 
@@ -430,7 +430,7 @@ export async function fetchGithubRepositoryData(
       };
     }
 
-    const CHUNK_SIZE = 15;
+    const CHUNK_SIZE = 35;
     const fetchedFiles: (CodeFile | null)[] = [];
 
     for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {

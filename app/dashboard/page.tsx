@@ -64,6 +64,17 @@ function DashboardContent() {
   } = useDashboardState();
 
   const [checkoutInitialPlan, setCheckoutInitialPlan] = useState<'Pro' | 'Enterprise'>('Pro');
+  const [scanProjectOverride, setScanProjectOverride] = useState<Project | null>(null);
+
+  const handleTriggerScan = (projectOverride?: Project) => {
+    if (projectOverride) {
+      handleSelectProject(projectOverride);
+      setScanProjectOverride(projectOverride);
+    } else {
+      setScanProjectOverride(null);
+    }
+    setIsScanning(true);
+  };
 
   const handleOpenCheckoutModal = (requestedPlan?: 'Pro' | 'Enterprise') => {
     if (requestedPlan) {
@@ -187,7 +198,7 @@ function DashboardContent() {
       }}
       selectedProject={selectedProject}
       onSelectProject={handleSelectProject}
-      onTriggerScan={() => setIsScanning(true)}
+      onTriggerScan={handleTriggerScan}
       onNavigateLanding={() => router.push('/')}
       onAddNewProject={handleAddNewProject}
       user={user}
@@ -202,13 +213,14 @@ function DashboardContent() {
         <LifecycleBanner user={user} />
         {isScanning ? (
           <ScanRunnerView
-            project={selectedProject}
+            project={scanProjectOverride || selectedProject}
             onCompleteScan={(result) => {
+              const currentTarget = scanProjectOverride || selectedProject;
               if (result) {
                 const newScanHistoryItem: ScanHistoryItem = {
                   id: `SCAN-${Date.now().toString(36).toUpperCase()}`,
                   date: new Date().toLocaleString(),
-                  target: selectedProject.repoUrl,
+                  target: currentTarget.repoUrl,
                   score: result.score,
                   gateStatus: result.gateStatus,
                   criticalCount: result.criticalCount,
@@ -218,7 +230,7 @@ function DashboardContent() {
                   triggeredBy: 'Manual Dashboard Audit'
                 };
                 const updatedProject: Project = {
-                  ...selectedProject,
+                  ...currentTarget,
                   readinessScore: result.score,
                   gateStatus: result.gateStatus,
                   criticalCount: result.criticalCount,
@@ -228,17 +240,19 @@ function DashboardContent() {
                   uiClicheCount: result.uiClicheCount,
                   findings: result.findings,
                   lastScanAt: new Date().toLocaleString(),
-                  scanHistory: [newScanHistoryItem, ...((selectedProject as any).scanHistory || [])].slice(0, 20)
+                  scanHistory: [newScanHistoryItem, ...((currentTarget as any).scanHistory || [])].slice(0, 20)
                 };
                 setSelectedProject(updatedProject);
                 setProjects((prev) => {
-                  const updatedList = prev.map((p) =>
-                    p.id === selectedProject.id ? updatedProject : p
-                  );
+                  const exists = prev.some((p) => p.id === currentTarget.id);
+                  const updatedList = exists
+                    ? prev.map((p) => (p.id === currentTarget.id ? updatedProject : p))
+                    : [updatedProject, ...prev];
                   persistProjectsList(updatedList);
                   return updatedList;
                 });
               }
+              setScanProjectOverride(null);
               setIsScanning(false);
               setActiveNav('dashboard');
             }}
@@ -248,7 +262,7 @@ function DashboardContent() {
             {activeNav === 'dashboard' && (
               <DashboardView
                 project={selectedProject}
-                onTriggerScan={() => setIsScanning(true)}
+                onTriggerScan={handleTriggerScan}
                 onInspectFinding={(f) => setInspectingFinding(f)}
                 onNavigatePillar={(p) => setActiveNav(p)}
                 onLoadDemoFindings={handleLoadDemoFindings}
@@ -334,7 +348,7 @@ function DashboardContent() {
                 }}
                 onAddNewProject={handleAddNewProject}
                 onDeleteProject={handleDeleteProject}
-                onTriggerScan={() => setIsScanning(true)}
+                onTriggerScan={handleTriggerScan}
                 user={user}
                 onOpenCheckout={() => handleOpenCheckoutModal()}
               />
@@ -343,7 +357,7 @@ function DashboardContent() {
           {activeNav === 'scans' && (
             <ScanHistoryView
               project={selectedProject}
-              onTriggerScan={() => setIsScanning(true)}
+              onTriggerScan={handleTriggerScan}
             />
           )}
 

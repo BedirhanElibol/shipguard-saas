@@ -14,7 +14,7 @@ interface HeaderProps {
   projects: Project[];
   selectedProject: Project;
   onSelectProject: (p: Project) => void;
-  onTriggerScan: () => void;
+  onTriggerScan: (projectOverride?: Project) => void;
   onNavigateLanding?: () => void;
   onAddNewProject?: (p: Project) => void;
   user?: UserProfile | null;
@@ -70,35 +70,35 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, [isUserMenuOpen]);
 
-  const handleTargetUrlSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAuditAction = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const cleaned = sanitizeTargetUrl(activeTargetUrl);
-    if (cleaned) {
-      if (cleaned !== selectedProject.repoUrl) {
-        const newProject: Project = {
-          id: `proj-${Date.now()}`,
-          name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || 'Imported Repository',
-          repoUrl: cleaned,
-          framework: 'Next.js 15',
-          providers: ['GitHub'],
-          lastScanAt: 'Never audited',
-          readinessScore: 100,
-          gateStatus: 'PASSED',
-          criticalCount: 0,
-          highCount: 0,
-          mediumCount: 0,
-          lowCount: 0,
-          uiClicheCount: 0,
-          findings: []
-        };
-        if (onAddNewProject) {
-          onAddNewProject(newProject);
-        } else {
-          onSelectProject(newProject);
-        }
+    if (cleaned && cleaned !== selectedProject.repoUrl) {
+      const newProject: Project = {
+        id: `proj-${Date.now()}`,
+        name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || 'Imported Repository',
+        repoUrl: cleaned,
+        framework: 'Next.js 15',
+        providers: ['GitHub'],
+        lastScanAt: 'Never audited',
+        readinessScore: 100,
+        gateStatus: 'PASSED',
+        criticalCount: 0,
+        highCount: 0,
+        mediumCount: 0,
+        lowCount: 0,
+        uiClicheCount: 0,
+        findings: []
+      };
+      if (onAddNewProject) {
+        onAddNewProject(newProject);
+      } else {
+        onSelectProject(newProject);
       }
-      onTriggerScan();
+      onTriggerScan(newProject);
+      return;
     }
+    onTriggerScan(selectedProject);
   };
 
   return (
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Center: Quick Target URL Input */}
-        <form onSubmit={handleTargetUrlSubmit} className="hidden md:flex items-center flex-1 max-w-md mx-4">
+        <form onSubmit={handleAuditAction} className="hidden md:flex items-center flex-1 max-w-md mx-4">
           <input
             type="text"
             aria-label="Target repository or deployment URL"
@@ -181,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right: Quick Audit Trigger & User Menu */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
-            onClick={onTriggerScan}
+            onClick={() => handleAuditAction()}
             className="btn btn-primary px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white text-black hover:bg-neutral-200 shrink-0"
           >
             <Play size={12} fill="#0A0A0A" />

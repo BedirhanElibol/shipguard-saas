@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSiemAuditLoggingRules Engine (50 Rules)
  * Rules AUDIT-01 to AUDIT-50 (Rule IDs 12101 to 12150).

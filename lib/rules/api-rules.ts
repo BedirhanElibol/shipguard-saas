@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateApiRules Engine (50 Rules)
  * Rules API-01 to API-50 (Rule IDs 7201 to 7250).

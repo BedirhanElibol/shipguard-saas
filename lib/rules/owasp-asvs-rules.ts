@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateOwaspAsvsRules Engine (50 Rules)
  * Rules ASVS-01 to ASVS-50 (Rule IDs 13801 to 13850).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Frontend Interaction & Modal Traps Quality Evaluator (50 Rules)
  * Rules UI-INTERACT-01 to UI-INTERACT-50 (Rule IDs 1201 to 1250).

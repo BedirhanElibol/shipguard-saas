@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateContainerSecurityRules Engine (50 Rules)
  * Rules CONTAINER-01 to CONTAINER-50 (Rule IDs 12201 to 12250).

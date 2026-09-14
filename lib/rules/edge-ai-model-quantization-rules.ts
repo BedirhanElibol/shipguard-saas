@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEdgeAiModelQuantizationRules Engine (50 Rules)
  * Rules EDGE-AI-OPT-01 to EDGE-AI-OPT-50 (Rule IDs 17301 to 17350).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateDoraComplianceRules Engine (50 Rules)
  * Rules DORA-01 to DORA-50 (Rule IDs 12401 to 12450).

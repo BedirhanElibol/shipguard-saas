@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluatePciDssV4Rules Engine (50 Rules)
  * Rules PCI4-01 to PCI4-50 (Rule IDs 12901 to 12950).

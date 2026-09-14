@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCacheRedisRules Engine (50 Rules)
  * Rules CACHE-01 to CACHE-50 (Rule IDs 10701 to 10750).

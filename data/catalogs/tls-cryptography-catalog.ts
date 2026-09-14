@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { SecurityRule } from '../schema';
 
 export const TLS_CRYPTOGRAPHY_RULES_CATALOG: SecurityRule[] = [

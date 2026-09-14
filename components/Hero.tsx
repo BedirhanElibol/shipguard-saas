@@ -168,24 +168,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
     <section className="relative min-h-[85vh] flex flex-col justify-between pt-24 pb-12 px-6 bg-[#0A0A0A] border-b border-white/10">
       {/* Hero Content Container */}
       <div className="relative z-10 max-w-5xl mx-auto w-full my-auto text-center flex flex-col items-center">
-        {/* Release Clearance Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2.5 px-3 py-1 rounded-md border border-white/10 bg-white/[0.04] text-xs text-zinc-400 mb-8"
-        >
-          <span className="font-mono text-emerald-400 font-semibold text-[11px] uppercase tracking-wider">v2.4 Release</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-zinc-300">Production Deployment Clearance</span>
-        </motion.div>
-
-        {/* Editorial Swiss Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] max-w-4xl"
+          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] max-w-4xl mb-6"
         >
           The Production Release Gate for <br />
           <span className="text-white">Modern Web & Cloud Applications.</span>

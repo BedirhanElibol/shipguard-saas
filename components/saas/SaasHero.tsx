@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React, { useState } from 'react';
@@ -23,6 +22,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
   const router = useRouter();
   const [repoInput, setRepoInput] = useState('expressjs/express');
   const [activeHotspot, setActiveHotspot] = useState<number | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   const sampleRepos = [
     { label: 'Express.js', value: 'expressjs/express' },
@@ -34,7 +34,8 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
   const handleStartScan = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = repoInput.trim();
-    if (!clean) return;
+    if (!clean || isScanning) return;
+    setIsScanning(true);
     if (onOpenDashboard) {
       onOpenDashboard();
     } else {
@@ -69,31 +70,15 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
   return (
     <section className="relative min-h-[90vh] flex flex-col justify-start pt-28 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10">
       <div className="relative z-10 max-w-6xl mx-auto w-full flex flex-col items-center text-center">
-        {/* Release Clearance Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-white/10 bg-white/[0.03] text-zinc-400 text-xs font-mono mb-8"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span className="font-semibold uppercase tracking-wider text-[11px] text-zinc-200">ZELSIS PRE-FLIGHT GATE</span>
-          <span className="text-zinc-600">|</span>
-          <span className="text-zinc-400 font-sans text-xs">Continuous Production Readiness Clearance</span>
-        </motion.div>
-
-        {/* Commanding Editorial Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#EDEDED] tracking-tight leading-[1.06] max-w-5xl"
+          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#EDEDED] tracking-tight leading-[1.06] max-w-5xl mb-6"
         >
           The Pre-Flight Release Gate for <br className="hidden sm:inline" />
           <span className="text-white">Modern Web &amp; Cloud Applications.</span>
         </motion.h1>
-
-        {/* Subtitle Value Proposition */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -122,20 +107,19 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                 value={repoInput}
                 onChange={(e) => setRepoInput(e.target.value)}
                 placeholder="owner/repository or public git URL"
-                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none"
+                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
                 aria-label="GitHub Repository to Scan"
               />
             </div>
             <button
               type="submit"
-              className="px-6 py-3 rounded-lg text-xs font-bold font-mono uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm active:scale-[0.98]"
+              disabled={isScanning}
+              className="px-6 py-3 rounded-lg text-xs font-bold font-mono uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <span>Scan Repository</span>
               <ArrowRight size={14} />
             </button>
           </form>
-
-          {/* Preset Buttons for Quick Evaluation */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs">
             <span className="text-zinc-500 text-[11px] font-mono uppercase">Quick Presets:</span>
             {sampleRepos.map((r) => (
@@ -154,8 +138,6 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             ))}
           </div>
         </motion.div>
-
-        {/* Primary Action Row & Trust Signals */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -169,7 +151,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           <span className="hidden sm:inline text-zinc-700">•</span>
           <div className="flex items-center gap-2">
             <CheckCircle2 size={14} className="text-emerald-400" />
-            <span>7,500+ Deterministic AST Rules</span>
+            <span>5,000+ Deep Web &amp; Cloud Rules</span>
           </div>
           <span className="hidden sm:inline text-zinc-700">•</span>
           <div className="flex items-center gap-2">

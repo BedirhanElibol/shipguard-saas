@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateWasmRuntimeRules Engine (50 Rules)
  * Rules WASM-01 to WASM-50 (Rule IDs 12701 to 12750).

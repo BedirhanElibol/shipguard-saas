@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluatePgvectorPostgresRules Engine (50 Rules)
  * Rules PG-01 to PG-50 (Rule IDs 10301 to 10350).

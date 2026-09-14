@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGrpcProtobufRules Engine (50 Rules)
  * Rules GRPC-01 to GRPC-50 (Rule IDs 10201 to 10250).

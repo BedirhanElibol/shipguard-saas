@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateConfidentialComputingRules Engine (50 Rules)
  * Rules CONF-COMPUTE-01 to CONF-COMPUTE-50 (Rule IDs 16401 to 16450).

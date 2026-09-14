@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateZeroTrustRules Engine (55 Rules)
  * Rules ZERO-AUTH-01 to ZERO-AUTH-55 (Rule IDs 8101 to 8155).

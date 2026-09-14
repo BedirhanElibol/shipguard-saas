@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateFedrampComplianceRules Engine (50 Rules)
  * Rules FEDRAMP-01 to FEDRAMP-50 (Rule IDs 13901 to 13950).

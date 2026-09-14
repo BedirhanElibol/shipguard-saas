@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { ProxyQuerySchema, validateQueryParams } from '@/lib/validations/api-schemas';

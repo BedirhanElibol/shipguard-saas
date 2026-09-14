@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateDnsSecurityRules Engine (50 Rules)
  * Rules DNS-01 to DNS-50 (Rule IDs 11801 to 11850).

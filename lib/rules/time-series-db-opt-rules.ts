@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateTimeSeriesDbOptRules Engine (50 Rules)
  * Rules TSDB-OPT-01 to TSDB-OPT-50 (Rule IDs 15901 to 15950).

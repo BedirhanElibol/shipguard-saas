@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateDatabaseShardingRules Engine (50 Rules)
  * Rules SHARD-01 to SHARD-50 (Rule IDs 15501 to 15550).

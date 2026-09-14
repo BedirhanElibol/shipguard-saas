@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateWeb3SecurityRules Engine (50 Rules)
  * Rules WEB3-01 to WEB3-50 (Rule IDs 8701 to 8750).

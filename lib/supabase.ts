@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
 import { UserProfile } from '@/components/auth/AuthModal';
 

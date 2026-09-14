@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateMobileSecurityRules Engine (50 Rules)
  * Rules MOB-SEC-01 to MOB-SEC-50 (Rule IDs 9301 to 9350).

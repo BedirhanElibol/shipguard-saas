@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCloudNativeRules Engine (50 Rules)
  * Rules CLOUD-01 to CLOUD-50 (Rule IDs 7001 to 7050).

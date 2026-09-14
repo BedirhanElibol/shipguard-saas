@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateHipaaComplianceRules Engine (50 Rules)
  * Rules HIPAA-01 to HIPAA-50 (Rule IDs 9801 to 9850).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateVectorIndexOptimizationRules Engine (50 Rules)
  * Rules VEC-OPT-01 to VEC-OPT-50 (Rule IDs 16601 to 16650).

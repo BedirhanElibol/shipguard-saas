@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { InfraRule } from '../schema';
 
 export const CONTAINER_SECURITY_RULES_CATALOG: InfraRule[] = [

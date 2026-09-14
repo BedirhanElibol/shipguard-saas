@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateNistSp80053Rules Engine (50 Rules)
  * Rules NIST-01 to NIST-50 (Rule IDs 11901 to 11950).

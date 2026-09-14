@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateWebsocketRealtimeRules Engine (50 Rules)
  * Rules WS-01 to WS-50 (Rule IDs 10501 to 10550).

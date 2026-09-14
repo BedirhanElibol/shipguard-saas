@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { ComplianceRule } from '../schema';
 
 export const PCI_DSS_V4_RULES_CATALOG: ComplianceRule[] = [

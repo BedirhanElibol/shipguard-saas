@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateServiceFabricResilienceRules Engine (50 Rules)
  * Rules FABRIC-01 to FABRIC-50 (Rule IDs 16101 to 16150).

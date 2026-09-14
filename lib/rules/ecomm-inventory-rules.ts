@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEcommInventoryRules Engine (50 Rules)
  * Rules ECOMM-01 to ECOMM-50 (Rule IDs 10101 to 10150).

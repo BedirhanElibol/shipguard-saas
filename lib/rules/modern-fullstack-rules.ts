@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateModernFullstackRules Engine (50 Rules)
  * Rules NEXT15-01 to NEXT15-50 (Rule IDs 8601 to 8650).

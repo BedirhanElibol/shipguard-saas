@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGraphqlFederationRules Engine (50 Rules)
  * Rules FED-01 to FED-50 (Rule IDs 13701 to 13750).

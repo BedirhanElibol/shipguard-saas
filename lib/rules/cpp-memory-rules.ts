@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCppMemoryRules Engine (50 Rules)
  * Rules CPP-SEC-01 to CPP-SEC-50 (Rule IDs 10001 to 10050).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateOauthOidcRules Engine (50 Rules)
  * Rules OAUTH-01 to OAUTH-50 (Rule IDs 10901 to 10950).

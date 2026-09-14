@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Global Regulatory, Privacy & Legal Pre-Flight Gate Rules (Rules 2001-2006)
  *

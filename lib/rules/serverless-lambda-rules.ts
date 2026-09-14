@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateServerlessLambdaRules Engine (50 Rules)
  * Rules SLS-01 to SLS-50 (Rule IDs 11301 to 11350).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEuNis2ComplianceRules Engine (50 Rules)
  * Rules NIS2-01 to NIS2-50 (Rule IDs 15401 to 15450).

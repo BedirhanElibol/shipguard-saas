@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { CodeFile } from './scanner-engine';
 
 export interface GithubRepoInfo {

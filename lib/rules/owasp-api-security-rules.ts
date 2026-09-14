@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateOwaspApiSecurityRules Engine (50 Rules)
  * Rules APIDEF-01 to APIDEF-50 (Rule IDs 14301 to 14350).

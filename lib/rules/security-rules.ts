@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import type { Finding } from '@/data/schema';
 import type { CodeFile } from '../scanner-engine';
 

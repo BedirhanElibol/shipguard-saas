@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGoMicroservicesRules Engine (50 Rules)
  * Rules GO-01 to GO-50 (Rule IDs 9001 to 9050).

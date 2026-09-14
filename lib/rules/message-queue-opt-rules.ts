@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateMessageQueueOptRules Engine (50 Rules)
  * Rules MQOPT-01 to MQOPT-50 (Rule IDs 14501 to 14550).

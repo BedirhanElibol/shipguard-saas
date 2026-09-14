@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateIacRules Engine (50 Rules)
  * Rules IAC-01 to IAC-50 (Rule IDs 8301 to 8350).

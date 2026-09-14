@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React from 'react';
@@ -24,7 +23,7 @@ export const FinalCta: React.FC = () => {
 
         {/* Subtitle */}
         <p className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto mt-6 mb-10 font-sans leading-relaxed">
-          Test your repository against deterministic release rules in real time. No credit card required, zero code stored.
+          Test your repository against deterministic release rules in real time. Instant in-memory AST stream, zero code stored.
         </p>
 
         {/* CTA Buttons */}

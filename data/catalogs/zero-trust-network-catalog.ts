@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { SecurityRule } from '../schema';
 
 export const ZERO_TRUST_NETWORK_RULES_CATALOG: SecurityRule[] = [

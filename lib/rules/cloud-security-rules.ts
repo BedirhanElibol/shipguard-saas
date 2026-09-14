@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCloudSecurityRules Engine (50 Rules)
  * Rules CLOUD-SEC-01 to CLOUD-SEC-50 (Rule IDs 9201 to 9250).

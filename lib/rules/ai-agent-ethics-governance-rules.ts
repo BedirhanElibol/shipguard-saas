@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateAiAgentEthicsGovernanceRules Engine (50 Rules)
  * Rules AI-ETHICS-01 to AI-ETHICS-50 (Rule IDs 16901 to 16950).

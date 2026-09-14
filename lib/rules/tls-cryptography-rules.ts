@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateTlsCryptographyRules Engine (50 Rules)
  * Rules TLS-01 to TLS-50 (Rule IDs 12301 to 12350).

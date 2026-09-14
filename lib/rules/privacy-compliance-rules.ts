@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluatePrivacyComplianceRules Engine (50 Rules)
  * Rules PRIVACY-01 to PRIVACY-50 (Rule IDs 8201 to 8250).

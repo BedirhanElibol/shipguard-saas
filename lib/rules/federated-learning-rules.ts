@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateFederatedLearningRules Engine (50 Rules)
  * Rules FED-LEARN-01 to FED-LEARN-50 (Rule IDs 16501 to 16550).

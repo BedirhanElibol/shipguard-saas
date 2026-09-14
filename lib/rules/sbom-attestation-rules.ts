@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSbomAttestationRules Engine (50 Rules)
  * Rules SBOM-01 to SBOM-50 (Rule IDs 12601 to 12650).

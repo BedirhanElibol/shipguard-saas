@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateWafEdgeRules Engine (50 Rules)
  * Rules WAF-01 to WAF-50 (Rule IDs 10401 to 10450).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateChaosResilienceRules Engine (48 Rules)
  * Rules CHAOS-01 to CHAOS-48 (Rule IDs 8401 to 8448).

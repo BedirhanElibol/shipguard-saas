@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 'use client';
 
 import React, { useState } from 'react';
@@ -69,8 +68,9 @@ export const FaqSection: React.FC = () => {
             <div key={idx} className="py-6">
               <button
                 onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
-                className="w-full flex items-center justify-between gap-4 text-left group focus:outline-none cursor-pointer"
+                className="w-full flex items-center justify-between gap-4 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-md cursor-pointer"
                 aria-expanded={openIdx === idx}
+                aria-label={`Toggle answer for: ${faq.question}`}
               >
                 <span className="text-base sm:text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
                   {faq.question}

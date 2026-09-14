@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCicdSupplyChainRules Engine (50 Rules)
  * Rules CICD-SEC-01 to CICD-SEC-50 (Rule IDs 9501 to 9550).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateMessageBrokerRules Engine (50 Rules)
  * Rules MQ-01 to MQ-50 (Rule IDs 12501 to 12550).

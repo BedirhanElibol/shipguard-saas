@@ -1,4 +1,4 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+import { evaluateAiCommentRules } from './rules/ai-comment-rules';
 import { Finding, SecurityRule, UiRule } from '@/data/schema';
 import { SECURITY_RULES_CATALOG, UI_RULES_CATALOG } from '@/data/mockData';
 import { evaluateAiClicheRules } from './rules/ai-cliche-rules';
@@ -86,7 +86,6 @@ import { evaluateGlbaComplianceRules } from './rules/glba-compliance-rules';
 import { evaluateGeoDistributedDbRules } from './rules/geo-distributed-db-rules';
 import { evaluateCyberDeceptionRules } from './rules/cyber-deception-rules';
 import { evaluateWasmEdgeRuntimeRules } from './rules/wasm-edge-runtime-rules';
-import { evaluatePqcPostQuantumCryptoRules } from './rules/pqc-post-quantum-crypto-rules';
 import { evaluateEuNis2ComplianceRules } from './rules/eu-nis2-compliance-rules';
 import { evaluateDatabaseShardingRules } from './rules/database-sharding-rules';
 import { evaluateThreatIntelligenceRules } from './rules/threat-intelligence-rules';
@@ -100,61 +99,9 @@ import { evaluateMultiAgentOrchestrationRules } from './rules/multi-agent-orches
 import { evaluateConfidentialComputingRules } from './rules/confidential-computing-rules';
 import { evaluateFederatedLearningRules } from './rules/federated-learning-rules';
 import { evaluateVectorIndexOptimizationRules } from './rules/vector-index-optimization-rules';
-import { evaluateQuantumKeyDistributionRules } from './rules/quantum-key-distribution-rules';
-import { evaluateSpaceTerrestrialMeshRules } from './rules/space-terrestrial-mesh-rules';
 import { evaluateAiAgentEthicsGovernanceRules } from './rules/ai-agent-ethics-governance-rules';
-import { evaluateHomomorphicEncryptionRules } from './rules/homomorphic-encryption-rules';
-import { evaluateNeuromorphicSpikingComputeRules } from './rules/neuromorphic-spiking-compute-rules';
-import { evaluateAutonomousVehicleSafetyRules } from './rules/autonomous-vehicle-safety-rules';
 import { evaluateEdgeAiModelQuantizationRules } from './rules/edge-ai-model-quantization-rules';
-import { evaluateQuantumRandomNumberGenerationRules } from './rules/quantum-random-number-generation-rules';
-import { evaluateMedicalDeviceSoftwareRules } from './rules/medical-device-software-rules';
 import { evaluateServerlessVectorCacheRules } from './rules/serverless-vector-cache-rules';
-import { evaluateDnaDataStorageRules } from './rules/dna-data-storage-rules';
-import { evaluateSubseaCableMeshRules } from './rules/subsea-cable-mesh-rules';
-import { evaluateZeroKnowledgeRollupRules } from './rules/zero-knowledge-rollup-rules';
-import { evaluateAviationAvionicsSafetyRules } from './rules/aviation-avionics-safety-rules';
-import { evaluateOpticalPacketSwitchingRules } from './rules/optical-packet-switching-rules';
-import { evaluateBciTelemetrySafetyRules } from './rules/bci-telemetry-safety-rules';
-import { evaluateScadaCriticalInfraRules } from './rules/scada-critical-infra-rules';
-import { evaluateSpacecraftGncAttitudeRules } from './rules/spacecraft-gnc-attitude-rules';
-import { evaluateEuvSemiconductorLithoRules } from './rules/euv-semiconductor-litho-rules';
-import { evaluateIaeaNuclearSafeguardsRules } from './rules/iaea-nuclear-safeguards-rules';
-import { evaluateHypersonicFlightSafetyRules } from './rules/hypersonic-flight-safety-rules';
-import { evaluateMaritimeColregsSafetyRules } from './rules/maritime-colregs-safety-rules';
-import { evaluateHighFreqTradingRiskRules } from './rules/high-freq-trading-risk-rules';
-import { evaluatePathogenGenomicScreeningRules } from './rules/pathogen-genomic-screening-rules';
-import { evaluateGeothermalDeepDrillingRules } from './rules/geothermal-deep-drilling-rules';
-import { evaluateSuborbitalRocketLaunchSafetyRules } from './rules/suborbital-rocket-launch-safety-rules';
-import { evaluateCoPackagedOpticsHardwareRules } from './rules/co-packaged-optics-hardware-rules';
-import { evaluateAmmLiquidityMevDefenseRules } from './rules/amm-liquidity-mev-defense-rules';
-import { evaluateBioreactorMetabolicControlRules } from './rules/bioreactor-metabolic-control-rules';
-import { evaluateHapsStratosphericFlightRules } from './rules/haps-stratospheric-flight-rules';
-import { evaluateDirectAirCaptureCarbonRules } from './rules/direct-air-capture-carbon-rules';
-import { evaluateRailPositiveTrainControlRules } from './rules/rail-positive-train-control-rules';
-import { evaluateSmartGridSynchrophasorRules } from './rules/smart-grid-synchrophasor-rules';
-import { evaluateAtomicLayerEtchPlasmaRules } from './rules/atomic-layer-etch-plasma-rules';
-import { evaluateDecentralizedIdentityCredentialsRules } from './rules/decentralized-identity-credentials-rules';
-import { evaluateSubmarineNuclearPropulsionRules } from './rules/submarine-nuclear-propulsion-rules';
-import { evaluateSpaceLidarWindProfilingRules } from './rules/space-lidar-wind-profiling-rules';
-import { evaluateOrderFlowToxicityDefenseRules } from './rules/order-flow-toxicity-defense-rules';
-import { evaluateSolidStateBatteryPressureRules } from './rules/solid-state-battery-pressure-rules';
-import { evaluateUnderwaterAcousticModemRules } from './rules/underwater-acoustic-modem-rules';
-import { evaluateNeutronRadiographyTestingRules } from './rules/neutron-radiography-testing-rules';
-import { evaluateHyperspectralSatelliteSensingRules } from './rules/hyperspectral-satellite-sensing-rules';
-import { evaluateHvdcSubseaConverterRules } from './rules/hvdc-subsea-converter-rules';
-import { evaluateCryogenicHydrogenBoiloffRules } from './rules/cryogenic-hydrogen-boiloff-rules';
-import { evaluateZkmlProofCircuitRules } from './rules/zkml-proof-circuit-rules';
-import { evaluateTokamakFusionPlasmaControlRules } from './rules/tokamak-fusion-plasma-control-rules';
-import { evaluateSatelliteFormationFlyingSwarmRules } from './rules/satellite-formation-flying-swarm-rules';
-import { evaluatePhotonicQuantumComputingRules } from './rules/photonic-quantum-computing-rules';
-import { evaluateDeepSeaMiningRovSafetyRules } from './rules/deep-sea-mining-rov-safety-rules';
-import { evaluateSyntheticBiologyGeneCircuitRules } from './rules/synthetic-biology-gene-circuit-rules';
-import { evaluateBciNeuralSpikeSortingRules } from './rules/bci-neural-spike-sorting-rules';
-import { evaluateAeroTrajectory4dConflictRules } from './rules/aero-trajectory-4d-conflict-rules';
-import { evaluateDivertorSputteringErosionRules } from './rules/divertor-sputtering-erosion-rules';
-import { evaluateOrganOnChipMicrofluidicsRules } from './rules/organ-on-chip-microfluidics-rules';
-import { evaluateQuantumBellEntanglementRules } from './rules/quantum-bell-entanglement-rules';
 
 export interface CodeFile {
   path: string;
@@ -1317,8 +1264,6 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       continue;
     }
 
-    const cleanContent = stripComments(rawContent);
-
     // Detect if current file is a rule catalog, scanner engine definition, or demo playground component
     const isScannerRuleCatalog =
       lowerFilePath.includes('lib/rules/') ||
@@ -1331,13 +1276,6 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       lowerFilePath.includes('05_seed_data.sql') ||
       lowerFilePath.includes('scratch/') ||
       lowerFilePath.includes('.agent/');
-
-    logs.push(`[${new Date().toLocaleTimeString()}] 📂 [File ${fileIndex}/${validFiles.length}] Inspecting ${file.path} (${lines.length} lines)...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🔬 [Lexical Engine] Parsing Syntax Tokens, Cleaned Comment Strips & Heuristic Graphs...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🛡️ [Security Clearance] Verifying OWASP Security & Secret Token Isolation Controls...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ ⚖️ [Regulatory Clearance] Auditing Privacy, Consent, ePrivacy & PCI-DSS Pre-Flight Gate...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🎨 [Design Engine] Auditing UI/UX Design System & Micro-Interaction Rules...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   └─ 🔍 [AI Pattern Audit] Checking AI Web Design Anti-Patterns & Component Trees...`);
 
     // Helper to add finding unless suppressed or false-positive inside rule definition files
     const addFinding = (f: Finding) => {
@@ -1355,6 +1293,26 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
       findings.push(f);
     };
+
+    // 0. AI Comment, Prompt Artifact & Boilerplate Inspector (Runs on raw unstripped content)
+    const commentCounter = { count: findingCounter };
+    const commentResult = evaluateAiCommentRules(file, lines, rawContent, commentCounter);
+    findingCounter = commentCounter.count;
+    for (const item of commentResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...commentResult.logs);
+
+    const cleanContent = stripComments(rawContent);
+
+    logs.push(`[${new Date().toLocaleTimeString()}] 📂 [File ${fileIndex}/${validFiles.length}] Inspecting ${file.path} (${lines.length} lines)...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🔬 [Lexical Engine] Parsing Syntax Tokens, Cleaned Comment Strips & Heuristic Graphs...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🛡️ [Security Clearance] Verifying OWASP Security & Secret Token Isolation Controls...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ ⚖️ [Regulatory Clearance] Auditing Privacy, Consent, ePrivacy & PCI-DSS Pre-Flight Gate...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🎨 [Design Engine] Auditing UI/UX Design System & Micro-Interaction Rules...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   └─ 🔍 [AI Pattern Audit] Checking AI Web Design Anti-Patterns & Component Trees...`);
 
     // Rule 1: Exposed Stripe/OpenAI API Keys
     if (cleanContent.includes('sk_live_') || cleanContent.includes('sk-proj-') || /api[_-]?key\s*=\s*["']sk-[a-zA-Z0-9_-]{20,}/i.test(cleanContent)) {
@@ -3307,17 +3265,6 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     }
     logs.push(...wasmEdgeResult.logs);
 
-    // 81. Post-Quantum Cryptography & ML-KEM Migration Gate (PQC-01 to 50, Rule IDs 15301-15350)
-    const pqcCounter = { count: findingCounter };
-    const pqcResult = evaluatePqcPostQuantumCryptoRules(file, lines, cleanContent, pqcCounter);
-    findingCounter = pqcCounter.count;
-    for (const item of pqcResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...pqcResult.logs);
-
     // 82. EU NIS2 Critical Infrastructure Compliance Gate (NIS2-01 to 50, Rule IDs 15401-15450)
     const nis2Counter = { count: findingCounter };
     const nis2Result = evaluateEuNis2ComplianceRules(file, lines, cleanContent, nis2Counter);
@@ -3464,27 +3411,6 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     logs.push(...vecOptResult.logs);
 
     // Wave 21 Enterprise Release Gate Engines (Milestone 5,350 Rules):
-    // 95. Quantum Key Distribution & BB84 Protocol Gate (QKD-01 to 50, Rule IDs 16701-16750)
-    const qkdCounter = { count: findingCounter };
-    const qkdResult = evaluateQuantumKeyDistributionRules(file, lines, cleanContent, qkdCounter);
-    findingCounter = qkdCounter.count;
-    for (const item of qkdResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...qkdResult.logs);
-
-    // 96. LEO Satellite Mesh & Delay-Tolerant Networking Gate (SPACE-MESH-01 to 50, Rule IDs 16801-16850)
-    const spaceMeshCounter = { count: findingCounter };
-    const spaceMeshResult = evaluateSpaceTerrestrialMeshRules(file, lines, cleanContent, spaceMeshCounter);
-    findingCounter = spaceMeshCounter.count;
-    for (const item of spaceMeshResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...spaceMeshResult.logs);
 
     // 97. AI Agent Ethics & Deception Governance Gate (AI-ETHICS-01 to 50, Rule IDs 16901-16950)
     const aiEthicsCounter = { count: findingCounter };
@@ -3497,39 +3423,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     }
     logs.push(...aiEthicsResult.logs);
 
-    // 98. Fully Homomorphic Encryption & Privacy Inference Gate (FHE-SEC-01 to 50, Rule IDs 17001-17050)
-    const fheSecCounter = { count: findingCounter };
-    const fheSecResult = evaluateHomomorphicEncryptionRules(file, lines, cleanContent, fheSecCounter);
-    findingCounter = fheSecCounter.count;
-    for (const item of fheSecResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...fheSecResult.logs);
-
-    // 99. Neuromorphic Computing & Spiking Neural Network Gate (NEURO-COMP-01 to 50, Rule IDs 17101-17150)
-    const neuroCompCounter = { count: findingCounter };
-    const neuroCompResult = evaluateNeuromorphicSpikingComputeRules(file, lines, cleanContent, neuroCompCounter);
-    findingCounter = neuroCompCounter.count;
-    for (const item of neuroCompResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...neuroCompResult.logs);
-
     // Wave 22 Enterprise Release Gate Engines (Milestone 5,600 Rules):
-    // 100. Autonomous Vehicle Functional Safety & SecOC Gate (AV-SAFETY-01 to 50, Rule IDs 17201-17250)
-    const avSafetyCounter = { count: findingCounter };
-    const avSafetyResult = evaluateAutonomousVehicleSafetyRules(file, lines, cleanContent, avSafetyCounter);
-    findingCounter = avSafetyCounter.count;
-    for (const item of avSafetyResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...avSafetyResult.logs);
 
     // 101. Edge AI Model Quantization & TensorRT Gate (EDGE-AI-OPT-01 to 50, Rule IDs 17301-17350)
     const edgeAiOptCounter = { count: findingCounter };
@@ -3541,28 +3435,6 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...edgeAiOptResult.logs);
-
-    // 102. Quantum Random Number Generation & Min-Entropy Gate (QRNG-01 to 50, Rule IDs 17401-17450)
-    const qrngCounter = { count: findingCounter };
-    const qrngResult = evaluateQuantumRandomNumberGenerationRules(file, lines, cleanContent, qrngCounter);
-    findingCounter = qrngCounter.count;
-    for (const item of qrngResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...qrngResult.logs);
-
-    // 103. Medical Device Software Lifecycle & Cyber Resilience Gate (MED-DEV-01 to 50, Rule IDs 17501-17550)
-    const medDevCounter = { count: findingCounter };
-    const medDevResult = evaluateMedicalDeviceSoftwareRules(file, lines, cleanContent, medDevCounter);
-    findingCounter = medDevCounter.count;
-    for (const item of medDevResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...medDevResult.logs);
 
     // 104. Serverless Edge Vector Caching & Semantic ANN Gate (VEC-CACHE-01 to 50, Rule IDs 17601-17650)
     const vecCacheCounter = { count: findingCounter };
@@ -3576,508 +3448,22 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     logs.push(...vecCacheResult.logs);
 
     // Wave 23 Enterprise Release Gate Engines (Milestone 5,850 Rules):
-    // 105. Synthetic DNA Data Storage & Fountain Error Correction Gate (DNA-STORE-01 to 50, Rule IDs 17701-17750)
-    const dnaStoreCounter = { count: findingCounter };
-    const dnaStoreResult = evaluateDnaDataStorageRules(file, lines, cleanContent, dnaStoreCounter);
-    findingCounter = dnaStoreCounter.count;
-    for (const item of dnaStoreResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...dnaStoreResult.logs);
-
-    // 106. Transoceanic Subsea Optical Cable Mesh & ROADM Gate (SUBSEA-OPT-01 to 50, Rule IDs 17801-17850)
-    const subseaOptCounter = { count: findingCounter };
-    const subseaOptResult = evaluateSubseaCableMeshRules(file, lines, cleanContent, subseaOptCounter);
-    findingCounter = subseaOptCounter.count;
-    for (const item of subseaOptResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...subseaOptResult.logs);
-
-    // 107. Zero-Knowledge Rollup & Arithmetic Circuit Gate (ZK-ROLLUP-01 to 50, Rule IDs 17901-17950)
-    const zkRollupCounter = { count: findingCounter };
-    const zkRollupResult = evaluateZeroKnowledgeRollupRules(file, lines, cleanContent, zkRollupCounter);
-    findingCounter = zkRollupCounter.count;
-    for (const item of zkRollupResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...zkRollupResult.logs);
-
-    // 108. RTCA DO-178C Level A & ARINC 653 Avionics Safety Gate (DO178C-01 to 50, Rule IDs 18001-18050)
-    const do178cCounter = { count: findingCounter };
-    const do178cResult = evaluateAviationAvionicsSafetyRules(file, lines, cleanContent, do178cCounter);
-    findingCounter = do178cCounter.count;
-    for (const item of do178cResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...do178cResult.logs);
-
-    // 109. All-Optical Packet Switching & Silicon Photonics Gate (OPT-SWITCH-01 to 50, Rule IDs 18101-18150)
-    const optSwitchCounter = { count: findingCounter };
-    const optSwitchResult = evaluateOpticalPacketSwitchingRules(file, lines, cleanContent, optSwitchCounter);
-    findingCounter = optSwitchCounter.count;
-    for (const item of optSwitchResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...optSwitchResult.logs);
 
     // Wave 24 Enterprise Release Gate Engines (Milestone 6,100 Rules — 6,000 Historic Milestone):
-    // 110. Brain-Computer Interface & Neural Telemetry Security Gate (BCI-SEC-01 to 50, Rule IDs 18201-18250)
-    const bciSecCounter = { count: findingCounter };
-    const bciSecResult = evaluateBciTelemetrySafetyRules(file, lines, cleanContent, bciSecCounter);
-    findingCounter = bciSecCounter.count;
-    for (const item of bciSecResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...bciSecResult.logs);
-
-    // 111. SCADA & Critical Infrastructure Defense Gate (SCADA-SEC-01 to 50, Rule IDs 18301-18350)
-    const scadaSecCounter = { count: findingCounter };
-    const scadaSecResult = evaluateScadaCriticalInfraRules(file, lines, cleanContent, scadaSecCounter);
-    findingCounter = scadaSecCounter.count;
-    for (const item of scadaSecResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...scadaSecResult.logs);
-
-    // 112. Spacecraft GNC & Attitude Control Gate (SPACE-GNC-01 to 50, Rule IDs 18401-18450)
-    const spaceGncCounter = { count: findingCounter };
-    const spaceGncResult = evaluateSpacecraftGncAttitudeRules(file, lines, cleanContent, spaceGncCounter);
-    findingCounter = spaceGncCounter.count;
-    for (const item of spaceGncResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...spaceGncResult.logs);
-
-    // 113. EUV Semiconductor Lithography & Mask Quality Gate (EUV-LITHO-01 to 50, Rule IDs 18501-18550)
-    const euvLithoCounter = { count: findingCounter };
-    const euvLithoResult = evaluateEuvSemiconductorLithoRules(file, lines, cleanContent, euvLithoCounter);
-    findingCounter = euvLithoCounter.count;
-    for (const item of euvLithoResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...euvLithoResult.logs);
-
-    // 114. IAEA Nuclear Safeguards & Material Accountability Gate (IAEA-SAFE-01 to 50, Rule IDs 18601-18650)
-    const iaeaSafeCounter = { count: findingCounter };
-    const iaeaSafeResult = evaluateIaeaNuclearSafeguardsRules(file, lines, cleanContent, iaeaSafeCounter);
-    findingCounter = iaeaSafeCounter.count;
-    for (const item of iaeaSafeResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...iaeaSafeResult.logs);
 
     // Wave 25 Enterprise Release Gate Engines (Milestone 6,350 Rules):
-    // 115. Hypersonic Flight Dynamics & Thermal Protection Gate (HYPERS-FLT-01 to 50, Rule IDs 18701-18750)
-    const hypersFltCounter = { count: findingCounter };
-    const hypersFltResult = evaluateHypersonicFlightSafetyRules(file, lines, cleanContent, hypersFltCounter);
-    findingCounter = hypersFltCounter.count;
-    for (const item of hypersFltResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...hypersFltResult.logs);
-
-    // 116. Autonomous Container Ship Maritime Navigation & COLREGS Gate (MARITIME-COL-01 to 50, Rule IDs 18801-18850)
-    const maritimeColCounter = { count: findingCounter };
-    const maritimeColResult = evaluateMaritimeColregsSafetyRules(file, lines, cleanContent, maritimeColCounter);
-    findingCounter = maritimeColCounter.count;
-    for (const item of maritimeColResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...maritimeColResult.logs);
-
-    // 117. High-Frequency Trading Risk Controls & SEC Rule 15c3-5 Gate (HFT-SEC-01 to 50, Rule IDs 18901-18950)
-    const hftSecCounter = { count: findingCounter };
-    const hftSecResult = evaluateHighFreqTradingRiskRules(file, lines, cleanContent, hftSecCounter);
-    findingCounter = hftSecCounter.count;
-    for (const item of hftSecResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...hftSecResult.logs);
-
-    // 118. Pathogen Genomic Screening & Dual-Use Biosecurity Gate (PATHOGEN-BIO-01 to 50, Rule IDs 19001-19050)
-    const pathogenBioCounter = { count: findingCounter };
-    const pathogenBioResult = evaluatePathogenGenomicScreeningRules(file, lines, cleanContent, pathogenBioCounter);
-    findingCounter = pathogenBioCounter.count;
-    for (const item of pathogenBioResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...pathogenBioResult.logs);
-
-    // 119. Geothermal Deep Drilling & Wellbore Hydraulic Integrity Gate (GEOTHERM-ENG-01 to 50, Rule IDs 19101-19150)
-    const geothermEngCounter = { count: findingCounter };
-    const geothermEngResult = evaluateGeothermalDeepDrillingRules(file, lines, cleanContent, geothermEngCounter);
-    findingCounter = geothermEngCounter.count;
-    for (const item of geothermEngResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...geothermEngResult.logs);
 
     // Wave 26 Enterprise Release Gate Engines (Milestone 6,600 Rules):
-    // 120. Suborbital Rocket Launch Trajectory & FAA Part 450 Safety Gate (LAUNCH-FAA-01 to 50, Rule IDs 19201-19250)
-    const launchFaaCounter = { count: findingCounter };
-    const launchFaaResult = evaluateSuborbitalRocketLaunchSafetyRules(file, lines, cleanContent, launchFaaCounter);
-    findingCounter = launchFaaCounter.count;
-    for (const item of launchFaaResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...launchFaaResult.logs);
-
-    // 121. Silicon Photonic Co-Packaged Optics (CPO) Gate (CPO-OPTICS-01 to 50, Rule IDs 19301-19350)
-    const cpoOpticsCounter = { count: findingCounter };
-    const cpoOpticsResult = evaluateCoPackagedOpticsHardwareRules(file, lines, cleanContent, cpoOpticsCounter);
-    findingCounter = cpoOpticsCounter.count;
-    for (const item of cpoOpticsResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...cpoOpticsResult.logs);
-
-    // 122. AMM Liquidity Pool & MEV Flash Loan Defense Gate (MEV-DEFENSE-01 to 50, Rule IDs 19401-19450)
-    const mevDefenseCounter = { count: findingCounter };
-    const mevDefenseResult = evaluateAmmLiquidityMevDefenseRules(file, lines, cleanContent, mevDefenseCounter);
-    findingCounter = mevDefenseCounter.count;
-    for (const item of mevDefenseResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...mevDefenseResult.logs);
-
-    // 123. Bioreactor Metabolic Control & Fermentation Scale-Up Gate (BIOREACT-ENG-01 to 50, Rule IDs 19501-19550)
-    const bioreactEngCounter = { count: findingCounter };
-    const bioreactEngResult = evaluateBioreactorMetabolicControlRules(file, lines, cleanContent, bioreactEngCounter);
-    findingCounter = bioreactEngCounter.count;
-    for (const item of bioreactEngResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...bioreactEngResult.logs);
-
-    // 124. High-Altitude Pseudo-Satellite (HAPS) Solar Flight Gate (HAPS-STRAT-01 to 50, Rule IDs 19601-19650)
-    const hapsStratCounter = { count: findingCounter };
-    const hapsStratResult = evaluateHapsStratosphericFlightRules(file, lines, cleanContent, hapsStratCounter);
-    findingCounter = hapsStratCounter.count;
-    for (const item of hapsStratResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...hapsStratResult.logs);
 
     // Wave 27 Enterprise Release Gate Engines (Milestone 6,850 Rules):
-    // 125. Direct Air Capture & Carbon Dioxide Sequestration Gate (DAC-CARBON-01 to 50, Rule IDs 19701-19750)
-    const dacCarbonCounter = { count: findingCounter };
-    const dacCarbonResult = evaluateDirectAirCaptureCarbonRules(file, lines, cleanContent, dacCarbonCounter);
-    findingCounter = dacCarbonCounter.count;
-    for (const item of dacCarbonResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...dacCarbonResult.logs);
-
-    // 126. Autonomous Rail Positive Train Control (PTC) Safety Gate (RAIL-PTC-01 to 50, Rule IDs 19801-19850)
-    const railPtcCounter = { count: findingCounter };
-    const railPtcResult = evaluateRailPositiveTrainControlRules(file, lines, cleanContent, railPtcCounter);
-    findingCounter = railPtcCounter.count;
-    for (const item of railPtcResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...railPtcResult.logs);
-
-    // 127. Smart Grid Synchrophasor PMU & IEEE C37.118 PDC Gate (SYNCHRO-PMU-01 to 50, Rule IDs 19901-19950)
-    const synchroPmuCounter = { count: findingCounter };
-    const synchroPmuResult = evaluateSmartGridSynchrophasorRules(file, lines, cleanContent, synchroPmuCounter);
-    findingCounter = synchroPmuCounter.count;
-    for (const item of synchroPmuResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...synchroPmuResult.logs);
-
-    // 128. Semiconductor Atomic Layer Etch (ALE) Plasma Control Gate (ALE-PLASMA-01 to 50, Rule IDs 20001-20050)
-    const alePlasmaCounter = { count: findingCounter };
-    const alePlasmaResult = evaluateAtomicLayerEtchPlasmaRules(file, lines, cleanContent, alePlasmaCounter);
-    findingCounter = alePlasmaCounter.count;
-    for (const item of alePlasmaResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...alePlasmaResult.logs);
-
-    // 129. Decentralized Identity (DID) & W3C Verifiable Credentials Gate (DID-CRED-01 to 50, Rule IDs 20101-20150)
-    const didCredCounter = { count: findingCounter };
-    const didCredResult = evaluateDecentralizedIdentityCredentialsRules(file, lines, cleanContent, didCredCounter);
-    findingCounter = didCredCounter.count;
-    for (const item of didCredResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...didCredResult.logs);
 
     // Wave 28 Enterprise Release Gate Engines (Milestone 7,100 Rules):
-    // 130. Submarine Nuclear Propulsion & Reactor Safety Gate (SUB-REACTOR-01 to 50, Rule IDs 20201-20250)
-    const subReactorCounter = { count: findingCounter };
-    const subReactorResult = evaluateSubmarineNuclearPropulsionRules(file, lines, cleanContent, subReactorCounter);
-    findingCounter = subReactorCounter.count;
-    for (const item of subReactorResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...subReactorResult.logs);
-
-    // 131. Atmospheric Spaceborne Doppler Lidar Gate (LIDAR-SPACE-01 to 50, Rule IDs 20301-20350)
-    const lidarSpaceCounter = { count: findingCounter };
-    const lidarSpaceResult = evaluateSpaceLidarWindProfilingRules(file, lines, cleanContent, lidarSpaceCounter);
-    findingCounter = lidarSpaceCounter.count;
-    for (const item of lidarSpaceResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...lidarSpaceResult.logs);
-
-    // 132. AMM Dynamic Order Flow Toxicity & LVR Guard Gate (FLOW-TOXIC-01 to 50, Rule IDs 20401-20450)
-    const flowToxicCounter = { count: findingCounter };
-    const flowToxicResult = evaluateOrderFlowToxicityDefenseRules(file, lines, cleanContent, flowToxicCounter);
-    findingCounter = flowToxicCounter.count;
-    for (const item of flowToxicResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...flowToxicResult.logs);
-
-    // 133. Solid-State Lithium Battery Stack Mechanical Pressure Gate (SSB-ANODE-01 to 50, Rule IDs 20501-20550)
-    const ssbAnodeCounter = { count: findingCounter };
-    const ssbAnodeResult = evaluateSolidStateBatteryPressureRules(file, lines, cleanContent, ssbAnodeCounter);
-    findingCounter = ssbAnodeCounter.count;
-    for (const item of ssbAnodeResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...ssbAnodeResult.logs);
-
-    // 134. Underwater Acoustic Modem & Subsea Communications Gate (SUBSEA-ACOU-01 to 50, Rule IDs 20601-20650)
-    const subseaAcouCounter = { count: findingCounter };
-    const subseaAcouResult = evaluateUnderwaterAcousticModemRules(file, lines, cleanContent, subseaAcouCounter);
-    findingCounter = subseaAcouCounter.count;
-    for (const item of subseaAcouResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...subseaAcouResult.logs);
 
     // Wave 29 Enterprise Release Gate Engines (Milestone 7,350 Rules):
-    // 135. Neutron Radiography Non-Destructive Testing Gate (NEUTRON-NDT-01 to 50, Rule IDs 20701-20750)
-    const neutronNdtCounter = { count: findingCounter };
-    const neutronNdtResult = evaluateNeutronRadiographyTestingRules(file, lines, cleanContent, neutronNdtCounter);
-    findingCounter = neutronNdtCounter.count;
-    for (const item of neutronNdtResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...neutronNdtResult.logs);
-
-    // 136. Hyperspectral Satellite Sensing & Remote Imaging Gate (HYPER-SPECT-01 to 50, Rule IDs 20801-20850)
-    const hyperSpectCounter = { count: findingCounter };
-    const hyperSpectResult = evaluateHyperspectralSatelliteSensingRules(file, lines, cleanContent, hyperSpectCounter);
-    findingCounter = hyperSpectCounter.count;
-    for (const item of hyperSpectResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...hyperSpectResult.logs);
-
-    // 137. HVDC Subsea Converter & Grid Interconnector Gate (HVDC-GRID-01 to 50, Rule IDs 20901-20950)
-    const hvdcGridCounter = { count: findingCounter };
-    const hvdcGridResult = evaluateHvdcSubseaConverterRules(file, lines, cleanContent, hvdcGridCounter);
-    findingCounter = hvdcGridCounter.count;
-    for (const item of hvdcGridResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...hvdcGridResult.logs);
-
-    // 138. Cryogenic Liquid Hydrogen Boiloff Management Gate (CRYO-HYDRO-01 to 50, Rule IDs 21001-21050)
-    const cryoHydroCounter = { count: findingCounter };
-    const cryoHydroResult = evaluateCryogenicHydrogenBoiloffRules(file, lines, cleanContent, cryoHydroCounter);
-    findingCounter = cryoHydroCounter.count;
-    for (const item of cryoHydroResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...cryoHydroResult.logs);
-
-    // 139. zkML Zero-Knowledge Machine Learning Proof Circuit Gate (ZKML-PROOF-01 to 50, Rule IDs 21101-21150)
-    const zkmlProofCounter = { count: findingCounter };
-    const zkmlProofResult = evaluateZkmlProofCircuitRules(file, lines, cleanContent, zkmlProofCounter);
-    findingCounter = zkmlProofCounter.count;
-    for (const item of zkmlProofResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...zkmlProofResult.logs);
 
     // Wave 30 Enterprise Release Gate Engines (Milestone 7,600 Rules):
-    // 140. Tokamak Fusion Plasma Control Gate (TOKAMAK-PLASMA-01 to 50, Rule IDs 21201-21250)
-    const tokamakPlasmaCounter = { count: findingCounter };
-    const tokamakPlasmaResult = evaluateTokamakFusionPlasmaControlRules(file, lines, cleanContent, tokamakPlasmaCounter);
-    findingCounter = tokamakPlasmaCounter.count;
-    for (const item of tokamakPlasmaResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...tokamakPlasmaResult.logs);
-
-    // 141. Satellite Formation Flying Swarm Gate (SAT-SWARM-01 to 50, Rule IDs 21301-21350)
-    const satSwarmCounter = { count: findingCounter };
-    const satSwarmResult = evaluateSatelliteFormationFlyingSwarmRules(file, lines, cleanContent, satSwarmCounter);
-    findingCounter = satSwarmCounter.count;
-    for (const item of satSwarmResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...satSwarmResult.logs);
-
-    // 142. Photonic Quantum Computing Gate (PHOTON-QC-01 to 50, Rule IDs 21401-21450)
-    const photonQcCounter = { count: findingCounter };
-    const photonQcResult = evaluatePhotonicQuantumComputingRules(file, lines, cleanContent, photonQcCounter);
-    findingCounter = photonQcCounter.count;
-    for (const item of photonQcResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...photonQcResult.logs);
-
-    // 143. Deep Sea Mining ROV Safety Gate (DEEPSEA-ROV-01 to 50, Rule IDs 21501-21550)
-    const deepseaRovCounter = { count: findingCounter };
-    const deepseaRovResult = evaluateDeepSeaMiningRovSafetyRules(file, lines, cleanContent, deepseaRovCounter);
-    findingCounter = deepseaRovCounter.count;
-    for (const item of deepseaRovResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...deepseaRovResult.logs);
-
-    // 144. Synthetic Biology Gene Circuit Gate (SYNBIO-GENE-01 to 50, Rule IDs 21601-21650)
-    const synbioGeneCounter = { count: findingCounter };
-    const synbioGeneResult = evaluateSyntheticBiologyGeneCircuitRules(file, lines, cleanContent, synbioGeneCounter);
-    findingCounter = synbioGeneCounter.count;
-    for (const item of synbioGeneResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...synbioGeneResult.logs);
 
     // Wave 31 Enterprise Release Gate Engines (Milestone 7,850 Rules - Grand Finale):
-    // 145. Brain-Computer Interface Neural Spike Sorting Gate (BCI-NEURAL-01 to 50, Rule IDs 21701-21750)
-    const bciNeuralCounter = { count: findingCounter };
-    const bciNeuralResult = evaluateBciNeuralSpikeSortingRules(file, lines, cleanContent, bciNeuralCounter);
-    findingCounter = bciNeuralCounter.count;
-    for (const item of bciNeuralResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...bciNeuralResult.logs);
-
-    // 146. Autonomous Air Traffic Control ADS-B 4D-Trajectory Gate (AERO-TRAJECT-01 to 50, Rule IDs 21801-21850)
-    const aeroTrajectCounter = { count: findingCounter };
-    const aeroTrajectResult = evaluateAeroTrajectory4dConflictRules(file, lines, cleanContent, aeroTrajectCounter);
-    findingCounter = aeroTrajectCounter.count;
-    for (const item of aeroTrajectResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...aeroTrajectResult.logs);
-
-    // 147. Nuclear Fusion Magnetic Divertor Sputtering & Erosion Gate (DIVERTOR-EROSION-01 to 50, Rule IDs 21901-21950)
-    const divertorErosionCounter = { count: findingCounter };
-    const divertorErosionResult = evaluateDivertorSputteringErosionRules(file, lines, cleanContent, divertorErosionCounter);
-    findingCounter = divertorErosionCounter.count;
-    for (const item of divertorErosionResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...divertorErosionResult.logs);
-
-    // 148. Biomedical Organ-on-Chip Microfluidics Automation Gate (ORGAN-CHIP-01 to 50, Rule IDs 22001-22050)
-    const organChipCounter = { count: findingCounter };
-    const organChipResult = evaluateOrganOnChipMicrofluidicsRules(file, lines, cleanContent, organChipCounter);
-    findingCounter = organChipCounter.count;
-    for (const item of organChipResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...organChipResult.logs);
-
-    // 149. Quantum Entanglement Distribution & Bell State Verification Gate (QUANTUM-BELL-01 to 50, Rule IDs 22101-22150)
-    const quantumBellCounter = { count: findingCounter };
-    const quantumBellResult = evaluateQuantumBellEntanglementRules(file, lines, cleanContent, quantumBellCounter);
-    findingCounter = quantumBellCounter.count;
-    for (const item of quantumBellResult.findings) {
-      if (!ignoredRuleIds.has(item.ruleId)) {
-        addFinding(item);
-      }
-    }
-    logs.push(...quantumBellResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

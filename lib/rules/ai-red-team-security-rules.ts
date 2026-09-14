@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateAiRedTeamSecurityRules Engine (50 Rules)
  * Rules AI-RED-01 to AI-RED-50 (Rule IDs 16001 to 16050).

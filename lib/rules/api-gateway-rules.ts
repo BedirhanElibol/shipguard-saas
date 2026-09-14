@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateApiGatewayRules Engine (50 Rules)
  * Rules GW-01 to GW-50 (Rule IDs 11401 to 11450).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Production Security Logger for Zelsis SaaS
  * Automatically redacts sensitive credentials, API keys, tokens, passwords, and PII

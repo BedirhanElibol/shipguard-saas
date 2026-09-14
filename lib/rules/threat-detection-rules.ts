@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateThreatDetectionRules Engine (50 Rules)
  * Rules THREAT-01 to THREAT-50 (Rule IDs 13601 to 13650).

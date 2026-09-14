@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSoxComplianceRules Engine (50 Rules)
  * Rules SOX-01 to SOX-50 (Rule IDs 13401 to 13450).

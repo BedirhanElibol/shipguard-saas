@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Frontend Performance, WCAG 2.1 AA & SEO Quality Rules (Option B)
  *
@@ -44,7 +43,8 @@ export function evaluateFrontendRules(
   const outlineNoneViolation = hasOutlineNone && !hasFocusRing;
 
   // Detect unlabelled interactive inputs: <input>, <textarea>, <select>
-  const inputTags = cleanContent.match(/<(?:input|textarea|select)\b[^>]*>/gi) || [];
+  // Handle JSX arrow functions like onChange={(e) => ...} by matching up to /> or (?<!=)>
+  const inputTags = cleanContent.match(/<(?:input|textarea|select)\b[\s\S]*?(?:\/>|<\/(?:input|textarea|select)>|(?<!=)>)/gi) || [];
   let unlabelledInputFound = false;
   let unlabelledInputSnippet = '';
   let inputMatchLineIdx = -1;

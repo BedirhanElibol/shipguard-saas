@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGraphDatabaseRules Engine (50 Rules)
  * Rules GRPH-01 to GRPH-50 (Rule IDs 12001 to 12050).

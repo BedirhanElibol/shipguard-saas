@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEnterpriseSsoRules Engine (50 Rules)
  * Rules SSO-01 to SSO-50 (Rule IDs 12801 to 12850).

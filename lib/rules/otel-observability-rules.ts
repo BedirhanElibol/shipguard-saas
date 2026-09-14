@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateOtelObservabilityRules Engine (50 Rules)
  * Rules OTEL-01 to OTEL-50 (Rule IDs 9901 to 9950).

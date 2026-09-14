@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import en from '../public/locales/en.json';
 
 export type LocaleKey = keyof typeof en;

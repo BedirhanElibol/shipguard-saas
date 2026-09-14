@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateK8sHardeningRules Engine (50 Rules)
  * Rules K8S-01 to K8S-50 (Rule IDs 8901 to 8950).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSoc2AuditRules Engine (50 Rules)
  * Rules SOC2-01 to SOC2-50 (Rule IDs 10601 to 10650).

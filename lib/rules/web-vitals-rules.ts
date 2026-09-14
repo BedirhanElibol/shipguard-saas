@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateWebVitalsRules Engine (50 Rules)
  * Rules WEB-PERF-01 to WEB-PERF-50 (Rule IDs 7101 to 7150).

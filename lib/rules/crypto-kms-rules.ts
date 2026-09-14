@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCryptoKmsRules Engine (50 Rules)
  * Rules CRYPTO-01 to CRYPTO-50 (Rule IDs 13301 to 13350).

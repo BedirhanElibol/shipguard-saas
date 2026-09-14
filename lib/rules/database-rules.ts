@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master Database & ORM Performance Evaluator (50 Rules)
  * Rules DB-PERF-01 to DB-PERF-50 (Rule IDs 6001 to 6050).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCyberDeceptionRules Engine (50 Rules)
  * Rules DECEPTION-01 to DECEPTION-50 (Rule IDs 15101 to 15150).

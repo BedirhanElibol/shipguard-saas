@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateTenantIsolationRules Engine (50 Rules)
  * Rules TENANT-01 to TENANT-50 (Rule IDs 9101 to 9150).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEbpfObservabilityRules Engine (50 Rules)
  * Rules EBPF-01 to EBPF-50 (Rule IDs 14201 to 14250).

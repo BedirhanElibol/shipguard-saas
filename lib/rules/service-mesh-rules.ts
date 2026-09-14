@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateServiceMeshRules Engine (50 Rules)
  * Rules MESH-01 to MESH-50 (Rule IDs 11201 to 11250).

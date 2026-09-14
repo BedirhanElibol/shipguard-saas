@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateAiSafetyRules Engine (60 Rules)
  * Rules LLM-SEC-01 to LLM-SEC-60 (Rule IDs 8001 to 8060).

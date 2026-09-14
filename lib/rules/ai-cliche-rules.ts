@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * AI Web Design Cliché Detection Rules (25 Rules)
  * Source: ai_web_design_cliches.pdf
@@ -29,39 +28,52 @@ export function evaluateAiClicheRules(
 
   const ts = new Date().toLocaleTimeString();
 
-  // CLICHE-01: Decorative Hero Badge Pill & Pseudo-Terminal Slop
+  // CLICHE-01: Decorative Hero Badge Pill & AI Landing Slop
   const isHeroOrLandingScope = /hero|landing/i.test(file.path);
-  const hasGenericPillCliché =
-    (/badge|pill|chip/i.test(cleanContent) && /hero-badge|badge-hero|inline-flex.*rounded-full/i.test(cleanContent)) ||
-    (/rounded-full/i.test(cleanContent) && /(?:✨|🚀|Introducing|Powered by AI)\b/i.test(cleanContent)) ||
-    (/rounded-full/i.test(cleanContent) && (/\/\/\s*[A-Z]{3,}/.test(cleanContent) || /[➔→]|->/.test(cleanContent) || (/animate-pulse/i.test(cleanContent) && /RELEASE|GATE|DETECT|AI/i.test(cleanContent))));
+  let pillBadgeLineIdx = -1;
 
-  if (isHeroOrLandingScope && hasGenericPillCliché) {
-    const matchLineIdx = lines.findIndex(l =>
-      /rounded-full|badge|pill/i.test(l) ||
-      (/\/\/\s*[A-Z]{3,}/.test(l) || /[➔→]|->/.test(l) || /animate-pulse/i.test(l))
-    );
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+  if (isHeroOrLandingScope) {
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i];
+      if (/inline-flex/i.test(l) && /rounded-(?:full|md)/i.test(l) && /border/i.test(l)) {
+        const block = lines.slice(i, Math.min(lines.length, i + 7)).join(' ');
+        if (
+          /rounded-full.*bg-(?:emerald|green|blue|purple|amber|indigo)-/i.test(block) ||
+          /\|\s*<span/i.test(block) ||
+          (/\|/i.test(block) && /text-zinc/i.test(block)) ||
+          /(?:✨|🚀|Introducing|Powered by AI|Live Status|Early Access)\b/i.test(block) ||
+          /\/\/\s*[A-Z]{3,}/.test(block) ||
+          /[➔→]|->/.test(block)
+        ) {
+          pillBadgeLineIdx = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (pillBadgeLineIdx !== -1) {
+    const lineNum = pillBadgeLineIdx + 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,
       ruleId: 201,
       type: 'VIBEPOLISH',
-      title: 'CLICHE-01: Decorative Hero Badge Pill & Pseudo-Terminal Slop',
-      severity: 'LOW',
+      title: 'CLICHE-01: Decorative Floating Hero Pill Badge (AI Slop Anti-Pattern)',
+      severity: 'MEDIUM',
       category: 'AI Cliché & Layout',
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || '<span className="badge">ENTERPRISE RELEASE GATE // DETECT ➔ GATE</span>',
+      snippet: lines[pillBadgeLineIdx]?.trim() || '<div className="inline-flex rounded-full border...">',
       reproductionSteps: [
         `Scanned hero section in ${file.path}:${lineNum}.`,
-        'Detected decorative floating pill badge with pseudo-terminal syntax (//), arrow chains (➔), or pulsing indicator dot — a hallmark of AI-generated landing pages.'
+        'Detected decorative floating pill badge with status dots, pipe separators, pseudo-terminal syntax, or pulse animations placed above H1 headline — the #1 hallmark of AI-generated landing pages.'
       ],
-      remediationPrompt: `Remove decorative hero badge pill in ${file.path}. Rely on clear typographical hierarchy without pseudo-terminal ASCII slop.`,
+      remediationPrompt: `Remove decorative floating hero pill badge in ${file.path}. Modern developer tools (e.g. Linear, Vercel, Stripe) establish clear typographical authority directly with the primary headline without floating status pills.`,
       status: 'OPEN',
       owner: 'UI Architect',
       falsePositive: false
     });
-    logs.push(`[${ts}] 🎨 CLICHE-01: Hero badge pill / pseudo-terminal slop detected (${file.path}:${lineNum})`);
+    logs.push(`[${ts}] 🎨 CLICHE-01: Hero badge pill slop detected (${file.path}:${lineNum})`);
   }
 
   // CLICHE-02: Paired Dual CTA Buttons in Hero

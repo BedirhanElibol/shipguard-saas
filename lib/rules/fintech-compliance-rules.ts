@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateFintechComplianceRules Engine (50 Rules)
  * Rules FINTECH-01 to FINTECH-50 (Rule IDs 9701 to 9750).

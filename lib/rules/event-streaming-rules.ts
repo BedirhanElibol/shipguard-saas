@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEventStreamingRules Engine (50 Rules)
  * Rules EVENT-01 to EVENT-50 (Rule IDs 9401 to 9450).

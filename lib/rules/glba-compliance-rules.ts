@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGlbaComplianceRules Engine (50 Rules)
  * Rules GLBA-01 to GLBA-50 (Rule IDs 14901 to 14950).

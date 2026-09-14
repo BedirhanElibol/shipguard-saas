@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { ComplianceRule } from '../schema';
 
 export const DORA_COMPLIANCE_RULES_CATALOG: ComplianceRule[] = [

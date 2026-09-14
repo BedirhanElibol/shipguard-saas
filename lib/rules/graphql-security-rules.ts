@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGraphqlSecurityRules Engine (50 Rules)
  * Rules GQL-01 to GQL-50 (Rule IDs 8501 to 8550).

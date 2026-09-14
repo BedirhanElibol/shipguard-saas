@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master Enterprise Secret Signatures Evaluator (100 Rules)
  * Rules SEC-SECRET-01 to SEC-SECRET-100 (Rule IDs 5001 to 5100).

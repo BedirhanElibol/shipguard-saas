@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateHipaaSecurityRules Engine (50 Rules)
  * Rules HIPAASEC-01 to HIPAASEC-50 (Rule IDs 14401 to 14450).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateOpaPolicyRules Engine (50 Rules)
  * Rules OPA-01 to OPA-50 (Rule IDs 13201 to 13250).

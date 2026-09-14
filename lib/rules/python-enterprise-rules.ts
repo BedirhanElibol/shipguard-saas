@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluatePythonEnterpriseRules Engine (50 Rules)
  * Rules PY-SEC-01 to PY-SEC-50 (Rule IDs 8801 to 8850).

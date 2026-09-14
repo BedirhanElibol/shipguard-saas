@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSearchEngineRules Engine (50 Rules)
  * Rules SEARCH-01 to SEARCH-50 (Rule IDs 13001 to 13050).

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSlsaProvenanceRules Engine (50 Rules)
  * Rules SLSA-01 to SLSA-50 (Rule IDs 14101 to 14150).

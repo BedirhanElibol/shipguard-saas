@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { CodeFile } from './scanner-engine';
 
 import { validateSafeTargetUrl } from '@/lib/ssrf-guard';

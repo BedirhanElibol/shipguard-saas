@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Local & Session Storage Utilities
  * Manages privacy-respecting client state, session clearance, and GDPR/KVKK compliance.

@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGrpcWebSecurityRules Engine (50 Rules)
  * Rules GRPCSEC-01 to GRPCSEC-50 (Rule IDs 14701 to 14750).

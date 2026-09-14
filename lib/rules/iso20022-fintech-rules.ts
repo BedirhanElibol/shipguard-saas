@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateIso20022FintechRules Engine (50 Rules)
  * Rules ISO20022-01 to ISO20022-50 (Rule IDs 15801 to 15850).

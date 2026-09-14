@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateSupplyChainRules Engine (50 Rules)
  * Rules SUPPLY-01 to SUPPLY-50 (Rule IDs 7301 to 7350).

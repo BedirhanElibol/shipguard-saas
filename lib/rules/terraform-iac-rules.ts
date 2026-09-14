@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateTerraformIacRules Engine (50 Rules)
  * Rules TF-01 to TF-50 (Rule IDs 11001 to 11050).

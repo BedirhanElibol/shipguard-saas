@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateGeoDistributedDbRules Engine (50 Rules)
  * Rules GEODIST-01 to GEODIST-50 (Rule IDs 15001 to 15050).

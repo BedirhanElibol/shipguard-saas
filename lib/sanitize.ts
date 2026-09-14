@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * String and XML/SVG Sanitization Module for Zelsis SaaS
  * Prevents XML Injection, SVG-based Cross-Site Scripting (XSS),

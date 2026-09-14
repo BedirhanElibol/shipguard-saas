@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { useState, useEffect } from 'react';
 import { Project, Finding } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';

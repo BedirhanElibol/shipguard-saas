@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateQuantitativeRiskRules Engine (50 Rules)
  * Rules QUANT-RISK-01 to QUANT-RISK-50 (Rule IDs 16201 to 16250).

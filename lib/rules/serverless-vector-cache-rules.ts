@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateServerlessVectorCacheRules Engine (50 Rules)
  * Rules VEC-CACHE-01 to VEC-CACHE-50 (Rule IDs 17601 to 17650).

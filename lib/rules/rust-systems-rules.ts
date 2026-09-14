@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateRustSystemsRules Engine (50 Rules)
  * Rules RUST-01 to RUST-50 (Rule IDs 9601 to 9650).

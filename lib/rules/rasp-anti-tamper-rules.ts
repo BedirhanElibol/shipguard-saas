@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateRaspAntiTamperRules Engine (50 Rules)
  * Rules RASP-01 to RASP-50 (Rule IDs 14601 to 14650).

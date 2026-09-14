@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateZeroTrustNetworkRules Engine (50 Rules)
  * Rules SDP-01 to SDP-50 (Rule IDs 13101 to 13150).

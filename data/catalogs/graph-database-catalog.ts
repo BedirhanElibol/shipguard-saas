@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 import { InfraRule } from '../schema';
 
 export const GRAPH_DATABASE_RULES_CATALOG: InfraRule[] = [

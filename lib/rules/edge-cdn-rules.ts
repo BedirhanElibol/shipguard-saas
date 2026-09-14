@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEdgeCdnRules Engine (50 Rules)
  * Rules CDN-01 to CDN-50 (Rule IDs 11101 to 11150).

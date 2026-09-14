@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCspmCloudPostureRules Engine (50 Rules)
  * Rules CSPM-01 to CSPM-50 (Rule IDs 14801 to 14850).

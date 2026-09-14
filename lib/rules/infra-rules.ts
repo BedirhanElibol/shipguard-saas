@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Infrastructure, Cloud & Database Security Gate Rules (Rules 3001-3006)
  *

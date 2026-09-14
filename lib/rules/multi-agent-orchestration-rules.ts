@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateMultiAgentOrchestrationRules Engine (50 Rules)
  * Rules LLM-ORCH-01 to LLM-ORCH-50 (Rule IDs 16301 to 16350).

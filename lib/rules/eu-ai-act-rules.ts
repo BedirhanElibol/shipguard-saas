@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateEuAiActRules Engine (50 Rules)
  * Rules AIACT-01 to AIACT-50 (Rule IDs 11601 to 11650).

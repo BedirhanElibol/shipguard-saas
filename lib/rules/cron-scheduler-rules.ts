@@ -1,4 +1,3 @@
-// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
 /**
  * Zelsis Master evaluateCronSchedulerRules Engine (50 Rules)
  * Rules CRON-01 to CRON-50 (Rule IDs 11701 to 11750).

@@ -59,7 +59,7 @@ function CallbackHandler() {
       // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
       const isPlatformAdmin = userEmail === 'bedirelibol7@gmail.com';
 
-      // Check if browser has stale cache from another account
+      // Check if browser has stale cache from another account or tainted founder records
       const savedLocalUserStr = localStorage.getItem('zelsis_user');
       if (savedLocalUserStr) {
         try {
@@ -71,33 +71,48 @@ function CallbackHandler() {
             localStorage.removeItem('shipguard_user');
             localStorage.removeItem('zelsis_license_key');
             localStorage.removeItem('shipguard_license_key');
+          } else if (!isPlatformAdmin && (parsedLocal?.expiresAt?.includes('2099') || parsedLocal?.tier === 'Enterprise')) {
+            // Tainted founder records on non-founder account
+            localStorage.removeItem('zelsis_user');
+            localStorage.removeItem('shipguard_user');
+            localStorage.removeItem('zelsis_license_key');
+            localStorage.removeItem('shipguard_license_key');
           }
         } catch {}
       }
 
-      let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (rawProfile.tier || 'Free');
-      let effectiveExpiresAt = isPlatformAdmin ? '2099-12-31T23:59:59.999Z' : rawProfile.expiresAt;
-      let effectiveStatus = rawProfile.status || 'active';
+      let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
+      let effectiveExpiresAt: string | undefined = undefined;
+      let effectiveStatus: 'active' | 'past_due' | 'canceled' = 'canceled';
 
-      if (effectiveTier === 'Free' && !isPlatformAdmin) {
+      if (isPlatformAdmin) {
+        effectiveTier = 'Enterprise';
+        effectiveExpiresAt = '2099-12-31T23:59:59.999Z';
+        effectiveStatus = 'active';
+      } else {
+        // Non-founder: strictly sanitize and check for legitimate license key
         const savedLic = localStorage.getItem('zelsis_license_key');
         if (savedLic && userEmail) {
           const licResult = verifyLicenseKey(savedLic, userEmail);
-          if (licResult.valid && (licResult.tier === 'Pro' || licResult.tier === 'Enterprise')) {
+          if (licResult.valid && !licResult.expiresAt?.includes('2099')) {
             effectiveTier = licResult.tier;
             effectiveExpiresAt = licResult.expiresAt;
+            effectiveStatus = 'active';
           } else {
-            // Remove license key if it does not belong to this account
             localStorage.removeItem('zelsis_license_key');
             localStorage.removeItem('shipguard_license_key');
           }
         }
-      }
 
-      if (effectiveTier !== 'Free' && !effectiveExpiresAt) {
-        effectiveExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      } else if (effectiveTier === 'Free') {
-        effectiveExpiresAt = undefined;
+        // Auto-heal tainted cloud Supabase metadata if previous buggy version saved Enterprise/2099
+        if (rawProfile.tier !== 'Free' || rawProfile.expiresAt?.includes('2099')) {
+          console.info('[Zelsis OAuth] Non-founder profile had tainted metadata. Auto-healing to Free Tier in Supabase.');
+          syncUserProfileToSupabase({
+            tier: 'Free',
+            expiresAt: undefined,
+            status: 'canceled'
+          }).catch(() => {});
+        }
       }
 
       const merged = {
@@ -119,10 +134,6 @@ function CallbackHandler() {
         }
       } catch (storageErr) {
         console.warn('[Zelsis OAuth] Storage write notice:', storageErr);
-      }
-
-      if (effectiveTier !== 'Free' && rawProfile.tier === 'Free') {
-        syncUserProfileToSupabase(merged).catch(() => {});
       }
 
       return merged;

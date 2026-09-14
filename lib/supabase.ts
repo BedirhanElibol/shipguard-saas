@@ -155,22 +155,44 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
   const isPlatformAdmin = userEmailNorm === 'bedirelibol7@gmail.com';
 
-  const tier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin
-    ? 'Enterprise'
-    : ((metadata.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free');
+  let tier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
+  let expiresAt: string | undefined = undefined;
+  let status: 'active' | 'past_due' | 'canceled' | 'trialing' = 'active';
+  let billingCycle: 'monthly' | 'annual' | undefined = undefined;
 
-  const expiresAt = isPlatformAdmin
-    ? '2099-12-31T23:59:59.999Z'
-    : ((metadata.expiresAt as string) || undefined);
+  if (isPlatformAdmin) {
+    tier = 'Enterprise';
+    expiresAt = '2099-12-31T23:59:59.999Z';
+    status = 'active';
+    billingCycle = 'annual';
+  } else {
+    // Non-founder: strictly validate tier and reject tainted founder 2099 dates
+    const rawTier = metadata.tier as 'Free' | 'Pro' | 'Enterprise' | undefined;
+    const rawExpiresAt = metadata.expiresAt as string | undefined;
 
-  const status = isPlatformAdmin
-    ? 'active'
-    : ((metadata.subscriptionStatus as 'active' | 'past_due' | 'canceled' | 'trialing') || (tier !== 'Free' ? 'active' : undefined));
+    const expiryYear = rawExpiresAt ? new Date(rawExpiresAt).getFullYear() : 0;
+    const isTaintedDate = rawExpiresAt && (rawExpiresAt.includes('2099') || expiryYear > 2028);
 
-  const gracePeriodUntil = (metadata.gracePeriodUntil as string) || undefined;
-  const billingCycle = isPlatformAdmin
-    ? 'annual'
-    : ((metadata.billingCycle as 'monthly' | 'annual') || undefined);
+    if (isTaintedDate || !rawTier || rawTier === 'Free') {
+      tier = 'Free';
+      expiresAt = undefined;
+      status = 'canceled';
+      billingCycle = undefined;
+    } else {
+      const expiryTime = rawExpiresAt ? new Date(rawExpiresAt).getTime() : 0;
+      if (!isNaN(expiryTime) && expiryTime > Date.now()) {
+        tier = rawTier;
+        expiresAt = rawExpiresAt;
+        status = (metadata.subscriptionStatus as any) || 'active';
+        billingCycle = (metadata.billingCycle as any) || 'monthly';
+      } else {
+        tier = 'Free';
+        expiresAt = undefined;
+        status = 'canceled';
+        billingCycle = undefined;
+      }
+    }
+  }
 
   return {
     name: rawName || 'User',
@@ -186,7 +208,7 @@ export function mapSupabaseUserToProfile(supabaseUser: {
     ),
     expiresAt,
     status,
-    gracePeriodUntil,
+    gracePeriodUntil: undefined,
     billingCycle
   };
 }

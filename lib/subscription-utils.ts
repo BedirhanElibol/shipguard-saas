@@ -144,7 +144,27 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
     };
   }
 
-  const userTier: 'Pro' | 'Enterprise' = user.tier === 'Enterprise' ? 'Enterprise' : 'Pro';
+  const emailNorm = (user.email || '').toLowerCase().trim();
+  const isFounder = emailNorm === 'bedirelibol7@gmail.com';
+
+  // Strict founder isolation: only platform founder can have Enterprise or 2099 expiry
+  if (!isFounder && (user.tier === 'Enterprise' || user.expiresAt?.includes('2099'))) {
+    return {
+      tier: 'Free',
+      isActive: true,
+      isExpiringSoon: false,
+      isCriticalUrgency: false,
+      isExpired: false,
+      daysRemaining: null,
+      formattedRenewalDate: 'Standard Access',
+      countdownLabel: 'Free Plan - Active',
+      compactLabel: 'Free',
+      cycleProgressPercent: 100,
+      badgeColors: EMERALD_COLORS,
+    };
+  }
+
+  const userTier: 'Pro' | 'Enterprise' = (isFounder && user.tier === 'Enterprise') ? 'Enterprise' : 'Pro';
 
   // If expiresAt is missing or invalid date, fallback to 30 days active monthly
   const expiryTime = parseSafeExpiryTimestamp(user.expiresAt);
@@ -197,9 +217,8 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
   let countdownLabel: string;
   let compactLabel: string;
 
-  // Extreme future dates or lifetime access (strictly restricted to platform founder bedirelibol7@gmail.com or extreme future dates)
-  const isFounder = (user.email || '').toLowerCase().trim() === 'bedirelibol7@gmail.com';
-  if ((daysRemaining > 36500) || ((daysRemaining > 730 || (user.expiresAt && user.expiresAt.includes('2099'))) && isFounder)) {
+  // Extreme future dates or lifetime access (strictly restricted to platform founder bedirelibol7@gmail.com)
+  if (isFounder && (daysRemaining > 730 || (user.expiresAt && user.expiresAt.includes('2099')))) {
     countdownLabel = 'Lifetime Access';
     compactLabel = 'Lifetime';
   } else if (daysRemaining > 730) {

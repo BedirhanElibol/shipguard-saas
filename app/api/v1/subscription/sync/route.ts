@@ -6,8 +6,6 @@ import { createClient } from '@supabase/supabase-js';
 // Verified subscriber registry & platform administrator list
 const DEFAULT_FOUNDER_EMAILS = [
   'bedirelibol7@gmail.com',
-  'admin@zelsis.dev',
-  'founder@zelsis.dev',
 ];
 
 const VERIFIED_SUBSCRIBER_EMAILS = new Set(
@@ -256,33 +254,49 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 3. Check authenticated user metadata in Supabase auth
+  // 3. Founder and Verified Subscriber Registry Resolution
   const userMetadata = authData.user.user_metadata || {};
-  const metaTier = userMetadata.tier as 'Pro' | 'Enterprise' | 'Free' | undefined;
-  const metaExpiresAt = userMetadata.expiresAt as string | undefined;
-  const metaStatus = userMetadata.subscriptionStatus as string | undefined;
+  const isFounder = email === 'bedirelibol7@gmail.com';
 
-  if (!isActive && (metaTier === 'Pro' || metaTier === 'Enterprise')) {
-    const expiryTime = metaExpiresAt ? new Date(metaExpiresAt).getTime() : null;
-    const isExpired = expiryTime ? Date.now() > expiryTime : false;
-
-    if (!isExpired) {
-      verifiedTier = metaTier;
-      isActive = true;
-      subStatus = (metaStatus === 'past_due' || metaStatus === 'active') ? metaStatus : 'active';
-      expiresAt = metaExpiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      logger.info(`[Subscription Sync] Confirmed via Supabase user_metadata: ${verifiedTier} for ${email} until ${expiresAt}`);
-    }
-  }
-
-  // 4. Check verified subscriber registry fallback (for confirmed Polar purchases and platform founders)
-  if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
-    const isFounder = DEFAULT_FOUNDER_EMAILS.includes(email) || email.endsWith('@zelsis.dev');
+  if (!isActive && isFounder) {
+    verifiedTier = 'Enterprise';
+    isActive = true;
+    subStatus = 'active';
+    expiresAt = '2099-12-31T23:59:59.999Z';
+    logger.info(`[Subscription Sync] Confirmed founder clearance: ${verifiedTier} for ${email}`);
+  } else if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
     verifiedTier = isFounder ? 'Enterprise' : 'Pro';
     isActive = true;
     subStatus = 'active';
     expiresAt = isFounder ? '2099-12-31T23:59:59.999Z' : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    logger.info(`[Subscription Sync] Confirmed verified subscriber / founder registry: ${verifiedTier} for ${email} until ${expiresAt}`);
+    logger.info(`[Subscription Sync] Confirmed verified subscriber registry: ${verifiedTier} for ${email}`);
+  }
+
+  // 4. Strict Free Tier Enforcement & Cloud Metadata Auto-Healing for Non-Subscribers
+  if (!isActive && !isFounder) {
+    verifiedTier = 'Free';
+    expiresAt = undefined;
+    subStatus = 'canceled';
+
+    // Auto-heal tainted user_metadata in Supabase database if previous buggy code stored Enterprise or 2099
+    if (userMetadata.tier && (userMetadata.tier !== 'Free' || (userMetadata.expiresAt as string)?.includes('2099'))) {
+      logger.info(`[Subscription Sync] Non-subscriber ${email} had tainted metadata. Auto-healing to Free in cloud database.`);
+      if (serviceRoleKey) {
+        try {
+          const adminClient = createClient(supabaseUrl, serviceRoleKey);
+          await adminClient.auth.admin.updateUserById(authData.user.id, {
+            user_metadata: {
+              ...userMetadata,
+              tier: 'Free',
+              expiresAt: null,
+              subscriptionStatus: 'canceled'
+            }
+          });
+        } catch (healErr) {
+          logger.warn('[Subscription Sync] Failed to auto-heal tainted user_metadata in Supabase auth:', healErr);
+        }
+      }
+    }
   }
 
   // 5. Update Supabase subscriptions and profiles if service role is present

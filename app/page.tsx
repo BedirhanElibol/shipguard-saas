@@ -3,13 +3,13 @@
 import React from 'react';
 import { SmoothScroll } from '@/components/SmoothScroll';
 import { Navbar } from '@/components/Navbar';
-import { Hero } from '@/components/Hero';
-import { Services } from '@/components/Services';
-import { FeaturedWork } from '@/components/FeaturedWork';
-import { About } from '@/components/About';
-import { Insights } from '@/components/Insights';
+import { SaasHero } from '@/components/saas/SaasHero';
+import { WorkflowSteps } from '@/components/saas/WorkflowSteps';
+import { ProductCapabilities } from '@/components/saas/ProductCapabilities';
+import { ComparisonTable } from '@/components/saas/ComparisonTable';
 import { PricingView } from '@/components/PricingView';
-import { Contact } from '@/components/Contact';
+import { FaqSection } from '@/components/saas/FaqSection';
+import { FinalCta } from '@/components/saas/FinalCta';
 import { Footer } from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 
@@ -24,28 +24,28 @@ export default function Home() {
           onToggleDashboard={() => router.push('/dashboard')}
         />
 
-        {/* Hero Section */}
-        <Hero onOpenDashboard={() => router.push('/dashboard')} />
+        {/* Hero Section with dashboard_overview.png and direct repo scan */}
+        <SaasHero onOpenDashboard={() => router.push('/dashboard')} />
 
-        {/* Services Grid (12-Col with Sticky Media Preview) */}
-        <Services />
+        {/* 3-Step Interactive Operational Workflow */}
+        <WorkflowSteps />
 
-        {/* Featured Work Stacked Cards Deck */}
-        <FeaturedWork />
+        {/* 4 Core Pillars Matrix featuring user screenshots */}
+        <ProductCapabilities />
 
-        {/* About Word Scrub Manifesto */}
-        <About />
-
-        {/* Insights Mouse-Following Cursor Reveal */}
-        <Insights />
+        {/* Uncompromising Comparison Table: ShipGuard vs Linters vs Enterprise */}
+        <ComparisonTable />
 
         {/* 3-Tier Pricing Section */}
         <div id="pricing" className="py-20 bg-[#0A0A0A] border-b border-white/10">
           <PricingView />
         </div>
 
-        {/* Contact Form & Elastic Magnetic Button */}
-        <Contact />
+        {/* Developer & Enterprise Architecture FAQ */}
+        <FaqSection />
+
+        {/* Final Conversion CTA */}
+        <FinalCta />
 
         {/* Multi-column Directory Footer */}
         <Footer />

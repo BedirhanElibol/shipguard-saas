@@ -30,14 +30,20 @@ export const Footer: React.FC = () => {
           <span className="text-xs font-bold text-white font-mono tracking-widest uppercase mb-2">
             NAVIGATION
           </span>
-          <a href="#services" className="text-sm hover:text-white transition-colors">
-            Features &amp; Gate
+          <a href="#features" className="text-sm hover:text-white transition-colors">
+            148 Release Gates
           </a>
-          <a href="#work" className="text-sm hover:text-white transition-colors">
-            Case Studies
+          <a href="#workflow" className="text-sm hover:text-white transition-colors">
+            How It Works
+          </a>
+          <a href="#comparison" className="text-sm hover:text-white transition-colors">
+            Comparison
           </a>
           <a href="#pricing" className="text-sm hover:text-white transition-colors">
             Pricing Plans
+          </a>
+          <a href="#faq" className="text-sm hover:text-white transition-colors">
+            Architecture FAQ
           </a>
         </div>
 

@@ -78,11 +78,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
   }, [mobileMenuOpen]);
 
   const navLinks = [
-    { label: 'Features', href: '#services' },
-    { label: 'Case Studies', href: '#work' },
-    { label: 'About', href: '#about' },
-    { label: 'Blog', href: '#insights' },
+    { label: 'Capabilities', href: '#features' },
+    { label: 'Workflow', href: '#workflow' },
+    { label: 'Comparison', href: '#comparison' },
     { label: 'Pricing', href: '#pricing' },
+    { label: 'FAQ', href: '#faq' },
   ];
 
   return (
@@ -145,13 +145,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
               </a>
             )}
 
-            <a
-              href="#contact"
-              className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm"
+            <button
+              onClick={onToggleDashboard || (() => { window.location.href = '/dashboard'; })}
+              className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
             >
-              <span>CONTACT</span>
+              <span>Scan Repo</span>
               <ArrowUpRight size={13} />
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -221,14 +221,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
                 </button>
               )}
 
-              <a
-                href="#contact"
-                onClick={() => setMobileMenuOpen(false)}
-                className="btn btn-primary w-full uppercase tracking-widest text-xs py-3"
+              <button
+                onClick={() => {
+                  if (onToggleDashboard) onToggleDashboard();
+                  else window.location.href = '/dashboard';
+                  setMobileMenuOpen(false);
+                }}
+                className="btn btn-primary w-full uppercase tracking-widest text-xs py-3 flex items-center justify-center gap-2"
               >
-                <span>CONTACT</span>
+                <span>SCAN REPOSITORY</span>
                 <ArrowUpRight size={14} />
-              </a>
+              </button>
             </div>
           </motion.div>
         )}

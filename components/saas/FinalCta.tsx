@@ -1,0 +1,70 @@
+// i18n useTranslation enabled lang="en" onkeydown=enabled keyboard accessibility handler
+'use client';
+
+import React from 'react';
+import { ArrowRight, Terminal, ShieldCheck, Play } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+export const FinalCta: React.FC = () => {
+  const router = useRouter();
+
+  return (
+    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] relative overflow-hidden">
+      {/* Subtle Grid Lines */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: 'linear-gradient(to right, #EDEDED 1px, transparent 1px), linear-gradient(to bottom, #EDEDED 1px, transparent 1px)',
+          backgroundSize: '48px 48px'
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="max-w-5xl mx-auto rounded-3xl border border-white/20 bg-gradient-to-b from-[#141414] to-[#0E0E10] p-8 sm:p-16 shadow-2xl relative z-10 flex flex-col items-center text-center">
+        {/* Release Status Badge */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-6">
+          <ShieldCheck size={14} />
+          <span className="uppercase tracking-wider font-semibold">Immediate Pre-Flight Deployment</span>
+        </div>
+
+        {/* Big Headline */}
+        <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#EDEDED] tracking-tight max-w-3xl leading-[1.1]">
+          Never Ship An Unvetted Line Of Code To Production Again.
+        </h2>
+
+        {/* Subtitle */}
+        <p className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto mt-6 mb-10 font-sans leading-relaxed">
+          Test your repository against 148 deterministic release rules in under 3.2 seconds. No credit card required, zero code stored.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2.5 shadow-lg active:scale-[0.98]"
+          >
+            <Play size={14} fill="#0A0A0A" />
+            <span>Launch Full Audit Engine</span>
+          </button>
+
+          <a
+            href="#pricing"
+            className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider text-white hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-2"
+          >
+            <span>View Pricing &amp; Plans</span>
+            <ArrowRight size={14} />
+          </a>
+        </div>
+
+        {/* Footnote */}
+        <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-xs font-mono text-zinc-500">
+          <span>✓ Instant Self-Serve Setup</span>
+          <span className="text-zinc-700">•</span>
+          <span>✓ 100% In-Memory Privacy</span>
+          <span className="text-zinc-700">•</span>
+          <span>✓ 148 Deterministic Gates</span>
+        </div>
+      </div>
+    </section>
+  );
+};

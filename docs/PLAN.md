@@ -1,74 +1,117 @@
-# Master Orchestration Plan (v18.0.0)
-## Autonomous Browser Testing & Multi-Repository Stress-Audit
+# Master Orchestration Plan (v19.0.0)
+## High-Conversion SaaS Product Landing Architecture & AI Slop Eradication
 
-### Executive Summary
-The user requested: `"/orchestrate /browser edip app'i rasgele repolarda deneyelim çalışma prensibimizde buglar var mı"`
-This plan establishes an end-to-end autonomous stress-testing and browser validation protocol for the Zelsis SaaS application (`https://shipguard-saas.vercel.app` and local runtime).
-The objective is to systematically test the repository scanning lifecycle on real, diverse, and randomly selected open-source GitHub repositories to uncover edge cases, architectural bottlenecks, API proxy rate limits, UI state locks, and rule engine evaluation defects.
+### Executive Strategic Summary
+The user requested:
+> `"/orchestrateson düzlükteyiz app'in satması için çalışma durumlarını komple gözden geçir landingpage sanki çok ai slop duruyor albenisi yok gibi /ui-ux-designer geri alınabilecek şekilde çalışmalar yapalım sadece benim eklettiğim görseller app'in çalışma durumları olduğu için koruyabilirsin."`
 
----
+ShipGuard / Zelsis is a production release gate platform ($29–$99/month SaaS) engineered with 148 multi-pillar security and deployment rules. However, the current landing page (`app/page.tsx`) was modeled after a boutique design agency ("Client Work 2026", "Services Grid", "Our Approach Manifesto", "Mouse-Following Insights"). This creates a fatal dissonance: buyers and engineering leads looking for automated security, compliance, and CI/CD pre-flight gates are greeted by agency portfolio tropes. The real, high-value product screens uploaded by the user are buried inside mock case studies.
 
-## 1. Test Matrix: Selected Public GitHub Repositories
-
-To thoroughly stress-test all operational dimensions, we define a 5-tier repository test matrix:
-
-| # | Target Repository | Domain / Language | Scale & Characteristics | Purpose |
-|---|---|---|---|---|
-| **R1** | `expressjs/express` | Node.js / JavaScript | Established mature web framework (~100 source files, middleware, route handlers) | Verify JS/Node backend rule triggers, auth patterns, and AST traversal. |
-| **R2** | `pallets/flask` | Python / WSGI | Core Python microframework (~40 Python modules, WSGI routing, CLI) | Verify Python enterprise rules, packaging patterns, and decorators. |
-| **R3** | `facebook/react` (sub-package / core) | TypeScript / React Web | Modern frontend component architecture (hooks, JSX, fiber reconciler) | Verify VibePolish, UI/UX accessibility, and React best practice rules. |
-| **R4** | `octocat/Hello-World` | Minimal / Git test | Micro-scale single README repository (1-2 files) | Verify boundary conditions: empty code trees, minimal file handling, clean zero-crash completion. |
-| **R5** | `vercel/next.js` (or sample Next.js template) | Fullstack Next.js App Router | Modern React 19, Server Components, edge routes, middleware | Verify Next.js App Router specific rules, edge security, and middleware analysis. |
+This plan executes a complete transformation from "Agency AI Slop" to an **Authoritative, High-Converting Developer SaaS** (comparable to Linear, Vercel, Supabase, Raycast) that highlights the 5 real product screenshots as empirical proof of the working engine. All modifications are modular, isolated, and fully reversible.
 
 ---
 
-## 2. Core Functional Dimensions to Validate
+## 1. Product Screenshots Showcase Architecture (Preserved & Prominently Featured)
 
-### A. Repository Ingestion & Validation
-1. **URL Sanitization & Parsing**: Validate `sanitizeTargetUrl` and `parseGithubUrl` against shorthand formats (`owner/repo`), SSH URLs (`git@github.com:...`), trailing slashes, and branch deep-links (`/tree/main/...`).
-2. **Modal Connection Flow**: Validate `ConnectTargetModal` state transitions, error messages on invalid input, and reactive addition to the project drawer.
+The 5 real application state screenshots in `public/images/` represent the core pillars of the value proposition and will be elevated to the center of the customer journey:
 
-### B. GitHub Proxy & Live Tree Fetching (`/api/v1/github-proxy`)
-1. **Tree API Chunking**: Test recursive Git tree retrieval (`/git/trees/{branch}?recursive=1`) and 25-file chunked raw content streaming.
-2. **Rate Limit Resilience**: Verify graceful fallback behavior when unauthenticated GitHub API encounters HTTP 403 / secondary rate limits (`x-ratelimit-remaining: 0`).
-3. **Binary / Non-Code Exclusion**: Ensure lockfiles, media, binaries, and giant artifacts are strictly excluded from the scan payload.
-
-### C. Static Scan Execution Across 7,850 Rules (`ScanRunnerView.tsx` & `scanner-engine.ts`)
-1. **Rule Engine Execution**: Run all 7,850 active rules (`SECURITY`, `UI_UX`, `LEGAL_COMPLIANCE`, `INFRA_DATABASE`) against real ingested source files.
-2. **Log Streaming & Animation**: Verify real-time log terminal formatting, time replacement, progress bar (0% -> 100%), and background tab throttling resilience.
-3. **Score & Status Calculation**: Ensure `calculateReadinessScore` and `calculateGateStatus` produce mathematically sound, non-negative scores (0-100) and proper gate statuses (`PASSED`, `WARNING`, `FAILED`).
-
-### D. Audit Completion & View Transition
-1. **Countdown Auto-Transition**: Verify that when `countdownSeconds` reaches 0, `onCompleteScanRef.current(scanResult)` is reliably invoked without UI lockup.
-2. **Report View Population**: Verify that the findings list, severity counts (Critical, High, Medium, Low), and remediation diff patches render properly for the selected repository.
+| Screenshot | Current Location | New High-Converting Role | Key Value Proposition Shown |
+|---|---|---|---|
+| `dashboard_overview.png` | Buried / Unused in Hero | **Hero Product Centerpiece Frame** | Real-time release clearance gauge, active audit scores, live project health telemetry, instant scan triggers. |
+| `security_rules.png` | FeaturedWork / Services modal | **Pillar 1: 148 Multi-Pillar Gate Catalog** | Transparent rule inventory (OWASP Top 10, Docker root privilege, PostgreSQL RLS, Next.js 15 App Router). |
+| `audit_findings.png` | Services / FeaturedWork modal | **Pillar 2: Deep Vulnerability Triage & AST Diffs** | Precise line-by-line vulnerability highlights, code context, and 1-click AI remediation prompts. |
+| `vulnerability_sandbox.png` | FeaturedWork modal | **Pillar 3: Interactive Zero-Install Sandbox** | Live in-browser AST regex & security playground for instant proof without onboarding friction. |
+| `bundle_profiler.png` | FeaturedWork / Insights modal | **Pillar 4: Core Web Vitals & Container Profiling** | Deep performance profiling, asset weight distribution, CLS/LCP metrics, and Kubernetes/Docker limits. |
 
 ---
 
-## 3. Phase 2 Implementation Work Breakdown (3+ Specialized Agents)
+## 2. Re-architecting `app/page.tsx` (Eliminating AI Slop)
 
-Upon user approval, the following agents will execute concurrently:
+### A. What We Eradicate ("AI Slop" & Agency Tropes)
+- ❌ **"Services" (Agency Consulting trope)**: Replace with **Product Architecture & Capabilities**.
+- ❌ **"Client Work (2026)" (Boutique Agency trope)**: Replace with **Real Interactive Feature Showcases** featuring the 4 screenshots.
+- ❌ **"Our Approach Manifesto" (Word Scrub trope)**: Replace with **"How It Works in 3 Steps"** technical workflow.
+- ❌ **"Editorial Insights" (Mock Blog trope)**: Replace with **Hard Comparison Matrix** (ShipGuard vs. Traditional Linters vs. Heavy Enterprise Scanners).
+- ❌ **"Let's Build Something Together" (Freelancer Contact Form)**: Replace with **High-Converting Free Trial / Live Demo CTA** with zero-credit-card commitment.
 
-### Agent 1: `browser` (Automated Browser UI & End-to-End Journey Verification)
-- Navigate `https://shipguard-saas.vercel.app` in automated browser context.
-- Open `Connect Target` modal, input target repositories from the test matrix.
-- Initiate live scans, capture UI screenshots of scan progression, log streamer, and final audit report view.
-- Audit browser DevTools console for uncaught exceptions, unhandled Promise rejections, or network failures.
-
-### Agent 2: `backend-specialist` (GitHub Proxy & Ingestion Hardening)
-- Audit `lib/github-api.ts` and `app/api/v1/github-proxy/route.ts` against network timeouts, rate limit starvation, and oversized repository payloads.
-- Implement enhanced fallback handling for repos without default `main` branch (e.g. `master`, `dev`) and large file truncation guards.
-- Ensure 100% Native English in all logs and error messages.
-
-### Agent 3: `test-engineer` (Automated Repository Stress Runner & Assertions)
-- Create `scratch/stress_test_random_repos.ts` executing end-to-end API and engine scans across all 5 test matrix repositories.
-- Assert that every repository completes within acceptable time bounds (<30s), produces valid `ScanResult` schema, and experiences zero unhandled crashes.
-- Run `checklist.py`, `security_scan.py`, `tsc --noEmit`, and `npm run build`.
+### B. New High-Converting SaaS Structure
+1. **Tactical Global Header & Navigation**:
+   - Dynamic sticky bar: Brand, Live Rules Count (148 Gates), Capabilities, Pricing, Security/Privacy, and Direct "Open Dashboard" CTA.
+2. **Hero Section (`Hero.tsx` / `SaasHero.tsx`)**:
+   - **Commanding Swiss / Obsidian Typography**: "Zero-Day Release Clearance for Production Code."
+   - **Immediate Value Subtitle**: Instant OWASP, UI/UX performance, and cloud container auditing before code merges.
+   - **Dual Action Bar**: Primary CTA `[ Launch Free Audit ]` + Secondary `[ Explore 148 Rules ]`.
+   - **Social Proof / Tech Matrix**: Next.js 15, TypeScript, Python, Go, Docker, Kubernetes, Supabase, Stripe.
+   - **Ambient Product Frame**: High-resolution browser window framing `dashboard_overview.png` with interactive pulse badges highlighting the real readiness gauges.
+3. **Interactive 3-Step Production Workflow (`WorkflowSteps.tsx`)**:
+   - **Step 1: Ingest & Parse (0s)**: Shorthand GitHub URL or local files. Zero-retention privacy (code scanned in-memory, never stored).
+   - **Step 2: 148 Multi-Pillar Verification (<3s)**: AST pattern matching, security secrets, Docker root defense, and WCAG accessibility.
+   - **Step 3: Signed Clearance & 1-Click Remediation**: Exportable release manifest, SOC 2/ISO 27001 readiness audit, and direct PR remediation diffs.
+4. **Deep Product Capabilities Matrix (`ProductCapabilities.tsx`)**:
+   - 4-quadrant architectural showcase utilizing the user's 4 remaining images:
+     - Card A (`security_rules.png`): "148 Production Release Gates & Rule Engine".
+     - Card B (`audit_findings.png`): "Surgical AST Finding Triage & 1-Click Fix Prompts".
+     - Card C (`vulnerability_sandbox.png`): "Interactive Browser Sandbox & Rule Tester".
+     - Card D (`bundle_profiler.png`): "Core Web Vitals & Container Resource Profiler".
+5. **The Uncompromising Comparison Table (`ComparisonTable.tsx`)**:
+   - Clear contrast table: **Traditional Linters (ESLint/Prettier)** vs. **Enterprise Scanners (SonarQube/Snyk - $500+/mo)** vs. **ShipGuard**.
+   - Highlights: Scan Speed (<3s vs 10min), Multi-Pillar (Security + UI/UX + Cloud vs Security only), Friction (Zero setup vs heavy agent), Pricing ($29/mo vs thousands).
+6. **Transparent Developer Pricing (`PricingView.tsx`)**:
+   - Direct monthly/yearly toggle, clear tier quotas (Free 3 Scans, Pro Unlimited, Enterprise Team), Polar checkout integration.
+7. **Security, Privacy & Architecture FAQ (`FaqSection.tsx`)**:
+   - Direct answers to the questions developers and CTOs care about: "Do you store my code?", "Does it work with private repos?", "How does it fit into GitHub Actions CI/CD?".
+8. **Final High-Converting Action Terminal**:
+   - Quick repo URL paste bar with instant scan trigger.
 
 ---
 
-## 4. Acceptance Criteria
-- [ ] At least 4 distinct public GitHub repositories successfully ingested and scanned.
-- [ ] Zero unhandled exceptions or infinite loading states during scan runs.
-- [ ] Scan runner cleanly transitions to the completed audit report with exact finding counts.
-- [ ] GitHub proxy handles rate limits gracefully with informative user guidance.
-- [ ] All quality gates pass: 0 TypeScript errors, 100% Native English, 26/26 Next.js routes building cleanly.
+## 3. Reversibility & Modular Architecture
+
+To satisfy the user's requirement (`"geri alınabilecek şekilde çalışmalar yapalım"`):
+- All existing agency components (`Services.tsx`, `FeaturedWork.tsx`, `About.tsx`, `Insights.tsx`, `Contact.tsx`) will be preserved in git history and kept intact in a `components/legacy/` archive or preserved alongside new components.
+- The new SaaS architecture will be built with dedicated, clean components:
+  - `components/saas/SaasHero.tsx`
+  - `components/saas/WorkflowSteps.tsx`
+  - `components/saas/ProductCapabilities.tsx`
+  - `components/saas/ComparisonTable.tsx`
+  - `components/saas/FaqSection.tsx`
+- Switching back is as simple as toggling imports in `app/page.tsx` or a single git revert.
+
+---
+
+## 4. Design Commitment (Anti-Safe Harbor & Anti-AI Slop)
+
+Following `@[agents/frontend-specialist]` and `@[skills/ui-ux-designer]`:
+- **Style**: Obsidian Radar / Industrial Precision Developer Platform.
+- **Strict Purple Ban**: 0 purple, violet, indigo, or magenta gradients. Only deep dark `#0A0A0A` / `#121212`, clean white `#EDEDED`, tactical emerald `#10B981`, alert amber `#F59E0B`, and crimson `#EF4444`.
+- **No Floating Blobs / Mesh Gradients**: Clean, crisp borders (`border-white/10`), subtle dot-matrix grid backgrounds, high-contrast monospace typography.
+- **Copy**: Crisp, concrete, developer-centric metrics (numbers, rules, seconds, standards). No marketing buzzwords like "Orchestrate", "Empower", "Elevate", "Seamless".
+
+---
+
+## 5. Phase 2 Implementation Work Breakdown (3 Specialized Agents)
+
+Upon user approval of this plan, the following agents will execute in parallel:
+
+### Agent 1: `frontend-specialist` (High-Converting SaaS Component Construction)
+- Implement `components/saas/SaasHero.tsx` featuring `dashboard_overview.png` with interactive hotspot telemetry and direct repository scan input.
+- Implement `components/saas/WorkflowSteps.tsx` (3-step interactive pipeline).
+- Implement `components/saas/ProductCapabilities.tsx` showcasing `security_rules.png`, `audit_findings.png`, `vulnerability_sandbox.png`, and `bundle_profiler.png` in high-density cards.
+- Implement `components/saas/ComparisonTable.tsx` and `components/saas/FaqSection.tsx`.
+- Wire into `app/page.tsx`.
+
+### Agent 2: `ui-ux-designer` (Visual Harmony, Responsive Rhythm & Micro-Interactions)
+- Audit spacing, contrast ratios, and typography scale across mobile, tablet, and desktop viewports.
+- Enforce strict Purple Ban and zero AI-slop visual artifacts.
+- Implement subtle micro-interactions (hotspot pulse, copy-to-clipboard, tab switching).
+
+### Agent 3: `test-engineer` (Verification, Quality Gates & Zero-Regression Sync)
+- Audit all modified files for 100% Native English (zero Turkish characters in code/comments).
+- Run `npx tsc --noEmit` and `npm run build` to guarantee clean compilation.
+- Run `python .agent/skills/vulnerability-scanner/scripts/security_scan.py .`.
+- Run Desktop sync script `scratch/sync_to_desktop.py`, stage, commit, push to GitHub, and verify live URL `https://shipguard-saas.vercel.app`.
+
+---
+
+## 6. Socratic Checkpoint & User Approval
+Before touching code or executing Phase 2, we present this plan to the user for explicit review and validation.

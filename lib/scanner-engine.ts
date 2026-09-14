@@ -1197,27 +1197,8 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     return true;
   });
 
-  const MAX_SCANNED_FILES = 300;
-  let targetFiles = validFiles;
+  const targetFiles = validFiles;
   let fileLimitWarning: string | undefined = undefined;
-
-  if (targetFiles.length > MAX_SCANNED_FILES) {
-    targetFiles = [...targetFiles].sort((a, b) => {
-      const getPriority = (p: string) => {
-        const lp = p.toLowerCase();
-        if (lp.endsWith('.ts') || lp.endsWith('.tsx') || lp.endsWith('.js') || lp.endsWith('.jsx')) return 1;
-        if (lp.endsWith('.sql') || lp.endsWith('.py')) return 2;
-        if (lp.endsWith('.json') || lp.endsWith('.yml') || lp.endsWith('.yaml')) return 3;
-        return 4;
-      };
-      return getPriority(a.path) - getPriority(b.path);
-    });
-
-    const excessCount = targetFiles.length - MAX_SCANNED_FILES;
-    targetFiles = targetFiles.slice(0, MAX_SCANNED_FILES);
-    fileLimitWarning = `Target repository exceeds maximum scan limit (${MAX_SCANNED_FILES} files). Scanned top ${MAX_SCANNED_FILES} critical source files; ${excessCount} non-critical files skipped to prevent resource exhaustion.`;
-    logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ RESOURCE GUARD: ${fileLimitWarning}`);
-  }
 
   logs.push(`[${new Date().toLocaleTimeString()}] 📦 Repository Tree Loaded: ${targetFiles.length} total source files queued for file-by-file audit.`);
   logs.push(`[${new Date().toLocaleTimeString()}] --------------------------------------------------`);

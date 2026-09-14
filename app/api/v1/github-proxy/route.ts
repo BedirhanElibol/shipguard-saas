@@ -263,8 +263,7 @@ export async function GET(req: NextRequest) {
           !item.path.includes('venv/') &&
           !item.path.includes('.venv/') &&
           !item.path.includes('__pycache__/')
-      )
-      .slice(0, 500);
+      );
 
     if (treeFiles.length === 0) {
       return NextResponse.json({

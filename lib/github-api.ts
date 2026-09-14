@@ -408,8 +408,7 @@ export async function fetchGithubRepositoryData(
           !item.path.includes('venv/') &&
           !item.path.includes('.venv/') &&
           !item.path.includes('__pycache__/')
-      )
-      .slice(0, 500);
+      );
 
     if (signal?.aborted) return null;
 

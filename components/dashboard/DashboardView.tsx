@@ -16,7 +16,7 @@ import { GateStatusBanner } from './GateStatusBanner';
 import { DemoShowcaseBanner } from '../OverviewView';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
 import confetti from 'canvas-confetti';
-import { Play, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, Zap, Download, GitCompare, Bell, Sliders, Award, BookOpen, Server, ShieldAlert, MoreVertical, Scale, Database } from 'lucide-react';
+import { ShieldCheck, Code, Server } from 'lucide-react';
 
 interface DashboardViewProps {
   project: Project;
@@ -125,65 +125,6 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
 
   return (
     <div className="flex flex-col gap-6 relative">
-      {/* Swiss Command & Telemetry Header Bar */}
-      <div className="bg-[#141414] border border-white/10 rounded-xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-            <Zap size={16} className="text-white" />
-          </div>
-          <div>
-            <span className="text-xs font-mono font-bold text-white uppercase tracking-wider block">
-              Zelsis Release Gate
-            </span>
-            <p className="text-xs text-[#A1A1AA]">
-              AST &amp; Web Deployment Audit Pipeline
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-          <button
-            onClick={() => onNavigatePillar('security')}
-            className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            <ShieldCheck size={13} className="text-white" />
-            <span>Security Audit</span>
-          </button>
-
-          <button
-            onClick={() => onNavigatePillar('compliance')}
-            className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            <Scale size={13} className="text-white" />
-            <span>Legal Gate</span>
-          </button>
-
-          <button
-            onClick={() => onNavigatePillar('infra')}
-            className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            <Database size={13} className="text-white" />
-            <span>Infra Gate</span>
-          </button>
-
-          <button
-            onClick={() => onNavigatePillar('vibepolish')}
-            className="flex items-center gap-1.5 text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            <Zap size={13} className="text-white" />
-            <span>VibePolish UI</span>
-          </button>
-
-          <button
-            onClick={copyMasterPrompt}
-            className="flex items-center gap-1.5 text-xs font-mono font-bold text-black bg-white hover:bg-neutral-200 px-3.5 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            {copiedMaster ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-            <span>{copiedMaster ? 'Copied!' : 'Copy Fix Prompt'}</span>
-          </button>
-        </div>
-      </div>
-
       {/* Interactive Demo Showcase Banner for Guests */}
       {(!user || !user.isLoggedIn) && (
         <DemoShowcaseBanner onOpenAuth={onOpenAuth} />
@@ -259,6 +200,8 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
             onInspectFinding={onInspectFinding}
             onTriggerScan={onTriggerScan}
             onLoadDemoFindings={onLoadDemoFindings}
+            onCopyPrompt={copyMasterPrompt}
+            copiedPrompt={copiedMaster}
           />
         </div>
       )}

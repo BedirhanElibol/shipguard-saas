@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import { Finding } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy } from 'lucide-react';
 
 interface FindingsTableProps {
   findings: Finding[];
   onInspectFinding: (f: Finding) => void;
   onTriggerScan?: () => void;
   onLoadDemoFindings?: (demoFindings: Finding[]) => void;
+  onCopyPrompt?: () => void;
+  copiedPrompt?: boolean;
 }
 
 export const FindingsTable: React.FC<FindingsTableProps> = ({
@@ -18,6 +20,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
   onInspectFinding,
   onTriggerScan,
   onLoadDemoFindings,
+  onCopyPrompt,
+  copiedPrompt,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState<string>('ALL');
@@ -76,13 +80,32 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               Audit Findings &amp; Risk Inventory
             </h2>
             {findings.length > 0 && (
-              <button
-                onClick={() => setIsBulkOpen(true)}
-                className="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5 border-white/10 text-white hover:bg-white/5"
-              >
-                <Layers size={13} />
-                <span>Bulk Remediate .patch</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {onCopyPrompt && (
+                  <button
+                    type="button"
+                    onClick={onCopyPrompt}
+                    className="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5 border-white/10 text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    title="Copy AI Master Fix Prompt for Claude / Cursor / ChatGPT"
+                  >
+                    {copiedPrompt ? (
+                      <CheckCircle2 size={13} className="text-emerald-400" />
+                    ) : (
+                      <Copy size={13} />
+                    )}
+                    <span>{copiedPrompt ? 'Copied Prompt!' : 'Copy Fix Prompt'}</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsBulkOpen(true)}
+                  className="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5 border-white/10 text-white hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  <Layers size={13} />
+                  <span>Bulk Remediate .patch</span>
+                </button>
+              </div>
             )}
           </div>
           <div className="text-xs text-[#A1A1AA] mt-0.5">

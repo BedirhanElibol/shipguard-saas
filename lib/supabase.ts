@@ -148,10 +148,6 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   const userEmailNorm = (supabaseUser?.email || '').toLowerCase().trim();
   const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || (userEmailNorm ? userEmailNorm.split('@')[0] : 'User');
   const avatar = (metadata.avatar_url as string) || (metadata.picture as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
-  
-  const userNameNorm = ((metadata.user_name as string) || '').toLowerCase().trim();
-  const rawNameNorm = rawName.toLowerCase().trim();
-
   // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
   const isPlatformAdmin = userEmailNorm === 'bedirelibol7@gmail.com';
 

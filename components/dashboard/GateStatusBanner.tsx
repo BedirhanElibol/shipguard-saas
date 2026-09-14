@@ -19,7 +19,8 @@ import {
   Code,
   Table,
   FileText,
-  ChevronDown
+  ChevronDown,
+  ExternalLink
 } from 'lucide-react';
 import { exportFindingsToCsv, exportScorecardToJson } from '@/lib/export-utils';
 
@@ -29,6 +30,7 @@ interface GateStatusBannerProps {
   highs: Finding[];
   uiCliches: Finding[];
   onTriggerScan: () => void;
+  onOpenConnectTarget?: () => void;
   setIsRuleConfigOpen: (v: boolean) => void;
   setIsExecutiveBriefingOpen: (v: boolean) => void;
   isMoreToolsOpen?: boolean;
@@ -47,6 +49,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
   highs,
   uiCliches,
   onTriggerScan,
+  onOpenConnectTarget,
   setIsRuleConfigOpen,
   setIsExecutiveBriefingOpen,
   setIsCompareOpen,
@@ -129,6 +132,29 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
           <h1 className="text-lg sm:text-2xl font-extrabold text-[#EDEDED] mt-1 truncate">
             {project.name}
           </h1>
+
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="text-[11px] font-mono text-[#A1A1AA]">Audited Target:</span>
+            <a
+              href={project.repoUrl.startsWith('http') ? project.repoUrl : `https://${project.repoUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-mono font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
+              title="Open target repository"
+            >
+              <span className="truncate">{project.repoUrl.replace(/^https?:\/\//, '')}</span>
+              <ExternalLink size={11} className="shrink-0" />
+            </a>
+            {onOpenConnectTarget && (
+              <button
+                type="button"
+                onClick={onOpenConnectTarget}
+                className="text-[10px] font-mono text-zinc-400 hover:text-white px-2 py-0.5 rounded border border-white/10 hover:border-white/20 bg-white/[0.03] hover:bg-white/10 transition-all cursor-pointer shrink-0"
+              >
+                Change Target
+              </button>
+            )}
+          </div>
 
           <p className="text-[11px] sm:text-xs text-[#A1A1AA] mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <span>

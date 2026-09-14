@@ -17,15 +17,18 @@ import { DemoShowcaseBanner } from '../OverviewView';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
 import confetti from 'canvas-confetti';
 import { ShieldCheck, Code, Server } from 'lucide-react';
+import { ConnectTargetModal } from '../layout/ConnectTargetModal';
 
 interface DashboardViewProps {
   project: Project;
-  onTriggerScan: () => void;
+  onTriggerScan: (projectOverride?: Project) => void;
   onInspectFinding: (f: Finding) => void;
   onNavigatePillar: (pillar: string) => void;
   onLoadDemoFindings?: (findings: Finding[]) => void;
   user?: { isLoggedIn?: boolean } | null;
   onOpenAuth?: (mode: 'signin' | 'signup') => void;
+  onAddNewProject?: (p: Project) => void;
+  onSelectProject?: (p: Project) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -36,8 +39,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onLoadDemoFindings,
   user,
   onOpenAuth,
+  onAddNewProject,
+  onSelectProject,
 }) => {
   const [copiedMaster, setCopiedMaster] = useState(false);
+  const [isConnectTargetOpen, setIsConnectTargetOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isRuleConfigOpen, setIsRuleConfigOpen] = useState(false);
@@ -127,7 +133,10 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
     <div className="flex flex-col gap-6 relative">
       {/* Interactive Demo Showcase Banner for Guests */}
       {(!user || !user.isLoggedIn) && (
-        <DemoShowcaseBanner onOpenAuth={onOpenAuth} />
+        <DemoShowcaseBanner
+          onOpenAuth={onOpenAuth}
+          onFocusQuickAudit={() => setIsConnectTargetOpen(true)}
+        />
       )}
 
       {/* Top Gate Status Banner */}
@@ -137,6 +146,7 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         highs={highs}
         uiCliches={uiCliches}
         onTriggerScan={onTriggerScan}
+        onOpenConnectTarget={() => setIsConnectTargetOpen(true)}
         setIsRuleConfigOpen={setIsRuleConfigOpen}
         setIsExecutiveBriefingOpen={setIsExecutiveBriefingOpen}
         isMoreToolsOpen={isMoreToolsOpen}
@@ -247,6 +257,20 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         setIsPenTestOpen={setIsPenTestOpen}
         isBadgeOpen={isBadgeOpen}
         setIsBadgeOpen={setIsBadgeOpen}
+      />
+
+      <ConnectTargetModal
+        isOpen={isConnectTargetOpen}
+        onClose={() => setIsConnectTargetOpen(false)}
+        onAddNewProject={onAddNewProject}
+        onSelectProject={(p) => {
+          onSelectProject?.(p);
+          setIsConnectTargetOpen(false);
+        }}
+        onTriggerScan={(p) => {
+          onTriggerScan(p);
+          setIsConnectTargetOpen(false);
+        }}
       />
     </div>
   );

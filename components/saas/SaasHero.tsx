@@ -13,9 +13,10 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { normalizeRepoUrl } from '@/lib/github-api';
 
 interface SaasHeroProps {
-  onOpenDashboard?: () => void;
+  onOpenDashboard?: (repoUrl?: string) => void;
 }
 
 export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
@@ -36,10 +37,11 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
     const clean = repoInput.trim();
     if (!clean || isScanning) return;
     setIsScanning(true);
+    const normalized = normalizeRepoUrl(clean);
     if (onOpenDashboard) {
-      onOpenDashboard();
+      onOpenDashboard(normalized);
     } else {
-      router.push('/dashboard');
+      router.push(`/dashboard?repo=${encodeURIComponent(normalized)}&scan=true`);
     }
   };
 
@@ -185,7 +187,10 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                 <span>Clearance: Passed (94/100)</span>
               </span>
               <button
-                onClick={onOpenDashboard || (() => router.push('/dashboard'))}
+                onClick={() => {
+                  if (onOpenDashboard) onOpenDashboard();
+                  else router.push('/dashboard');
+                }}
                 className="text-xs font-mono text-zinc-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <span>Open Dashboard</span>

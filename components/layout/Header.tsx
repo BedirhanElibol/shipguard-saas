@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Project } from '@/data/schema';
-import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink } from 'lucide-react';
+import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink, Terminal } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
-import { sanitizeTargetUrl } from '@/lib/github-api';
+import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 import { getSubscriptionValidity } from '@/lib/subscription-utils';
@@ -72,33 +72,44 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleAuditAction = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const cleaned = sanitizeTargetUrl(activeTargetUrl);
-    if (cleaned && cleaned !== selectedProject.repoUrl) {
-      const newProject: Project = {
-        id: `proj-${Date.now()}`,
-        name: cleaned.replace(/^https?:\/\//, '').split('/')[1] || cleaned.replace(/^https?:\/\//, '').split('/')[0] || 'Imported Repository',
-        repoUrl: cleaned,
-        framework: 'Next.js 15',
-        providers: ['GitHub'],
-        lastScanAt: 'Never audited',
-        readinessScore: 100,
-        gateStatus: 'PASSED',
-        criticalCount: 0,
-        highCount: 0,
-        mediumCount: 0,
-        lowCount: 0,
-        uiClicheCount: 0,
-        findings: []
-      };
-      if (onAddNewProject) {
-        onAddNewProject(newProject);
-      } else {
-        onSelectProject(newProject);
-      }
-      onTriggerScan(newProject);
+    const normalized = normalizeRepoUrl(activeTargetUrl);
+    if (!normalized) return;
+
+    if (normalized.toLowerCase() === selectedProject.repoUrl.toLowerCase()) {
+      onTriggerScan(selectedProject);
       return;
     }
-    onTriggerScan(selectedProject);
+
+    const existing = projects.find((p) => p.repoUrl.toLowerCase() === normalized.toLowerCase());
+    if (existing) {
+      onSelectProject(existing);
+      onTriggerScan(existing);
+      return;
+    }
+
+    const displayName = extractRepoDisplayName(normalized);
+    const newProject: Project = {
+      id: `proj-${Date.now()}`,
+      name: displayName,
+      repoUrl: normalized,
+      framework: 'Next.js 15',
+      providers: ['GitHub Action', 'Vercel'],
+      lastScanAt: 'Ready to Run Audit',
+      readinessScore: 100,
+      gateStatus: 'PASSED',
+      criticalCount: 0,
+      highCount: 0,
+      mediumCount: 0,
+      lowCount: 0,
+      uiClicheCount: 0,
+      findings: []
+    };
+    if (onAddNewProject) {
+      onAddNewProject(newProject);
+    } else {
+      onSelectProject(newProject);
+    }
+    onTriggerScan(newProject);
   };
 
   return (
@@ -166,27 +177,31 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Quick Target URL Input */}
-        <form onSubmit={handleAuditAction} className="hidden md:flex items-center flex-1 max-w-md mx-4">
-          <input
-            type="text"
-            aria-label="Target repository or deployment URL"
-            value={activeTargetUrl}
-            onChange={(e) => setActiveTargetUrl(e.target.value)}
-            placeholder="Enter GitHub repo URL (e.g. org/repo)..."
-            className="w-full bg-[#141414] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-[#EDEDED] outline-none focus:border-white/30"
-          />
+        {/* Center: Interactive Target Command Bar */}
+        <form onSubmit={handleAuditAction} className="flex items-center flex-1 max-w-sm sm:max-w-md lg:max-w-lg mx-2 sm:mx-4 min-w-0">
+          <div className="relative w-full flex items-center">
+            <Terminal size={14} className="absolute left-2.5 sm:left-3 text-emerald-400 pointer-events-none shrink-0" />
+            <input
+              type="text"
+              aria-label="Target repository or deployment URL"
+              value={activeTargetUrl}
+              onChange={(e) => setActiveTargetUrl(e.target.value)}
+              placeholder="github.com/owner/repo or web URL..."
+              className="w-full bg-[#141414] border border-white/15 rounded-lg pl-7 sm:pl-8 pr-16 sm:pr-20 py-1.5 text-xs font-mono text-[#EDEDED] placeholder-zinc-500 outline-none focus:border-emerald-500/50 transition-all shadow-inner"
+            />
+            <button
+              type="submit"
+              className="absolute right-1 px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
+              title="Audit Target Repository"
+            >
+              <Play size={10} fill="#0A0A0A" />
+              <span>Scan</span>
+            </button>
+          </div>
         </form>
 
-        {/* Right: Quick Audit Trigger & User Menu */}
+        {/* Right: User Auth Info / Profile Dropdown */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={() => handleAuditAction()}
-            className="btn btn-primary px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-white text-black hover:bg-neutral-200 shrink-0"
-          >
-            <Play size={12} fill="#0A0A0A" />
-            <span className="hidden xs:inline">Audit</span>
-          </button>
 
           {/* User Auth Info / Profile Dropdown */}
           {user && user.isLoggedIn ? (
@@ -387,6 +402,7 @@ export const Header: React.FC<HeaderProps> = ({
         onClose={() => setIsGithubModalOpen(false)}
         onAddNewProject={onAddNewProject}
         onSelectProject={onSelectProject}
+        onTriggerScan={onTriggerScan}
       />
     </>
   );

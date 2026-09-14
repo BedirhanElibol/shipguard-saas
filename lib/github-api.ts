@@ -66,6 +66,56 @@ export function parseGithubUrl(url: string): { owner: string; repo: string } | n
   }
 }
 
+export function normalizeRepoUrl(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  let clean = raw.trim();
+
+  // If it's a live web URL (not github.com), return normalized URL
+  if (/^https?:\/\/(?!github\.com)/i.test(clean)) {
+    return clean.replace(/\/+$/, '');
+  }
+
+  // Handle git@github.com:owner/repo
+  if (clean.startsWith('git@github.com:')) {
+    clean = clean.replace('git@github.com:', '');
+  }
+
+  // Remove trailing .git, tree/..., blob/...
+  clean = clean.replace(/\.git$/i, '');
+  clean = clean.replace(/\/tree\/[^\/]+.*$/i, '');
+  clean = clean.replace(/\/blob\/[^\/]+.*$/i, '');
+  clean = clean.replace(/\/+$/, '');
+
+  // Strip leading protocols or domain for uniform parsing
+  clean = clean.replace(/^https?:\/\//i, '');
+  clean = clean.replace(/^github\.com\//i, '');
+
+  const parts = clean.split('/').filter(Boolean);
+  if (parts.length >= 2) {
+    return `https://github.com/${parts[0]}/${parts[1]}`;
+  }
+  if (parts.length === 1 && parts[0]) {
+    return `https://github.com/${parts[0]}`;
+  }
+
+  return `https://github.com/${clean}`;
+}
+
+export function extractRepoDisplayName(url: string): string {
+  if (!url || typeof url !== 'string') return 'Repository';
+  const clean = sanitizeTargetUrl(url);
+  const parsed = parseGithubUrl(clean);
+  if (parsed) {
+    return `${parsed.owner}/${parsed.repo}`;
+  }
+  try {
+    const parsedUrl = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return parsedUrl.hostname || 'Target Deployment';
+  } catch {
+    return clean.replace(/^https?:\/\//, '') || 'Repository';
+  }
+}
+
 export function isValidGithubUrl(url: string): boolean {
   if (!url || typeof url !== 'string' || url.trim().length === 0) return false;
   const clean = sanitizeTargetUrl(url);

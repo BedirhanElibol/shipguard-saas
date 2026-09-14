@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Project, Finding, ScanHistoryItem } from '@/data/schema';
 import { MOCK_PROJECTS, VIBEPOLISH_30_CATALOG, UI_RULES_CATALOG, AI_CLICHE_25_CATALOG } from '@/data/mockData';
 import { AppShell } from '@/components/layout/AppShell';
@@ -21,10 +21,11 @@ import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
 import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
 import { ShieldCheck, Plus } from 'lucide-react';
 import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
+import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
 
 export default function DashboardPage() {
   return (
@@ -36,6 +37,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     activeNav,
     setActiveNav,
@@ -65,6 +67,7 @@ function DashboardContent() {
 
   const [checkoutInitialPlan, setCheckoutInitialPlan] = useState<'Pro' | 'Enterprise'>('Pro');
   const [scanProjectOverride, setScanProjectOverride] = useState<Project | null>(null);
+  const hasProcessedRepoRef = React.useRef(false);
 
   const handleTriggerScan = (projectOverride?: Project) => {
     if (projectOverride) {
@@ -75,6 +78,66 @@ function DashboardContent() {
     }
     setIsScanning(true);
   };
+
+  const handleAddNewProject = (newP: Project) => {
+    setProjects((prev) => {
+      const updated = [newP, ...prev];
+      persistProjectsList(updated);
+      return updated;
+    });
+    handleSelectProject(newP);
+  };
+
+  // Direct repo URL scan trigger (e.g. from Landing Hero or URL query params)
+  useEffect(() => {
+    const repoParam = searchParams.get('repo');
+    const scanParam = searchParams.get('scan');
+    if (!repoParam || hasProcessedRepoRef.current) return;
+    hasProcessedRepoRef.current = true;
+
+    const normalized = normalizeRepoUrl(repoParam);
+    if (!normalized) return;
+
+    const existing = projects.find(
+      (p) => p.repoUrl.toLowerCase() === normalized.toLowerCase()
+    );
+
+    if (existing) {
+      handleSelectProject(existing);
+      if (scanParam === 'true') {
+        handleTriggerScan(existing);
+      }
+    } else {
+      const displayName = extractRepoDisplayName(normalized);
+      const newProj: Project = {
+        id: `proj-import-${Date.now()}`,
+        name: displayName,
+        repoUrl: normalized,
+        framework: 'Next.js 15',
+        providers: ['GitHub Action', 'Vercel'],
+        lastScanAt: 'Ready to Run Audit',
+        readinessScore: 100,
+        gateStatus: 'PASSED',
+        criticalCount: 0,
+        highCount: 0,
+        mediumCount: 0,
+        lowCount: 0,
+        uiClicheCount: 0,
+        findings: []
+      };
+      handleAddNewProject(newProj);
+      if (scanParam === 'true') {
+        handleTriggerScan(newProj);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('repo');
+      cleanUrl.searchParams.delete('scan');
+      window.history.replaceState({}, '', cleanUrl.toString());
+    }
+  }, [searchParams, projects]);
 
   const handleOpenCheckoutModal = (requestedPlan?: 'Pro' | 'Enterprise') => {
     if (requestedPlan) {
@@ -88,15 +151,6 @@ function DashboardContent() {
     } else {
       setIsCheckoutOpen(true);
     }
-  };
-
-  const handleAddNewProject = (newP: Project) => {
-    setProjects((prev) => {
-      const updated = [newP, ...prev];
-      persistProjectsList(updated);
-      return updated;
-    });
-    handleSelectProject(newP);
   };
 
   const handleLoadDemoFindings = (demoFindings: Finding[]) => {
@@ -271,6 +325,8 @@ function DashboardContent() {
                   setAuthInitialMode(mode);
                   setIsAuthModalOpen(true);
                 }}
+                onAddNewProject={handleAddNewProject}
+                onSelectProject={handleSelectProject}
               />
             )}
 

@@ -25,7 +25,7 @@ export default function Home() {
         />
 
         {/* Hero Section with dashboard_overview.png and direct repo scan */}
-        <SaasHero onOpenDashboard={() => router.push('/dashboard')} />
+        <SaasHero onOpenDashboard={(repo) => router.push(repo ? `/dashboard?repo=${encodeURIComponent(repo)}&scan=true` : '/dashboard')} />
 
         {/* 3-Step Interactive Operational Workflow */}
         <WorkflowSteps />

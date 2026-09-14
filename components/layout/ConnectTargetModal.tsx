@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Project } from '@/data/schema';
-import { FolderGit2, X, Globe, Eye, EyeOff } from 'lucide-react';
+import { FolderGit2, X, Globe, Eye, EyeOff, Play } from 'lucide-react';
 import { isValidGithubUrl, sanitizeTargetUrl } from '@/lib/github-api';
 import { isValidWebUrl } from '@/lib/website-scanner';
 
@@ -11,13 +11,15 @@ interface ConnectTargetModalProps {
   onClose: () => void;
   onAddNewProject?: (p: Project) => void;
   onSelectProject: (p: Project) => void;
+  onTriggerScan?: (p: Project) => void;
 }
 
 export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
   isOpen,
   onClose,
   onAddNewProject,
-  onSelectProject
+  onSelectProject,
+  onTriggerScan
 }) => {
   const [targetType, setTargetType] = useState<'GITHUB' | 'WEB'>('GITHUB');
   const [repoName, setRepoName] = useState<string>('');
@@ -95,6 +97,9 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
       onAddNewProject(newProject);
     }
     onSelectProject(newProject);
+    if (onTriggerScan) {
+      onTriggerScan(newProject);
+    }
     setIsConnecting(false);
     onClose();
   };
@@ -118,57 +123,57 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-extrabold text-[#EDEDED]">
-              Connect Target Application
+              Connect Target
             </h2>
-            <div className="text-xs text-[#A1A1AA]">
-              Select your audit scope: GitHub Source Code or Live Web Deployment
-            </div>
+            <p className="text-xs text-[#A1A1AA]">
+              Select a GitHub repository or live deployment endpoint.
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-6 p-1 bg-[#0A0A0A] rounded-xl border border-white/10">
-          <button
-            type="button"
-            onClick={() => setTargetType('GITHUB')}
-            className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
-              targetType === 'GITHUB' ? 'bg-white/5 text-white border border-white/10' : 'text-[#A1A1AA]'
-            }`}
-          >
-            GitHub Repository
-          </button>
-          <button
-            type="button"
-            onClick={() => setTargetType('WEB')}
-            className={`py-2 rounded-lg text-xs font-mono font-bold transition-all ${
-              targetType === 'WEB' ? 'bg-white/10 text-white border border-white/20' : 'text-[#A1A1AA]'
-            }`}
-          >
-            Live Web App URL
-          </button>
-        </div>
+        {urlError && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs font-mono text-red-400">
+            {urlError}
+          </div>
+        )}
 
         <form onSubmit={handleConnectRepo} className="flex flex-col gap-4">
-          {urlError && (
-            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg font-medium">
-              {urlError}
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-2 bg-[#0A0A0A] p-1 rounded-xl border border-white/10">
+            <button
+              type="button"
+              onClick={() => setTargetType('GITHUB')}
+              className={`py-2 text-xs font-mono font-bold rounded-lg transition-colors ${
+                targetType === 'GITHUB' ? 'bg-white/10 text-white' : 'text-[#A1A1AA] hover:text-white'
+              }`}
+            >
+              GitHub Repository
+            </button>
+            <button
+              type="button"
+              onClick={() => setTargetType('WEB')}
+              className={`py-2 text-xs font-mono font-bold rounded-lg transition-colors ${
+                targetType === 'WEB' ? 'bg-white/10 text-white' : 'text-[#A1A1AA] hover:text-white'
+              }`}
+            >
+              Live Web Endpoint
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="target-project-name" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Target Display Name (Optional)</label>
+            <input
+              id="target-project-name"
+              aria-label="Target Display Name"
+              type="text"
+              value={repoName}
+              onChange={(e) => setRepoName(e.target.value)}
+              placeholder="e.g. My Next.js SaaS App"
+              className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
+            />
+          </div>
 
           {targetType === 'GITHUB' ? (
             <>
-              <div className="flex flex-col gap-1">
-                <label htmlFor="target-repo-name" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Repository Title</label>
-                <input
-                  id="target-repo-name"
-                  aria-label="Repository Title"
-                  type="text"
-                  value={repoName}
-                  onChange={(e) => setRepoName(e.target.value)}
-                  placeholder="e.g. My Next.js SaaS Project"
-                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/20 font-mono"
-                />
-              </div>
-
               <div className="flex flex-col gap-1">
                 <label htmlFor="target-github-url" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Repository URL *</label>
                 <input
@@ -178,7 +183,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/user/my-saas"
-                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/20 font-mono"
+                  className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
                 />
               </div>
 
@@ -191,42 +196,42 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                     type="text"
                     value={branch}
                     onChange={(e) => setBranch(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none font-mono"
+                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="target-framework" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Framework</label>
+                  <label htmlFor="target-framework-select" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Framework</label>
                   <select
-                    id="target-framework"
+                    id="target-framework-select"
                     aria-label="Framework"
                     value={framework}
                     onChange={(e) => setFramework(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none cursor-pointer font-mono"
+                    className="px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
                   >
                     <option value="Auto-Detect">Auto-Detect</option>
                     <option value="Next.js 15">Next.js 15</option>
-                    <option value="React Vite">React Vite</option>
-                    <option value="Express / Node">Express / Node</option>
-                    <option value="FastAPI Python">FastAPI Python</option>
+                    <option value="Vite + React">Vite + React</option>
+                    <option value="SvelteKit">SvelteKit</option>
+                    <option value="FastAPI">FastAPI</option>
                   </select>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label htmlFor="target-github-token" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Private GitHub PAT Token (Optional)</label>
+                <label htmlFor="target-github-token" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Personal Access Token (PAT) - Optional</label>
                 <div className="relative flex items-center">
                   <input
                     id="target-github-token"
-                    aria-label="Private GitHub PAT Token"
+                    aria-label="GitHub Personal Access Token (PAT)"
                     type={showToken ? 'text' : 'password'}
                     value={githubToken}
                     onChange={(e) => setGithubToken(e.target.value)}
-                    placeholder="ghp_..."
-                    className="w-full pr-10 px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none font-mono"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (unlocks 5,000 req/hr)"
+                    className="w-full px-3 py-2 pr-10 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowToken((prev) => !prev)}
+                    onClick={() => setShowToken(!showToken)}
                     aria-label={showToken ? 'Hide PAT token' : 'Show PAT token'}
                     className="absolute right-3 text-[#A1A1AA] hover:text-white transition-colors"
                   >
@@ -253,9 +258,10 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
           <button
             type="submit"
             disabled={isConnecting}
-            className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-2 btn btn-primary py-3 text-xs uppercase tracking-wider font-extrabold w-full rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
-            {isConnecting ? 'Connecting Target...' : 'Connect & Select Target'}
+            <Play size={13} fill="currentColor" />
+            <span>{isConnecting ? 'Connecting & Auditing...' : 'Connect & Run Audit'}</span>
           </button>
         </form>
       </div>

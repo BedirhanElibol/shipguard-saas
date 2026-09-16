@@ -102,6 +102,7 @@ import { evaluateVectorIndexOptimizationRules } from './rules/vector-index-optim
 import { evaluateAiAgentEthicsGovernanceRules } from './rules/ai-agent-ethics-governance-rules';
 import { evaluateEdgeAiModelQuantizationRules } from './rules/edge-ai-model-quantization-rules';
 import { evaluateServerlessVectorCacheRules } from './rules/serverless-vector-cache-rules';
+import { evaluateScaDependencyRules } from './rules/sca-dependency-rules';
 
 export interface CodeFile {
   path: string;
@@ -3518,6 +3519,17 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
     // Wave 30 Enterprise Release Gate Engines (Milestone 7,600 Rules):
 
     // Wave 31 Enterprise Release Gate Engines (Milestone 7,850 Rules - Grand Finale):
+
+    // Wave 32: Software Composition Analysis (SCA), Dependency CVE & License Compliance Gate
+    const scaCounter = { count: findingCounter };
+    const scaResult = evaluateScaDependencyRules(file, lines, cleanContent, scaCounter);
+    findingCounter = scaCounter.count;
+    for (const item of scaResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...scaResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

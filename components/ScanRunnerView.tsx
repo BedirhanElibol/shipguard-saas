@@ -202,12 +202,12 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
       intervalRef.current = setInterval(() => {
         const isHidden = typeof document !== 'undefined' && document.hidden;
-        // Batch 25 logs per tick when background tab is throttled by Chrome, 3 logs when active
-        const batchSize = isHidden ? 25 : 3;
+        // Dynamically scale batch size for large log volumes so scan completes in <3.5s without freezing
+        const dynamicBatch = Math.max(isHidden ? 30 : 5, Math.ceil(realLogs.length / 80));
 
         if (currentIdx < realLogs.length) {
           const newLogItems: string[] = [];
-          for (let b = 0; b < batchSize && currentIdx < realLogs.length; b++) {
+          for (let b = 0; b < dynamicBatch && currentIdx < realLogs.length; b++) {
             const rawLog = realLogs[currentIdx];
             if (rawLog) {
               const liveTime = new Date().toLocaleTimeString();
@@ -217,7 +217,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             currentIdx++;
           }
 
-          setLogs((prev) => [...prev, ...newLogItems]);
+          // Keep terminal display buffer bounded to the latest 200 lines to prevent DOM thrashing
+          setLogs((prev) => [...prev, ...newLogItems].slice(-200));
           const pct = Math.min(100, Math.round((currentIdx / realLogs.length) * 100));
           setProgress(pct);
           if (typeof document !== 'undefined') {

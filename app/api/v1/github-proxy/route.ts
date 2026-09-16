@@ -283,12 +283,34 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Smart File Budget & Prioritization:
+    // Large repositories (like Supabase, React, Next.js) can have 10,000+ files.
+    // Fetching all would cause serverless timeouts and client-side lockups.
+    // Prioritize core architecture, infrastructure, auth, and API files up to 120 files.
+    const MAX_SCANNABLE_FILES = 120;
+
+    const getFilePriority = (filePath: string): number => {
+      const lower = filePath.toLowerCase();
+      // Tier 1: Critical configs, infra, security, and schemas
+      if (/(?:^|\/)(?:dockerfile|docker-compose|\.env|package\.json|tsconfig|next\.config|schema\.prisma|middleware|\.sql|auth)/i.test(lower)) return 4;
+      // Tier 2: Core application routes, services, and backend
+      if (/^(?:src|app|lib|api|server|routes|pages|controllers|services)\//i.test(lower)) return 3;
+      // Tier 4 (Deprioritized): Mocks, tests, fixtures, docs, storybooks
+      if (/(?:test|tests|__tests__|fixture|fixtures|examples|docs|locales|translations|stories|\.spec\.|\.test\.)/i.test(lower)) return 1;
+      // Tier 3: General source files
+      return 2;
+    };
+
+    const targetFiles = [...treeFiles]
+      .sort((a, b) => getFilePriority(b.path) - getFilePriority(a.path))
+      .slice(0, MAX_SCANNABLE_FILES);
+
     // Fetch raw file contents in parallel chunks from GitHub
     const CHUNK_SIZE = 40;
     const fetchedFiles: Array<{ path: string; content: string }> = [];
 
-    for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {
-      const chunk = treeFiles.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < targetFiles.length; i += CHUNK_SIZE) {
+      const chunk = targetFiles.slice(i, i + CHUNK_SIZE);
       const chunkResults = await Promise.all(
         chunk.map(async (file: any) => {
           try {

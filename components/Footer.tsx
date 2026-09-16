@@ -41,9 +41,6 @@ export const Footer: React.FC = () => {
           <a href="#pricing" className="text-sm hover:text-white transition-colors">
             Pricing Plans
           </a>
-          <a href="/refund" className="text-sm hover:text-white transition-colors">
-            14-Day Refund Policy
-          </a>
         </div>
 
         {/* Col 3: SaaS Platform (4 cols) */}
@@ -69,8 +66,7 @@ export const Footer: React.FC = () => {
         </div>
         <div className="flex flex-wrap gap-4 sm:gap-6">
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
-          <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-          <a href="/cookies" className="hover:text-white transition-colors">Cookie Policy</a>
+          <a href="/terms" className="hover:text-white transition-colors">Terms &amp; Cookies</a>
           <a href="/refund" className="hover:text-white transition-colors">Refund Policy</a>
         </div>
       </div>

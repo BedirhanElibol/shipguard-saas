@@ -241,7 +241,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer border-t border-white/5 pt-1.5"
               >
-                <Code size={14} className="text-purple-400" />
+                <Code size={14} className="text-cyan-400" />
                 <div className="flex flex-col">
                   <span className="font-bold">JSON Scorecard Payload</span>
                   <span className="text-[10px] text-[#A1A1AA]">CI/CD automation artifact</span>

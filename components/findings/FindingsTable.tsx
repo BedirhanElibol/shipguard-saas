@@ -106,7 +106,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           </span>
         </button>
 
-        {/* Card 2: Supabase & Database */}
+        {/* Card 2: Database & Storage */}
         <button
           type="button"
           onClick={() => setPillarFilter(pillarFilter === 'INFRA_DATABASE' ? 'ALL' : 'INFRA_DATABASE')}
@@ -119,7 +119,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
               <Database size={14} />
-              <span>Supabase &amp; DB</span>
+              <span>Database &amp; Storage</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
           </div>
@@ -128,11 +128,11 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               {findings.filter(f => f.type === 'INFRA_DATABASE' || f.category.toLowerCase().includes('sql') || f.category.toLowerCase().includes('rls') || f.category.toLowerCase().includes('database')).length}
             </span>
             <span className="text-[10px] text-zinc-400 font-mono">
-              RLS &amp; Pools
+              Postgres &amp; SQL
             </span>
           </div>
           <span className="text-[10px] text-zinc-400 truncate">
-            Row level security &amp; leaks
+            RLS, pools, SQL &amp; data leaks
           </span>
         </button>
 

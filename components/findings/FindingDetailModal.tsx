@@ -411,7 +411,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                 <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0 mt-1.5" />
                 <div className="leading-relaxed">
                   <span className="font-bold text-cyan-400">Infrastructure &amp; Database Gate:</span>{' '}
-                  This finding detects cloud configuration or database exposure (Supabase RLS, Docker privileges, DB secrets, CORS). Apply the unified patch to secure your release.
+                  This finding detects cloud configuration or database exposure (database configurations, connection pools, SQL security, RLS policies, or cloud data stores). Apply the unified patch to secure your release.
                 </div>
               </div>
             ) : (

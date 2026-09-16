@@ -35,14 +35,8 @@ export const Footer: React.FC = () => {
           <a href="#workflow" className="text-sm hover:text-white transition-colors">
             How It Works
           </a>
-          <a href="#comparison" className="text-sm hover:text-white transition-colors">
-            Comparison
-          </a>
           <a href="#pricing" className="text-sm hover:text-white transition-colors">
             Pricing Plans
-          </a>
-          <a href="#faq" className="text-sm hover:text-white transition-colors">
-            Architecture FAQ
           </a>
         </div>
 

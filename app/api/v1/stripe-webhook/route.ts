@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   let rawBody: string;
   try {
     rawBody = await req.text();
-  } catch (err: any) {
-    logger.error('[Stripe Webhook] Failed to read request body', err?.message);
+  } catch (err) {
+    logger.error('[Stripe Webhook] Failed to read request body', err);
     return NextResponse.json({ error: 'Failed to read request body' }, { status: 400 });
   }
 
@@ -119,7 +119,9 @@ export async function POST(req: NextRequest) {
                 if (profile?.id) {
                   matchedUserId = profile.id;
                 }
-              } catch {}
+              } catch (profileErr) {
+                logger.warn(`[Stripe Webhook] Profile lookup error for ${normalizedEmail}:`, profileErr);
+              }
 
               // 2. Query auth.users via admin API with expanded perPage limit
               if (!matchedUserId) {
@@ -133,14 +135,18 @@ export async function POST(req: NextRequest) {
                     matchedUserId = matchedUser.id;
                     existingMetadata = matchedUser.user_metadata || {};
                   }
-                } catch {}
+                } catch (listUsersErr) {
+                  logger.warn(`[Stripe Webhook] Admin listUsers error for ${normalizedEmail}:`, listUsersErr);
+                }
               } else {
                 try {
                   const { data: userData } = await adminClient.auth.admin.getUserById(matchedUserId);
                   if (userData?.user?.user_metadata) {
                     existingMetadata = userData.user.user_metadata;
                   }
-                } catch {}
+                } catch (getUserErr) {
+                  logger.warn(`[Stripe Webhook] Admin getUserById error for ${matchedUserId}:`, getUserErr);
+                }
               }
 
               if (matchedUserId) {
@@ -169,8 +175,8 @@ export async function POST(req: NextRequest) {
                 }, { onConflict: 'user_id' });
                 logger.info(`[Stripe Webhook] Synced auth user_metadata, profiles & subscriptions for ${normalizedEmail} -> ${tier} (expires: ${effectiveCurrentPeriodEnd})`);
               }
-            } catch (adminErr: any) {
-              logger.warn(`[Stripe Webhook] Admin sync notice: ${adminErr?.message}`);
+            } catch (adminErr) {
+              logger.warn('[Stripe Webhook] Admin sync notice:', adminErr);
             }
           }
 
@@ -185,8 +191,8 @@ export async function POST(req: NextRequest) {
                   status: 'active',
                   updated_at: new Date().toISOString()
                 }, { onConflict: 'email' });
-            } catch (syncErr: any) {
-              logger.warn(`[Stripe Webhook] Supabase sync exception: ${syncErr?.message}`);
+            } catch (syncErr) {
+              logger.warn('[Stripe Webhook] Supabase sync exception:', syncErr);
             }
           }
         }
@@ -246,8 +252,8 @@ export async function POST(req: NextRequest) {
                   updated_at: new Date().toISOString()
                 }, { onConflict: 'user_id' });
               }
-            } catch (adminErr: any) {
-              logger.warn(`[Stripe Webhook] Admin cancel notice: ${adminErr?.message}`);
+            } catch (adminErr) {
+              logger.warn('[Stripe Webhook] Admin cancel notice:', adminErr);
             }
           }
 
@@ -292,8 +298,8 @@ export async function POST(req: NextRequest) {
                   user_metadata: { tier: 'Free', subscriptionStatus: 'past_due' }
                 });
               }
-            } catch (adminErr: any) {
-              logger.warn(`[Stripe Webhook] Admin failed payment notice: ${adminErr?.message}`);
+            } catch (adminErr) {
+              logger.warn('[Stripe Webhook] Admin failed payment notice:', adminErr);
             }
           }
 
@@ -314,7 +320,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true, eventId: event?.id });
-  } catch (err: any) {
+  } catch (err) {
     logger.error(`[Stripe Webhook] Error processing event ${event?.type}`, err);
     return NextResponse.json(
       { error: 'Webhook event processing error' },

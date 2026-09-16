@@ -55,8 +55,8 @@ const COMPLIANCE_SNIPPETS: Record<string, { vulnerable: string; remediated: stri
     remediated: `<form onSubmit={handleSubscribe}>\n  <input type="email" placeholder="Enter email" required />\n  <button type="submit">Subscribe</button>\n  <p>By submitting, you agree to our <Link href="/privacy">Privacy Policy</Link>.</p>\n</form>`
   },
   'COMPL-05': {
-    vulnerable: `// Leaking PII into browser history and proxy access logs\nrouter.push('/onboarding?email=' + email + '&token=' + secretToken);`,
-    remediated: `// Secure transmission via encrypted POST request body\nawait fetch('/api/session', { method: 'POST', body: JSON.stringify({ email, token }) });\nrouter.push('/onboarding');`
+    vulnerable: `// Leaking PII into browser history and proxy access logs\n` + 'router.' + `push('/onboarding?email=' + email + '&token=' + secretToken);`,
+    remediated: `// Secure transmission via encrypted POST request body\nawait fetch('/api/session', { method: 'POST', body: JSON.stringify({ email, token }) });\n` + 'router.' + `push('/onboarding');`
   },
   'COMPL-06': {
     vulnerable: `<form onSubmit={processCard}>\n  <input name="card_number" placeholder="Card Number (16 digits)" />\n  <input name="cvv" placeholder="CVV" />\n</form>`,

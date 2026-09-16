@@ -123,6 +123,10 @@ export const ProductCapabilities: React.FC = () => {
     }
   ];
 
+  if (pillars.length === 0) {
+    return <div className="text-neutral-500 font-mono text-sm">No capabilities defined.</div>;
+  }
+
   return (
     <section id="features" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10">
       <div className="max-w-6xl mx-auto flex flex-col gap-20">

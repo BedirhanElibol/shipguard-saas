@@ -32,7 +32,9 @@ function CallbackHandler() {
         try {
           authSubscription.unsubscribe();
           authSubscription = null;
-        } catch {}
+        } catch (unsubErr) {
+          console.warn('[Zelsis OAuth] Unsubscribe notice:', unsubErr);
+        }
       }
 
       try {
@@ -78,7 +80,9 @@ function CallbackHandler() {
             localStorage.removeItem('zelsis_license_key');
             localStorage.removeItem('shipguard_license_key');
           }
-        } catch {}
+        } catch (parseLocalErr) {
+          console.warn('[Zelsis OAuth] Stale user parsing notice:', parseLocalErr);
+        }
       }
 
       let effectiveTier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
@@ -197,7 +201,9 @@ function CallbackHandler() {
             try {
               authSubscription.unsubscribe();
               authSubscription = null;
-            } catch {}
+            } catch (unsubErr) {
+              console.warn('[Zelsis OAuth] Sync unsubscribe notice:', unsubErr);
+            }
           }
           return;
         }
@@ -211,7 +217,9 @@ function CallbackHandler() {
               finalizeAuth(finalCheck.session.user);
               return;
             }
-          } catch {}
+          } catch (sessionErr) {
+            console.warn('[Zelsis OAuth] Timeout session check notice:', sessionErr);
+          }
 
           if (isMounted && status === 'loading') {
             setStatus('error');
@@ -238,7 +246,9 @@ function CallbackHandler() {
       if (authSubscription) {
         try {
           authSubscription.unsubscribe();
-        } catch {}
+        } catch (unsubErr) {
+          console.warn('[Zelsis OAuth] Cleanup unsubscribe notice:', unsubErr);
+        }
       }
     };
   }, [router, searchParams]);

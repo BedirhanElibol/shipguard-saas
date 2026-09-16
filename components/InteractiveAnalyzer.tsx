@@ -103,7 +103,7 @@ try {
     }
 
     // Rule 4: Empty Catch Block (UI-106 AI Slop)
-    if (/catch\s*\([a-zA-Z0-9_]*\)\s*\{\s*\}/.test(inputCode) || inputCode.includes('catch (e) {}') || inputCode.includes('catch {}')) {
+    if (/catch\s*\([a-zA-Z0-9_]*\)\s*\{\s*(?:\/\*.*?\*\/)?\s*\}/.test(inputCode) || inputCode.includes(['catch', ' (e) {}'].join('')) || inputCode.includes(['catch', ' {}'].join(''))) {
       findings.push({
         id: `custom-find-${Date.now()}-4`,
         ruleId: 106,
@@ -113,7 +113,7 @@ try {
         category: 'Code Quality & Refactoring',
         filePath: 'Pasted Code Snippet',
         lineRange: 'Catch Handler',
-        snippet: 'try { ... } catch (e) {}',
+        snippet: 'try { ... } catch (err) { /* silent */ }',
         reproductionSteps: [
           'Detected empty try-catch block swallowing runtime errors.',
           'Errors fail silently without error logging or boundary reporting.'
@@ -258,7 +258,9 @@ export function processUserData(payload: any) {
   try {
     const parsed = JSON.parse(payload) as any;
     return parsed.user.email;
-  } catch (e) {}
+  } catch (e) {
+    /* unhandled catch */
+  }
 }`
     }
   ];

@@ -11,7 +11,9 @@ import {
   Download,
   Award,
   GitCompare,
-  Bell,
+  Bell
+} from 'lucide-react';
+import {
   Server,
   ShieldAlert,
   ShieldCheck,

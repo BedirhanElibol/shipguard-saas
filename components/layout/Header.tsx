@@ -42,6 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isGithubModalOpen, setIsGithubModalOpen] = useState<boolean>(false);
   const [activeTargetUrl, setActiveTargetUrl] = useState<string>(selectedProject.repoUrl);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const validity = getSubscriptionValidity(user);
 
@@ -72,6 +73,9 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleAuditAction = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setTimeout(() => setIsSubmitting(false), 1000);
     const normalized = normalizeRepoUrl(activeTargetUrl);
     if (!normalized) return;
 
@@ -191,7 +195,8 @@ export const Header: React.FC<HeaderProps> = ({
             />
             <button
               type="submit"
-              className="absolute right-1 px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
+              disabled={isSubmitting}
+              className="absolute right-1 px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
               title="Audit Target Repository"
             >
               <Play size={10} fill="#0A0A0A" />

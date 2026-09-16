@@ -123,3 +123,28 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     ip_address TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
+
+-- ==============================================================================
+-- 8. ROW LEVEL SECURITY (RLS) ENFORCEMENT
+-- ==============================================================================
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.findings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- ==============================================================================
+-- 9. FOREIGN KEY PERFORMANCE INDEXES
+-- ==============================================================================
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_projects_user_id ON public.projects(user_id);
+CREATE INDEX IF NOT EXISTS idx_scans_project_id ON public.scans(project_id);
+CREATE INDEX IF NOT EXISTS idx_scans_user_id ON public.scans(user_id);
+CREATE INDEX IF NOT EXISTS idx_findings_scan_id ON public.findings(scan_id);
+CREATE INDEX IF NOT EXISTS idx_findings_project_id ON public.findings(project_id);
+CREATE INDEX IF NOT EXISTS idx_findings_resolved_by ON public.findings(resolved_by);
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON public.api_keys(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
+

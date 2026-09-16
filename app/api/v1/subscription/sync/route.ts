@@ -96,7 +96,9 @@ export async function POST(req: NextRequest) {
   if (polarAccessToken) {
     try {
       // Step A: Look up Polar customer by email
-      const customerRes = await fetch(`https://api.polar.sh/v1/customers?email=${encodeURIComponent(email)}`, {
+      const customerEndpoint = new URL('https://api.polar.sh/v1/customers');
+      customerEndpoint.searchParams.set('email', email);
+      const customerRes = await fetch(customerEndpoint.toString(), {
         headers: {
           'Authorization': `Bearer ${polarAccessToken}`,
           'Content-Type': 'application/json'

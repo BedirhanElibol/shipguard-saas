@@ -32,6 +32,8 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
     { label: 'Next.js App', value: 'vercel/next.js' }
   ];
 
+  if (sampleRepos.length === 0) return null;
+
   const handleStartScan = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = repoInput.trim();

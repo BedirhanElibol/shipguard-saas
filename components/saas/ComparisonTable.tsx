@@ -65,6 +65,10 @@ export const ComparisonTable: React.FC = () => {
     }
   ];
 
+  if (comparisonRows.length === 0) {
+    return <div className="text-neutral-500 font-mono text-sm">No comparison data available.</div>;
+  }
+
   const renderValue = (val: boolean | string) => {
     if (typeof val === 'boolean') {
       return val ? (

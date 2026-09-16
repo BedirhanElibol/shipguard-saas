@@ -203,7 +203,9 @@ export function useDashboardState() {
                   parsedUser.expiresAt = undefined;
                   try {
                     localStorage.setItem('zelsis_user', JSON.stringify(parsedUser));
-                  } catch {}
+                  } catch (writeErr) {
+                    console.warn('[DashboardState] LocalStorage write notice:', writeErr);
+                  }
                 } else {
                   // Legitimate Pro tier candidate: verify license key bound to email
                   const savedLicenseKey = localStorage.getItem('zelsis_license_key');
@@ -472,7 +474,9 @@ export function useDashboardState() {
                 localStorage.removeItem('zelsis_license_key');
                 localStorage.removeItem('shipguard_license_key');
               }
-            } catch {}
+            } catch (cleanupErr) {
+              console.warn('[DashboardState] Storage cleanup notice:', cleanupErr);
+            }
           }
 
           let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : 'Free';
@@ -599,7 +603,9 @@ export function useDashboardState() {
                   localStorage.removeItem('zelsis_license_key');
                   localStorage.removeItem('shipguard_license_key');
                 }
-              } catch {}
+              } catch (parseErr) {
+                console.warn('[DashboardState] Local parsing notice:', parseErr);
+              }
             }
 
             let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = isPlatformAdmin ? 'Enterprise' : (profile.tier || 'Free');
@@ -883,7 +889,9 @@ export function useDashboardState() {
               resolvedSignUpExpiresAt = parsed.expiresAt;
             }
           }
-        } catch {}
+        } catch (signUpParseErr) {
+          console.warn('[DashboardState] SignUp user parse notice:', signUpParseErr);
+        }
       }
 
       const savedLic = localStorage.getItem('zelsis_license_key');
@@ -943,7 +951,9 @@ export function useDashboardState() {
                 resolvedExpiresAt = p.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
               }
             }
-          } catch {}
+          } catch (signInParseErr) {
+            console.warn('[DashboardState] SignIn user parse notice:', signInParseErr);
+          }
         }
       }
 

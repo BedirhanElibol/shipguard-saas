@@ -90,7 +90,9 @@ export async function POST(req: NextRequest) {
         if (profile?.id) {
           matchedUserId = profile.id;
         }
-      } catch {}
+      } catch (profileErr) {
+        logger.warn(`[Verify Checkout] Profile query error for ${normalizedEmail}:`, profileErr);
+      }
 
       // B. Query auth.users via admin API with expanded limit
       if (!matchedUserId) {
@@ -101,14 +103,18 @@ export async function POST(req: NextRequest) {
             matchedUserId = matched.id;
             existingMetadata = matched.user_metadata || {};
           }
-        } catch {}
+        } catch (listUsersErr) {
+          logger.warn(`[Verify Checkout] Admin listUsers error for ${normalizedEmail}:`, listUsersErr);
+        }
       } else {
         try {
           const { data: userData } = await adminClient.auth.admin.getUserById(matchedUserId);
           if (userData?.user?.user_metadata) {
             existingMetadata = userData.user.user_metadata;
           }
-        } catch {}
+        } catch (getUserErr) {
+          logger.warn(`[Verify Checkout] Admin getUserById error for ${matchedUserId}:`, getUserErr);
+        }
       }
 
       if (matchedUserId) {

@@ -45,6 +45,8 @@ export const FaqSection: React.FC = () => {
     }
   ];
 
+  if (faqs.length === 0) return null;
+
   return (
     <section id="faq" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10">
       <div className="max-w-4xl mx-auto flex flex-col gap-12">

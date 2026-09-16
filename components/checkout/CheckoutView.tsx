@@ -288,7 +288,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
         <div className="flex items-center gap-2 text-xs text-[#10B981] font-extrabold bg-[#10B981]/10 px-3 py-1 rounded-full border border-[#10B981]/30">
           <ShieldCheck size={14} />
-          <span>256-BIT SSL ENCRYPTED B2B CHECKOUT</span>
+          <span>256-Bit SSL Encrypted B2B Checkout</span>
         </div>
       </div>
 
@@ -582,7 +582,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         <span>Instant License Key Delivery • Cancel Anytime in 1-Click</span>
                       </div>
                       <div className="pt-1 border-t border-white/5 text-[10px] font-mono text-zinc-500 flex items-center justify-between">
-                        <span>Read our <a href="/refund" target="_blank" className="text-zinc-400 hover:text-white underline">Refund Policy</a></span>
+                        <span>Read our <a href="/refund" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white underline">Refund Policy</a></span>
                         <span>VAT Invoices Provided</span>
                       </div>
                     </div>

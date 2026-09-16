@@ -394,7 +394,7 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   <div className="flex items-center gap-2 text-zinc-400">
                     <span>256-Bit SSL Encrypted Stripe Payment</span>
                     <span>•</span>
-                    <a href="/refund" target="_blank" className="text-zinc-400 hover:text-white underline">Refund Policy</a>
+                    <a href="/refund" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white underline">Refund Policy</a>
                   </div>
                 </div>
               </form>

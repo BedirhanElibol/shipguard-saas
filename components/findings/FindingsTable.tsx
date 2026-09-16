@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Finding } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sparkles, AlertOctagon, GitCommit } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit } from 'lucide-react';
 
 interface FindingsTableProps {
   findings: Finding[];
@@ -178,7 +178,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-              <Sparkles size={14} />
+              <Sliders size={14} />
               <span>UX &amp; VibePolish</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>

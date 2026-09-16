@@ -26,6 +26,20 @@ export function evaluateAiClicheRules(
   const isFrontend = file.path.endsWith('.tsx') || file.path.endsWith('.jsx') || file.path.endsWith('.html') || file.path.endsWith('.css');
   if (!isFrontend) return { findings, logs };
 
+  const lowerFilePath = file.path.toLowerCase();
+  const isScannerRuleCatalog =
+    lowerFilePath.includes('lib/rules/') ||
+    lowerFilePath.includes('data/mockdata.ts') ||
+    lowerFilePath.includes('data/workspacefiles.ts') ||
+    lowerFilePath.includes('lib/scanner-engine.ts') ||
+    lowerFilePath.includes('vulnerabilityplayground.tsx') ||
+    lowerFilePath.includes('ruleknowledgebasemodal.tsx') ||
+    lowerFilePath.includes('interactiveanalyzer.tsx') ||
+    lowerFilePath.includes('05_seed_data.sql') ||
+    lowerFilePath.includes('scratch/') ||
+    lowerFilePath.includes('.agent/');
+  if (isScannerRuleCatalog) return { findings, logs };
+
   const ts = new Date().toLocaleTimeString();
 
   // CLICHE-01: Decorative Hero Badge Pill & AI Landing Slop
@@ -440,11 +454,11 @@ export function evaluateAiClicheRules(
   // CLICHE-15: Overloaded Fake Corporate Footer (5 Columns)
   let footerLinks = 0;
   if (/footer/i.test(file.path)) {
-    footerLinks = (cleanContent.match(/<a\s|<Link\s|href=/gi) || []).length;
+    footerLinks = (cleanContent.match(/<a[\s>]|<Link[\s>]/gi) || []).length;
   } else {
     const footerMatch = cleanContent.match(/<footer[\s\S]*?<\/footer>/i) || cleanContent.match(/<(?:div|section)[^>]*(?:id|class)=["'][^"']*footer[^"']*["'][\s\S]*?<\/(?:div|section)>/i);
     if (footerMatch) {
-      footerLinks = (footerMatch[0].match(/<a\s|<Link\s|href=/gi) || []).length;
+      footerLinks = (footerMatch[0].match(/<a[\s>]|<Link[\s>]/gi) || []).length;
     }
   }
 
@@ -2036,9 +2050,10 @@ export function evaluateAiClicheRules(
   }
 
   // CLICHE-76: Decorative Eyebrow & Heading Icon Prepending
-  if (/<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>\s*<(?:span|div)[^>]*>\s*[A-Z\s_\-&]{4,}\s*<\/(?:span|div)>/i.test(cleanContent) ||
-      /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles)\b[^>]*\/>\s*[A-Z\s_\-&]{4,}/i.test(cleanContent)) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>/i.test(l) && /[A-Z]{3,}/.test(l));
+  // Note: Only flags true uppercase shouting text (case-sensitive) to avoid flagging standard mixed-case buttons
+  if (/<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>\s*<(?:span|div)[^>]*>\s*[A-Z0-9_\-&]{4,}(?:\s+[A-Z0-9_\-&]+)*\s*<\/(?:span|div)>/.test(cleanContent) ||
+      /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles)\b[^>]*\/>\s*[A-Z0-9_\-&]{4,}/.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>/i.test(l) && /[A-Z0-9_\-&]{4,}/.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `cliche-${Date.now()}-${findingCounter.count++}`,

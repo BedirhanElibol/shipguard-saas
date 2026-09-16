@@ -1272,6 +1272,19 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       if (isScannerRuleCatalog) {
         return;
       }
+      // Deduplicate findings by fingerprint (same file, line, and rule title/family)
+      const isDuplicate = findings.some(existing =>
+        existing.filePath === f.filePath &&
+        existing.lineRange === f.lineRange &&
+        (
+          existing.title === f.title ||
+          existing.ruleId === f.ruleId ||
+          (existing.title.includes('Eyebrow') && f.title.includes('Eyebrow'))
+        )
+      );
+      if (isDuplicate) {
+        return;
+      }
       findings.push(f);
     };
 
@@ -1646,33 +1659,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-04: Missing Empty State component detected (${file.path})`);
     }
 
-    // VibePolish UI-05: Decorative Eyebrow & Heading Icon Prepending (AI Slop Pattern)
-    const hasEyebrowIconSlop = /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>\s*<(?:span|div)[^>]*>\s*[A-Z\s_\-&]{4,}\s*<\/(?:span|div)>/i.test(file.content) ||
-      /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles)\b[^>]*\/>\s*[A-Z\s_\-&]{4,}/i.test(file.content);
-    if (isFrontendComponent && hasEyebrowIconSlop) {
-      const matchLineIdx = lines.findIndex(l => /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>/i.test(l) && /[A-Z]{3,}/.test(l));
-      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-      addFinding({
-        id: `real-find-${Date.now()}-${findingCounter++}`,
-        ruleId: 1005,
-        type: 'VIBEPOLISH',
-        title: 'UI-05: Decorative Eyebrow & Heading Icon Prepending (AI Slop Anti-Pattern)',
-        severity: 'MEDIUM',
-        category: 'Visual Hierarchy & Typography',
-        filePath: file.path,
-        lineRange: `L${lineNum}`,
-        snippet: lines[matchLineIdx] || '<Terminal size={14} /> OPERATIONAL ARCHITECTURE',
-        reproductionSteps: [
-          `Scanned section headers and category badges in ${file.path}:${lineNum}.`,
-          'Detected decorative Lucide icon prepended directly to uppercase section title text (classic AI template marker).'
-        ],
-        remediationPrompt: `Remove decorative Lucide icons prepended to section eyebrows or uppercase headings in ${file.path}. Use clean, confident typography with letter-spacing (tracking-wider or tracking-widest) without decorative icon clutter.`,
-        status: 'OPEN',
-        owner: 'UI Architect',
-        falsePositive: false
-      });
-      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-05: Eyebrow icon prepending detected (${file.path}:${lineNum})`);
-    }
+    // Note: VibePolish UI-05 is canonically evaluated via CLICHE-76 in evaluateAiClicheRules to prevent duplicate reporting.
 
     // VibePolish UI-06: Pulsating Status Dot & Glowing Badge Cliché (AI Slop Pattern)
     const hasPulsingDotSlop = /rounded-full\s+bg-emerald-[45]00[^"']*animate-pulse/i.test(file.content) ||

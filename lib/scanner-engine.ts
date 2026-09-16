@@ -1161,11 +1161,11 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   const ignoreFile = files.find(f => f.path.endsWith('.zelsisignore') || f.path.endsWith('.shipguardignore'));
   const { ignoredRuleIds, ignoredPaths } = parseZelsisIgnore(ignoreFile?.content || '');
 
-  logs.push(`[${new Date().toLocaleTimeString()}] 🚀 Initializing Zelsis High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
-  logs.push(`[${new Date().toLocaleTimeString()}] 🌐 Target Repository: ${repoName}`);
+  logs.push(`[${new Date().toLocaleTimeString()}] [INFO] Initializing Zelsis High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
+  logs.push(`[${new Date().toLocaleTimeString()}] [TARGET] Repository: ${repoName}`);
 
   if (ignoredRuleIds.size > 0 || ignoredPaths.length > 0) {
-    logs.push(`[${new Date().toLocaleTimeString()}] 🛡️ .zelsisignore detected: Suppressing ${ignoredRuleIds.size} rules & ${ignoredPaths.length} path patterns.`);
+    logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] .zelsisignore active: Suppressing ${ignoredRuleIds.size} rules & ${ignoredPaths.length} path patterns.`);
   }
 
   const validFiles = files.filter((f) => {
@@ -1200,7 +1200,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   const targetFiles = validFiles;
   let fileLimitWarning: string | undefined = undefined;
 
-  logs.push(`[${new Date().toLocaleTimeString()}] 📦 Repository Tree Loaded: ${targetFiles.length} total source files queued for file-by-file audit.`);
+  logs.push(`[${new Date().toLocaleTimeString()}] [INFO] Repository tree loaded: ${targetFiles.length} total source files queued for file-by-file audit.`);
   logs.push(`[${new Date().toLocaleTimeString()}] --------------------------------------------------`);
 
   let findingCounter = 1;
@@ -1220,7 +1220,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
 
     if (byteLength > MAX_FILE_SIZE_BYTES) {
       const fileSizeKb = Math.round(byteLength / 1024);
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ PERF-OVERSIZE: File ${file.path} (${fileSizeKb}KB) exceeds maximum static scan size limit (500KB). Skipped to prevent regex event loop starvation.`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [WARN] PERF-OVERSIZE: File ${file.path} (${fileSizeKb}KB) exceeds maximum static scan size limit (500KB). Skipped to prevent regex event loop starvation.`);
       findings.push({
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 999,
@@ -1288,12 +1288,12 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
 
     const cleanContent = stripComments(rawContent);
 
-    logs.push(`[${new Date().toLocaleTimeString()}] 📂 [File ${fileIndex}/${validFiles.length}] Inspecting ${file.path} (${lines.length} lines)...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🔬 [Lexical Engine] Parsing Syntax Tokens, Cleaned Comment Strips & Heuristic Graphs...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🛡️ [Security Clearance] Verifying OWASP Security & Secret Token Isolation Controls...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ ⚖️ [Regulatory Clearance] Auditing Privacy, Consent, ePrivacy & PCI-DSS Pre-Flight Gate...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ 🎨 [Design Engine] Auditing UI/UX Design System & Micro-Interaction Rules...`);
-    logs.push(`[${new Date().toLocaleTimeString()}]   └─ 🔍 [AI Pattern Audit] Checking AI Web Design Anti-Patterns & Component Trees...`);
+    logs.push(`[${new Date().toLocaleTimeString()}] [INSPECT] [File ${fileIndex}/${validFiles.length}] Inspecting ${file.path} (${lines.length} lines)...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ [LEXICAL] Syntax inspection: Parsing Syntax Tokens, Cleaned Comment Strips & Heuristic Graphs...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ [SECURITY] OWASP clearance: Verifying OWASP Security & Secret Token Isolation Controls...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ [COMPLIANCE] Regulatory clearance: Auditing Privacy, Consent, ePrivacy & PCI-DSS Pre-Flight Gate...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   ├─ [DESIGN] Design token audit: Auditing UI/UX Design System & Micro-Interaction Rules...`);
+    logs.push(`[${new Date().toLocaleTimeString()}]   └─ [PATTERNS] Anti-pattern audit: Checking AI Web Design Anti-Patterns & Component Trees...`);
 
     // Rule 1: Exposed Stripe/OpenAI API Keys
     if (cleanContent.includes('sk_live_') || cleanContent.includes('sk-proj-') || /api[_-]?key\s*=\s*["']sk-[a-zA-Z0-9_-]{20,}/i.test(cleanContent)) {
@@ -1321,7 +1321,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         falsePositive: false
       });
 
-      logs.push(`[${new Date().toLocaleTimeString()}] 🛑 CRITICAL: SEC-01 Secret Exposure detected in ${file.path}:${lineNum}`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] SEC-01 Secret Exposure detected in ${file.path}:${lineNum}`);
     }
 
     // Rule 3: Supabase Permissive Row Level Security (RLS)
@@ -1349,7 +1349,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         falsePositive: false
       });
 
-      logs.push(`[${new Date().toLocaleTimeString()}] 🛑 CRITICAL: SEC-03 Permissive RLS Policy in ${file.path}:${lineNum}`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] SEC-03 Permissive RLS Policy in ${file.path}:${lineNum}`);
     }
 
     if (file.content.includes("origin: '*'") || file.content.includes('Access-Control-Allow-Origin: *')) {
@@ -1376,7 +1376,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         falsePositive: false
       });
 
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: SEC-08 Wildcard CORS configuration in ${file.path}:${lineNum}`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] SEC-08 Wildcard CORS configuration in ${file.path}:${lineNum}`);
     }
 
     // Rule 16: Dangerously Set Inner HTML (XSS)
@@ -1405,7 +1405,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         falsePositive: false
       });
 
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: SEC-16 Unsanitized innerHTML in ${file.path}:${lineNum}`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] SEC-16 Unsanitized innerHTML in ${file.path}:${lineNum}`);
     }
 
     // Advanced Option A Security Rules (SEC-SCA-01, SEC-LOG-01, SEC-LLM-01) & Modular Engine
@@ -1449,7 +1449,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
             owner: 'DevOps & Infrastructure Lead',
             falsePositive: false
           });
-          logs.push(`[${new Date().toLocaleTimeString()}] 🚨 CRITICAL: SEC-WEB-00 Broken Link / Unhealthy Target Endpoint (HTTP ${statusCode})`);
+          logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] SEC-WEB-00 Broken Link / Unhealthy Target Endpoint (HTTP ${statusCode})`);
         }
 
         // Rule 101: Missing Content-Security-Policy
@@ -1473,7 +1473,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
             owner: 'Security Architect',
             falsePositive: false
           });
-          logs.push(`[${new Date().toLocaleTimeString()}] 🚨 CRITICAL: SEC-WEB-01 Missing Content-Security-Policy Header on Live Web Deployment`);
+          logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] SEC-WEB-01 Missing Content-Security-Policy Header on Live Web Deployment`);
         }
 
         // Rule 102: Missing HSTS Header
@@ -1497,7 +1497,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
             owner: 'DevOps Lead',
             falsePositive: false
           });
-          logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: SEC-WEB-02 Missing HSTS Header on Live Web Target`);
+          logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] SEC-WEB-02 Missing HSTS Header on Live Web Target`);
         }
 
         // Rule 103: Missing X-Frame-Options (Clickjacking)
@@ -1522,7 +1522,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
             owner: 'Security Architect',
             falsePositive: false
           });
-          logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: SEC-WEB-03 Clickjacking risk: Missing X-Frame-Options header`);
+          logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] SEC-WEB-03 Clickjacking risk: Missing X-Frame-Options header`);
         }
 
         // Rule 104: Missing X-Content-Type-Options (MIME Sniffing)
@@ -1546,7 +1546,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
             owner: 'DevOps Lead',
             falsePositive: false
           });
-          logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ MEDIUM: SEC-WEB-04 Missing X-Content-Type-Options: nosniff`);
+          logs.push(`[${new Date().toLocaleTimeString()}] [MEDIUM] SEC-WEB-04 Missing X-Content-Type-Options: nosniff`);
         }
       } catch (parseErr) {
         // Not valid JSON, skip header analysis
@@ -1574,7 +1574,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Lead',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ MEDIUM: SEC-WEB-04 Insecure target="_blank" link detected`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [MEDIUM] SEC-WEB-04 Insecure target="_blank" link detected`);
     }
 
     // VibePolish UI-01: Generic Purple-Blue Gradient Cliché
@@ -1597,10 +1597,10 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'UI Architect',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-01: Purple-blue gradient detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-01: Purple-blue gradient detected (${file.path}:${lineNum})`);
     }
 
-    // VibePolish UI-03: Sparkle (✨) / Magic Wand Icon Overuse
+    // VibePolish UI-03: Sparkle / Magic Wand Icon Overuse
     if (file.content.includes('Sparkles') || file.content.includes('Wand2') || file.content.includes('✨')) {
       const matchLineIdx = lines.findIndex(l => l.includes('Sparkles') || l.includes('Wand2') || l.includes('✨'));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -1608,7 +1608,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         id: `real-find-${Date.now()}-${findingCounter++}`,
         ruleId: 1003,
         type: 'VIBEPOLISH',
-        title: 'UI-03: Overused Sparkle (✨) / Magic Wand Icon Cliché',
+        title: 'UI-03: Overused Sparkle / Magic Wand Icon Cliché',
         severity: 'LOW',
         category: 'Icons & Micro-copy',
         filePath: file.path,
@@ -1620,7 +1620,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'UI Architect',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-03: Sparkle icon overuse detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-03: Sparkle icon overuse detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-04: Absence of Empty State Component Fallback (Frontend components only, excluding persistent layout chrome)
@@ -1643,7 +1643,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-04: Missing Empty State component detected (${file.path})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-04: Missing Empty State component detected (${file.path})`);
     }
 
     // VibePolish UI-07: Conversational Chat-Wrapper Lock-In Trap
@@ -1664,7 +1664,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'UX Architect',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-07: Chat-wrapper lock-in detected (${file.path})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-07: Chat-wrapper lock-in detected (${file.path})`);
     }
 
     // VibePolish UI-11: Uninformative "AI Thinking..." Spinner
@@ -1687,7 +1687,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🎨 VIBEPOLISH UI-11: Vague AI spinner detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-11: Vague AI spinner detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-21: Cliché Fluff & Filler Prefaces
@@ -1710,7 +1710,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Prompt Engineer',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ✍️ VIBEPOLISH UI-21: Cliché filler text detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-21: Cliché filler text detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-23: Robotic AI Apologies (As an AI language model...)
@@ -1733,7 +1733,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Prompt Engineer',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🤖 VIBEPOLISH UI-23: Robotic AI apology boilerplate detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-23: Robotic AI apology boilerplate detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-32: Excessive Meta-Announcement Statements
@@ -1756,7 +1756,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Prompt Engineer',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ✍️ VIBEPOLISH UI-32: Meta-announcement text detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-32: Meta-announcement text detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-39: Missing Structured Schema Validation
@@ -1779,7 +1779,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Backend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🛡️ VIBEPOLISH UI-39: Missing Structured Zod schema detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-39: Missing Structured Zod schema detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-41: Monolithic System Prompt Inflation
@@ -1800,7 +1800,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Prompt Engineer',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🧱 VIBEPOLISH UI-41: System prompt inflation detected (${file.path})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-41: System prompt inflation detected (${file.path})`);
     }
 
     // VibePolish UI-48: Dynamic Variable Injection Failures (Exclude config files, dotfiles, test files, and non-JS/TS backend languages)
@@ -1832,7 +1832,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Prompt Engineer',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🧩 VIBEPOLISH UI-48: Variable injection missing fallback detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-48: Variable injection missing fallback detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-57: High Temperature on Deterministic Tasks
@@ -1856,7 +1856,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           owner: 'Backend Team',
           falsePositive: false
         });
-        logs.push(`[${new Date().toLocaleTimeString()}] ⚙️ VIBEPOLISH UI-57: Excessive temperature parameter detected (${file.path}:${lineNum})`);
+        logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-57: Excessive temperature parameter detected (${file.path}:${lineNum})`);
       }
     }
 
@@ -1880,7 +1880,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'AI Architect',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🧩 VIBEPOLISH UI-61: Naive text chunking detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-61: Naive text chunking detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-75: Multi-Tenant RAG Data Leakage
@@ -1903,7 +1903,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Security Lead',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🛑 CRITICAL: UI-75 Unfiltered multi-tenant vector query detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] UI-75 Unfiltered multi-tenant vector query detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-76: Context Hallucination Vulnerability
@@ -1927,7 +1927,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           owner: 'Prompt Engineer',
           falsePositive: false
         });
-        logs.push(`[${new Date().toLocaleTimeString()}] 🛡️ VIBEPOLISH UI-76: Missing RAG guardrail detected (${file.path}:${lineNum})`);
+        logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-76: Missing RAG guardrail detected (${file.path}:${lineNum})`);
       }
     }
 
@@ -1952,7 +1952,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           owner: 'Security Lead',
           falsePositive: false
         });
-        logs.push(`[${new Date().toLocaleTimeString()}] 🛑 CRITICAL: UI-85 Human-in-the-loop approval step missing (${file.path}:${lineNum})`);
+        logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] UI-85 Human-in-the-loop approval step missing (${file.path}:${lineNum})`);
       }
     }
 
@@ -1976,7 +1976,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Security Lead',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: UI-90 Unredacted sensitive tool log detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] UI-90 Unredacted sensitive tool log detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-100: Missing User Request Abort Signal
@@ -1999,7 +1999,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Backend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚙️ VIBEPOLISH UI-100: Missing AbortController signal listener detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-100: Missing AbortController signal listener detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-106: Empty Silent Catch Block
@@ -2022,7 +2022,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: UI-106 Empty catch block detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] UI-106 Empty catch block detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-111: TypeScript Any Type Safety Escape
@@ -2046,7 +2046,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🏷️ VIBEPOLISH UI-111: Excessive 'any' type usage detected (${file.path})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-111: Excessive 'any' type usage detected (${file.path})`);
     }
 
     // VibePolish UI-115: Monolithic File Overuse (>500 Lines for atomic components, >1200 Lines for composite views/pages)
@@ -2069,7 +2069,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 📦 VIBEPOLISH UI-115: Monolithic long file detected (${file.path})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-115: Monolithic long file detected (${file.path})`);
     }
 
     // VibePolish UI-117: Uncleaned Event Listener Memory Leaks (Focus on components/hooks, skip third-party vendor & bootstrap entry files)
@@ -2095,7 +2095,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: UI-117 Uncleaned event listener detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] UI-117 Uncleaned event listener detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-121: Synchronous Non-Streaming LLM Completion
@@ -2118,7 +2118,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Backend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚡ VIBEPOLISH UI-121: Non-streaming synchronous LLM call detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-121: Non-streaming synchronous LLM call detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-134: Unvirtualized Long List DOM Memory Leaks
@@ -2141,7 +2141,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Frontend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚡ VIBEPOLISH UI-134: Unvirtualized long list detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-134: Unvirtualized long list detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-139: Missing Request Abort Signal Listener
@@ -2164,7 +2164,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Backend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚡ VIBEPOLISH UI-139: Missing request cancellation listener detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-139: Missing request cancellation listener detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-141: Unbounded Token Usage Waste
@@ -2187,7 +2187,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Backend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 💰 VIBEPOLISH UI-141: Unbounded max_tokens parameter detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-141: Unbounded max_tokens parameter detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-143: Unmonitored Per-User Token Spend
@@ -2210,7 +2210,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Finance & Billing Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] ⚠️ HIGH: UI-143 Unmonitored user token usage detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [HIGH] UI-143 Unmonitored user token usage detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-160: Missing Spend Circuit Breaker
@@ -2233,7 +2233,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'DevOps / FinOps Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🛑 CRITICAL: UI-160 Missing budget circuit breaker detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] UI-160 Missing budget circuit breaker detected (${file.path}:${lineNum})`);
     }
 
     // VibePolish UI-185: Missing User Feedback Component
@@ -2257,7 +2257,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           owner: 'Frontend Team',
           falsePositive: false
         });
-        logs.push(`[${new Date().toLocaleTimeString()}] 👍 VIBEPOLISH UI-185: Missing user feedback component detected (${file.path}:${lineNum})`);
+        logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-185: Missing user feedback component detected (${file.path}:${lineNum})`);
       }
     }
 
@@ -2282,7 +2282,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
           owner: 'UX Team',
           falsePositive: false
         });
-        logs.push(`[${new Date().toLocaleTimeString()}] ⚙️ VIBEPOLISH UI-195: Raw hyper-parameter input detected (${file.path}:${lineNum})`);
+        logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-195: Raw hyper-parameter input detected (${file.path}:${lineNum})`);
       }
     }
 
@@ -2306,7 +2306,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
         owner: 'Backend Team',
         falsePositive: false
       });
-      logs.push(`[${new Date().toLocaleTimeString()}] 🏷️ VIBEPOLISH UI-197: Unpinned model alias detected (${file.path}:${lineNum})`);
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-197: Unpinned model alias detected (${file.path}:${lineNum})`);
     }
 
     // AI Web Design Cliché Detection (25 rules from yapay_zeka_web_tasarim_kliseleri.pdf)
@@ -3448,15 +3448,15 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {
-      logs.push(`[${new Date().toLocaleTimeString()}]   ✓ ${file.path}: Passed security, compliance & UX quality gates cleanly (0 issues).`);
+      logs.push(`[${new Date().toLocaleTimeString()}]   [PASS] ${file.path}: Passed security, compliance & UX quality gates cleanly (0 issues).`);
     } else {
-      logs.push(`[${new Date().toLocaleTimeString()}]   ⚠️ ${file.path}: Detected ${fileFindingsCount} open finding(s)!`);
+      logs.push(`[${new Date().toLocaleTimeString()}]   [WARN] ${file.path}: Detected ${fileFindingsCount} open finding(s)!`);
     }
     fileIndex++;
   }
 
   logs.push(`[${new Date().toLocaleTimeString()}] --------------------------------------------------`);
-  logs.push(`[${new Date().toLocaleTimeString()}] 📊 DEEP AUDIT SUMMARY: Processed ${targetFiles.length} files. Total findings detected: ${findings.length}.`);
+  logs.push(`[${new Date().toLocaleTimeString()}] [SUMMARY] Deep audit complete: Processed ${targetFiles.length} files. Total findings detected: ${findings.length}.`);
 
   const openFindings = findings.filter(f => f.status === 'OPEN');
   const criticalCount = openFindings.filter(f => f.severity === 'CRITICAL').length;
@@ -3468,7 +3468,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   const score = calculateReadinessScore(findings);
   const gateStatus = calculateGateStatus(findings);
 
-  logs.push(`[${new Date().toLocaleTimeString()}] 📊 SCAN COMPLETE: Readiness Score = ${score}/100 | Gate Status = ${gateStatus}`);
+  logs.push(`[${new Date().toLocaleTimeString()}] [COMPLETE] Scan complete: Readiness Score = ${score}/100 | Gate Status = ${gateStatus}`);
 
   const defaultSummary = gateStatus === 'PASSED'
     ? 'Production Audit PASSED. All security and design compliance checks cleared.'

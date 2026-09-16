@@ -30,7 +30,7 @@ export const VibePolishView: React.FC<VibePolishViewProps> = ({
     return matchesSearch && matchesCat;
   });
 
-  const negativePromptText = `🛑 MANDATORY NEGATIVE UI PROMPT FOR AI GENERATION:
+  const negativePromptText = `[MANDATORY NEGATIVE UI PROMPT FOR AI GENERATION]
 ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids, generic inline 3-card feature grids, ambient neon glow/gradient clutter, Lucide sparkle icons on every button, 'Not X, but Y' slogan formulas, fake user testimonials, green checkmark icons on every row, over-rounded 999px pill buttons, decorative fake terminal mockups, Inter/Geist font defaults without brand identity, and jittery bouncing hover arrows. Use crisp typography, organic functional layouts, subtle 1px borders, and desaturated, purposeful color palettes.`;
 
   const copyNegativePrompt = () => {

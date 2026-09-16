@@ -65,7 +65,7 @@ Remediation: ${f.remediationPrompt}`).join('\n\n')}`;
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {openFindings.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: '#10B981', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-              🎉 Remediation queue is completely empty! All findings resolved.
+              Remediation queue is empty. All findings resolved.
             </div>
           ) : (
             openFindings.map(item => (

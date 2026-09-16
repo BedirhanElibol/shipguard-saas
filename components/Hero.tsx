@@ -17,7 +17,7 @@ interface DemoFinding {
 export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
   const demoPresets = [
     {
-      label: '🚨 OWASP & Secret Exposure',
+      label: 'OWASP & Secret Exposure',
       code: [
         '// Insecure API Route & Database RLS Policy:',
         `export const stripeSecretKey = "${['sk', 'live_51M394x928103921EXPOSED'].join('_')}";`,
@@ -28,7 +28,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
       ].join('\n')
     },
     {
-      label: '⚡ UI Performance & A11y',
+      label: 'UI Performance & A11y',
       code: [
         '// Inaccessible Clickable Element & Layout Shift Risk:',
         'export function SearchBox({ onSelect }: { onSelect: () => void }) {',
@@ -42,7 +42,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
       ].join('\n')
     },
     {
-      label: '☁️ Cloud Container Risk',
+      label: 'Cloud Container Risk',
       code: [
         '# Production Dockerfile missing non-root user and healthcheck:',
         'FROM node:20-alpine',
@@ -56,7 +56,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
       ].join('\n')
     },
     {
-      label: '🛡️ Verified Production Release',
+      label: 'Verified Production Release',
       code: [
         '// Verified Production-Ready Architecture:',
         'export const stripeKey = process.env.STRIPE_SECRET_KEY;',
@@ -219,9 +219,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-              <span className="ml-2 text-xs font-mono font-bold text-white flex items-center gap-1.5">
-                <Code size={13} className="text-emerald-400" />
-                <span>SHIPGUARD CLEARANCE ENGINE // LIVE CODE AUDITOR</span>
+              <span className="ml-2 text-xs font-mono font-bold text-white">
+                <span>CLEARANCE ENGINE // LIVE CODE AUDITOR</span>
               </span>
             </div>
 

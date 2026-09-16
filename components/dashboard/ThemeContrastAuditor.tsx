@@ -28,9 +28,8 @@ export const ThemeContrastAuditor: React.FC = () => {
           </div>
         </div>
 
-        <span className="text-xs font-mono font-bold text-white bg-white/5 border border-white/10 px-3 py-1 rounded-full flex items-center gap-1.5">
-          <ShieldCheck size={13} />
-          <span>WCAG 2.2 Level AAA Compliant</span>
+        <span className="text-xs font-mono font-bold text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+          WCAG 2.2 Level AAA Compliant
         </span>
       </div>
 

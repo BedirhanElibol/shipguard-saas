@@ -17,8 +17,7 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
     <div className="flex flex-col items-center gap-10 py-8 max-w-6xl mx-auto w-full px-4">
       {/* Header */}
       <div className="text-center flex flex-col items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-xs font-mono font-bold uppercase tracking-wider">
-          <ShieldCheck size={14} />
+        <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-xs font-mono font-bold uppercase tracking-wider">
           <span>Release Gatekeeper Plans</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-[#EDEDED]">
@@ -87,8 +86,7 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
                 }`}
               >
                 {plan.isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black text-[0.68rem] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow flex items-center gap-1">
-                    <LucideStar size={11} fill="#000" />
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black text-[0.68rem] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow">
                     <span>MOST POPULAR CHOICE</span>
                   </div>
                 )}

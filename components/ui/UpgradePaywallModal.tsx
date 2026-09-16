@@ -56,8 +56,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
 
           {/* Header */}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white text-xs font-mono font-bold uppercase tracking-wider w-fit">
-              <Lock size={13} />
+            <div className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono font-bold uppercase tracking-wider w-fit">
               <span>{requiredTier} Tier Required</span>
             </div>
 

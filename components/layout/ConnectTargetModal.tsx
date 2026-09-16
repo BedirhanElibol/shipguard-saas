@@ -62,12 +62,12 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
     const isWeb = isValidWebUrl(fullUrl);
 
     if (targetType === 'GITHUB' && !isGithub) {
-      setUrlError('⚠️ Invalid GitHub URL format. Please enter a valid repository URL (e.g. "https://github.com/owner/repo").');
+      setUrlError('Invalid GitHub URL format. Please enter a valid repository URL (e.g. "https://github.com/owner/repo").');
       setIsConnecting(false);
       return;
     }
     if (targetType === 'WEB' && !isWeb) {
-      setUrlError('⚠️ Invalid Web App URL format. Please enter a valid website URL (e.g. "https://my-app.vercel.app").');
+      setUrlError('Invalid Web App URL format. Please enter a valid website URL (e.g. "https://my-app.vercel.app").');
       setIsConnecting(false);
       return;
     }

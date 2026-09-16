@@ -306,8 +306,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       {!isAuthenticated && !isSubmitted && (
         <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-lg">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0 text-xl">
-              🛡️
+            <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0">
+              <ShieldCheck size={24} className="text-amber-300" />
             </div>
             <div className="flex flex-col gap-1">
               <h3 className="text-sm font-bold text-white tracking-wide">
@@ -550,11 +550,14 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       </p>
                     )}
 
-                    <div className="flex items-center justify-center gap-4 text-[11px] text-[#A1A1AA] pt-1 border-t border-white/10">
-                      <span>✓ Apple Pay</span>
-                      <span>✓ Google Pay</span>
-                      <span>✓ Visa &amp; Mastercard</span>
-                      <span>✓ Official VAT Invoices</span>
+                    <div className="flex items-center justify-center gap-2.5 text-[11px] text-[#A1A1AA] pt-2 border-t border-white/10 font-mono">
+                      <span>Apple Pay</span>
+                      <span className="text-white/20">·</span>
+                      <span>Google Pay</span>
+                      <span className="text-white/20">·</span>
+                      <span>Visa &amp; Mastercard</span>
+                      <span className="text-white/20">·</span>
+                      <span>VAT Invoices</span>
                     </div>
                   </div>
 

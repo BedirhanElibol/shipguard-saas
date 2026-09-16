@@ -172,7 +172,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                   : 'bg-white/5 text-[#A1A1AA] hover:text-white hover:bg-white/10 border border-white/5'
               }`}
             >
-              <span>{tab.id === 'LEGAL_COMPLIANCE' ? '⚖️ ' + tab.label : tab.label}</span>
+              <span>{tab.label}</span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] ${
                   isActive ? 'bg-black/15 text-black font-bold' : 'bg-white/10 text-[#EDEDED]'
@@ -264,7 +264,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                       item.type
                     )}`}
                   >
-                    {item.type === 'LEGAL_COMPLIANCE' ? '⚖️ Legal & Privacy' : item.type}
+                    {item.type === 'LEGAL_COMPLIANCE' ? 'Legal & Privacy' : item.type}
                   </span>
                 </div>
                 <span
@@ -410,7 +410,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                         item.type
                       )}`}
                     >
-                      {item.type === 'LEGAL_COMPLIANCE' ? '⚖️ Legal & Privacy' : item.type}
+                      {item.type === 'LEGAL_COMPLIANCE' ? 'Legal & Privacy' : item.type}
                     </span>
                   </td>
 

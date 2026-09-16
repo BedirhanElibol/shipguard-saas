@@ -132,8 +132,7 @@ export const ProductCapabilities: React.FC = () => {
       <div className="max-w-6xl mx-auto flex flex-col gap-20">
         {/* Section Title */}
         <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400">
-            <Layers size={14} />
+          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-emerald-400">
             <span>ENTERPRISE CAPABILITIES</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
@@ -187,7 +186,7 @@ export const ProductCapabilities: React.FC = () => {
                   <ul className="flex flex-col gap-2.5">
                     {pillar.bulletPoints.map((bp, bpIdx) => (
                       <li key={bpIdx} className="flex items-start gap-2.5 text-xs text-zinc-300">
-                        <CheckCircle2 size={15} className="text-emerald-400 shrink-0 mt-0.5" />
+                        <span className="text-emerald-400/80 font-mono text-xs select-none shrink-0">—</span>
                         <span>{bp}</span>
                       </li>
                     ))}

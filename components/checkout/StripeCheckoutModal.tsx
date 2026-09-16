@@ -252,17 +252,16 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   {selectedPlan === 'Pro' && (
                     <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white" />
                   )}
-                  <div className="text-xs font-extrabold uppercase text-white flex items-center gap-1 font-mono">
-                    <Zap size={13} />
-                    <span>Pro Plan</span>
+                  <div className="text-xs font-extrabold uppercase text-white font-mono">
+                    Pro Plan
                   </div>
                   <div className="text-xl font-extrabold text-[#EDEDED]">
                     {proPrice} <span className="text-xs font-normal text-[#A1A1AA]">/mo</span>
                   </div>
-                  <ul className="text-[0.7rem] text-[#A1A1AA] flex flex-col gap-1 mt-1">
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Unlimited Scans</li>
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Pre-flight Security Taxonomy</li>
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Claude &amp; Cursor Auto-Fix</li>
+                  <ul className="text-[0.7rem] text-[#A1A1AA] flex flex-col gap-1 mt-1 font-mono">
+                    <li className="flex items-center gap-1.5"><span className="text-white/40 select-none">—</span> Unlimited Scans</li>
+                    <li className="flex items-center gap-1.5"><span className="text-white/40 select-none">—</span> Pre-flight Security Taxonomy</li>
+                    <li className="flex items-center gap-1.5"><span className="text-white/40 select-none">—</span> Claude &amp; Cursor Auto-Fix</li>
                   </ul>
                 </div>
 
@@ -277,17 +276,16 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   {selectedPlan === 'Enterprise' && (
                     <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white" />
                   )}
-                  <div className="text-xs font-extrabold uppercase text-white flex items-center gap-1 font-mono">
-                    <ShieldCheck size={13} />
-                    <span>Enterprise</span>
+                  <div className="text-xs font-extrabold uppercase text-white font-mono">
+                    Enterprise
                   </div>
                   <div className="text-xl font-extrabold text-[#EDEDED]">
                     {enterprisePrice} <span className="text-xs font-normal text-[#A1A1AA]">/mo</span>
                   </div>
-                  <ul className="text-[0.7rem] text-[#A1A1AA] flex flex-col gap-1 mt-1">
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Multi-Team Security Gates</li>
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Custom Rule Engine API</li>
-                    <li className="flex items-center gap-1"><Check size={11} className="text-white" /> Dedicated SLA &amp; Support</li>
+                  <ul className="text-[0.7rem] text-[#A1A1AA] flex flex-col gap-1 mt-1 font-mono">
+                    <li className="flex items-center gap-1.5"><span className="text-white/40 select-none">—</span> Multi-Team Security Gates</li>
+                    <li className="flex items-center gap-1.5"><span className="text-white/40 select-none">—</span> Custom Rule Engine API</li>
+                    <li className="flex items-center gap-1.5"><span className="text-white/40 select-none">—</span> Dedicated SLA &amp; Support</li>
                   </ul>
                 </div>
               </div>
@@ -295,9 +293,8 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
               {/* Polar Live Checkout Direct Action */}
               <div className="p-4 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/20 flex flex-col gap-2.5 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-white uppercase flex items-center gap-1.5">
-                    <Zap size={14} className="text-white" />
-                    <span>Live Polar Checkout ({selectedPlan} Plan)</span>
+                  <span className="text-xs font-mono font-bold text-white uppercase">
+                    Live Polar Checkout ({selectedPlan} Plan)
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
                     Merchant of Record
@@ -315,10 +312,12 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   <Lock size={13} />
                   <span>Pay Securely with Polar ({currentPrice}/mo)</span>
                 </a>
-                <div className="flex items-center justify-center gap-2 text-[10px] text-[#A1A1AA]">
-                  <span>✓ Apple Pay</span>
-                  <span>✓ Google Pay</span>
-                  <span>✓ Credit / Debit Card</span>
+                <div className="flex items-center justify-center gap-2 text-[10px] text-[#A1A1AA] font-mono">
+                  <span>Apple Pay</span>
+                  <span className="text-white/20">·</span>
+                  <span>Google Pay</span>
+                  <span className="text-white/20">·</span>
+                  <span>Credit / Debit Card</span>
                 </div>
               </div>
 

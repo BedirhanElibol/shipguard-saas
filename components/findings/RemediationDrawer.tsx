@@ -98,15 +98,13 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
                 {finding.severity}
               </span>
               {finding.type === 'LEGAL_COMPLIANCE' && (
-                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-                  <span>⚖️</span>
-                  <span>Legal &amp; Privacy Gate</span>
+                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  Legal &amp; Privacy Gate
                 </span>
               )}
               {finding.type === 'INFRA_DATABASE' && (
-                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
-                  <span>🗄️</span>
-                  <span>Infra &amp; Database Gate</span>
+                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                  Infra &amp; Database Gate
                 </span>
               )}
               <span className="text-xs font-mono text-white font-bold">
@@ -291,7 +289,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
             {/* Auditor & Advisor Disclaimer Notice */}
             {finding.type === 'LEGAL_COMPLIANCE' ? (
               <div className="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
-                <span className="text-amber-400 select-none text-base leading-none shrink-0 mt-0.5">⚖️</span>
+                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 mt-1.5" />
                 <div className="leading-relaxed">
                   <span className="font-bold text-amber-400">Legal &amp; Regulatory Pre-Flight Gate:</span>{' '}
                   This finding flags non-compliance with statutory privacy or payment standards (GDPR, ePrivacy, CCPA, PCI-DSS). Remediate before deploying to production.
@@ -299,7 +297,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
               </div>
             ) : finding.type === 'INFRA_DATABASE' ? (
               <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
-                <span className="text-cyan-400 select-none text-base leading-none shrink-0 mt-0.5">🗄️</span>
+                <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0 mt-1.5" />
                 <div className="leading-relaxed">
                   <span className="font-bold text-cyan-400">Infrastructure &amp; Database Gate:</span>{' '}
                   This finding detects cloud configuration or database exposure (Supabase RLS, Docker privileges, DB secrets, CORS). Apply the unified patch to secure your release.
@@ -307,7 +305,7 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
               </div>
             ) : (
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
-                <span className="text-emerald-400 select-none text-base leading-none shrink-0 mt-0.5">🛡️</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 mt-1.5" />
                 <div className="leading-relaxed">
                   <span className="font-bold text-emerald-400">Zelsis Advisor Notice:</span>{' '}
                   Remediation prompts are suggested guidelines. Always review code changes in your development environment before committing.

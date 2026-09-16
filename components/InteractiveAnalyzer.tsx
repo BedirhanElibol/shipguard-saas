@@ -212,7 +212,7 @@ try {
 
   const demoPresets = [
     {
-      name: '🚨 Test Insecure Secret & RLS',
+      name: 'Insecure Secret & RLS',
       code: `// Insecure AI API Route & Supabase RLS Policy:
 export const stripeSecretKey = "sk_live_51M394x928103921EXPOSED";
 export const openAiApiKey = "sk-proj-948210392109321EXPOSED";
@@ -222,7 +222,7 @@ CREATE POLICY "Allow All Users" ON public.users FOR ALL USING (true);
 app.use(cors({ origin: '*' }));`
     },
     {
-      name: '💅 Test UI Slop & Sparkles',
+      name: 'UI Anti-Patterns & Sparkles',
       code: `// UI Anti-Pattern Component:
 import { Sparkles } from 'lucide-react';
 
@@ -241,7 +241,7 @@ export function ClichéHero() {
 }`
     },
     {
-      name: '🔮 Test AI Stream & Prompt Bloat',
+      name: 'AI Stream & Prompt Bloat',
       code: `// AI Stream Handler Anti-Pattern:
 export async function POST(req: Request) {
   const systemPrompt = "You are a helpful assistant. " + "A".repeat(1500);
@@ -252,7 +252,7 @@ export async function POST(req: Request) {
 }`
     },
     {
-      name: '⚠️ Test Any Escape & Silent Catch',
+      name: 'Any Type & Silent Catch',
       code: `// AI Slop: Any type escape & silent error swallowing
 export function processUserData(payload: any) {
   try {
@@ -268,15 +268,12 @@ export function processUserData(payload: any) {
   return (
     <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FileCode size={20} className="text-white" />
-          <div>
-            <h2 className="text-lg font-extrabold text-[#FAFAFA]">
-              Live Custom Codebase AST Inspector
-            </h2>
-            <div className="text-xs text-[#94A3B8] mt-0.5">
-              Paste your AI-generated code (Cursor, Bolt, Lovable, v0) to run real-time AST security checks &amp; linter rules
-            </div>
+        <div>
+          <h2 className="text-lg font-extrabold text-[#FAFAFA]">
+            Live Custom Codebase AST Inspector
+          </h2>
+          <div className="text-xs text-[#94A3B8] mt-0.5">
+            Paste your AI-generated code (Cursor, Bolt, Lovable, v0) to run real-time AST security checks &amp; linter rules
           </div>
         </div>
 
@@ -289,8 +286,7 @@ export function processUserData(payload: any) {
       {/* Code Editor Area */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-          <label htmlFor="live-code-textarea" className="text-xs font-bold text-[#94A3B8] font-mono uppercase flex items-center gap-2">
-            <Code size={14} className="text-emerald-400" />
+          <label htmlFor="live-code-textarea" className="text-xs font-bold text-[#94A3B8] font-mono uppercase">
             <span>Source Code Snippet / Migration File:</span>
           </label>
 
@@ -338,7 +334,7 @@ export function processUserData(payload: any) {
 
           {analyzedFindings.length === 0 ? (
             <div className="p-6 rounded-xl bg-[#0A0A0A] border border-white/10 text-center text-xs text-white font-mono">
-              🎉 Zero vulnerabilities detected in pasted snippet! Compliant with OWASP security checks.
+              Zero vulnerabilities detected in snippet. Compliant with OWASP security rules.
             </div>
           ) : (
             <div className="space-y-4">

@@ -102,10 +102,10 @@ jobs:
           SCORE=$(echo "$RESPONSE" | grep -o '"readinessScore":[0-9]*' | cut -d':' -f2)
           echo "ShipGuard Status: $STATUS (Score: $SCORE/100)"
           if [ "$STATUS" = "FAILED" ]; then
-            echo "❌ Release BLOCKED by ShipGuard Quality Gate."
+            echo "[BLOCKED] Release blocked by ShipGuard Quality Gate."
             exit 1
           fi
-          echo "✅ Release PASSED ShipGuard Quality Gate."`;
+          echo "[PASSED] Release passed ShipGuard Quality Gate."`;
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);

@@ -306,7 +306,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {openFindings.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: '#10B981', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-              🎉 Zero release blockers! Your application is 100% production ready.
+              Zero release blockers. All pre-flight quality checks passed.
             </div>
           ) : (
             openFindings.slice(0, 5).map(f => (

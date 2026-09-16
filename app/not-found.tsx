@@ -21,9 +21,8 @@ export default function NotFound() {
 
       <div className="w-full max-w-lg glass-card bg-[#141414] border border-white/15 rounded-2xl p-8 sm:p-10 flex flex-col items-center text-center gap-6 shadow-2xl">
         {/* Monochromatic Status Pill */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-mono font-bold uppercase tracking-wider text-white">
-          <Compass size={14} />
-          <span>HTTP 404 &bull; Route Missing</span>
+        <div className="px-3 py-1 rounded-md bg-white/10 border border-white/20 text-xs font-mono font-bold uppercase tracking-wider text-white">
+          HTTP 404 &bull; Route Missing
         </div>
 
         {/* 404 Hero Number */}

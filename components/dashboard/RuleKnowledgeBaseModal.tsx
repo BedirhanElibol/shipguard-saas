@@ -260,7 +260,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
                       : 'bg-white/5 text-[#94A3B8] border-white/10 hover:text-white'
                   }`}
                 >
-                  {cat === 'LEGAL COMPLIANCE' ? '⚖️ LEGAL & PRIVACY' : cat === 'INFRA & CLOUD' ? '🗄️ INFRA & DB' : cat}
+                  {cat === 'LEGAL COMPLIANCE' ? 'LEGAL & PRIVACY' : cat === 'INFRA & CLOUD' ? 'INFRA & DB' : cat}
                 </button>
               ))}
             </div>
@@ -283,15 +283,13 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
 
                   <div className="flex items-center gap-2">
                     {rule.category === 'LEGAL COMPLIANCE' && (
-                      <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
-                        <span>⚖️</span>
-                        <span>LEGAL GATE</span>
+                      <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        LEGAL GATE
                       </span>
                     )}
                     {rule.category === 'INFRA & CLOUD' && (
-                      <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1">
-                        <span>🗄️</span>
-                        <span>INFRA &amp; DB</span>
+                      <span className="text-[0.62rem] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                        INFRA &amp; DB
                       </span>
                     )}
                     <span
@@ -328,11 +326,11 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
                 {/* Snippets Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-white/5 font-mono text-[0.72rem]">
                   <div className="bg-red-500/5 p-3 rounded-lg border border-red-500/20 text-red-300">
-                    <div className="text-[0.62rem] font-bold uppercase text-red-400 mb-1">❌ Vulnerable Pattern:</div>
+                    <div className="text-[0.62rem] font-bold uppercase text-red-400 mb-1">[Vulnerable Pattern]</div>
                     <code>{rule.vulnerableSnippet}</code>
                   </div>
                   <div className="bg-white/5 p-3 rounded-lg border border-white/10 text-white">
-                    <div className="text-[0.62rem] font-bold uppercase text-white mb-1">✅ Remediated Code:</div>
+                    <div className="text-[0.62rem] font-bold uppercase text-white mb-1">[Remediated Code]</div>
                     <code>{rule.remediatedSnippet}</code>
                   </div>
                 </div>

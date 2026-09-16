@@ -98,8 +98,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           if (!isCancelled) {
             setScanFailureReason('Local workspace self-audit is available only in local development.');
             setLogs([
-              `[${new Date().toLocaleTimeString()}] ⛔ Local workspace self-audit is available only in local development.`,
-              `[${new Date().toLocaleTimeString()}] 💡 Please select a public GitHub repository or live URL target to audit.`
+              `[${new Date().toLocaleTimeString()}] [LOCAL] Local workspace self-audit is available only in local development.`,
+              `[${new Date().toLocaleTimeString()}] [INFO] Please select a public GitHub repository or live URL target to audit.`
             ]);
           }
           setIsFinished(true);
@@ -111,13 +111,13 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         setQueuedFilesCount(filesToScan.length);
         if (!isCancelled) {
           setLogs([
-            `[${new Date().toLocaleTimeString()}] 🚀 Loaded Repository Files for "${project.name}" (${filesToScan.length} source files queued).`,
-            `[${new Date().toLocaleTimeString()}] 📦 Auditing ${filesToScan.length} files for OWASP Security Clearance, Supply Chain & VibePolish UI rules...`
+            `[${new Date().toLocaleTimeString()}] [LOAD] Loaded Repository Files for "${project.name}" (${filesToScan.length} source files queued).`,
+            `[${new Date().toLocaleTimeString()}] [SCAN] Auditing ${filesToScan.length} files for OWASP Security Clearance, Supply Chain & VibePolish UI rules...`
           ]);
         }
       } else if (isWebTarget) {
         setLogs([
-          `[${new Date().toLocaleTimeString()}] 🌐 Connecting to Live Web Deployment Target: ${project.repoUrl}`
+          `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to Live Web Deployment Target: ${project.repoUrl}`
         ]);
 
         const webData = await fetchWebsiteAuditData(project.repoUrl, controller.signal);
@@ -129,10 +129,10 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           if (!isCancelled) {
             setLogs((prev) => [
               ...prev,
-              `[${new Date().toLocaleTimeString()}] ${isHealthy ? '✓' : '⚠️'} Link Health Audit: Connected to ${webData.url} (HTTP ${webData.statusCode} ${isHealthy ? 'HEALTHY' : 'UNHEALTHY / BROKEN'}).`,
-              `[${new Date().toLocaleTimeString()}] 📄 Target Page Title: "${webData.title}" (${webData.crawledPagesCount} subpages crawled).`,
-              `[${new Date().toLocaleTimeString()}] 🛡️ Security Headers Audit: ${webData.securityHeadersMissing.length > 0 ? `Missing ${webData.securityHeadersMissing.join(', ')}` : 'All Security Headers Active'}.`,
-              `[${new Date().toLocaleTimeString()}] 📦 Auditing ${webData.files.length} live web pages & client JS bundles...`
+              `[${new Date().toLocaleTimeString()}] [HEALTH] Link Health Audit: Connected to ${webData.url} (HTTP ${webData.statusCode} ${isHealthy ? 'HEALTHY' : 'UNHEALTHY / BROKEN'}).`,
+              `[${new Date().toLocaleTimeString()}] [TARGET] Target Page Title: "${webData.title}" (${webData.crawledPagesCount} subpages crawled).`,
+              `[${new Date().toLocaleTimeString()}] [SECURITY] Security Headers Audit: ${webData.securityHeadersMissing.length > 0 ? `Missing ${webData.securityHeadersMissing.join(', ')}` : 'All Security Headers Active'}.`,
+              `[${new Date().toLocaleTimeString()}] [SCAN] Auditing ${webData.files.length} live web pages & client JS bundles...`
             ]);
           }
         } else {
@@ -140,8 +140,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             setScanFailureReason(`Unable to reach target website "${project.repoUrl}". Verify the URL is live, accessible, and not blocking automated audits.`);
             setLogs((prev) => [
               ...prev,
-              `[${new Date().toLocaleTimeString()}] ❌ Unable to reach target website "${project.repoUrl}".`,
-              `[${new Date().toLocaleTimeString()}] 💡 Please verify the website URL is active and accessible.`
+              `[${new Date().toLocaleTimeString()}] [ERROR] Unable to reach target website "${project.repoUrl}".`,
+              `[${new Date().toLocaleTimeString()}] [INFO] Please verify the website URL is active and accessible.`
             ]);
           }
           setIsFinished(true);
@@ -149,13 +149,13 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         }
       } else {
         setLogs([
-          `[${new Date().toLocaleTimeString()}] 🌐 Connecting to GitHub Target: ${project.repoUrl}`
+          `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to GitHub Target: ${project.repoUrl}`
         ]);
 
         if ((project as any).githubToken) {
           setLogs((prev) => [
             ...prev,
-            `[${new Date().toLocaleTimeString()}] 🔑 GitHub Personal Access Token (PAT) detected. Requesting authenticated access...`
+            `[${new Date().toLocaleTimeString()}] [AUTH] GitHub Personal Access Token (PAT) detected. Requesting authenticated access...`
           ]);
         }
 
@@ -167,8 +167,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           if (!isCancelled) {
             setLogs((prev) => [
               ...prev,
-              `[${new Date().toLocaleTimeString()}] ✓ GitHub Repository Verified: Loaded ${liveData.files.length} real source files from "${liveData.name}" (${liveData.description || 'Target Repository'}).`,
-              `[${new Date().toLocaleTimeString()}] 📦 Auditing ${liveData.files.length} source code files for security clearance & VibePolish UI rules...`
+              `[${new Date().toLocaleTimeString()}] [LOAD] GitHub Repository Verified: Loaded ${liveData.files.length} real source files from "${liveData.name}" (${liveData.description || 'Target Repository'}).`,
+              `[${new Date().toLocaleTimeString()}] [SCAN] Auditing ${liveData.files.length} source code files for security clearance & VibePolish UI rules...`
             ]);
           }
         } else {
@@ -176,8 +176,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT) in Settings.`);
             setLogs((prev) => [
               ...prev,
-              `[${new Date().toLocaleTimeString()}] ❌ Unable to fetch files from GitHub repository "${project.repoUrl}".`,
-              `[${new Date().toLocaleTimeString()}] 🔑 If this is a private repository, please add your GitHub Personal Access Token (PAT) in Settings.`
+              `[${new Date().toLocaleTimeString()}] [ERROR] Unable to fetch files from GitHub repository "${project.repoUrl}".`,
+              `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT) in Settings.`
             ]);
           }
           setIsFinished(true);
@@ -230,9 +230,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           setIsFinished(true);
 
           if (typeof document !== 'undefined') {
-            document.title = `✅ Audit Complete | ${project.name}`;
+            document.title = `Audit Complete | ${project.name}`;
             if (document.hidden && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-              new Notification(`🚀 Zelsis Audit Completed: ${project.name}`, {
+              new Notification(`Zelsis Audit Completed: ${project.name}`, {
                 body: `Release Gate Audit finished successfully with readiness score ${result.score}/100.`,
                 icon: '/favicon.ico'
               });
@@ -331,10 +331,10 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
               <div className="text-xs font-mono font-bold mt-0.5 truncate text-white">
                 {isFinished
                   ? scanResult
-                    ? `✅ All ${queuedFilesCount} Source Files Inspected & Verified`
+                    ? `All ${queuedFilesCount} Source Files Inspected & Verified`
                     : (project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
-                    ? '⛔ Local workspace self-audit is available only in local development.'
-                    : '⚠️ Audit Terminated'
+                    ? 'Local workspace self-audit is available only in local development.'
+                    : 'Audit Terminated'
                   : currentFileName}
               </div>
             </div>

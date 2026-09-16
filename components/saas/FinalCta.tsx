@@ -47,11 +47,11 @@ export const FinalCta: React.FC = () => {
 
         {/* Footnote */}
         <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-xs font-mono text-zinc-500">
-          <span>✓ Instant Self-Serve Setup</span>
+          <span>Instant Self-Serve Setup</span>
           <span className="text-zinc-700">•</span>
-          <span>✓ 100% In-Memory Privacy</span>
+          <span>100% In-Memory Privacy</span>
           <span className="text-zinc-700">•</span>
-          <span>✓ Comprehensive Rule Taxonomies</span>
+          <span>Comprehensive Rule Taxonomies</span>
         </div>
       </div>
     </section>

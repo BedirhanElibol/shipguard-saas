@@ -148,20 +148,11 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           transition={{ duration: 0.5, delay: 0.25 }}
           className="flex flex-wrap items-center justify-center gap-6 mt-4 mb-16 text-xs text-zinc-400 font-mono"
         >
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={14} className="text-emerald-400" />
-            <span>Zero-Retention Privacy (Code Never Stored)</span>
-          </div>
+          <span>Zero-Retention Privacy (Code Never Stored)</span>
           <span className="hidden sm:inline text-zinc-700">•</span>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={14} className="text-emerald-400" />
-            <span>5,000+ Deep Web &amp; Cloud Rules</span>
-          </div>
+          <span>5,000+ Deep Web &amp; Cloud Rules</span>
           <span className="hidden sm:inline text-zinc-700">•</span>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={14} className="text-emerald-400" />
-            <span>In-Memory Stream Evaluation</span>
-          </div>
+          <span>In-Memory Stream Evaluation</span>
         </motion.div>
 
         {/* Hero Showcase Centerpiece: Real Application State (dashboard_overview.png) */}

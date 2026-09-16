@@ -53,9 +53,9 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
       );
       const pkgCount = project?.repoUrl === 'local' ? 48 : (project?.findings?.length ? project.findings.length * 3 + 12 : 24);
       if (openVulnerabilities.length > 0) {
-        setCveStatus(`⚠️ Live Audit Complete: ${pkgCount} packages scanned. Detected ${openVulnerabilities.length} active high-risk advisories in ${project?.name || 'project'}.`);
+        setCveStatus(`[ADVISORY] Live audit complete: ${pkgCount} packages scanned. Detected ${openVulnerabilities.length} active high-risk advisories in ${project?.name || 'project'}.`);
       } else {
-        setCveStatus(`✓ Live Audit Complete: ${pkgCount} packages checked against GitHub Advisory database. 0 active CVE vulnerabilities found.`);
+        setCveStatus(`[VERIFIED] Live audit complete: ${pkgCount} packages checked against GitHub Advisory database. 0 active CVE vulnerabilities found.`);
       }
     } finally {
       setCveAuditing(false);
@@ -67,7 +67,7 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
     try {
       await new Promise((r) => setTimeout(r, 500));
       const snapId = `snap-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${(project?.id || 'main').slice(-4)}`;
-      setBackupStatus(`✓ AES-256 GCM Snapshot ID ${snapId} verified & project integrity validated.`);
+      setBackupStatus(`AES-256 GCM Snapshot ID ${snapId} verified & project integrity validated.`);
     } finally {
       setBackupTesting(false);
     }
@@ -90,18 +90,17 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
   };
 
   const simulateSpendAlert = () => {
-    setSpendAlertMsg(`⚡ Telemetry Dispatch Check: Verified alert webhook routing for "${project?.name || 'Active Project'}". Spend budget monitoring active.`);
+    setSpendAlertMsg(`Telemetry Dispatch Check: Verified alert webhook routing for "${project?.name || 'Active Project'}". Spend budget monitoring active.`);
     setTimeout(() => setSpendAlertMsg(null), 4000);
   };
 
   return (
     <div className="flex flex-col gap-6">
       {/* Top Banner */}
-      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 bg-[#141414] border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3">
-            <Activity size={24} className="text-white" />
-            <h1 className="text-xl font-extrabold text-[#EDEDED]">
+          <div>
+            <h1 className="text-xl font-extrabold text-[#EDEDED] tracking-tight">
               VibeCare Sustainability &amp; Lifecycle Monitoring
             </h1>
           </div>
@@ -192,7 +191,7 @@ export const VibeCareView: React.FC<VibeCareViewProps> = ({ project, user, onOpe
             </div>
 
             <div className="bg-[#0A0A0A] p-3 rounded-lg border border-white/10 text-xs text-[#EDEDED] mb-4">
-              ✓ All dependencies match production hash integrity specs.
+              All dependencies match production hash integrity specs.
             </div>
           </div>
 

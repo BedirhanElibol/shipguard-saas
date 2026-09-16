@@ -74,9 +74,9 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
             .filter((log) => !logSearchQuery.trim() || log.toLowerCase().includes(logSearchQuery.toLowerCase()))
             .map((log, i) => {
               const strLog = String(log || '');
-              const isError = strLog.includes('CRITICAL') || strLog.includes('FAILED') || strLog.includes('🚨');
-              const isWarning = strLog.includes('WARN') || strLog.includes('HIGH') || strLog.includes('⚠️');
-              const isHeader = strLog.includes('Phase') || strLog.includes('Executing') || strLog.includes('🚀');
+              const isError = strLog.includes('CRITICAL') || strLog.includes('FAILED') || strLog.includes('[ERROR]') || strLog.includes('[FAIL]');
+              const isWarning = strLog.includes('WARN') || strLog.includes('HIGH') || strLog.includes('[WARN]');
+              const isHeader = strLog.includes('Phase') || strLog.includes('Executing') || strLog.includes('[INFO]') || strLog.includes('[TARGET]') || strLog.includes('[LOAD]');
 
               return (
                 <div

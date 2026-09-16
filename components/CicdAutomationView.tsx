@@ -45,7 +45,7 @@ permissions:
 
 jobs:
   zelsis-audit:
-    name: 🛡️ Zelsis Deployment Gate
+    name: Zelsis Deployment Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -144,9 +144,8 @@ jobs:
 
       {/* Fail Strategy Threshold Control */}
       <div className="bg-[#141414] border border-white/10 rounded-xl p-6">
-        <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 mb-4">
-          <Sliders size={16} className="text-emerald-400" />
-          <span>Smart Fail Threshold Strategy</span>
+        <h2 className="text-sm font-bold text-[#EDEDED] tracking-tight mb-4">
+          Smart Fail Threshold Strategy
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -228,9 +227,8 @@ jobs:
       <div className="bg-[#141414] border border-white/10 rounded-xl p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 m-0">
-              <GitPullRequest size={16} className="text-emerald-400" />
-              <span>.github/workflows/zelsis.yml</span>
+            <h2 className="text-sm font-mono font-bold text-[#EDEDED] m-0">
+              .github/workflows/zelsis.yml
             </h2>
             <span className="text-xs text-[#A1A1AA]">
               Drop this file into your repository to enforce pre-flight PR gates automatically.
@@ -240,33 +238,23 @@ jobs:
           <div className="flex items-center gap-2">
             <button
               onClick={() => copyToClipboard(generateGithubWorkflow(), setCopiedWorkflow)}
-              className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#EDEDED] text-xs font-mono transition-colors flex items-center gap-1.5"
+              className="btn btn-secondary btn-sm flex items-center gap-1.5"
             >
-              {copiedWorkflow ? (
-                <>
-                  <CheckCircle2 size={14} className="text-emerald-400" />
-                  <span className="text-emerald-400 font-bold">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={14} className="text-zinc-400" />
-                  <span>Copy Workflow</span>
-                </>
-              )}
+              {copiedWorkflow ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
+              <span>{copiedWorkflow ? 'Copied' : 'Copy Workflow'}</span>
             </button>
-
             <button
               onClick={() => downloadFile('zelsis.yml', generateGithubWorkflow())}
-              className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#EDEDED] text-xs font-mono transition-colors flex items-center gap-1.5"
+              className="btn btn-secondary btn-sm flex items-center gap-1.5"
             >
-              <Download size={14} className="text-zinc-400" />
+              <Download size={13} />
               <span>Download</span>
             </button>
           </div>
         </div>
 
-        <div className="bg-black/60 border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-xs">
-          <pre className="text-zinc-300 leading-relaxed m-0">{generateGithubWorkflow()}</pre>
+        <div className="bg-black/80 border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-xs">
+          <pre className="text-emerald-300/90 leading-relaxed m-0">{generateGithubWorkflow()}</pre>
         </div>
       </div>
 
@@ -276,15 +264,14 @@ jobs:
         <div className="bg-[#141414] border border-white/10 rounded-xl p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-3 mb-3">
-              <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 m-0">
-                <Settings2 size={16} className="text-cyan-400" />
-                <span>Policy as Code (.zelsisrc.json)</span>
+              <h2 className="text-sm font-mono font-bold text-[#EDEDED] m-0">
+                Policy as Code (.zelsisrc.json)
               </h2>
               <button
                 onClick={() => copyToClipboard(generateZelsisConfig(), setCopiedConfig)}
                 className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[#EDEDED] text-xs font-mono transition-colors flex items-center gap-1"
               >
-                {copiedConfig ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                {copiedConfig ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Copy size={12} />}
                 <span>{copiedConfig ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
@@ -322,9 +309,8 @@ jobs:
         {/* Local CLI Command & Pre-commit Hooks */}
         <div className="bg-[#141414] border border-white/10 rounded-xl p-6 flex flex-col justify-between">
           <div>
-            <h2 className="text-sm font-bold text-[#EDEDED] flex items-center gap-2 mb-3">
-              <Terminal size={16} className="text-emerald-400" />
-              <span>Local CLI &amp; Pre-Commit Hook</span>
+            <h2 className="text-sm font-bold text-[#EDEDED] tracking-tight mb-3">
+              Local CLI &amp; Pre-Commit Hook
             </h2>
             <p className="text-xs text-[#A1A1AA] mb-4 leading-relaxed">
               Catch vulnerabilities in terminal before code is even committed to Git.

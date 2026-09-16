@@ -104,10 +104,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
         </div>
 
         <div className="text-[0.72rem] text-[#EF4444] font-bold mt-3 flex items-center justify-between font-mono">
-          <span className="flex items-center gap-1">
-            <AlertTriangle size={12} />
-            <span>{criticals + highs} Open Risks</span>
-          </span>
+          <span>{criticals + highs} Open Risks</span>
           <span className="text-[0.68rem] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity">
             Inspect &rarr;
           </span>

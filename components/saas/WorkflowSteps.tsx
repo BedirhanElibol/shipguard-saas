@@ -41,10 +41,10 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
       description:
         'Deterministic release rules inspect your application layers simultaneously, isolating regressions before staging or production builds.',
       codeSnippet: `[EVALUATING PRODUCTION RELEASE GATES]
-  ✓ SEC-01: No hardcoded client secrets detected ......... [PASSED]
-  ✓ SEC-03: PostgreSQL Row Level Security enforces auth .. [PASSED]
-  ✗ UI-15: Non-semantic clickable container in SearchBox . [FAILED]
-  ✓ INFRA-02: Container runs as dedicated non-root user .. [PASSED]
+  [PASS] SEC-01: No hardcoded client secrets detected ......... PASSED
+  [PASS] SEC-03: PostgreSQL Row Level Security enforces auth .. PASSED
+  [FAIL] UI-15: Non-semantic clickable container in SearchBox . FAILED
+  [PASS] INFRA-02: Container runs as dedicated non-root user .. PASSED
 [SCORE] 94/100 PRODUCTION READINESS ACHIEVED`,
       features: [
         'OWASP Top 10, CWE-22, SSRF, and RLS vulnerability detection',

@@ -32,9 +32,8 @@ export const BundleCostAnalyzer: React.FC<BundleCostAnalyzerProps> = ({ filesCou
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono font-bold text-white bg-white/5 border border-white/10 px-3 py-1 rounded-full flex items-center gap-1.5">
-            <Zap size={13} />
-            <span>Tree-Shaking: Optimized</span>
+          <span className="text-xs font-mono font-bold text-white bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+            Tree-Shaking: Optimized
           </span>
         </div>
       </div>

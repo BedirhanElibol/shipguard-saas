@@ -855,7 +855,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
         <div className="flex items-center justify-between pt-4 border-t border-white/10 flex-wrap gap-3">
           <div className="text-xs text-[#A1A1AA] font-mono">
-            {saved ? '✓ Settings successfully saved to local project state.' : 'Changes take effect immediately on next audit run.'}
+            {saved ? 'Settings successfully saved to local project state.' : 'Changes take effect immediately on next audit run.'}
           </div>
 
           <button

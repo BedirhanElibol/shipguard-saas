@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Finding } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sparkles, AlertOctagon, GitCommit } from 'lucide-react';
 
 interface FindingsTableProps {
   findings: Finding[];
@@ -27,6 +27,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
   const [severityFilter, setSeverityFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [pillarFilter, setPillarFilter] = useState<string>('ALL');
+  const [hasDiffOnly, setHasDiffOnly] = useState<boolean>(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
 
   const PILLAR_TABS = [
@@ -54,6 +55,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
     setSeverityFilter('ALL');
     setStatusFilter('ALL');
     setPillarFilter('ALL');
+    setHasDiffOnly(false);
   };
 
   const filtered = findings.filter((f) => {
@@ -72,7 +74,169 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
   return (
     <div className="bg-[#141414] border border-white/10 rounded-xl p-4 sm:p-6 flex flex-col gap-5 bg-[#141414] border-white/10">
-      {/* Header & Controls */}
+      {/* Snyk-Grade Release Readiness Radar & Category Breakdown Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Card 1: Security & OWASP */}
+        <button
+          type="button"
+          onClick={() => setPillarFilter(pillarFilter === 'SECURITY' ? 'ALL' : 'SECURITY')}
+          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+            pillarFilter === 'SECURITY'
+              ? 'bg-emerald-500/10 border-emerald-500/40 shadow-lg shadow-emerald-500/5'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <ShieldCheck size={14} />
+              <span>Security &amp; OWASP</span>
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
+              {findings.filter(f => f.type === 'SECURITY').length}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-mono">
+              {findings.filter(f => f.type === 'SECURITY' && f.severity === 'CRITICAL').length} Critical
+            </span>
+          </div>
+          <span className="text-[10px] text-zinc-400 truncate">
+            Injection, auth, &amp; API security
+          </span>
+        </button>
+
+        {/* Card 2: Supabase & Database */}
+        <button
+          type="button"
+          onClick={() => setPillarFilter(pillarFilter === 'INFRA_DATABASE' ? 'ALL' : 'INFRA_DATABASE')}
+          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+            pillarFilter === 'INFRA_DATABASE'
+              ? 'bg-cyan-500/10 border-cyan-500/40 shadow-lg shadow-cyan-500/5'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+              <Database size={14} />
+              <span>Supabase &amp; DB</span>
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
+              {findings.filter(f => f.type === 'INFRA_DATABASE' || f.category.toLowerCase().includes('sql') || f.category.toLowerCase().includes('rls') || f.category.toLowerCase().includes('database')).length}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-mono">
+              RLS &amp; Pools
+            </span>
+          </div>
+          <span className="text-[10px] text-zinc-400 truncate">
+            Row level security &amp; leaks
+          </span>
+        </button>
+
+        {/* Card 3: Cloud & Docker */}
+        <button
+          type="button"
+          onClick={() => setPillarFilter(pillarFilter === 'LEGAL_COMPLIANCE' ? 'ALL' : 'LEGAL_COMPLIANCE')}
+          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+            pillarFilter === 'LEGAL_COMPLIANCE'
+              ? 'bg-amber-500/10 border-amber-500/40 shadow-lg shadow-amber-500/5'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <Server size={14} />
+              <span>Legal &amp; Privacy</span>
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
+              {findings.filter(f => f.type === 'LEGAL_COMPLIANCE').length}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-mono">
+              GDPR &amp; CCPA
+            </span>
+          </div>
+          <span className="text-[10px] text-zinc-400 truncate">
+            Statutory compliance gates
+          </span>
+        </button>
+
+        {/* Card 4: UX & VibePolish */}
+        <button
+          type="button"
+          onClick={() => setPillarFilter(pillarFilter === 'VIBEPOLISH' ? 'ALL' : 'VIBEPOLISH')}
+          className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+            pillarFilter === 'VIBEPOLISH'
+              ? 'bg-teal-500/10 border-teal-500/40 shadow-lg shadow-teal-500/5'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
+              <Sparkles size={14} />
+              <span>UX &amp; VibePolish</span>
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
+              {findings.filter(f => f.type === 'VIBEPOLISH').length}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-mono">
+              WCAG 2.2
+            </span>
+          </div>
+          <span className="text-[10px] text-zinc-400 truncate">
+            Design tokens &amp; a11y gates
+          </span>
+        </button>
+      </div>
+
+      {/* Quick Triage Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-mono">
+        <span className="text-zinc-500 text-[11px] uppercase tracking-wider shrink-0">Quick Triage:</span>
+        <button
+          type="button"
+          onClick={() => { resetFilters(); }}
+          className={`px-2.5 py-1 rounded-md border text-[11px] transition-all cursor-pointer shrink-0 ${
+            severityFilter === 'ALL' && pillarFilter === 'ALL' && !hasDiffOnly
+              ? 'bg-white text-black font-bold border-white'
+              : 'bg-[#0E0E10] border-white/10 text-zinc-400 hover:text-white'
+          }`}
+        >
+          All ({findings.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setSeverityFilter(severityFilter === 'CRITICAL' ? 'ALL' : 'CRITICAL')}
+          className={`px-2.5 py-1 rounded-md border text-[11px] transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+            severityFilter === 'CRITICAL'
+              ? 'bg-red-500 text-white font-bold border-red-500 shadow-sm'
+              : 'bg-[#0E0E10] border-red-500/30 text-red-400 hover:bg-red-500/10'
+          }`}
+        >
+          <AlertOctagon size={12} />
+          <span>Critical Only ({findings.filter(f => f.severity === 'CRITICAL').length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setHasDiffOnly(!hasDiffOnly)}
+          className={`px-2.5 py-1 rounded-md border text-[11px] transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+            hasDiffOnly
+              ? 'bg-emerald-500 text-black font-bold border-emerald-500 shadow-sm'
+              : 'bg-[#0E0E10] border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+          }`}
+        >
+          <GitCommit size={12} />
+          <span>Has 1-Click Code Patch ({findings.filter(f => Boolean(f.diffPatch || f.remediationPrompt)).length})</span>
+        </button>
+      </div>
+\n      {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">

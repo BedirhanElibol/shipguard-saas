@@ -3,6 +3,7 @@ import './globals.css';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ToastProvider } from '@/lib/toast';
 import { CookieBanner } from '@/components/CookieBanner';
+import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -56,9 +57,10 @@ export const metadata: Metadata = {
     siteName: 'Zelsis',
     images: [
       {
-        url: '/zelsis-logo.svg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
+        type: 'image/png',
         alt: 'Zelsis | Production Release Gate for Modern Web & Cloud Apps',
       },
     ],
@@ -70,7 +72,7 @@ export const metadata: Metadata = {
     title: 'Zelsis | Production Release Gate for Modern Web & Cloud Apps',
     description:
       'Automated pre-flight security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure release gatekeeper for modern web and cloud applications.',
-    images: ['/zelsis-logo.svg'],
+    images: ['/og-image.png'],
   },
   icons: {
     icon: [
@@ -107,6 +109,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#0A0A0A] text-[#EDEDED] antialiased selection:bg-white selection:text-black notranslate" translate="no" suppressHydrationWarning>
+        <AnalyticsScripts />
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded-md focus:font-mono focus:text-xs">Skip to main content</a>
         <OfflineBanner />
         <ToastProvider>

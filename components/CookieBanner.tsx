@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Cookie, X } from 'lucide-react';
+import { updateConsentMode } from '@/components/analytics/AnalyticsScripts';
 
 export const CookieBanner: React.FC = () => {
   const [showBanner, setShowBanner] = useState(false);
@@ -11,18 +12,22 @@ export const CookieBanner: React.FC = () => {
     const consent = localStorage.getItem('zelsis_cookie_consent') || localStorage.getItem('shipguard_cookie_consent');
     if (!consent) {
       setShowBanner(true);
+    } else if (consent === 'accepted') {
+      updateConsentMode(true);
     }
   }, []);
 
   const handleAccept = () => {
     localStorage.setItem('zelsis_cookie_consent', 'accepted');
     localStorage.removeItem('shipguard_cookie_consent');
+    updateConsentMode(true);
     setShowBanner(false);
   };
 
   const handleDecline = () => {
     localStorage.setItem('zelsis_cookie_consent', 'declined');
     localStorage.removeItem('shipguard_cookie_consent');
+    updateConsentMode(false);
     setShowBanner(false);
   };
 

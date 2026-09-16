@@ -16,12 +16,15 @@ export const Footer: React.FC = () => {
             Universal pre-flight release gate for modern web and cloud applications. Automated OWASP security clearance, WCAG 2.1 AA accessibility, and cloud infrastructure verification.
           </p>
 
-          <span
-            className="text-sm font-mono text-white inline-flex items-center gap-1 mt-2"
-          >
-            <span>contact@zelsis.com</span>
-            <ArrowUpRight size={14} />
-          </span>
+          <div className="flex flex-col gap-1.5 mt-2 text-xs font-mono text-zinc-400">
+            <span className="text-white font-semibold">Zelsis Software Technologies</span>
+            <span className="inline-flex items-center gap-1 text-zinc-300">
+              <span>contact@zelsis.com</span>
+              <ArrowUpRight size={12} />
+            </span>
+            <span>Support: Mon-Sun • Typical response within 24h</span>
+            <span className="text-[11px] text-zinc-500">Istanbul &amp; Global Edge Infrastructure</span>
+          </div>
         </div>
 
         {/* Col 2: Navigation (3 cols) */}
@@ -38,6 +41,9 @@ export const Footer: React.FC = () => {
           <a href="#pricing" className="text-sm hover:text-white transition-colors">
             Pricing Plans
           </a>
+          <a href="/refund" className="text-sm hover:text-white transition-colors">
+            14-Day Refund Policy
+          </a>
         </div>
 
         {/* Col 3: SaaS Platform (4 cols) */}
@@ -48,9 +54,9 @@ export const Footer: React.FC = () => {
           <a href="/dashboard" className="text-sm text-white hover:underline transition-colors font-mono">
             Launch Audit Engine →
           </a>
-          <span className="text-xs text-[#A1A1AA]">Zero Day-One Production Vulnerabilities</span>
-          <span className="text-xs text-[#A1A1AA]">Enterprise-Grade UX &amp; Accessibility</span>
-          <span className="text-xs text-[#A1A1AA]">Guaranteed Deployment Safety &amp; Uptime</span>
+          <span className="text-xs text-[#A1A1AA]">Deterministic Pre-Flight Vulnerability Clearance</span>
+          <span className="text-xs text-[#A1A1AA]">Automated WCAG 2.1 AA &amp; UX Audit Gates</span>
+          <span className="text-xs text-[#A1A1AA]">Cloud Infrastructure &amp; Container Hardening</span>
         </div>
 
 
@@ -59,12 +65,13 @@ export const Footer: React.FC = () => {
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#A1A1AA]">
         <div>
-          © 2026 Zelsis. All rights reserved.
+          © 2026 Zelsis Software Technologies. All rights reserved.
         </div>
         <div className="flex flex-wrap gap-4 sm:gap-6">
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
           <a href="/terms" className="hover:text-white transition-colors">Terms</a>
           <a href="/cookies" className="hover:text-white transition-colors">Cookie Policy</a>
+          <a href="/refund" className="hover:text-white transition-colors">Refund Policy</a>
         </div>
       </div>
     </footer>

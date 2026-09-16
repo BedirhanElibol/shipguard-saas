@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 // EmptyState fallback: static pricing plan definitions never yield empty list
 import { generateLicenseKey, activateUserTier, verifyLicenseKey } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2 } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2, RefreshCw } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { formatRenewalDate } from '@/lib/subscription-utils';
+import { getAttributionData } from '@/lib/attribution';
 
 function resolvePlanAlias(planId?: string): string {
   if (!planId) return 'zelsis-core';
@@ -241,6 +242,12 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       if (targetName) {
         url.searchParams.set('customer_name', targetName);
       }
+      const attr = getAttributionData();
+      if (attr?.utm_source) url.searchParams.set('utm_source', attr.utm_source);
+      if (attr?.utm_medium) url.searchParams.set('utm_medium', attr.utm_medium);
+      if (attr?.utm_campaign) url.searchParams.set('utm_campaign', attr.utm_campaign);
+      if (attr?.gclid) url.searchParams.set('metadata[gclid]', attr.gclid);
+      if (attr?.fbclid) url.searchParams.set('metadata[fbclid]', attr.fbclid);
       return url.toString();
     } catch {
       return base;
@@ -558,6 +565,26 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       <span>Visa &amp; Mastercard</span>
                       <span className="text-white/20">·</span>
                       <span>VAT Invoices</span>
+                    </div>
+
+                    {/* High-Converting Guarantee & Security Box */}
+                    <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 flex flex-col gap-2 mt-2">
+                      <div className="flex items-center gap-2 text-xs font-mono text-zinc-300">
+                        <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+                        <span className="font-bold text-white">14-Day Money-Back Guarantee</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400">
+                        <Lock size={12} className="text-zinc-400 shrink-0" />
+                        <span>256-Bit SSL Encrypted Checkout via Polar / Stripe</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400">
+                        <RefreshCw size={12} className="text-zinc-400 shrink-0" />
+                        <span>Instant License Key Delivery • Cancel Anytime in 1-Click</span>
+                      </div>
+                      <div className="pt-1 border-t border-white/5 text-[10px] font-mono text-zinc-500 flex items-center justify-between">
+                        <span>Read our <a href="/refund" target="_blank" className="text-zinc-400 hover:text-white underline">Refund Policy</a></span>
+                        <span>VAT Invoices Provided</span>
+                      </div>
                     </div>
                   </div>
 

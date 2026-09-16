@@ -386,9 +386,16 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                   <span>{isProcessing ? 'Processing Secure Payment...' : `Pay ${currentPrice} & Upgrade Now`}</span>
                 </button>
 
-                <div className="flex items-center justify-center gap-2 text-[0.65rem] text-[#64748B] mt-1">
-                  <ShieldCheck size={13} className="text-white" />
-                  <span>256-Bit SSL Encrypted Stripe Payment Processing</span>
+                <div className="flex flex-col items-center gap-1 text-[0.65rem] text-[#64748B] mt-2 font-mono">
+                  <div className="flex items-center gap-1.5 text-zinc-300">
+                    <ShieldCheck size={12} className="text-emerald-400" />
+                    <span className="font-semibold text-white">Backed by 14-Day Money-Back Guarantee • Cancel Anytime</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <span>256-Bit SSL Encrypted Stripe Payment</span>
+                    <span>•</span>
+                    <a href="/refund" target="_blank" className="text-zinc-400 hover:text-white underline">Refund Policy</a>
+                  </div>
                 </div>
               </form>
             </>

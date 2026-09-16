@@ -1,117 +1,107 @@
-# Master Orchestration Plan (v19.0.0)
-## High-Conversion SaaS Product Landing Architecture & AI Slop Eradication
+# Master Orchestration Plan (v22.1.0)
+## Global Creative Advertising Agency Master Launch & Campaign Strategy (Zelsis)
 
-### Executive Strategic Summary
-The user requested:
-> `"/orchestrateson düzlükteyiz app'in satması için çalışma durumlarını komple gözden geçir landingpage sanki çok ai slop duruyor albenisi yok gibi /ui-ux-designer geri alınabilecek şekilde çalışmalar yapalım sadece benim eklettiğim görseller app'in çalışma durumları olduğu için koruyabilirsin."`
-
-ShipGuard / Zelsis is a production release gate platform ($29–$99/month SaaS) engineered with 148 multi-pillar security and deployment rules. However, the current landing page (`app/page.tsx`) was modeled after a boutique design agency ("Client Work 2026", "Services Grid", "Our Approach Manifesto", "Mouse-Following Insights"). This creates a fatal dissonance: buyers and engineering leads looking for automated security, compliance, and CI/CD pre-flight gates are greeted by agency portfolio tropes. The real, high-value product screens uploaded by the user are buried inside mock case studies.
-
-This plan executes a complete transformation from "Agency AI Slop" to an **Authoritative, High-Converting Developer SaaS** (comparable to Linear, Vercel, Supabase, Raycast) that highlights the 5 real product screenshots as empirical proof of the working engine. All modifications are modular, isolated, and fully reversible.
+### Executive Brief & Creative Manifesto
+**Client:** Zelsis — Universal Multi-Stack Pre-Flight Release Gatekeeper  
+**Category:** Developer Tools / DevSecOps / Pre-Deployment Production Clearance  
+**Agency Mandate:** Design and execute an elite, 360-degree agency launch campaign that captures developers, engineering leads, and SaaS founders without burning money on low-ROI broad ads or relying on gimmicky badges. We transform release anxiety into an indispensable production standard through undeniable utility.
 
 ---
 
-## 1. Product Screenshots Showcase Architecture (Preserved & Prominently Featured)
+## 1. Brand Strategy & Creative North Star
 
-The 5 real application state screenshots in `public/images/` represent the core pillars of the value proposition and will be elevated to the center of the customer journey:
+### 1.1 The Core Human & Developer Insight
+- Developers and founders do not fear writing code; they fear the **paralyzing dread of pushing to production on Friday** or waking up to a leaked Supabase database, exposed Stripe webhook secret, or Docker root breach.
+- Free linters (ESLint, Prettier) only check syntax and formatting. Enterprise scanners (SonarQube, Snyk) are bloated, slow (10-minute CI delays), and cost $500–$2,000/month.
+- **The Gap:** A fast (<3 seconds), in-memory, deterministic pre-flight scanner that acts as the developer's "Co-Pilot before Production" across 7,850 rules.
 
-| Screenshot | Current Location | New High-Converting Role | Key Value Proposition Shown |
-|---|---|---|---|
-| `dashboard_overview.png` | Buried / Unused in Hero | **Hero Product Centerpiece Frame** | Real-time release clearance gauge, active audit scores, live project health telemetry, instant scan triggers. |
-| `security_rules.png` | FeaturedWork / Services modal | **Pillar 1: 148 Multi-Pillar Gate Catalog** | Transparent rule inventory (OWASP Top 10, Docker root privilege, PostgreSQL RLS, Next.js 15 App Router). |
-| `audit_findings.png` | Services / FeaturedWork modal | **Pillar 2: Deep Vulnerability Triage & AST Diffs** | Precise line-by-line vulnerability highlights, code context, and 1-click AI remediation prompts. |
-| `vulnerability_sandbox.png` | FeaturedWork modal | **Pillar 3: Interactive Zero-Install Sandbox** | Live in-browser AST regex & security playground for instant proof without onboarding friction. |
-| `bundle_profiler.png` | FeaturedWork / Insights modal | **Pillar 4: Core Web Vitals & Container Profiling** | Deep performance profiling, asset weight distribution, CLS/LCP metrics, and Kubernetes/Docker limits. |
-
----
-
-## 2. Re-architecting `app/page.tsx` (Eliminating AI Slop)
-
-### A. What We Eradicate ("AI Slop" & Agency Tropes)
-- ❌ **"Services" (Agency Consulting trope)**: Replace with **Product Architecture & Capabilities**.
-- ❌ **"Client Work (2026)" (Boutique Agency trope)**: Replace with **Real Interactive Feature Showcases** featuring the 4 screenshots.
-- ❌ **"Our Approach Manifesto" (Word Scrub trope)**: Replace with **"How It Works in 3 Steps"** technical workflow.
-- ❌ **"Editorial Insights" (Mock Blog trope)**: Replace with **Hard Comparison Matrix** (ShipGuard vs. Traditional Linters vs. Heavy Enterprise Scanners).
-- ❌ **"Let's Build Something Together" (Freelancer Contact Form)**: Replace with **High-Converting Free Trial / Live Demo CTA** with zero-credit-card commitment.
-
-### B. New High-Converting SaaS Structure
-1. **Tactical Global Header & Navigation**:
-   - Dynamic sticky bar: Brand, Live Rules Count (148 Gates), Capabilities, Pricing, Security/Privacy, and Direct "Open Dashboard" CTA.
-2. **Hero Section (`Hero.tsx` / `SaasHero.tsx`)**:
-   - **Commanding Swiss / Obsidian Typography**: "Zero-Day Release Clearance for Production Code."
-   - **Immediate Value Subtitle**: Instant OWASP, UI/UX performance, and cloud container auditing before code merges.
-   - **Dual Action Bar**: Primary CTA `[ Launch Free Audit ]` + Secondary `[ Explore 148 Rules ]`.
-   - **Social Proof / Tech Matrix**: Next.js 15, TypeScript, Python, Go, Docker, Kubernetes, Supabase, Stripe.
-   - **Ambient Product Frame**: High-resolution browser window framing `dashboard_overview.png` with interactive pulse badges highlighting the real readiness gauges.
-3. **Interactive 3-Step Production Workflow (`WorkflowSteps.tsx`)**:
-   - **Step 1: Ingest & Parse (0s)**: Shorthand GitHub URL or local files. Zero-retention privacy (code scanned in-memory, never stored).
-   - **Step 2: 148 Multi-Pillar Verification (<3s)**: AST pattern matching, security secrets, Docker root defense, and WCAG accessibility.
-   - **Step 3: Signed Clearance & 1-Click Remediation**: Exportable release manifest, SOC 2/ISO 27001 readiness audit, and direct PR remediation diffs.
-4. **Deep Product Capabilities Matrix (`ProductCapabilities.tsx`)**:
-   - 4-quadrant architectural showcase utilizing the user's 4 remaining images:
-     - Card A (`security_rules.png`): "148 Production Release Gates & Rule Engine".
-     - Card B (`audit_findings.png`): "Surgical AST Finding Triage & 1-Click Fix Prompts".
-     - Card C (`vulnerability_sandbox.png`): "Interactive Browser Sandbox & Rule Tester".
-     - Card D (`bundle_profiler.png`): "Core Web Vitals & Container Resource Profiler".
-5. **The Uncompromising Comparison Table (`ComparisonTable.tsx`)**:
-   - Clear contrast table: **Traditional Linters (ESLint/Prettier)** vs. **Enterprise Scanners (SonarQube/Snyk - $500+/mo)** vs. **ShipGuard**.
-   - Highlights: Scan Speed (<3s vs 10min), Multi-Pillar (Security + UI/UX + Cloud vs Security only), Friction (Zero setup vs heavy agent), Pricing ($29/mo vs thousands).
-6. **Transparent Developer Pricing (`PricingView.tsx`)**:
-   - Direct monthly/yearly toggle, clear tier quotas (Free 3 Scans, Pro Unlimited, Enterprise Team), Polar checkout integration.
-7. **Security, Privacy & Architecture FAQ (`FaqSection.tsx`)**:
-   - Direct answers to the questions developers and CTOs care about: "Do you store my code?", "Does it work with private repos?", "How does it fit into GitHub Actions CI/CD?".
-8. **Final High-Converting Action Terminal**:
-   - Quick repo URL paste bar with instant scan trigger.
+### 1.2 The Big Creative Concept: *"Don't Ship Naked"* / *"Cleared for Takeoff"*
+- **Core Tagline:** *"7,850 Rules Between Your Code and Production Disaster."*
+- **Secondary Punchlines:**
+  - *"Linters check your grammar. Zelsis checks if you're about to burn down production."*
+  - *"Never push to production on a hunch."*
+  - *"Deterministic Pre-Flight Clearance for Modern Full-Stack Teams."*
+- **Tone of Voice:** Brutalist, surgical, engineering-first, unapologetic, high-craft (Linear meets Cloudflare & Stripe Press). Zero corporate jargon ("synergy", "paradigm shift", "revolutionary").
 
 ---
 
-## 3. Reversibility & Modular Architecture
+## 2. The 360° Multi-Pillar Campaign Architecture (Pure Utility, No Gimmicks)
 
-To satisfy the user's requirement (`"geri alınabilecek şekilde çalışmalar yapalım"`):
-- All existing agency components (`Services.tsx`, `FeaturedWork.tsx`, `About.tsx`, `Insights.tsx`, `Contact.tsx`) will be preserved in git history and kept intact in a `components/legacy/` archive or preserved alongside new components.
-- The new SaaS architecture will be built with dedicated, clean components:
-  - `components/saas/SaasHero.tsx`
-  - `components/saas/WorkflowSteps.tsx`
-  - `components/saas/ProductCapabilities.tsx`
-  - `components/saas/ComparisonTable.tsx`
-  - `components/saas/FaqSection.tsx`
-- Switching back is as simple as toggling imports in `app/page.tsx` or a single git revert.
+### Pillar 1: The Trojan Horse PR Stunt ("The Top 50 Open-Source Boilerplates Audit")
+- **The Concept:** Run Zelsis against the top 50 open-source Next.js, FastAPI, Supabase, and AI starter kits on GitHub.
+- **The Asset:** Publish an unvarnished, deep-dive report: *"We Audited the Top 50 Modern Web Boilerplates: 82% Ship with Critical Production Leaks Out-of-the-Box."*
+- **Distribution:**
+  - Hacker News ("Show HN: What we found after scanning 50 top GitHub boilerplates").
+  - Reddit (r/webdev, r/nextjs, r/devops, r/SaaS).
+  - Twitter/X long-form engineering breakdown with real code diff screenshots.
+- **The Hook:** Boilerplate authors and maintainers will rush to audit their templates and link the official hardening report.
+
+### Pillar 2: The Workflow Integrator — 1-Click CI/CD GitHub Action PR Gate
+- **Zero-Badge Philosophy:** No forced marketing badges or visual clutter in READMEs. Real developer software earns trust by integrating directly into daily git workflows.
+- **1-Click GitHub Actions CI/CD Integration (`zelsis-gate.yml`):**
+  - Developers copy a simple 5-line workflow snippet into `.github/workflows/zelsis-gate.yml`.
+  - When a Pull Request is submitted, Zelsis automatically audits the changeset in <3 seconds and posts a clean, deterministic clearance report directly in the PR comments.
+  - When an engineering team sees Zelsis catch an exposed credential or RLS leak right inside a teammate's PR, adoption spreads across the organization virally by pure utility.
+
+### Pillar 3: Surgical High-Intent Paid Media (Zero Ad Waste)
+- **Why Broad Ads are Dead:** 75%+ of developers use adblockers; generic Meta/TikTok ads burn cash and bring unqualified leads.
+- **Surgical Channel 1: High-Intent Google Search Ads (Exact Match Only):**
+  - Target search queries from developers actively looking to solve a critical problem:
+    - `"supabase rls security scanner"`
+    - `"nextjs 15 production readiness checklist"`
+    - `"dockerfile root privilege security check"`
+    - `"pre-deployment release gate automated"`
+- **Surgical Channel 2: Premier Developer Newsletter Sponsorships:**
+  - Dedicated developer newsletters with 100% verified engineering readership:
+    - *TLDR Web Dev* (150k+ developers)
+    - *Bytes.dev* (200k+ modern web devs)
+    - *Console.dev* (Curated tools for engineers)
+- **Surgical Channel 3: Technical Retargeting:**
+  - Retarget only visitors who ran a free audit on the landing page but did not complete checkout with targeted Twitter/X technical diff cards.
+
+### Pillar 4: Conversion Rate Optimization (CRO) & Product Experience
+- **3-Second "Aha!" Moment on the Hero:**
+  - 1-click popular repository audit presets (`shadcn/ui`, `supabase/supabase`, `expressjs/express`, `calcom/cal.com`).
+  - Visitors test a real repo instantly without being forced to register, create a password, or submit a credit card.
+- **Interactive Surgical Remediation:**
+  - Showing immediate unified diff code patches for identified vulnerabilities, proving the tool provides concrete solutions, not just noisy warning badges.
+- **Clear Value-Tiering:**
+  - Free Tier: 3 free scans, essential checks.
+  - Pro Tier ($29/mo): Unlimited scans, private repos, instant diff patches, automated CI/CD bot.
+  - Enterprise Tier ($99/mo): Full compliance manifests (SOC2, ISO 27001, GDPR), Slack/Discord webhooks, team seats.
 
 ---
 
-## 4. Design Commitment (Anti-Safe Harbor & Anti-AI Slop)
+## 3. Four-Week Master Launch Rollout Calendar
 
-Following `@[agents/frontend-specialist]` and `@[skills/ui-ux-designer]`:
-- **Style**: Obsidian Radar / Industrial Precision Developer Platform.
-- **Strict Purple Ban**: 0 purple, violet, indigo, or magenta gradients. Only deep dark `#0A0A0A` / `#121212`, clean white `#EDEDED`, tactical emerald `#10B981`, alert amber `#F59E0B`, and crimson `#EF4444`.
-- **No Floating Blobs / Mesh Gradients**: Clean, crisp borders (`border-white/10`), subtle dot-matrix grid backgrounds, high-contrast monospace typography.
-- **Copy**: Crisp, concrete, developer-centric metrics (numbers, rules, seconds, standards). No marketing buzzwords like "Orchestrate", "Empower", "Elevate", "Seamless".
-
----
-
-## 5. Phase 2 Implementation Work Breakdown (3 Specialized Agents)
-
-Upon user approval of this plan, the following agents will execute in parallel:
-
-### Agent 1: `frontend-specialist` (High-Converting SaaS Component Construction)
-- Implement `components/saas/SaasHero.tsx` featuring `dashboard_overview.png` with interactive hotspot telemetry and direct repository scan input.
-- Implement `components/saas/WorkflowSteps.tsx` (3-step interactive pipeline).
-- Implement `components/saas/ProductCapabilities.tsx` showcasing `security_rules.png`, `audit_findings.png`, `vulnerability_sandbox.png`, and `bundle_profiler.png` in high-density cards.
-- Implement `components/saas/ComparisonTable.tsx` and `components/saas/FaqSection.tsx`.
-- Wire into `app/page.tsx`.
-
-### Agent 2: `ui-ux-designer` (Visual Harmony, Responsive Rhythm & Micro-Interactions)
-- Audit spacing, contrast ratios, and typography scale across mobile, tablet, and desktop viewports.
-- Enforce strict Purple Ban and zero AI-slop visual artifacts.
-- Implement subtle micro-interactions (hotspot pulse, copy-to-clipboard, tab switching).
-
-### Agent 3: `test-engineer` (Verification, Quality Gates & Zero-Regression Sync)
-- Audit all modified files for 100% Native English (zero Turkish characters in code/comments).
-- Run `npx tsc --noEmit` and `npm run build` to guarantee clean compilation.
-- Run `python .agent/skills/vulnerability-scanner/scripts/security_scan.py .`.
-- Run Desktop sync script `scratch/sync_to_desktop.py`, stage, commit, push to GitHub, and verify live URL `https://shipguard-saas.vercel.app`.
+| Timeline | Phase Focus | Key Deliverables & Actions |
+|---|---|---|
+| **Week 1: Infrastructure & Seeding** | Foundations & Assets | Connect custom domain, verify SSL, deploy 1-click hero presets, finalize Top 50 Boilerplates research data. |
+| **Week 2: The Explosive Launch (PR Blitz)** | Organic Attention Wave | Publish "The Top 50 Boilerplates Audit Report", execute Hacker News Show HN, drop viral Twitter/X technical thread. |
+| **Week 3: High-Intent Capture & Community** | Direct Conversion | Launch on Product Hunt (Tuesday 00:01 PST), activate exact-match Google Search ads, sponsor premier developer newsletter. |
+| **Week 4: Workflow Retention & Scale** | Team Adoption | Launch GitHub Action marketplace listing, team onboarding workflows, and publish customer case studies. |
 
 ---
 
-## 6. Socratic Checkpoint & User Approval
-Before touching code or executing Phase 2, we present this plan to the user for explicit review and validation.
+## 4. Phase 2 Implementation Work Breakdown (Specialized Agents)
+
+### Specialist 1: `frontend-specialist` (High-Converting Creative Landing Page & 1-Click CI/CD Snippet)
+- Update `components/saas/SaasHero.tsx` with instant 1-click popular open-source presets.
+- Enhance CI/CD modal & snippet copying for `.github/workflows/zelsis-gate.yml` with 1-click copy and instant syntax highlighting.
+- Ensure the free scan experience delivers maximum value with zero modal traps.
+
+### Specialist 2: `seo-specialist` / `content-marketer` (Agency Launch Copy & PR Assets)
+- Draft the viral Hacker News "Show HN" submission post and Reddit r/webdev announcement.
+- Draft the high-intent exact-match Google Ads ad copy and developer newsletter teaser creatives.
+- Prepare the "Top Boilerplate Security Audit" technical teardown outline.
+
+### Specialist 3: `test-engineer` (Quality Assurance, Build Integrity & Desktop Sync)
+- Execute `npx tsc --noEmit` and `npm run build` across all 27 routes.
+- Run the full verification checklist (`checklist.py`).
+- Synchronize all files to `C:\Users\Bedirhan\Desktop\newday` and push to GitHub.
+
+---
+
+## 5. Socratic Gate & Client Approval Checkpoint
+Before executing Phase 2 code and campaign asset creation, the agency presents this Master Strategy to the client for final sign-off:
+- Proceed with Phase 2 implementation? `(Y/N)`

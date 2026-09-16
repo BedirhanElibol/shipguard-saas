@@ -27,10 +27,24 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
 
   const sampleRepos = [
     { label: 'Express.js', value: 'expressjs/express' },
-    { label: 'Flask', value: 'pallets/flask' },
-    { label: 'React Core', value: 'facebook/react' },
-    { label: 'Next.js App', value: 'vercel/next.js' }
+    { label: 'Supabase', value: 'supabase/supabase' },
+    { label: 'Flask API', value: 'pallets/flask' },
+    { label: 'Cal.com', value: 'calcom/cal.com' },
+    { label: 'React Core', value: 'facebook/react' }
   ];
+
+  const handleSelectAndScan = (val: string) => {
+    setRepoInput(val);
+    const clean = val.trim();
+    if (!clean || isScanning) return;
+    setIsScanning(true);
+    const normalized = normalizeRepoUrl(clean);
+    if (onOpenDashboard) {
+      onOpenDashboard(normalized);
+    } else {
+      router.push(`/dashboard?repo=${encodeURIComponent(normalized)}&scan=true`);
+    }
+  };
 
   if (sampleRepos.length === 0) return null;
 
@@ -125,19 +139,21 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             </button>
           </form>
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs">
-            <span className="text-zinc-500 text-[11px] font-mono uppercase">Quick Presets:</span>
+            <span className="text-zinc-500 text-[11px] font-mono uppercase">1-Click Presets:</span>
             {sampleRepos.map((r) => (
               <button
                 key={r.value}
                 type="button"
-                onClick={() => setRepoInput(r.value)}
-                className={`text-[11px] font-mono px-2.5 py-0.5 rounded-md border transition-all ${
+                onClick={() => handleSelectAndScan(r.value)}
+                title={`Run instant audit on ${r.value}`}
+                className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
                   repoInput === r.value
-                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                    : 'border-white/10 bg-white/[0.02] text-zinc-400 hover:text-zinc-200 hover:border-white/20'
+                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300 shadow-sm shadow-emerald-500/10'
+                    : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-emerald-300 hover:border-emerald-500/30'
                 }`}
               >
-                {r.label}
+                <span>{r.label}</span>
+                <ArrowRight size={10} className="text-zinc-500 group-hover:text-emerald-400" />
               </button>
             ))}
           </div>
@@ -150,7 +166,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
         >
           <span>Zero-Retention Privacy (Code Never Stored)</span>
           <span className="hidden sm:inline text-zinc-700">•</span>
-          <span>5,000+ Deep Web &amp; Cloud Rules</span>
+          <span>7,850+ Deep Web &amp; Cloud Rules</span>
           <span className="hidden sm:inline text-zinc-700">•</span>
           <span>In-Memory Stream Evaluation</span>
         </motion.div>

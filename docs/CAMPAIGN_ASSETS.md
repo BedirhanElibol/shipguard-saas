@@ -23,7 +23,7 @@ Developer marketing fails when it uses generic AI buzzwords. Real engineers have
 ### 🚫 Forbidden AI Slop Tropes (Banned across all Zelsis Ads)
 - ❌ **No Buzzwords:** Banned words include *"supercharge"*, *"unleash"*, *"elevate"*, *"seamless synergy"*, *"next-generation AI"*, *"game-changer"*, *"revolutionary"*, *"all-in-one platform"*, *"empowering developers"*.
 - ❌ **No Faux-Futuristic Visuals:** Zero glowing neon shields, zero robotic cyborg hands, zero stock photos of smiling corporate actors in glass conference rooms.
-- ❌ **No Vague Claims:** Never say *"100% secure"* or *"Finds bugs faster"*. Always state the exact metric: *"Evaluates 7,850 rules in <3.5 seconds"* or *"Catches Supabase RLS bypasses and Docker root execution"*.
+- ❌ **No Vague Claims:** Never say *"100% secure"* or *"Finds bugs faster"*. Always state the exact metric: *"Evaluates 7,850 rules with zero-skipping precision"* or *"Catches Supabase RLS bypasses and Docker root execution"*.
 
 ### ✅ Enforced Anti-Slop Principles
 1. **Concrete Stacks & Specific CVEs:** Always mention real technologies developers use: *Next.js 15, Supabase, Docker, PostgreSQL, Stripe, FastAPI*.
@@ -49,7 +49,7 @@ Developer marketing fails when it uses generic AI buzzwords. Real engineers have
   - `Zelsis: 3s Pre-Flight Gate`
   - `Zero Code Retention · $29/mo`
 - **Descriptions (Max 90 chars):**
-  - `Don't wait 8 minutes on CI. Zelsis audits 7,850 rules in 3 seconds before code merges.`
+  - `Don't wait 8 minutes on CI. Zelsis audits 7,850 rules thoroughly before code merges.`
   - `Deterministic AST analysis for Next.js, Supabase & Docker. Test your public repo free.`
 
 #### Ad Group B: `SonarQube Alternative`
@@ -63,7 +63,7 @@ Developer marketing fails when it uses generic AI buzzwords. Real engineers have
   - `Zelsis: Fast Release Gate`
   - `Zero Java Server Overhead`
 - **Descriptions (Max 90 chars):**
-  - `SonarQube flags missing comments. Zelsis catches fatal production security leaks in 3s.`
+  - `SonarQube flags missing comments. Zelsis catches fatal production security leaks with instant unified diffs.`
   - `No complex server to host. In-memory static analysis across 7,850 release rules.`
 
 #### Negative Keywords (Eliminate 100% of Wasted Spend):
@@ -97,7 +97,7 @@ Developer marketing fails when it uses generic AI buzzwords. Real engineers have
 ```text
 **Linters check syntax. Snyk charges $98/dev. Zelsis clears your code for takeoff in 3 seconds.**
 Most pre-deployment checks are either too dumb (ESLint) or too bloated (10-minute CI delays). 
-Zelsis is the in-memory release gate that evaluates 7,850 rules across OWASP, Supabase RLS, Docker root escalation, and WCAG accessibility in <3.5 seconds. 
+Zelsis is the in-memory release gate that evaluates 7,850 rules across OWASP, Supabase RLS, Docker root escalation, and WCAG accessibility with zero-skipping precision. 
 Zero code stored. Get instant diff patches for your repo: [zelsis.com]
 ```
 
@@ -133,7 +133,7 @@ Zelsis runs client-side and in-memory AST stream evaluation across 7,850 release
 - **First Comment Focus:**
   - Address the elephant in the room: *"Why another code scanner when Snyk, SonarQube, and Semgrep exist?"*
   - Explain the technical architecture: In-memory streaming AST regex engine, zero disk writes, 7,850 pre-calibrated rules, instant unified diff generation.
-  - Transparent benchmark against massive repos: Explain how Zelsis uses smart file prioritization to audit critical infrastructure and API files in <3.5 seconds even on 10,000-file monorepos like Supabase.
+  - Transparent benchmark against massive repos: Explain how Zelsis uses smart file prioritization to audit critical infrastructure and API files with zero-skipping precision even on 10,000-file monorepos like Supabase.
 
 ### 5.2 Reddit r/webdev & r/nextjs Technical Post
 - **Title:** `We audited 50 top open-source boilerplates. Snyk and ESLint missed 82% of the critical leaks. Here is why.`

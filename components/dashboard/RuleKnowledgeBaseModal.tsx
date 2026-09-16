@@ -128,6 +128,39 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       remediatedSnippet: `{items.length === 0 ? <EmptyState prompt="No items found" /> : items.map(...)}`
     },
     {
+      id: 'UI-05',
+      title: 'Decorative Eyebrow & Heading Icon Prepending',
+      category: 'VIBEPOLISH',
+      severity: 'MEDIUM',
+      compliance: 'Design System & Typography Hierarchy Standards',
+      penaltyExposure: '',
+      description: 'Prepending decorative Lucide icons (<Terminal />, <Layers />, <Scale />) to uppercase section eyebrow badges or headings is a hallmark of AI template slop.',
+      vulnerableSnippet: `<div className="badge"><Terminal size={14} /> <span>OPERATIONAL ARCHITECTURE</span></div>`,
+      remediatedSnippet: `<div className="text-xs font-mono uppercase tracking-widest text-zinc-400">OPERATIONAL ARCHITECTURE</div>`
+    },
+    {
+      id: 'UI-06',
+      title: 'Pulsating Status Dot & Glowing Badge Cliché',
+      category: 'VIBEPOLISH',
+      severity: 'LOW',
+      compliance: 'Interface Motion & Clarity Guidelines',
+      penaltyExposure: '',
+      description: 'Adding pulsing neon green animation dots (animate-pulse) to static marketing cards or badges introduces visual fatigue and looks like an automated template.',
+      vulnerableSnippet: `<span className="badge"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active</span>`,
+      remediatedSnippet: `<span className="px-2.5 py-0.5 rounded text-xs font-mono text-zinc-300 bg-white/10 border border-white/10">Active</span>`
+    },
+    {
+      id: 'UI-08',
+      title: 'Repetitive Checkmark Icon Flooding',
+      category: 'VIBEPOLISH',
+      severity: 'LOW',
+      compliance: 'Visual Scannability & List Ergonomics',
+      penaltyExposure: '',
+      description: 'Flooding every single feature item in lists or trust bars with repeated green CheckCircle2 icons creates cognitive clutter.',
+      vulnerableSnippet: `<ul>{features.map(f => <li><CheckCircle2 className="text-emerald-400" /> {f}</li>)}</ul>`,
+      remediatedSnippet: `<ul>{features.map(f => <li><span className="text-zinc-600 font-mono">—</span> {f}</li>)}</ul>`
+    },
+    {
       id: 'CLICHE-01',
       title: 'Decorative Hero Badge Pill',
       category: 'AI CLICHÉ',

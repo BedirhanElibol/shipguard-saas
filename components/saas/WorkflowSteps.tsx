@@ -9,8 +9,6 @@ import {
   ArrowRight, 
   Cpu, 
   Lock, 
-  Terminal, 
-  CheckCircle2, 
   ExternalLink 
 } from 'lucide-react';
 
@@ -82,8 +80,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
       <div className="max-w-6xl mx-auto flex flex-col gap-16">
         {/* Section Header */}
         <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400">
-            <Terminal size={14} />
+          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-zinc-400">
             <span>OPERATIONAL ARCHITECTURE</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
@@ -130,8 +127,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
         <div className="rounded-2xl border border-white/15 bg-[#121212] p-6 sm:p-10 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column: Technical Context & Highlights (6 cols) */}
           <div className="lg:col-span-6 flex flex-col gap-6">
-            <div className="inline-flex items-center gap-2 text-xs font-mono text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <div className="text-xs font-mono uppercase tracking-wider text-zinc-400">
               <span>STEP {steps[activeStep].number} DEEP DIVE</span>
             </div>
 
@@ -146,7 +142,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
             <ul className="flex flex-col gap-3 pt-4 border-t border-white/10">
               {steps[activeStep].features.map((feat, i) => (
                 <li key={i} className="flex items-start gap-3 text-xs sm:text-sm text-zinc-300">
-                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <span className="text-zinc-500 font-mono text-xs select-none shrink-0 mt-0.5">—</span>
                   <span>{feat}</span>
                 </li>
               ))}

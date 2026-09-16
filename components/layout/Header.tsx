@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
             </select>
 
             {selectedProject.id === 'proj-saas-starter' && (!user || !user.isLoggedIn) && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shrink-0">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-white/10 border border-white/15 text-zinc-300 shrink-0">
                 Demo Showcase
               </span>
             )}
@@ -273,10 +273,10 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="px-3 py-2 bg-white/[0.03] rounded-lg my-1 border border-white/5 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                             <span className="text-[11px] font-bold text-white">Free Plan</span>
                           </div>
-                          <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-mono font-medium text-zinc-300 bg-white/10 border border-white/15 px-1.5 py-0.5 rounded">
                             Active
                           </span>
                         </div>
@@ -300,7 +300,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="p-3 bg-white/[0.03] rounded-lg my-1 border border-white/5 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <span className={`w-1.5 h-1.5 rounded-full ${validity.badgeColors.dot} ${validity.isActive ? 'animate-pulse' : ''}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${validity.badgeColors.dot}`} />
                             <span className="text-[11px] font-bold text-white">{validity.tier} Plan</span>
                           </div>
                           <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${validity.badgeColors.bg} ${validity.badgeColors.text} ${validity.badgeColors.border}`}>

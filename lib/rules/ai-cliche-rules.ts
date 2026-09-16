@@ -2035,5 +2035,85 @@ export function evaluateAiClicheRules(
     logs.push(`[${ts}] 🎨 CLICHE-75: Formulaic "Frequently Asked Questions" Subtitle Cliché detected (${file.path}:${lineNum})`);
   }
 
+  // CLICHE-76: Decorative Eyebrow & Heading Icon Prepending
+  if (/<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>\s*<(?:span|div)[^>]*>\s*[A-Z\s_\-&]{4,}\s*<\/(?:span|div)>/i.test(cleanContent) ||
+      /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles)\b[^>]*\/>\s*[A-Z\s_\-&]{4,}/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>/i.test(l) && /[A-Z]{3,}/.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 276,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-76: Decorative Eyebrow & Heading Icon Prepending (AI Slop)',
+      severity: 'MEDIUM',
+      category: "AI Cliché & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<Terminal size={14} /> OPERATIONAL ARCHITECTURE',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        'Detected decorative Lucide icon prepended directly to uppercase section eyebrow text or category badges.'
+      ],
+      remediationPrompt: 'Remove decorative Lucide icons prepended to section eyebrows or uppercase headings. Rely on clear typographic hierarchy and letter spacing.',
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] [RULE] CLICHE-76: Eyebrow icon prepending detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-77: Pulsating Status Dot & Glowing Badge Cliché
+  const isLiveRunnerComponent = /ScanRunnerView|TerminalLogWindow/i.test(file.path);
+  if (!isLiveRunnerComponent && (/rounded-full\s+bg-emerald-[45]00[^"']*animate-pulse/i.test(cleanContent) || /animate-pulse[^"']*rounded-full\s+bg-emerald-[45]00/i.test(cleanContent))) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && /animate-pulse/i.test(l) && /bg-emerald/i.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 277,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-77: Pulsating Status Dot & Glowing Badge Cliché (AI Slop)',
+      severity: 'LOW',
+      category: "AI Cliché & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        'Detected pulsating green indicator dot inside static component or card.'
+      ],
+      remediationPrompt: 'Remove distracting pulsating green animation dots in static badges. Use static monochromatic or subtle badges.',
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] [RULE] CLICHE-77: Pulsing status dot cliché detected (${file.path}:${lineNum})`);
+  }
+
+  // CLICHE-78: Repetitive Checkmark Icon Flooding
+  if (/<(?:CheckCircle2|CheckCircle)\b[^>]*className="[^"]*text-emerald-400[^"]*shrink-0/i.test(cleanContent) && /\.map\s*\(/.test(cleanContent) && cleanContent.includes('<li')) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && /<(?:CheckCircle2|CheckCircle)\b/i.test(l) && /<li/i.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    findings.push({
+      id: `cliche-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 278,
+      type: 'VIBEPOLISH',
+      title: 'CLICHE-78: Repetitive Checkmark Icon Flooding (AI Slop)',
+      severity: 'LOW',
+      category: "AI Cliché & Copywriting",
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: lines[matchLineIdx] || '<CheckCircle2 size={16} className="text-emerald-400 shrink-0" />',
+      reproductionSteps: [
+        `Scanned UI layout and design tokens in ${file.path}:${lineNum}.`,
+        'Detected repetitive CheckCircle icons prepended to every single list item.'
+      ],
+      remediationPrompt: 'Replace repetitive CheckCircle icons with clean typography dashes (e.g. "—"), numbered steps, or distinct micro-cards.',
+      status: 'OPEN',
+      owner: 'UI Architect',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] [RULE] CLICHE-78: Repetitive checkmark flooding detected (${file.path}:${lineNum})`);
+  }
+
   return { findings, logs };
 }

@@ -394,7 +394,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
           <div className="flex items-center gap-2">
             <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${validity.badgeColors.bg} ${validity.badgeColors.border} ${validity.badgeColors.text}`}>
-              <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot} ${validity.isActive ? 'animate-pulse' : ''}`} />
+              <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot}`} />
               {validity.isActive ? 'Active' : 'Expired'}
             </span>
           </div>
@@ -434,7 +434,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot} ${validity.isActive ? 'animate-pulse' : ''}`} />
+                      <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot}`} />
                       <span className="text-lg font-mono font-extrabold text-white">
                         {validity.countdownLabel}
                       </span>

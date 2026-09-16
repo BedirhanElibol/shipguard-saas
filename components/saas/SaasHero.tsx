@@ -175,8 +175,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-white/10 text-zinc-200 border border-white/15">
                 <span>Clearance: Passed (94/100)</span>
               </span>
               <button

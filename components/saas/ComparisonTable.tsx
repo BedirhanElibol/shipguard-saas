@@ -89,8 +89,7 @@ export const ComparisonTable: React.FC = () => {
       <div className="max-w-6xl mx-auto flex flex-col gap-16">
         {/* Section Header */}
         <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400">
-            <Scale size={14} />
+          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-zinc-400">
             <span>UNCOMPROMISING COMPARISON</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
@@ -110,11 +109,8 @@ export const ComparisonTable: React.FC = () => {
                   <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-2/5">
                     Operational Capability
                   </th>
-                  <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/[0.04] border-x border-white/10 w-1/5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      <span className="font-bold text-white">Zelsis</span>
-                    </div>
+                  <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-white bg-white/[0.04] border-x border-white/10 w-1/5">
+                    <span className="font-bold text-white">Zelsis</span>
                   </th>
                   <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-1/5">
                     Standard Linters

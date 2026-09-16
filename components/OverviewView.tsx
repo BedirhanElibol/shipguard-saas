@@ -37,14 +37,14 @@ export const DemoShowcaseBanner: React.FC<DemoShowcaseBannerProps> = ({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-emerald-500/25 bg-gradient-to-r from-emerald-950/40 via-[#141414] to-[#141414] p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#141414] p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400">
+        <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 text-zinc-300">
           <Layers size={20} />
         </div>
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 tracking-wider uppercase">
+            <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-white/10 border border-white/15 text-zinc-200 tracking-wider uppercase">
               INTERACTIVE DEMO PREVIEW
             </span>
           </div>

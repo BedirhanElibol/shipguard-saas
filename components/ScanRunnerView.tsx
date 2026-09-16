@@ -297,8 +297,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             <h1 className="text-lg sm:text-xl font-extrabold text-[#EDEDED] truncate">
               Sequential AST Audit: {project.name}
             </h1>
-            <div className="text-xs text-[#A1A1AA] mt-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+            <div className="text-xs text-[#A1A1AA] mt-1">
               <span className="truncate">Automated security clearance &amp; UX quality gates</span>
             </div>
           </div>

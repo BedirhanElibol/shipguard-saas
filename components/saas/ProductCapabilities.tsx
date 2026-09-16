@@ -175,8 +175,7 @@ export const ProductCapabilities: React.FC = () => {
                   {/* Architecture Capability Tags (No Fake Numbers) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-4 border-y border-white/10">
                     {pillar.architecturePills.map((pill, pIdx) => (
-                      <div key={pIdx} className="p-2.5 rounded-lg bg-[#0E0E10] border border-white/5 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                      <div key={pIdx} className="p-2.5 rounded-lg bg-[#0E0E10] border border-white/5 flex items-center">
                         <span className="text-xs font-mono text-zinc-300">{pill}</span>
                       </div>
                     ))}

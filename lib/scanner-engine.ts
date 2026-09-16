@@ -1646,6 +1646,92 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-04: Missing Empty State component detected (${file.path})`);
     }
 
+    // VibePolish UI-05: Decorative Eyebrow & Heading Icon Prepending (AI Slop Pattern)
+    const hasEyebrowIconSlop = /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>\s*<(?:span|div)[^>]*>\s*[A-Z\s_\-&]{4,}\s*<\/(?:span|div)>/i.test(file.content) ||
+      /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles)\b[^>]*\/>\s*[A-Z\s_\-&]{4,}/i.test(file.content);
+    if (isFrontendComponent && hasEyebrowIconSlop) {
+      const matchLineIdx = lines.findIndex(l => /<(?:Terminal|Layers|Scale|HelpCircle|ShieldCheck|Sparkles|Activity|Code|Settings|Sliders|Zap)\b[^>]*\/>/i.test(l) && /[A-Z]{3,}/.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      addFinding({
+        id: `real-find-${Date.now()}-${findingCounter++}`,
+        ruleId: 1005,
+        type: 'VIBEPOLISH',
+        title: 'UI-05: Decorative Eyebrow & Heading Icon Prepending (AI Slop Anti-Pattern)',
+        severity: 'MEDIUM',
+        category: 'Visual Hierarchy & Typography',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: lines[matchLineIdx] || '<Terminal size={14} /> OPERATIONAL ARCHITECTURE',
+        reproductionSteps: [
+          `Scanned section headers and category badges in ${file.path}:${lineNum}.`,
+          'Detected decorative Lucide icon prepended directly to uppercase section title text (classic AI template marker).'
+        ],
+        remediationPrompt: `Remove decorative Lucide icons prepended to section eyebrows or uppercase headings in ${file.path}. Use clean, confident typography with letter-spacing (tracking-wider or tracking-widest) without decorative icon clutter.`,
+        status: 'OPEN',
+        owner: 'UI Architect',
+        falsePositive: false
+      });
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-05: Eyebrow icon prepending detected (${file.path}:${lineNum})`);
+    }
+
+    // VibePolish UI-06: Pulsating Status Dot & Glowing Badge Cliché (AI Slop Pattern)
+    const hasPulsingDotSlop = /rounded-full\s+bg-emerald-[45]00[^"']*animate-pulse/i.test(file.content) ||
+      /animate-pulse[^"']*rounded-full\s+bg-emerald-[45]00/i.test(file.content);
+    const isLiveRunner = /ScanRunnerView|TerminalLogWindow/i.test(file.path);
+    if (isFrontendComponent && !isLiveRunner && hasPulsingDotSlop) {
+      const matchLineIdx = lines.findIndex(l => /animate-pulse/i.test(l) && /bg-emerald/i.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      addFinding({
+        id: `real-find-${Date.now()}-${findingCounter++}`,
+        ruleId: 1006,
+        type: 'VIBEPOLISH',
+        title: 'UI-06: Pulsating Status Dot & Glowing Badge Cliché (AI Slop Anti-Pattern)',
+        severity: 'LOW',
+        category: 'Visual Polish & Motion',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: lines[matchLineIdx] || '<span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />',
+        reproductionSteps: [
+          `Scanned status badges and header pills in ${file.path}:${lineNum}.`,
+          'Detected pulsating green indicator dot inside static component or card.'
+        ],
+        remediationPrompt: `Remove distracting pulsating green animation dots in static badges in ${file.path}. Use static, high-contrast, monochromatic or muted status badges for a professional, distraction-free interface.`,
+        status: 'OPEN',
+        owner: 'Frontend Team',
+        falsePositive: false
+      });
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-06: Pulsing status dot cliché detected (${file.path}:${lineNum})`);
+    }
+
+    // VibePolish UI-08: Repetitive Checkmark Icon Flooding (AI Slop Pattern)
+    const hasCheckmarkFlooding = /<(?:CheckCircle2|CheckCircle)\b[^>]*className="[^"]*text-emerald-400[^"]*shrink-0/i.test(file.content) &&
+      /\.map\s*\(/.test(file.content) &&
+      file.content.includes('<li');
+    if (isFrontendComponent && hasCheckmarkFlooding) {
+      const matchLineIdx = lines.findIndex(l => /<(?:CheckCircle2|CheckCircle)\b/i.test(l) && /<li/i.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      addFinding({
+        id: `real-find-${Date.now()}-${findingCounter++}`,
+        ruleId: 1008,
+        type: 'VIBEPOLISH',
+        title: 'UI-08: Repetitive Checkmark Icon Flooding (AI Slop Anti-Pattern)',
+        severity: 'LOW',
+        category: 'Visual Hierarchy & Typography',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: lines[matchLineIdx] || '<CheckCircle2 size={16} className="text-emerald-400 shrink-0" />',
+        reproductionSteps: [
+          `Scanned feature list elements in ${file.path}:${lineNum}.`,
+          'Detected repetitive CheckCircle icons prepended to every single list item.'
+        ],
+        remediationPrompt: `Replace repetitive CheckCircle icons in ${file.path} with clean typography dashes (e.g. "—"), subtle numbered steps, or distinct architectural micro-cards.`,
+        status: 'OPEN',
+        owner: 'UI Architect',
+        falsePositive: false
+      });
+      logs.push(`[${new Date().toLocaleTimeString()}] [RULE] VIBEPOLISH UI-08: Repetitive checkmark flooding detected (${file.path}:${lineNum})`);
+    }
+
     // VibePolish UI-07: Conversational Chat-Wrapper Lock-In Trap
     if (file.content.includes('messages.map') && !file.content.includes('Canvas') && !file.content.includes('Artifact') && !file.content.includes('Table')) {
       addFinding({

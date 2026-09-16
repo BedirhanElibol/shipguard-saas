@@ -236,7 +236,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           <span>Has 1-Click Code Patch ({findings.filter(f => Boolean(f.diffPatch || f.remediationPrompt)).length})</span>
         </button>
       </div>
-\n      {/* Header & Controls */}
+
+      {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">

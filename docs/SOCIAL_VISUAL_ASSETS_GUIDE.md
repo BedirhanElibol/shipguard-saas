@@ -1,16 +1,16 @@
-# ShipGuard Visual Identity & Social Media Assets Production Guide
+# Zelsis Visual Identity & Social Media Assets Production Guide
 ## Master Specification for X (Twitter), Reddit, and Open Graph Assets (v25.0.0)
 
-This guide provides the complete, production-grade visual design specifications, responsive safe zones, typographic scales, design tokens, complete standalone SVG code mockups, and screenshot capture checklists for **ShipGuard (Zelsis SaaS)** across X (Twitter), Reddit, and web preview channels.
+This guide provides the complete, production-grade visual design specifications, responsive safe zones, typographic scales, design tokens, complete standalone SVG code mockups, and screenshot capture checklists for **Zelsis** across X (Twitter), Reddit, and web preview channels.
 
 ---
 
 ## 1. Executive Visual Brand Foundations & Design Tokens
 
 ### 1.1 Brand Philosophy: Utilitarian, Developer-First, High Trust
-ShipGuard is an automated pre-deployment release gate for modern web applications (Next.js, React, Node.js, Python, full-stack web). Its visual language conveys **rigor, precision, zero hype, and absolute transparency**.
+Zelsis is an automated pre-deployment release gate for modern web applications (Next.js, React, Node.js, Python, full-stack web). Its visual language conveys **rigor, precision, zero hype, and absolute transparency**.
 
-Developers reject marketing noise, gimmicky gradients, and artificial hype. The ShipGuard aesthetic is rooted in:
+Developers reject marketing noise, gimmicky gradients, and artificial hype. The Zelsis aesthetic is rooted in:
 - **Obsidian Monochromatic Surfaces:** Deep charcoal and black foundation that minimizes optical fatigue and reflects modern developer interfaces (terminals, IDEs, code diffs).
 - **Surgical Emerald Accents:** A single vibrant accent color (`#10B981`) denoting passing release gates, security clearance, and verified code health.
 - **High-Contrast Typographic Hierarchy:** Uncompromising legibility with distinct pairings between system sans-serif headers and crisp monospace data readouts.
@@ -103,8 +103,8 @@ The X header banner requires precise engineering due to responsive viewport scal
 |   [TOP MARGIN SAFE ZONE - 40px]                                                                   |
 |                                                                                                   |
 |                                   +-------------------------------------------------------------+ |
-|   BRAND HEADLINE & POSITIONING    | THE SHIPGUARD RELEASE GATE CARD                             | |
-|   ShipGuard                       | +---------------------------------------------------------+ | |
+|   BRAND HEADLINE & POSITIONING    | THE ZELSIS RELEASE GATE CARD                             | |
+|   Zelsis                       | +---------------------------------------------------------+ | |
 |   Universal Pre-Deployment Gate   | | REPO: acme/web-app        STATUS: 100/100 PASSED            | | |
 |                                   | | [v] Security Check: OWASP & Secrets Cleared             | | |
 |   Deterministic AST code hygiene, | | [v] Dependencies: 0 Critical Vulnerabilities            | | |
@@ -174,7 +174,7 @@ Save or render this SVG code directly to generate the exact, production-ready 15
 
     <!-- Main Headline -->
     <text x="0" y="70" class="font-sans" font-size="44" font-weight="700" fill="#EDEDED" letter-spacing="-0.03em">
-      ShipGuard
+      Zelsis
     </text>
     <text x="0" y="105" class="font-sans" font-size="20" font-weight="500" fill="#10B981" letter-spacing="-0.01em">
       Universal Pre-Deployment Code &amp; Security Gate
@@ -223,7 +223,7 @@ Save or render this SVG code directly to generate the exact, production-ready 15
     <circle cx="20" cy="19" r="4.5" fill="#EF4444" opacity="0.8" />
     <circle cx="36" cy="19" r="4.5" fill="#F59E0B" opacity="0.8" />
     <circle cx="52" cy="19" r="4.5" fill="#10B981" opacity="0.8" />
-    <text x="76" y="23" class="font-mono" font-size="11" font-weight="500" fill="#71717A">shipguard audit --target https://github.com/acme/web-app</text>
+    <text x="76" y="23" class="font-mono" font-size="11" font-weight="500" fill="#71717A">zelsis audit --target https://github.com/acme/web-app</text>
 
     <!-- Top Card Stats Header -->
     <g transform="translate(24, 60)">
@@ -311,7 +311,7 @@ Reddit developer communities (r/webdev, r/SideProject, r/nextjs, r/SaaS, r/react
   - **Mobile Horizontal Crop:** On mobile screens and narrow viewports, the outer 360px on both sides are clipped.
   - **Central Focal Canvas:** Place all critical content between `X: 380px` and `X: 1540px` (centered 1160px container).
 - **Banner Layout Blueprint:**
-  - Left Zone (`X: 380px` to `X: 950px`): Minimalist wordmark `ShipGuard`, tag `PRE-DEPLOYMENT RELEASE GATE`, and a clean single-line description: *"Audit security, configurations, and dependencies before production."*
+  - Left Zone (`X: 380px` to `X: 950px`): Minimalist wordmark `Zelsis`, tag `PRE-DEPLOYMENT RELEASE GATE`, and a clean single-line description: *"Audit security, configurations, and dependencies before production."*
   - Right Zone (`X: 980px` to `X: 1540px`): A sleek horizontal scorecard showing the 5 verified pillars and the `100/100 PASSED` clearance stamp.
 
 #### Standalone Clean SVG Code: Reddit Banner (1920 x 384 px)
@@ -351,7 +351,7 @@ Reddit developer communities (r/webdev, r/SideProject, r/nextjs, r/SaaS, r/react
 
     <!-- Main Title -->
     <text x="0" y="70" class="font-sans" font-size="40" font-weight="700" fill="#EDEDED" letter-spacing="-0.03em">
-      ShipGuard
+      Zelsis
     </text>
     <text x="0" y="105" class="font-sans" font-size="18" font-weight="500" fill="#10B981">
       Automated Pre-Deployment Verification for Web Apps
@@ -376,7 +376,7 @@ Reddit developer communities (r/webdev, r/SideProject, r/nextjs, r/SaaS, r/react
     <circle cx="18" cy="17" r="4" fill="#EF4444" opacity="0.7" />
     <circle cx="32" cy="17" r="4" fill="#F59E0B" opacity="0.7" />
     <circle cx="46" cy="17" r="4" fill="#10B981" opacity="0.7" />
-    <text x="64" y="21" class="font-mono" font-size="10" font-weight="500" fill="#71717A">shipguard release-gate --check-all</text>
+    <text x="64" y="21" class="font-mono" font-size="10" font-weight="500" fill="#71717A">zelsis release-gate --check-all</text>
 
     <!-- Card Body -->
     <g transform="translate(20, 50)">
@@ -523,7 +523,7 @@ The Open Graph image is displayed automatically when links are shared on X, Redd
 - **Format:** High-fidelity PNG or WebP, sRGB.
 - **Card Anatomy:**
   1. **Top Navigation & Identity Bar:**
-     - Left: ShipGuard Wordmark + Shield Icon + Tag `PRE-DEPLOYMENT AUDIT REPORT`.
+     - Left: Zelsis Wordmark + Shield Icon + Tag `PRE-DEPLOYMENT AUDIT REPORT`.
      - Right: Verification Stamp `AUDIT STATUS: COMPLETE (3.2s)`.
   2. **Repository Target Bar:**
      - Container displaying analyzed target metadata: `repo: vercel/commerce` · `commit: e3f09a1` · `stack: Next.js 15, TypeScript, Tailwind`.
@@ -590,7 +590,7 @@ The Open Graph image is displayed automatically when links are shared on X, Redd
     </g>
 
     <!-- Brand Name -->
-    <text x="36" y="20" class="font-sans" font-size="22" font-weight="700" fill="#EDEDED" letter-spacing="-0.02em">ShipGuard</text>
+    <text x="36" y="20" class="font-sans" font-size="22" font-weight="700" fill="#EDEDED" letter-spacing="-0.02em">Zelsis</text>
     <text x="160" y="19" class="font-mono" font-size="12" font-weight="500" fill="#71717A">/ PRE-DEPLOYMENT RELEASE GATE</text>
 
     <!-- Status Badge (Right aligned) -->
@@ -751,7 +751,7 @@ To maintain high technical trust on X threads and Reddit posts, screenshots must
   3. The Gate Scorecard: Massive `100/100 PASSED` indicator.
   4. 5-Pillar Cards: Five clean cards side-by-side or in a 3+2 grid showing zero blockers.
 - **Visual State:** Completed scan state with subtle emerald borders (`#10B981` at 30% opacity).
-- **Intended Use Case:** Opening image for Tweet #3 ("What ShipGuard does") and Reddit Post Template A (`r/webdev`).
+- **Intended Use Case:** Opening image for Tweet #3 ("What Zelsis does") and Reddit Post Template A (`r/webdev`).
 
 ---
 
@@ -759,7 +759,7 @@ To maintain high technical trust on X threads and Reddit posts, screenshots must
 
 - **Capture Mode:** High-resolution screenshot or clean 4-second MP4/GIF loop.
 - **Component Hierarchy to Capture:**
-  1. Dark Terminal Window (`#141414`) with hairline border and title `shipguard-cli v25.0.0`.
+  1. Dark Terminal Window (`#141414`) with hairline border and title `zelsis-cli v25.0.0`.
   2. Step-by-step audit logs:
      ```text
      [0.12s] Fetching repository tree (acme-corp/web-app) ... DONE

@@ -1,11 +1,11 @@
-# ShipGuard Reddit Launch Kit & Community Playbook (v1.0.0)
+# Zelsis Reddit Launch Kit & Community Playbook (v1.0.0)
 ## Senior Technical Growth & Community Outreach Guide
 
 ---
 
 ## Executive Overview & Strategic Intent
 
-This playbook provides an end-to-end community distribution strategy for **ShipGuard** across Reddit's engineering communities. 
+This playbook provides an end-to-end community distribution strategy for **Zelsis** across Reddit's engineering communities. 
 
 Reddit developers are among the most technically rigorous, critical, and anti-marketing audiences on the internet. Successful community engagement requires:
 1. **Zero Exaggeration:** No unverified metrics, no fear-mongering ("AI creates hidden vulnerabilities"), and zero marketing buzzwords.
@@ -72,13 +72,13 @@ We ran ESLint for syntax and formatting. We ran `npm audit` for known CVEs. But 
 
 Linters don't typically check infrastructure and database patterns. Heavy enterprise security platforms (Snyk, SonarQube) are often expensive, slow in CI, and noisy with style warnings.
 
-To address this gap, I spent the last few weekends building **ShipGuard** (hosted at https://shipguard-saas.vercel.app). 
+To address this gap, I spent the last few weekends building **Zelsis** (hosted at https://shipguard-saas.vercel.app). 
 
 It is a lightweight, web-based release gate designed to perform a fast, unified pre-flight audit of any repository before you push to production.
 
 ### How it works technically:
 
-* **In-Memory Analysis:** You provide a public repository URL. ShipGuard clones the tree into memory, traverses the configuration files and ASTs, runs deterministic checks, and terminates the session. **No source code is ever stored on disk or used for machine learning.**
+* **In-Memory Analysis:** You provide a public repository URL. Zelsis clones the tree into memory, traverses the configuration files and ASTs, runs deterministic checks, and terminates the session. **No source code is ever stored on disk or used for machine learning.**
 * **The 5-Pillar Scorecard:** Every scan evaluates 5 core areas:
   1. *Security Baseline:* Secret detection, CORS policies, injection patterns, unprotected mutation endpoints.
   2. *Configuration & Infrastructure:* Docker security, serverless timeouts, DB pooling, caching headers.
@@ -96,7 +96,7 @@ https://shipguard-saas.vercel.app
 
 1. What is the one manual check you *always* run before deploying that automated CI pipelines tend to miss?
 2. Are there specific framework-level patterns (e.g., SvelteKit, Remix, Nuxt, Django) you would like to see added to the rule engine?
-3. Would a local CLI version (`npx shipguard audit`) be more useful for your day-to-day workflow than a web-based gate?
+3. Would a local CLI version (`npx zelsis audit`) be more useful for your day-to-day workflow than a web-based gate?
 
 I would really appreciate any honest feedback, bug reports, or rule suggestions.
 ```
@@ -107,7 +107,7 @@ I would really appreciate any honest feedback, bug reports, or rule suggestions.
 
 * **Target Subreddit:** `r/SideProject`
 * **Recommended Flair:** `Side Project`
-* **Title:** `Show SideProject: ShipGuard — a pre-deployment checklist for modern web apps with zero code storage`
+* **Title:** `Show SideProject: Zelsis — a pre-deployment checklist for modern web apps with zero code storage`
 * **Word Count:** ~540 words
 * **Target Tone:** Authentic maker journey, transparent architecture, community-oriented.
 
@@ -126,11 +126,11 @@ When I went back to fix it, I realized I also had a wildcard CORS rule enabled o
 
 Most indie developers and solo builders don't have dedicated DevOps or SecOps teams. We run `npm run build`, check that the console is green, and deploy. But build success only tells you the code compiles — not that it is safe or ready for real production traffic.
 
-I decided to build the tool I needed: **ShipGuard** (https://shipguard-saas.vercel.app).
+I decided to build the tool I needed: **Zelsis** (https://shipguard-saas.vercel.app).
 
-### What ShipGuard is:
+### What Zelsis is:
 
-ShipGuard is an automated pre-deployment release gate. You give it your public repository, and within seconds it runs a comprehensive pre-flight checklist across:
+Zelsis is an automated pre-deployment release gate. You give it your public repository, and within seconds it runs a comprehensive pre-flight checklist across:
 
 * **Security Vulnerabilities:** Hardcoded API keys, exposed database credentials, insecure CORS, and unauthenticated server actions.
 * **Deployment Misconfigurations:** Unpooled serverless DB connections, missing health checks, dangerous Docker permissions.
@@ -139,7 +139,7 @@ ShipGuard is an automated pre-deployment release gate. You give it your public r
 
 ### Architecture & Privacy First:
 
-As a developer, I am very careful about third-party tools inspecting code. Here is how ShipGuard operates:
+As a developer, I am very careful about third-party tools inspecting code. Here is how Zelsis operates:
 * **Zero Code Retention:** Code is audited purely in-memory. Nothing is written to a permanent database, and we do not store repository contents.
 * **Deterministic Rules:** No black-box guesses. Every flagged item points to a specific file and line number with an exact remediation diff.
 * **No Account Required for Public Audits:** You do not need to register, provide an email, or enter payment info to test a public repository.
@@ -230,7 +230,7 @@ USER nextjs
 
 ### We automated this checklist:
 
-We built a free tool called **ShipGuard** (https://shipguard-saas.vercel.app) to automate these checks. 
+We built a free tool called **Zelsis** (https://shipguard-saas.vercel.app) to automate these checks. 
 
 It audits your public Next.js repository against these specific patterns (along with OWASP security, container settings, and dependency CVEs) and outputs a pass/fail release gate scorecard with unified diff patches.
 
@@ -293,7 +293,7 @@ To keep our releases predictable, we formalized a 4-layer pre-deployment release
 
 ### Automating the Checklist:
 
-Going through this checklist manually on every release became tedious. To solve this, we built **ShipGuard** (https://shipguard-saas.vercel.app).
+Going through this checklist manually on every release became tedious. To solve this, we built **Zelsis** (https://shipguard-saas.vercel.app).
 
 It is a free pre-deployment release gate that automatically audits public repositories against these security, configuration, and reliability standards. 
 
@@ -321,11 +321,11 @@ Developers on Reddit will test your claims with sharp, specific questions. Below
 ```markdown
 That is a completely fair point. ESLint and `npm audit` are essential, and we definitely recommend keeping both active in your pipeline.
 
-The reason we built ShipGuard is that they each focus on narrow, specific layers:
+The reason we built Zelsis is that they each focus on narrow, specific layers:
 1. **ESLint** analyzes JavaScript/TypeScript ASTs for syntax errors, style conventions, and localized code patterns. It does not inspect full-stack infrastructure: it won't check if your Dockerfile runs as root, whether your serverless database connection is pooled, or if your CORS headers allow credentialed wildcards.
 2. **`npm audit`** checks known CVE databases for vulnerable dependencies, but it doesn't analyze your actual business logic or framework-specific configurations (like an unauthenticated Next.js Server Action or an exposed client-side environment variable).
 
-ShipGuard acts as a unified release gate that brings together code hygiene, infrastructure configurations, and security baselines into a single pre-deployment scorecard. It is complementary to linters, not a replacement.
+Zelsis acts as a unified release gate that brings together code hygiene, infrastructure configurations, and security baselines into a single pre-deployment scorecard. It is complementary to linters, not a replacement.
 ```
 
 ---
@@ -344,7 +344,7 @@ Here is our exact architecture:
 3. **Zero Model Training:** We do not train machine learning models on scanned code.
 4. **Immediate Cleanup:** As soon as the static rules finish evaluation (usually within 3 to 5 seconds), the in-memory representation is purged, and only the summarized score and findings are returned to your browser session.
 
-For teams with strict compliance policies or private repositories that cannot be audited via a web service, we are currently working on an open-source CLI version (`npx shipguard audit`) that runs entirely on your local machine without sending any data over the network.
+For teams with strict compliance policies or private repositories that cannot be audited via a web service, we are currently working on an open-source CLI version (`npx zelsis audit`) that runs entirely on your local machine without sending any data over the network.
 ```
 
 ---
@@ -360,7 +360,7 @@ Snyk and SonarQube are fantastic enterprise platforms with deep analysis capabil
 However, for solo developers, indie teams, and modern full-stack web startups, they come with significant friction:
 1. **Cost & Gating:** Snyk can run up to $98 per developer per month, and many advanced features require custom enterprise quotes and sales calls.
 2. **Speed & CI Overhead:** Running heavy enterprise SAST suites often adds 5 to 10 minutes to pull request checks, slowing down fast iteration cycles.
-3. **Modern Stack Focus:** Legacy tools often focus heavily on Java/C# patterns or produce hundreds of noisy style warnings. ShipGuard is calibrated specifically for modern web architectures (Next.js 14/15, React, Node.js, Python web, Docker, Supabase) and catches the exact misconfigurations common in modern cloud environments.
+3. **Modern Stack Focus:** Legacy tools often focus heavily on Java/C# patterns or produce hundreds of noisy style warnings. Zelsis is calibrated specifically for modern web architectures (Next.js 14/15, React, Node.js, Python web, Docker, Supabase) and catches the exact misconfigurations common in modern cloud environments.
 4. **Frictionless Pre-Flight:** You can run a check in 3 seconds directly from a browser before deploying, without having to configure complex YAML files or install heavy daemons.
 ```
 
@@ -389,7 +389,7 @@ Could you share the repository or the middleware pattern you are using? I would 
 ```markdown
 I appreciate the bluntness — there are way too many low-effort LLM wrappers flooding the developer ecosystem right now.
 
-To be clear: **ShipGuard does not use generative LLMs to invent findings.** 
+To be clear: **Zelsis does not use generative LLMs to invent findings.** 
 
 The engine uses deterministic static analysis: abstract syntax tree (AST) inspection combined with structured pattern matching across configuration manifests (Dockerfiles, package manifests, environment configurations, and routing files). 
 
@@ -446,7 +446,7 @@ flowchart TD
 ---
 **Update:** Thanks so much for all the thoughtful feedback and tough questions today! Based on your suggestions, we have already:
 1. Fixed the false positive reported with upstream middleware authentication.
-2. Added the local CLI tool (`npx shipguard audit`) to our immediate sprint roadmap.
+2. Added the local CLI tool (`npx zelsis audit`) to our immediate sprint roadmap.
 3. Expanded rule documentation for Next.js 15 standalone container builds.
 
 Really appreciate this community's rigor.
@@ -461,7 +461,7 @@ Use this table to log quantitative performance and qualitative sentiment across 
 | Date | Subreddit | Post Title | Upvotes | Total Comments | Unique Audits Generated | Bug Reports / False Positives | Key Community Takeaways |
 |---|---|---|---|---|---|---|---|
 | *YYYY-MM-DD* | `r/webdev` | *Pre-deployment release gate...* | | | | | |
-| *YYYY-MM-DD* | `r/SideProject` | *Show SideProject: ShipGuard...* | | | | | |
+| *YYYY-MM-DD* | `r/SideProject` | *Show SideProject: Zelsis...* | | | | | |
 | *YYYY-MM-DD* | `r/nextjs` | *Checklist of common gotchas...* | | | | | |
 | *YYYY-MM-DD* | `r/SaaS` | *How we structured pre-deploy...* | | | | | |
 

@@ -1,4 +1,4 @@
-# ShipGuard | Official Organic X (Twitter) Launch Kit & Community Playbook
+# Zelsis | Official Organic X (Twitter) Launch Kit & Community Playbook
 
 **Target Audience:** Web developers, full-stack engineers, technical founders, DevOps engineers, and software architects (Next.js, React, Node.js, Python, full-stack web).  
 **Tone & Philosophy:** 100% honest, grounded, pragmatic, developer-to-developer. Zero sensationalism, zero marketing fluff, zero exaggerated claims.  
@@ -8,12 +8,12 @@
 
 ## Executive Summary & Strategic Positioning
 
-ShipGuard is positioned as an **automated pre-deployment release gate** and pre-flight health checklist for modern web applications. 
+Zelsis is positioned as an **automated pre-deployment release gate** and pre-flight health checklist for modern web applications. 
 
 ### Core Positioning Truths:
-1. **Not Just AI Code, But Any Web Codebase:** Modern release failures happen across human-written, framework-generated, and assisted code alike. ShipGuard protects any production-bound repository across Next.js, React, Node.js, and Python.
-2. **Complementing, Not Replacing Linters:** Linters verify formatting and basic syntax. ShipGuard audits systemic release risks: unauthenticated endpoints, leaked API tokens in static bundles, overly permissive CORS policies, SSRF hazards, and vulnerable dependencies.
-3. **No CI Bottlenecks:** Heavy enterprise scanners take 8 to 15 minutes on CI runners and cost thousands per seat. ShipGuard runs in-memory stream analysis to clear releases in seconds without interrupting developer flow.
+1. **Not Just AI Code, But Any Web Codebase:** Modern release failures happen across human-written, framework-generated, and assisted code alike. Zelsis protects any production-bound repository across Next.js, React, Node.js, and Python.
+2. **Complementing, Not Replacing Linters:** Linters verify formatting and basic syntax. Zelsis audits systemic release risks: unauthenticated endpoints, leaked API tokens in static bundles, overly permissive CORS policies, SSRF hazards, and vulnerable dependencies.
+3. **No CI Bottlenecks:** Heavy enterprise scanners take 8 to 15 minutes on CI runners and cost thousands per seat. Zelsis runs in-memory stream analysis to clear releases in seconds without interrupting developer flow.
 4. **Absolute Privacy:** Source code is analyzed in-memory during the audit session, discarded immediately, never written to disk, and never stored or used to train models.
 
 ---
@@ -25,21 +25,21 @@ Choosing the right handle establishes immediate technical authority and credibil
 
 | Priority | Handle Option | Character Count | Strategic Rationale |
 | :--- | :--- | :--- | :--- |
-| **Option 1 (Recommended)** | `@ShipGuardHQ` | 13 chars | Authoritative, clean, standard convention for developer infrastructure and devtools companies. |
-| **Option 2** | `@ShipGuardApp` | 14 chars | Direct, utility-focused, ideal for a web application release gate platform. |
-| **Option 3** | `@ShipGuardDev` | 14 chars | Developer-first connotation, aligns well with open-source and community toolkits. |
+| **Option 1 (Recommended)** | `@ZelsisHQ` | 13 chars | Authoritative, clean, standard convention for developer infrastructure and devtools companies. |
+| **Option 2** | `@ZelsisApp` | 14 chars | Direct, utility-focused, ideal for a web application release gate platform. |
+| **Option 3** | `@ZelsisDev` | 14 chars | Developer-first connotation, aligns well with open-source and community toolkits. |
 
 > **Handle Reservation Checklist:**
 > 1. Secure the chosen primary handle immediately on X.
 > 2. If possible, register the other two handles as defensive redirects pointing back to the primary account.
-> 3. Match handle typography across GitHub organization (`github.com/shipguard`) and domain branding.
+> 3. Match handle typography across GitHub organization (`github.com/zelsis`) and domain branding.
 
 ---
 
 ### 1.2 Display Name
-- **Display Name:** `ShipGuard | Pre-Deployment Release Gate`
+- **Display Name:** `Zelsis | Pre-Deployment Release Gate`
 - **Character Count:** 39 / 50 characters maximum.
-- **Why this works:** The display name immediately communicates the brand name (`ShipGuard`) alongside the exact functional category (`Pre-Deployment Release Gate`). When interacting in replies, users instantly know what the product does before clicking the profile.
+- **Why this works:** The display name immediately communicates the brand name (`Zelsis`) alongside the exact functional category (`Pre-Deployment Release Gate`). When interacting in replies, users instantly know what the product does before clicking the profile.
 
 ---
 
@@ -48,21 +48,21 @@ X enforces a strict 160-character maximum for account biographies. Each option b
 
 #### Primary Option (Recommended)
 ```text
-Pre-deployment release gate for web apps. Audit security flaws, misconfigurations, and dependency risks before merging. Free public repo scans at shipguard.dev
+Pre-deployment release gate for web apps. Audit security flaws, misconfigurations, and dependency risks before merging. Free public repo scans at zelsis.dev
 ```
 - **Character Count:** 159 / 160 characters.
 - **Tone:** Grounded, utility-first, clear value proposition, frictionless call to action.
 
 #### Alternative Option A (Enterprise & Full-Stack Focus)
 ```text
-Automated pre-deployment release gate for full-stack web apps. In-memory security, config, and dependency checks. Test any public repo free at shipguard.dev
+Automated pre-deployment release gate for full-stack web apps. In-memory security, config, and dependency checks. Test any public repo free at zelsis.dev
 ```
 - **Character Count:** 156 / 160 characters.
 - **Tone:** Focuses on full-stack scope and in-memory architecture.
 
 #### Alternative Option B (Action-Oriented)
 ```text
-Clear your web app for takeoff. In-memory release gate auditing security leaks, broken configs, and vulnerable packages. Free public audits at shipguard.dev
+Clear your web app for takeoff. In-memory release gate auditing security leaks, broken configs, and vulnerable packages. Free public audits at zelsis.dev
 ```
 - **Character Count:** 156 / 160 characters.
 - **Tone:** Pre-flight clearance metaphor with immediate functional clarity.
@@ -98,10 +98,10 @@ A high-converting developer header banner must convey technical depth without vi
    - **Subhead:** `Lightweight, in-memory audits for security vulnerabilities, config drift, and dependency hygiene.` (16pt Regular).
 3. **Right 45% (x: 880px, y: 80px):**
    - A floating dark terminal card (`#0F172A` background, `#1E293B` 1px border, subtle 16px blur drop shadow).
-   - **Header Bar:** 3 window dots (`#EF4444`, `#F59E0B`, `#10B981`) and label `shipguard-gate.log`.
+   - **Header Bar:** 3 window dots (`#EF4444`, `#F59E0B`, `#10B981`) and label `zelsis-gate.log`.
    - **Terminal Output Text:**
      ```bash
-     $ shipguard verify --target ./web-app
+     $ zelsis verify --target ./web-app
      ✓ Environment variables: 0 leaked client secrets
      ✓ Origin validation: CORS explicit whitelist active
      ✓ Dependency manifest: 0 high/critical CVEs
@@ -118,19 +118,19 @@ The pinned tweet serves as the permanent conversion anchor for profile visitors 
 
 #### Pinned Tweet Copy (Strictly <= 280 Characters):
 ```text
-ShipGuard is an automated pre-deployment release gate for web apps.
+Zelsis is an automated pre-deployment release gate for web apps.
 
 Before merging to production, it runs in-memory audits across your stack to catch security leaks, broken configs, and vulnerable dependencies.
 
-Test any public repo free: https://shipguard.dev
+Test any public repo free: https://zelsis.dev
 ```
 - **Character Count:** 261 / 280 characters.
 - **Conversion Role:** Explains the product in one sentence, clarifies the scope, and offers instant zero-friction verification on any public GitHub repository.
 
 #### Pinned Tweet Media Attachment:
 - **Asset Type:** High-resolution 16:9 MP4 video (15 seconds) or optimized animated GIF.
-- **Visual Content:** Screen capture showing someone pasting an open-source Next.js repository URL into `shipguard.dev`, the in-memory audit running in under 2 seconds, and a clean result card expanding to show an exact Git diff patching a leaked API key in a client configuration file.
-- **Alt Text:** `ShipGuard pre-deployment scan completing an in-memory audit on a web application repository and generating an actionable Git diff.`
+- **Visual Content:** Screen capture showing someone pasting an open-source Next.js repository URL into `zelsis.dev`, the in-memory audit running in under 2 seconds, and a clean result card expanding to show an exact Git diff patching a leaked API key in a client configuration file.
+- **Alt Text:** `Zelsis pre-deployment scan completing an in-memory audit on a web application repository and generating an actionable Git diff.`
 
 ---
 
@@ -169,14 +169,14 @@ Heavy enterprise SAST tools take 10+ minutes on CI, flood you with hundreds of f
 Teams need something fast, lightweight, and deterministic right before the release gate merges.
 ```
 - **Character Count:** 276 / 280 characters.
-- **Media Suggestion:** Comparison diagram contrasting "Syntax Linters (Surface)" vs "Enterprise Scanners (Slow and Noisy)" vs "ShipGuard Release Gate (Targeted and In-Memory)".
+- **Media Suggestion:** Comparison diagram contrasting "Syntax Linters (Surface)" vs "Enterprise Scanners (Slow and Noisy)" vs "Zelsis Release Gate (Targeted and In-Memory)".
 - **Purpose:** Establishes why existing workflows fall short without attacking competitors unnecessarily.
 
 ---
 
-### Tweet 3: What ShipGuard Does
+### Tweet 3: What Zelsis Does
 ```text
-Meet ShipGuard: a fast, automated pre-deployment release gate for web apps (Next.js, Node, React, Python).
+Meet Zelsis: a fast, automated pre-deployment release gate for web apps (Next.js, Node, React, Python).
 
 It runs in-memory static audits across your stack to catch:
 - Exposed secrets & client env leaks
@@ -184,7 +184,7 @@ It runs in-memory static audits across your stack to catch:
 - Outdated, vulnerable dependencies
 ```
 - **Character Count:** 274 / 280 characters.
-- **Media Suggestion:** High-resolution screenshot of the clean ShipGuard dashboard displaying verified passing checks.
+- **Media Suggestion:** High-resolution screenshot of the clean Zelsis dashboard displaying verified passing checks.
 - **Purpose:** Introduces the product clearly and outlines the primary verification categories.
 
 ---
@@ -193,7 +193,7 @@ It runs in-memory static audits across your stack to catch:
 ```text
 Privacy and trust come first.
 
-ShipGuard uses a strict zero-retention model:
+Zelsis uses a strict zero-retention model:
 - Source code is analyzed in-memory during the audit session
 - Discarded immediately after execution
 - Never saved to persistent databases
@@ -211,7 +211,7 @@ Your code stays your code.
 ```text
 Alerts without solutions are just noise.
 
-When ShipGuard flags an issue, you don't get an ambiguous 'Risk Score: 7.4'.
+When Zelsis flags an issue, you don't get an ambiguous 'Risk Score: 7.4'.
 
 You get the exact file, the exact line number, why it fails production readiness, and a clean copy-pasteable Git diff to resolve it immediately.
 ```
@@ -231,7 +231,7 @@ Audit any public GitHub repo right now:
 - No credit card required
 
 Paste your repo URL to verify your release gate:
-https://shipguard.dev
+https://zelsis.dev
 ```
 - **Character Count:** 264 / 280 characters.
 - **Media Suggestion:** Quick GIF demonstrating 1-click audit initiation by simply pasting a public GitHub repository link.
@@ -241,7 +241,7 @@ https://shipguard.dev
 
 ### Tweet 7: Community Call & Rule Contributions
 ```text
-ShipGuard was built by developers tired of production deployment surprises.
+Zelsis was built by developers tired of production deployment surprises.
 
 We're expanding our rule engine every week. What is the one deployment trap or configuration bug that has burned you in production?
 
@@ -302,13 +302,13 @@ Audit build output before releasing. Private API keys and backend service tokens
 - **Character Count:** 270 / 280 characters.
 - **Media / Code Card:** Screenshot of a web browser dev tools source tab showing `process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY` compiled into plain text in client chunk `main-app.js`.
 - **Best Time:** Wednesday 10:00 AM EST (14:00 UTC).
-- **Follow-up Reply for Discussion:** `A quick grep before deploying: check your .next/static or dist/ folders for sensitive key prefixes like 'sk_live_' or 'PRIVATE_KEY'. ShipGuard flags these automatically during pre-deployment audits.`
+- **Follow-up Reply for Discussion:** `A quick grep before deploying: check your .next/static or dist/ folders for sensitive key prefixes like 'sk_live_' or 'PRIVATE_KEY'. Zelsis flags these automatically during pre-deployment audits.`
 
 ---
 
 #### Tweet 3 (Friday) - Building in Public: In-Memory AST vs Heavy VMs
 ```text
-Why ShipGuard runs in-memory instead of cloning repos to disk:
+Why Zelsis runs in-memory instead of cloning repos to disk:
 
 1. Zero attack surface: your proprietary code is never stored on our servers
 2. Speed: streaming AST audits finish without CI VM lag
@@ -497,7 +497,7 @@ Follow the expand/contract pattern:
 
 #### Tweet 12 (Friday) - Building in Public: Expanding to Python & Go
 ```text
-ShipGuard started with pre-deployment audits for Next.js, Node, and React.
+Zelsis started with pre-deployment audits for Next.js, Node, and React.
 
 We are expanding our in-memory engine to cover Python (FastAPI/Django) and Go backends.
 
@@ -512,13 +512,13 @@ What deployment misconfigurations or traps bite you most in Python or Go? We wan
 
 ## 4. Engagement & Reply Strategy
 
-The goal of ShipGuard's engagement strategy is to become a recognized, helpful technical resource in the software engineering community. **Never spam links, never post generic promotional copy, and never pitch when someone is experiencing an active personal crisis.**
+The goal of Zelsis's engagement strategy is to become a recognized, helpful technical resource in the software engineering community. **Never spam links, never post generic promotional copy, and never pitch when someone is experiencing an active personal crisis.**
 
 ---
 
 ### 4.1 The Core Anti-Spam Philosophy
 
-1. **The 80/20 Contribution Rule:** 80% of our replies should be purely technical explanations, code snippets, or architectural clarifications with **no mention of ShipGuard or links whatsoever**. Only in the remaining 20%—where the user is explicitly asking for tools, checklists, or automated solutions—do we mention our pre-deployment gate.
+1. **The 80/20 Contribution Rule:** 80% of our replies should be purely technical explanations, code snippets, or architectural clarifications with **no mention of Zelsis or links whatsoever**. Only in the remaining 20%—where the user is explicitly asking for tools, checklists, or automated solutions—do we mention our pre-deployment gate.
 2. **Explain the "Why":** Always explain the root cause and mechanical failure behind the bug. Developers respect engineers who understand systems, not marketers pushing products.
 3. **Provide Immediate Solutions in Plain Text:** Never gate knowledge behind a click. Give the fix right in the tweet.
 
@@ -539,7 +539,7 @@ The goal of ShipGuard's engagement strategy is to become a recognized, helpful t
   ```
 - **Follow-up / Link Guidance:** Do not include a link unless they ask "how do you prevent this automatically?" In that case:
   ```text
-  We actually automated this exact check into @ShipGuardHQ to audit client/server env boundaries before code merges, but even a lightweight Zod init script in your entry point works wonders.
+  We actually automated this exact check into @ZelsisHQ to audit client/server env boundaries before code merges, but even a lightweight Zod init script in your entry point works wonders.
   ```
 
 ---
@@ -574,7 +574,7 @@ The goal of ShipGuard's engagement strategy is to become a recognized, helpful t
   ```
 - **Follow-up / Link Guidance:** If others in the thread comment on automating the checklist:
   ```text
-  We built @ShipGuardHQ specifically to run this whole checklist in-memory on any repo before merging. You can test public repos free at shipguard.dev if helpful!
+  We built @ZelsisHQ specifically to run this whole checklist in-memory on any repo before merging. You can test public repos free at zelsis.dev if helpful!
   ```
 
 ---
@@ -614,7 +614,7 @@ Set up column feeds in TweetDeck / X Pro using these exact search operators to f
 1. **Never Hijack Threads:** If two engineers are having a deep private discussion or working through a specific bug, do not jump in with an automated tool suggestion unless invited.
 2. **Daily Limit:** Limit proactive community replies to 3–5 high-effort, genuinely helpful interactions per day. Quality and reputation far outweigh volume.
 3. **Credit Original Authors:** When sharing an insight or referencing a vulnerability, always tag the original researcher, maintainer, or author.
-4. **Be Fast to Admit Limitations:** If someone asks if ShipGuard catches a specific obscure edge case that is not yet supported, answer directly: *"Not yet—it's currently on our roadmap for Q4. Right now we focus on secrets, CORS, and dependency manifests."* Engineers respect radical honesty above all else.
+4. **Be Fast to Admit Limitations:** If someone asks if Zelsis catches a specific obscure edge case that is not yet supported, answer directly: *"Not yet—it's currently on our roadmap for Q4. Right now we focus on secrets, CORS, and dependency manifests."* Engineers respect radical honesty above all else.
 
 ---
 

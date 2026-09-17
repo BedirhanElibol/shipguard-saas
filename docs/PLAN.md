@@ -1,7 +1,7 @@
 # Master Plan (v25.0.0)
 ## SaaS Organic Launch & Community Growth Engine (X/Twitter & Reddit)
 
-**Product:** ShipGuard (Zelsis SaaS) — Universal Pre-Deployment Release Gate & Code Health Scanner  
+**Product:** Zelsis — Universal Pre-Deployment Release Gate & Code Health Scanner  
 **Live Application URL:** https://shipguard-saas.vercel.app  
 **Target Audience:** Web Developers, Indie Hackers, Full-Stack Engineers, Agency Builders, Tech Leads (Next.js, React, Node.js, Python, Full-Stack)  
 **Positioning Principle:** Honest, pragmatic, unhyped, developer-to-developer. Universal utility for anyone deploying web applications. Zero clickbait. Zero sensationalism.
@@ -11,12 +11,12 @@
 ## 1. Core Positioning & Strategic Intent
 
 ### 1.1 The Honest Value Proposition
-Instead of relying on exaggerated marketing hooks, ShipGuard is positioned as a **practical, accessible pre-flight checklist for web deployments**:
+Instead of relying on exaggerated marketing hooks, Zelsis is positioned as a **practical, accessible pre-flight checklist for web deployments**:
 
 > **"A fast, web-based release gate that audits your repository for security flaws, configuration issues, and code hygiene before you ship to production."**
 
 ### 1.2 Universal Applicability (Not Narrowly AI-Only)
-ShipGuard audits any modern repository across 5 critical pillars:
+Zelsis audits any modern repository across 5 critical pillars:
 1. **Security:** OWASP Top 10, exposed API keys/secrets, permissive database rules (RLS), CORS wildcards, SSRF risks.
 2. **Dependencies & Supply Chain:** Vulnerable or outdated npm/pip packages (SCA).
 3. **Infrastructure & Configuration:** Serverless timeouts, database connection pooling, SSL/HTTPS enforcement, container hygiene.
@@ -33,8 +33,8 @@ ShipGuard audits any modern repository across 5 critical pillars:
 ## 2. Channel 1: X (Twitter) Launch & Growth Playbook
 
 ### 2.1 Profile Setup Specifications
-* **Handle:** `@ShipGuardHQ` or `@ShipGuardApp`
-* **Display Name:** `ShipGuard | Pre-Deployment Release Gate`
+* **Handle:** `@ZelsisHQ` or `@ZelsisApp`
+* **Display Name:** `Zelsis | Pre-Deployment Release Gate`
 * **Bio (160 chars max):**  
   `Automated pre-deployment release gate for web apps. Instant security, config & dependency checks before you ship to production. Free to audit any repo.`
 * **Header Banner (1500x500):**  
@@ -45,7 +45,7 @@ ShipGuard audits any modern repository across 5 critical pillars:
 ### 2.2 Honest Launch Thread Structure (7-Part Series)
 1. **Tweet 1 (The Problem):** The anxiety of merging pull requests and deploying to production without a second pair of eyes.
 2. **Tweet 2 (The Gap):** Existing enterprise tools take 10 minutes on CI or cost thousands; linters only check syntax.
-3. **Tweet 3 (What ShipGuard Does):** In-memory release gate auditing security, misconfigurations, and dependencies.
+3. **Tweet 3 (What Zelsis Does):** In-memory release gate auditing security, misconfigurations, and dependencies.
 4. **Tweet 4 (Zero Retention & Privacy):** Explicit guarantee that code is processed in-memory and never stored or used to train models.
 5. **Tweet 5 (Actionable Remediations):** Showing that every finding comes with the exact fix and code diff.
 6. **Tweet 6 (Try it Free):** Link to test any public repository with zero login required.

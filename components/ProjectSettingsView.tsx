@@ -168,11 +168,21 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
   const handleActivateLicense = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!licenseInput.trim()) return;
+    const trimmedKey = licenseInput.trim();
+    if (!trimmedKey) {
+      setLicenseFeedback({
+        status: 'error',
+        message: 'Verification failed [EMPTY_KEY]: License key is empty. Please enter a valid license key.'
+      });
+      setTimeout(() => {
+        setLicenseFeedback({ status: 'idle', message: '' });
+      }, 5000);
+      return;
+    }
 
-    const result = verifyLicenseKey(licenseInput.trim(), user?.email || profileEmail);
+    const result = verifyLicenseKey(trimmedKey, user?.email || profileEmail);
     if (result.valid && (result.tier === 'Pro' || result.tier === 'Enterprise')) {
-      activateUserTier(result.tier, licenseInput.trim());
+      activateUserTier(result.tier, trimmedKey);
       setLicenseFeedback({
         status: 'success',
         message: `Success! Activated ${result.tier} plan until ${result.expiresAt}. All premium security checks are now unlocked.`
@@ -187,13 +197,17 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
         });
       }
     } else {
+      const reasonCode = result.reason || 'INVALID_KEY';
+      const diagnosticMsg = result.errorMessage
+        ? `Verification failed [${reasonCode}]: ${result.errorMessage}`
+        : `Verification failed: ${reasonCode}`;
       setLicenseFeedback({
         status: 'error',
-        message: 'Invalid or malformed license key.'
+        message: diagnosticMsg
       });
       setTimeout(() => {
         setLicenseFeedback({ status: 'idle', message: '' });
-      }, 4000);
+      }, 6000);
     }
   };
 

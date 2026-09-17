@@ -1,6 +1,15 @@
 import { ZELSIS_PRICING_PLANS, SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 import { syncUserProfileToSupabase } from '@/lib/supabase';
 
+export type LicenseErrorReason =
+  | 'EMPTY_KEY'
+  | 'INVALID_SEGMENTS'
+  | 'EXPIRED_EXPIRATION'
+  | 'CHECKSUM_MISMATCH'
+  | 'RESTRICTED_MASTER_KEY'
+  | 'EMAIL_BINDING_REQUIRED'
+  | string;
+
 export interface LicenseVerificationResult {
   valid: boolean;
   tier: 'Pro' | 'Enterprise' | 'Free';
@@ -8,6 +17,8 @@ export interface LicenseVerificationResult {
   planName: string;
   expiresAt: string;
   maxApplications: number;
+  reason?: LicenseErrorReason;
+  errorMessage?: string;
 }
 
 /**
@@ -36,17 +47,19 @@ export function generateLicenseKey(planId: string, email: string): string {
 }
 
 export function verifyLicenseKey(licenseKey: string, userEmail?: string): LicenseVerificationResult {
-  const invalidResult = (reason: string): LicenseVerificationResult => ({
+  const invalidResult = (reasonCode: LicenseErrorReason, message: string): LicenseVerificationResult => ({
     valid: false,
     tier: 'Free',
     planId: 'none',
-    planName: reason,
+    planName: message,
     expiresAt: 'N/A',
     maxApplications: 1,
+    reason: reasonCode,
+    errorMessage: message,
   });
 
-  if (!licenseKey || typeof licenseKey !== 'string') {
-    return invalidResult('Free Audit Tier');
+  if (!licenseKey || typeof licenseKey !== 'string' || !licenseKey.trim()) {
+    return invalidResult('EMPTY_KEY', 'License key is empty. Please enter a valid license key.');
   }
 
   const cleanKey = licenseKey.trim().toUpperCase();
@@ -73,21 +86,21 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
         maxApplications: isEnterprise ? 999 : 99,
       };
     }
-    return invalidResult('Master clearance restricted to platform founder');
+    return invalidResult('RESTRICTED_MASTER_KEY', 'Master clearance restricted to platform founder');
   }
   
   // Validate key format: must be PREFIX-YEAR-XXXX-YYYY-ZZZZ
   const validKeyPattern = /^(ZS|SG)-(SUITE|PRO|CORE|VIBE)-(\d{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/;
   const match = cleanKey.match(validKeyPattern);
   if (!match) {
-    return invalidResult('Invalid License Format');
+    return invalidResult('INVALID_SEGMENTS', 'Invalid license key segments or format. Expected PREFIX-YEAR-XXXX-YYYY-ZZZZ.');
   }
 
   const [, org, planCode, year, segEmail, segRand, checksum] = match;
 
   // Validate license year
   if (year !== '2026') {
-    return invalidResult('Expired License Year');
+    return invalidResult('EXPIRED_EXPIRATION', 'License key has expired or specifies an invalid expiration year.');
   }
 
   const isEnterprise = planCode === 'SUITE' || planCode === 'VIBE';
@@ -96,12 +109,12 @@ export function verifyLicenseKey(licenseKey: string, userEmail?: string): Licens
 
   // Strict Account Isolation: Verify checksum against the exact authenticated user email
   if (!normalizedUserEmail) {
-    return invalidResult('Email binding required for license validation');
+    return invalidResult('EMAIL_BINDING_REQUIRED', 'Email binding required for license validation. Please sign in with account email.');
   }
 
   const expectedChecksum = computeLicenseChecksum(normalizedUserEmail, planId);
   if (expectedChecksum !== checksum) {
-    return invalidResult('Invalid License Checksum for Account');
+    return invalidResult('CHECKSUM_MISMATCH', 'License checksum mismatch. Key does not match the authenticated account email.');
   }
 
   const planObj = (ZELSIS_PRICING_PLANS || SHIPGUARD_PRICING_PLANS).find((p) => p.id === planId);

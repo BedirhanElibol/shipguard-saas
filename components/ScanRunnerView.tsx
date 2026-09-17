@@ -126,6 +126,20 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
         const webData = await fetchWebsiteAuditData(project.repoUrl, controller.signal);
 
+        // Check for Cloudflare bot challenge on web deployment target
+        if (webData?.error === 'CLOUDFLARE_BOT_PROTECTION' || (webData as any)?.error === 'CLOUDFLARE_BOT_PROTECTION') {
+          if (!isCancelled) {
+            setScanFailureReason(`Automated audit blocked by Cloudflare Bot Protection on "${project.repoUrl}". Disable bot challenge for scanner user-agents or run audit against a staging endpoint.`);
+            setLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] [ERROR] 🛡️ CLOUDFLARE BOT PROTECTION: Automated audit blocked by Cloudflare Bot Protection on "${project.repoUrl}".`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Disable bot challenge for scanner user-agents or run audit against a staging endpoint.`
+            ]);
+            setIsFinished(true);
+          }
+          return;
+        }
+
         if (webData && webData.files && webData.files.length > 0) {
           filesToScan = webData.files;
           setQueuedFilesCount(webData.files.length);
@@ -141,11 +155,19 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
         } else {
           if (!isCancelled) {
-            setScanFailureReason(`Unable to reach target website "${project.repoUrl}". Verify the URL is live, accessible, and not blocking automated audits.`);
+            const isCf = webData?.isCloudflareChallenge || webData?.error === 'CLOUDFLARE_BOT_PROTECTION';
+            const failureReason = isCf
+              ? `Automated inspection blocked by Cloudflare bot protection for "${project.repoUrl}". Direct crawling is restricted by bot mitigation.`
+              : `Unable to reach target website "${project.repoUrl}". Verify the URL is live, accessible, and not blocking automated audits.`;
+            setScanFailureReason(failureReason);
             setLogs((prev) => [
               ...prev,
-              `[${new Date().toLocaleTimeString()}] [ERROR] Unable to reach target website "${project.repoUrl}".`,
-              `[${new Date().toLocaleTimeString()}] [INFO] Please verify the website URL is active and accessible.`
+              isCf
+                ? `[${new Date().toLocaleTimeString()}] [ERROR] 🛡️ CLOUDFLARE BOT PROTECTION: Automated inspection blocked for "${project.repoUrl}".`
+                : `[${new Date().toLocaleTimeString()}] [ERROR] Unable to reach target website "${project.repoUrl}".`,
+              isCf
+                ? `[${new Date().toLocaleTimeString()}] [INFO] Cloudflare bot defense challenge was returned. Connect the GitHub repository directly for code audit.`
+                : `[${new Date().toLocaleTimeString()}] [INFO] Please verify the website URL is active and accessible.`
             ]);
           }
           setIsFinished(true);
@@ -177,7 +199,64 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
         const liveData = await fetchGithubRepositoryData(project.repoUrl, effectiveToken, controller.signal);
 
-        // Check if access was blocked due to private repo without valid credentials
+        // 1. Check for Cloudflare bot challenge
+        if (liveData?.error === 'CLOUDFLARE_BOT_PROTECTION') {
+          if (!isCancelled) {
+            setScanFailureReason(`Automated audit blocked by Cloudflare Bot Protection on "${project.repoUrl}". Disable bot challenge for scanner user-agents or run audit against a staging endpoint.`);
+            setLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] [ERROR] 🛡️ CLOUDFLARE BOT PROTECTION: Automated audit blocked by Cloudflare Bot Protection on "${project.repoUrl}".`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Disable bot challenge for scanner user-agents or run audit against a staging endpoint.`
+            ]);
+            setIsFinished(true);
+          }
+          return;
+        }
+
+        // 2. Check for empty repository: Do NOT award a 100/100 PASSED score!
+        if (liveData?.isEmpty || liveData?.error === 'EMPTY_REPOSITORY') {
+          if (!isCancelled) {
+            setScanFailureReason('Repository is empty. No scannable source code files were found.');
+            setLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] [ERROR] ⚠️ EMPTY REPOSITORY: No scannable code files committed to branch.`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Push your application source code to run a deployment readiness audit.`
+            ]);
+            setIsFinished(true);
+          }
+          return;
+        }
+
+        // 3. Check for repository not found (HTTP 404): Do NOT open the private repo token modal for 404s!
+        if (liveData?.error === 'REPO_NOT_FOUND') {
+          if (!isCancelled) {
+            setScanFailureReason(`GitHub repository "${project.repoUrl}" was not found (HTTP 404). Check the repository name and owner for typos.`);
+            setLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] [ERROR] ❌ REPOSITORY NOT FOUND: GitHub returned HTTP 404 for "${project.repoUrl}".`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Verify the URL syntax (e.g. github.com/owner/repo) or check if the repository was renamed or deleted.`
+            ]);
+            setIsFinished(true);
+            setIsPrivateTokenModalOpen(false);
+          }
+          return;
+        }
+
+        // 4. Check for GitHub API rate limit: Provide the "Enter GitHub Token" button
+        if (liveData?.error === 'RATE_LIMIT_EXCEEDED') {
+          if (!isCancelled) {
+            setScanFailureReason('GitHub API rate limit reached (60 req/hr). Add a GitHub Personal Access Token (PAT) to unlock 5,000 req/hr.');
+            setLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] [ERROR] ⏱️ RATE LIMIT EXCEEDED: GitHub API rate limit reached (60 req/hr).`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Add a GitHub Personal Access Token (PAT) to unlock 5,000 req/hr.`
+            ]);
+            setIsFinished(true);
+          }
+          return;
+        }
+
+        // 5. Check if access was blocked due to private repo without valid credentials
         if (liveData?.error === 'PRIVATE_OR_UNAUTHENTICATED' || liveData?.requiresAuth || (liveData?.isPrivate && !effectiveToken)) {
           if (!isCancelled) {
             setScanFailureReason(`Private repository access restricted. A GitHub Personal Access Token (PAT) with 'repo' scope is required to scan "${project.repoUrl}".`);
@@ -205,14 +284,23 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
         } else {
           if (!isCancelled) {
-            setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT).`);
-            setLogs((prev) => [
-              ...prev,
-              `[${new Date().toLocaleTimeString()}] [ERROR] Unable to fetch files from GitHub repository "${project.repoUrl}".`,
-              `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT).`
-            ]);
+            if (liveData?.isEmpty || (liveData && Array.isArray(liveData.files) && liveData.files.length === 0)) {
+              setScanFailureReason('Repository is empty. No scannable source code files were found.');
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] [ERROR] ⚠️ EMPTY REPOSITORY: No scannable code files committed to branch.`,
+                `[${new Date().toLocaleTimeString()}] [ACTION] Push your application source code to run a deployment readiness audit.`
+              ]);
+            } else {
+              setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT).`);
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] [ERROR] Unable to fetch files from GitHub repository "${project.repoUrl}".`,
+                `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT).`
+              ]);
+              setIsPrivateTokenModalOpen(true);
+            }
             setIsFinished(true);
-            setIsPrivateTokenModalOpen(true);
           }
           return;
         }
@@ -478,7 +566,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                {(scanFailureReason?.includes('Private') || scanFailureReason?.includes('token') || scanFailureReason?.includes('Token')) && (
+                {(scanFailureReason?.includes('Private') || scanFailureReason?.includes('token') || scanFailureReason?.includes('Token') || scanFailureReason?.includes('PAT') || scanFailureReason?.includes('rate limit')) &&
+                  !scanFailureReason?.includes('not found') &&
+                  !scanFailureReason?.includes('404') && (
                   <button
                     onClick={() => setIsPrivateTokenModalOpen(true)}
                     className="btn btn-primary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all font-mono cursor-pointer"

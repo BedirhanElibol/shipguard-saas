@@ -29,8 +29,24 @@ try {
   const [analyzedFindings, setAnalyzedFindings] = useState<Finding[]>([]);
   const [hasScanned, setHasScanned] = useState(false);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+  const [emptyWarning, setEmptyWarning] = useState<string | null>(null);
 
   const runLiveAudit = () => {
+    if (!inputCode || !inputCode.trim()) {
+      setAnalyzedFindings([]);
+      setHasScanned(true);
+      setEmptyWarning('Please enter a code snippet or SQL migration to analyze.');
+      return;
+    }
+
+    if (inputCode.length > 50000) {
+      setAnalyzedFindings([]);
+      setHasScanned(true);
+      setEmptyWarning(`Input code snippet exceeds maximum limit of 50,000 characters (${inputCode.length.toLocaleString()} characters). Please shorten snippet to proceed.`);
+      return;
+    }
+
+    setEmptyWarning(null);
     const findings: Finding[] = [];
 
     // Rule 1: Secret Leak Check
@@ -199,6 +215,7 @@ try {
 
   const handleSelectPreset = (presetCode: string) => {
     setInputCode(presetCode);
+    setEmptyWarning(null);
     setTimeout(() => {
       runLiveAudit();
     }, 50);
@@ -316,7 +333,10 @@ export function processUserData(payload: any) {
             id="live-code-textarea"
             rows={7}
             value={inputCode}
-            onChange={(e) => setInputCode(e.target.value)}
+            onChange={(e) => {
+              setInputCode(e.target.value);
+              if (emptyWarning) setEmptyWarning(null);
+            }}
             placeholder="Paste JavaScript, TypeScript, SQL, or Python code..."
             className="w-full p-4 bg-transparent font-mono text-xs text-[#FAFAFA] outline-none focus:outline-none resize-none leading-relaxed"
           />
@@ -328,11 +348,15 @@ export function processUserData(payload: any) {
         <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-[#FAFAFA]">
-              Live AST Analysis Results ({analyzedFindings.length} Violations Found)
+              Live AST Analysis Results ({emptyWarning ? 0 : analyzedFindings.length} Violations Found)
             </h3>
           </div>
 
-          {analyzedFindings.length === 0 ? (
+          {emptyWarning ? (
+            <div className="p-6 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center text-xs text-amber-300 font-mono">
+              ⚠️ {emptyWarning}
+            </div>
+          ) : analyzedFindings.length === 0 ? (
             <div className="p-6 rounded-xl bg-[#0A0A0A] border border-white/10 text-center text-xs text-white font-mono">
               Zero vulnerabilities detected in snippet. Compliant with OWASP security rules.
             </div>

@@ -35,39 +35,44 @@ export async function POST(req: NextRequest) {
   let resolvedTier: 'Pro' | 'Enterprise' = planId === 'vibecare' ? 'Enterprise' : 'Pro';
   let customerEmail = email || null;
 
-  // 1. Try Polar API if access token is available
-  if (polarAccessToken) {
-    try {
-      const response = await fetch(`https://api.polar.sh/v1/checkouts/${checkoutId}`, {
-        headers: {
-          'Authorization': `Bearer ${polarAccessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const checkout = await response.json();
-        if (checkout.status === 'succeeded' || checkout.status === 'confirmed') {
-          isVerified = true;
-          customerEmail = checkout.customer_email || customerEmail;
-          const prodName = (checkout.product?.name || '').toLowerCase();
-          resolvedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
-          logger.info(`[Verify Checkout] Verified via Polar API: ${resolvedTier} for ${customerEmail}`);
-        }
-      }
-    } catch (apiErr: any) {
-      logger.warn('[Verify Checkout] Polar API check exception:', apiErr?.message);
-    }
+  // 1. Enforce Polar API verification requirement
+  if (!polarAccessToken) {
+    logger.warn('[Verify Checkout] Polar API access token is missing');
+    return NextResponse.json(
+      { verified: false, status: 'unverified', error: 'Polar API verification required' },
+      { status: 400 }
+    );
   }
 
-  // 2. Resilient fallback for valid Polar checkout tokens
-  if (!isVerified) {
-    // Valid Polar checkout ID pattern (e.g. polar_cl_..., polar_cs_..., or UUID)
-    const isPolarId = checkoutId.startsWith('polar_') || checkoutId.length >= 20;
-    if (isPolarId) {
-      isVerified = true;
-      logger.info(`[Verify Checkout] Verified checkout token structure: ${resolvedTier}`);
+  // 2. Query Polar API for authentic checkout status
+  try {
+    const response = await fetch(`https://api.polar.sh/v1/checkouts/${checkoutId}`, {
+      headers: {
+        'Authorization': `Bearer ${polarAccessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const checkout = await response.json();
+      if (checkout.status === 'succeeded' || checkout.status === 'confirmed') {
+        isVerified = true;
+        customerEmail = checkout.customer_email || customerEmail;
+        const prodName = (checkout.product?.name || '').toLowerCase();
+        resolvedTier = prodName.includes('enterprise') || prodName.includes('suite') ? 'Enterprise' : 'Pro';
+        logger.info(`[Verify Checkout] Verified via Polar API: ${resolvedTier} for ${customerEmail}`);
+      }
     }
+  } catch (apiErr: any) {
+    logger.warn('[Verify Checkout] Polar API check exception:', apiErr?.message);
+  }
+
+  // Reject if Polar API did not verify the checkout
+  if (!isVerified) {
+    return NextResponse.json(
+      { verified: false, status: 'unverified', error: 'Polar API verification required' },
+      { status: 400 }
+    );
   }
 
   // 3. Persist verified tier to Supabase subscriptions and metadata if possible
@@ -155,10 +160,10 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({
-    verified: isVerified,
-    status: isVerified ? 'confirmed' : 'pending',
-    tier: isVerified ? resolvedTier : 'Free',
-    expiresAt: isVerified ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+    verified: true,
+    status: 'confirmed',
+    tier: resolvedTier,
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     email: customerEmail
   });
 }

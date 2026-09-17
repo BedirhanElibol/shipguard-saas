@@ -101,6 +101,16 @@ export async function GET(req: NextRequest) {
     });
 
     if (!repoRes.ok) {
+      if (repoRes.status === 404) {
+        return NextResponse.json({
+          name: repo,
+          fullName: `${owner}/${repo}`,
+          error: 'REPO_NOT_FOUND',
+          message: 'GitHub repository not found. Verify the owner and repository name for typos.',
+          files: []
+        });
+      }
+
       let bodyText = '';
       try {
         bodyText = await repoRes.text();
@@ -123,7 +133,8 @@ export async function GET(req: NextRequest) {
         stars: 0,
         language: 'TypeScript',
         files: [],
-        error: isRateLimit ? 'RATE_LIMIT_EXCEEDED' : 'PRIVATE_OR_UNAUTHENTICATED'
+        error: isRateLimit ? 'RATE_LIMIT_EXCEEDED' : 'PRIVATE_OR_UNAUTHENTICATED',
+        isPrivate: !isRateLimit
       });
     }
 
@@ -137,17 +148,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         name: repoData.name || repo,
         fullName: repoData.full_name || `${owner}/${repo}`,
-        description: repoData.description || 'Empty GitHub Repository (0 commits)',
-        defaultBranch: detectedBranch,
-        stars: repoData.stargazers_count || 0,
-        language: repoData.language || 'None',
-        files: [
-          {
-            path: 'README.md',
-            content: `# ${repoData.name || repo}\n\nEmpty repository. No source files committed yet.`
-          }
-        ],
-        isEmpty: true
+        isEmpty: true,
+        error: 'EMPTY_REPOSITORY',
+        message: 'Empty repository. No scannable source code files found.',
+        files: []
       });
     }
 
@@ -188,17 +192,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
           name: repoData.name || repo,
           fullName: repoData.full_name || `${owner}/${repo}`,
-          description: repoData.description || 'Empty GitHub Repository (0 commits)',
-          defaultBranch: activeBranch,
-          stars: repoData.stargazers_count || 0,
-          language: repoData.language || 'None',
-          files: [
-            {
-              path: 'README.md',
-              content: `# ${repoData.name || repo}\n\nEmpty repository. No source files committed yet.`
-            }
-          ],
-          isEmpty: true
+          isEmpty: true,
+          error: 'EMPTY_REPOSITORY',
+          message: 'Empty repository. No scannable source code files found.',
+          files: []
         });
       }
 
@@ -267,19 +264,12 @@ export async function GET(req: NextRequest) {
 
     if (treeFiles.length === 0) {
       return NextResponse.json({
-        name: repoData.name,
-        fullName: repoData.full_name,
-        description: repoData.description || 'Empty GitHub Repository (0 scannable files)',
-        defaultBranch: activeBranch,
-        stars: repoData.stargazers_count,
-        language: repoData.language || 'TypeScript',
-        files: [
-          {
-            path: 'README.md',
-            content: `# ${repoData.name}\n\nEmpty repository. No scannable source files found on branch ${activeBranch}.`
-          }
-        ],
-        isEmpty: true
+        name: repoData.name || repo,
+        fullName: repoData.full_name || `${owner}/${repo}`,
+        isEmpty: true,
+        error: 'EMPTY_REPOSITORY',
+        message: 'Empty repository. No scannable source code files found.',
+        files: []
       });
     }
 
@@ -324,6 +314,17 @@ export async function GET(req: NextRequest) {
       fetchedFiles.push(...chunkResults.filter((f): f is { path: string; content: string } => f !== null));
     }
 
+    if (fetchedFiles.length === 0) {
+      return NextResponse.json({
+        name: repoData.name || repo,
+        fullName: repoData.full_name || `${owner}/${repo}`,
+        isEmpty: true,
+        error: 'EMPTY_REPOSITORY',
+        message: 'Empty repository. No scannable source code files found.',
+        files: []
+      });
+    }
+
     return NextResponse.json({
       name: repoData.name,
       fullName: repoData.full_name,
@@ -331,12 +332,7 @@ export async function GET(req: NextRequest) {
       defaultBranch: activeBranch,
       stars: repoData.stargazers_count,
       language: repoData.language || 'TypeScript',
-      files: fetchedFiles.length > 0 ? fetchedFiles : [
-        {
-          path: 'README.md',
-          content: `# ${repoData.name}\n\nEmpty repository. No source files could be fetched.`
-        }
-      ],
+      files: fetchedFiles,
       isPrivate: repoData.private || false
     });
   } catch (err: any) {

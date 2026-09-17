@@ -10,7 +10,8 @@ export interface GithubRepoInfo {
   files: CodeFile[];
   isPrivate?: boolean;
   requiresAuth?: boolean;
-  error?: 'RATE_LIMIT_EXCEEDED' | 'PRIVATE_OR_UNAUTHENTICATED' | 'TREE_FETCH_FAILED' | string;
+  isEmpty?: boolean;
+  error?: 'RATE_LIMIT_EXCEEDED' | 'PRIVATE_OR_UNAUTHENTICATED' | 'TREE_FETCH_FAILED' | 'REPO_NOT_FOUND' | 'EMPTY_REPOSITORY' | 'CLOUDFLARE_BOT_PROTECTION' | string;
 }
 
 const GITHUB_RATE_LIMIT_MESSAGE =
@@ -170,12 +171,36 @@ export async function fetchGithubRepositoryData(
               defaultBranch: data.defaultBranch || 'main',
               stars: data.stars || 0,
               language: data.language || 'TypeScript',
-              files: [
-                {
-                  path: 'RATE_LIMIT_NOTICE.md',
-                  content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
-                }
-              ]
+              files: [],
+              error: 'RATE_LIMIT_EXCEEDED'
+            };
+          }
+
+          // Handle repo not found from proxy (HTTP 404)
+          if (data.error === 'REPO_NOT_FOUND') {
+            return {
+              name: data.name || parsed.repo,
+              fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+              description: data.message || `GitHub repository "${parsed.owner}/${parsed.repo}" was not found (HTTP 404).`,
+              defaultBranch: data.defaultBranch || 'main',
+              stars: 0,
+              language: 'None',
+              files: [],
+              error: 'REPO_NOT_FOUND'
+            };
+          }
+
+          // Handle Cloudflare bot protection from proxy
+          if (data.error === 'CLOUDFLARE_BOT_PROTECTION') {
+            return {
+              name: data.name || parsed.repo,
+              fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
+              description: 'Blocked by Cloudflare Bot Protection',
+              defaultBranch: data.defaultBranch || 'main',
+              stars: 0,
+              language: 'None',
+              files: [],
+              error: 'CLOUDFLARE_BOT_PROTECTION'
             };
           }
 
@@ -195,8 +220,8 @@ export async function fetchGithubRepositoryData(
             };
           }
 
-          // Handle empty repository gracefully
-          if (data.isEmpty || (Array.isArray(data.files) && data.files.length === 0 && !data.error)) {
+          // Handle empty repository gracefully (Zero Fake Passes!)
+          if (data.isEmpty || data.error === 'EMPTY_REPOSITORY' || (Array.isArray(data.files) && data.files.length === 0 && !data.error)) {
             return {
               name: data.name || parsed.repo,
               fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
@@ -204,12 +229,9 @@ export async function fetchGithubRepositoryData(
               defaultBranch: data.defaultBranch || 'main',
               stars: data.stars || 0,
               language: data.language || 'None',
-              files: [
-                {
-                  path: 'README.md',
-                  content: `# ${data.name || parsed.repo}\n\nEmpty repository. No source files committed yet.`
-                }
-              ]
+              files: [],
+              isEmpty: true,
+              error: 'EMPTY_REPOSITORY'
             };
           }
 
@@ -261,6 +283,19 @@ export async function fetchGithubRepositoryData(
     });
 
     if (!repoRes.ok) {
+      if (repoRes.status === 404) {
+        return {
+          name: repo,
+          fullName: `${owner}/${repo}`,
+          description: 'GitHub repository not found. Verify the owner and repository name for typos.',
+          defaultBranch: 'main',
+          stars: 0,
+          language: 'None',
+          files: [],
+          error: 'REPO_NOT_FOUND'
+        };
+      }
+
       let bodyText = '';
       try {
         bodyText = await repoRes.text();
@@ -278,12 +313,8 @@ export async function fetchGithubRepositoryData(
           defaultBranch: 'main',
           stars: 0,
           language: 'TypeScript',
-          files: [
-            {
-              path: 'RATE_LIMIT_NOTICE.md',
-              content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
-            }
-          ]
+          files: [],
+          error: 'RATE_LIMIT_EXCEEDED'
         };
       }
 
@@ -309,16 +340,13 @@ export async function fetchGithubRepositoryData(
       return {
         name: (repoData?.name as string) || repo,
         fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
-        description: (repoData?.description as string) || 'Empty GitHub repository (no commits or files yet)',
+        description: 'Empty repository. No scannable source code files found.',
         defaultBranch: detectedBranch,
         stars: (repoData?.stargazers_count as number) || 0,
         language: (repoData?.language as string) || 'None',
-        files: [
-          {
-            path: 'README.md',
-            content: `# ${(repoData?.name as string) || repo}\n\nEmpty repository. No source files committed yet.`
-          }
-        ]
+        files: [],
+        isEmpty: true,
+        error: 'EMPTY_REPOSITORY'
       };
     }
 
@@ -369,12 +397,9 @@ export async function fetchGithubRepositoryData(
           defaultBranch: resolvedBranch,
           stars: (repoData?.stargazers_count as number) || 0,
           language: (repoData?.language as string) || 'None',
-          files: [
-            {
-              path: 'README.md',
-              content: `# ${(repoData?.name as string) || repo}\n\nEmpty repository. No source files committed yet.`
-            }
-          ]
+          files: [],
+          isEmpty: true,
+          error: 'EMPTY_REPOSITORY'
         };
       }
 
@@ -401,12 +426,8 @@ export async function fetchGithubRepositoryData(
           defaultBranch: resolvedBranch,
           stars: (repoData?.stargazers_count as number) || 0,
           language: (repoData?.language as string) || 'TypeScript',
-          files: [
-            {
-              path: 'RATE_LIMIT_NOTICE.md',
-              content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
-            }
-          ]
+          files: [],
+          error: 'RATE_LIMIT_EXCEEDED'
         };
       }
 
@@ -416,13 +437,10 @@ export async function fetchGithubRepositoryData(
         description: (repoData?.description as string) || 'GitHub repository files could not be retrieved',
         defaultBranch: resolvedBranch,
         stars: (repoData?.stargazers_count as number) || 0,
-        language: (repoData?.language as string) || 'TypeScript',
-        files: [
-          {
-            path: 'EMPTY_REPO_NOTICE.md',
-            content: `# ${(repoData?.name as string) || repo}\n\nNo branch trees could be loaded. Ensure the repository has committed files.`
-          }
-        ]
+        language: (repoData?.language as string) || 'None',
+        files: [],
+        isEmpty: true,
+        error: 'EMPTY_REPOSITORY'
       };
     }
 
@@ -464,12 +482,9 @@ export async function fetchGithubRepositoryData(
         defaultBranch: resolvedBranch,
         stars: (repoData?.stargazers_count as number) || 0,
         language: (repoData?.language as string) || 'None',
-        files: [
-          {
-            path: 'README.md',
-            content: `# ${(repoData?.name as string) || repo}\n\nEmpty repository. No scannable source files found on branch ${resolvedBranch}.`
-          }
-        ]
+        files: [],
+        isEmpty: true,
+        error: 'EMPTY_REPOSITORY'
       };
     }
 
@@ -527,16 +542,13 @@ export async function fetchGithubRepositoryData(
     return {
       name: (repoData?.name as string) || repo,
       fullName: (repoData?.full_name as string) || `${owner}/${repo}`,
-      description: (repoData?.description as string) || 'GitHub repository with no downloadable source files',
+      description: 'Empty repository. No scannable source code files found.',
       defaultBranch: resolvedBranch,
       stars: (repoData?.stargazers_count as number) || 0,
       language: (repoData?.language as string) || 'TypeScript',
-      files: [
-        {
-          path: 'EMPTY_REPO_NOTICE.md',
-          content: `# ${(repoData?.name as string) || repo}\n\nRaw source file content could not be retrieved.`
-        }
-      ]
+      files: [],
+      isEmpty: true,
+      error: 'EMPTY_REPOSITORY'
     };
   } catch (err: unknown) {
     const errObj = err as { name?: string; message?: string };

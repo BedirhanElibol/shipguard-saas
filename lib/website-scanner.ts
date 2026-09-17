@@ -11,6 +11,8 @@ export interface WebsiteAuditData {
   securityHeadersMissing: string[];
   discoveredButtonsCount: number;
   crawledPagesCount: number;
+  isCloudflareChallenge?: boolean;
+  error?: 'CLOUDFLARE_BOT_PROTECTION' | string;
 }
 
 export function isValidWebUrl(url: string): boolean {
@@ -115,6 +117,32 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
   // Return null if unreachable or fetching failed (no placebo HTML)
   if (!htmlText) {
     return null;
+  }
+
+  // Detect Cloudflare bot protection challenges
+  const isCfHtml =
+    htmlText.includes('cf-mitigated') ||
+    /<title[^>]*>\s*Just a moment\.\.\.\s*<\/title>/i.test(htmlText) ||
+    htmlText.includes('Attention Required! | Cloudflare');
+
+  const isCfHeader = headers['cf-mitigated'] === 'challenge';
+  const isCfServer = (headers['server'] || '').toLowerCase().includes('cloudflare');
+  const isCfTitle = /<title[^>]*>(?:just a moment\.\.\.|attention required!\s*\|\s*cloudflare|cloudflare)<\/title>/i.test(htmlText);
+  const hasCfIndicators = /challenges\.cloudflare\.com|cf-browser-verification|cf-turnstile|ray id:|\/cdn-cgi\/challenge-platform/i.test(htmlText);
+
+  if (isCfHtml || isCfHeader || ((statusCode === 403 || statusCode === 503) && (isCfServer || isCfTitle || hasCfIndicators)) || (isCfTitle && hasCfIndicators)) {
+    return {
+      url: formattedUrl,
+      statusCode: statusCode === 200 ? 403 : statusCode,
+      headers,
+      title: 'Cloudflare Bot Protection Challenge',
+      files: [],
+      securityHeadersMissing: [],
+      discoveredButtonsCount: 0,
+      crawledPagesCount: 0,
+      isCloudflareChallenge: true,
+      error: 'CLOUDFLARE_BOT_PROTECTION'
+    };
   }
 
   // Check Missing Security Headers

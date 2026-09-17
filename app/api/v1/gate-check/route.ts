@@ -139,9 +139,57 @@ export async function POST(req: NextRequest) {
       const webData = await fetchWebsiteAuditData(rawRepoUrl);
       filesToScan = webData?.files || [];
       targetName = webData?.title || rawRepoUrl;
+
+      if (webData?.error === 'CLOUDFLARE_BOT_PROTECTION') {
+        return NextResponse.json({
+          status: 'ERROR',
+          gateStatus: 'FAILED',
+          readinessScore: 0,
+          error: `Automated audit blocked by Cloudflare Bot Protection on "${rawRepoUrl}". Disable bot challenge for scanner user-agents or run audit against a staging endpoint.`,
+          timestamp: new Date().toISOString()
+        }, { status: 403 });
+      }
+
+      if (!webData || filesToScan.length === 0) {
+        return NextResponse.json({
+          status: 'ERROR',
+          gateStatus: 'FAILED',
+          readinessScore: 0,
+          error: `Web endpoint unreachable or returned no scannable content: ${rawRepoUrl}`,
+          timestamp: new Date().toISOString()
+        }, { status: 502 });
+      }
     } else if (isGithubTarget) {
       logger.info(`[Gate Check] Initiating GitHub repository audit for ${rawRepoUrl}`);
       const liveData = await fetchGithubRepositoryData(rawRepoUrl, githubToken);
+
+      if (liveData?.error === 'REPO_NOT_FOUND') {
+        logger.warn(`[Gate Check] Repository not found: ${rawRepoUrl}`);
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            gateStatus: 'FAILED',
+            readinessScore: 0,
+            error: `GitHub repository not found: "${rawRepoUrl}". Verify the owner and repository name for typos.`,
+            timestamp: new Date().toISOString()
+          },
+          { status: 404 }
+        );
+      }
+
+      if (liveData?.error === 'RATE_LIMIT_EXCEEDED') {
+        logger.warn(`[Gate Check] Rate limit exceeded for: ${rawRepoUrl}`);
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            gateStatus: 'FAILED',
+            readinessScore: 0,
+            error: 'GitHub API rate limit reached (60 req/hr). Add a GitHub Personal Access Token (PAT) in Settings to unlock 5,000 req/hr.',
+            timestamp: new Date().toISOString()
+          },
+          { status: 429 }
+        );
+      }
 
       if (liveData?.error === 'PRIVATE_OR_UNAUTHENTICATED' || liveData?.requiresAuth || (liveData?.isPrivate && !githubToken)) {
         logger.warn(`[Gate Check] Private or unauthenticated repository rejected: ${rawRepoUrl}`);
@@ -166,7 +214,9 @@ export async function POST(req: NextRequest) {
             status: 'ERROR',
             gateStatus: 'FAILED',
             readinessScore: 0,
-            error: `No scannable source code files found in "${rawRepoUrl}". Verify the repository is accessible and contains source code.`,
+            error: liveData?.error === 'EMPTY_REPOSITORY' || liveData?.isEmpty
+              ? `Empty repository. No scannable source code files found in "${rawRepoUrl}".`
+              : `No scannable source code files found in "${rawRepoUrl}". Verify the repository is accessible and contains source code.`,
             timestamp: new Date().toISOString()
           },
           { status: 422 }

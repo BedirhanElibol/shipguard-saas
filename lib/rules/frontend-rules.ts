@@ -526,6 +526,109 @@ export function evaluateFrontendRules(
     }
   }
 
+  // =========================================================================
+  // l) UI-SEC-02 (Rule ID 1041: Reverse Tab-Nabbing Security Hazard)
+  // =========================================================================
+  if (isJsxTsx || file.path.endsWith('.html')) {
+    const tabNabbingRegex = /<a\b(?=[^>]*\btarget\s*=\s*["']_blank["'])(?![^>]*\brel\s*=\s*["'][^"']*(?:noopener|noreferrer))[^>]*>/i;
+    if (tabNabbingRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => tabNabbingRegex.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+        findings.push({
+          id: `frontend-${Date.now()}-${findingCounter.count++}`,
+          ruleId: 1041,
+          type: 'VIBEPOLISH',
+          title: 'Reverse Tab-Nabbing Security Hazard (target="_blank" Missing rel="noopener noreferrer")',
+          severity: 'MEDIUM',
+          category: 'Frontend Security',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: snippet || lines[matchLineIdx] || '<a href="..." target="_blank">',
+          reproductionSteps: [
+            `Scanned anchor link security attributes at ${file.path}:${lineNum}.`,
+            'Detected <a target="_blank"> missing rel="noopener noreferrer", allowing the opened external page to manipulate window.opener and redirect the user to phishing sites.'
+          ],
+          remediationPrompt: `Add rel="noopener noreferrer" to external link in ${file.path}:${lineNum} to prevent reverse tab-nabbing window.opener tampering.`,
+          status: 'OPEN',
+          owner: 'Security Lead',
+          falsePositive: false
+        });
+        logs.push(`[${ts}] 🔒 MEDIUM: UI-SEC-02 Reverse tab-nabbing in ${file.path}:${lineNum}`);
+      }
+    }
+  }
+
+  // =========================================================================
+  // m) UI-MOTION-01 (Rule ID 1042: GSAP / Animation Lifecycle Memory Leak Hazard)
+  // =========================================================================
+  if (isJsxTsx && /(?:gsap\.(?:to|from|timeline)|ScrollTrigger\.create)\s*\(/i.test(cleanContent)) {
+    const hasGsapCleanup = /kill\(|revert\(|return\s*\(\)\s*=>/i.test(cleanContent);
+    if (!hasGsapCleanup) {
+      const matchLineIdx = lines.findIndex(l => /(?:gsap\.(?:to|from|timeline)|ScrollTrigger\.create)/i.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `frontend-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 1042,
+        type: 'VIBEPOLISH',
+        title: 'Uncleaned Animation Lifecycle (GSAP / ScrollTrigger Missing kill() / revert())',
+        severity: 'HIGH',
+        category: 'Interaction & Motion',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'gsap.to(".card", { opacity: 1 })',
+        reproductionSteps: [
+          `Scanned component animation lifecycles at ${file.path}:${lineNum}.`,
+          'Detected GSAP animation or ScrollTrigger instance without unmount cleanup (kill() / revert()), causing memory leaks and detached DOM node retention.'
+        ],
+        remediationPrompt: `Wrap GSAP animations inside useGSAP() with auto-revert or return () => ctx.revert() / tween.kill() inside useEffect in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'UI Architect',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🎬 HIGH: UI-MOTION-01 GSAP animation missing unmount cleanup in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // n) UI-A11Y-05 (Rule ID 1044: Touch Target Below WCAG 2.2 AA Minimum (<44x44px))
+  // =========================================================================
+  if (isJsxTsx) {
+    const tinyTargetRegex = /<(?:button|a)\b[^>]*className=['"][^'"]*\b(?:w-[2345]\s+h-[2345]|h-[2345]\s+w-[2345])\b(?![^'"]*\b(?:p-|py-|px-|min-h-|min-w-|h-1[0-9]|w-1[0-9]))[^'"]*['"][^>]*>/i;
+    if (tinyTargetRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => tinyTargetRegex.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+        findings.push({
+          id: `frontend-${Date.now()}-${findingCounter.count++}`,
+          ruleId: 1044,
+          type: 'VIBEPOLISH',
+          title: 'Interactive Element Touch Target Below WCAG 2.2 AA Minimum (<44x44px)',
+          severity: 'MEDIUM',
+          category: 'Accessibility (WCAG)',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: snippet || lines[matchLineIdx] || '<button className="w-4 h-4">',
+          reproductionSteps: [
+            `Scanned interactive tap target dimensions at ${file.path}:${lineNum}.`,
+            'Detected clickable button/link with bounding box below 44x44 CSS pixels without padding, failing WCAG 2.2 AA Target Size criteria.'
+          ],
+          remediationPrompt: `Increase interactive hit area to at least 44x44px using padding (p-2.5) or min-w-[44px] min-h-[44px] in ${file.path}:${lineNum}.`,
+          status: 'OPEN',
+          owner: 'Accessibility Lead',
+          falsePositive: false
+        });
+        logs.push(`[${ts}] ♿ MEDIUM: UI-A11Y-05 Touch target below 44x44px in ${file.path}:${lineNum}`);
+      }
+    }
+  }
+
   return { findings, logs };
 }
 

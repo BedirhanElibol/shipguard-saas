@@ -76,26 +76,31 @@ export const Header: React.FC<HeaderProps> = ({
     if (isSubmitting) return;
     setIsSubmitting(true);
     setTimeout(() => setIsSubmitting(false), 1000);
-    const normalized = normalizeRepoUrl(activeTargetUrl);
-    if (!normalized) return;
+    const cleanRepoUrl = normalizeRepoUrl(activeTargetUrl) || activeTargetUrl;
+    const normTarget = cleanRepoUrl.toLowerCase().replace(/\/+$/, '').trim();
+    if (!normTarget) return;
 
-    if (normalized.toLowerCase() === selectedProject.repoUrl.toLowerCase()) {
+    const normSelected = (selectedProject.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(selectedProject.repoUrl) || selectedProject.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+    if (normTarget === normSelected) {
       onTriggerScan(selectedProject);
       return;
     }
 
-    const existing = projects.find((p) => p.repoUrl.toLowerCase() === normalized.toLowerCase());
+    const existing = projects.find((p) => {
+      const pNorm = (p.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(p.repoUrl) || p.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+      return pNorm === normTarget;
+    });
     if (existing) {
       onSelectProject(existing);
       onTriggerScan(existing);
       return;
     }
 
-    const displayName = extractRepoDisplayName(normalized);
+    const displayName = extractRepoDisplayName(cleanRepoUrl);
     const newProject: Project = {
       id: `proj-${Date.now()}`,
       name: displayName,
-      repoUrl: normalized,
+      repoUrl: cleanRepoUrl,
       framework: 'Next.js 15',
       providers: ['GitHub Action', 'Vercel'],
       lastScanAt: 'Ready to Run Audit',

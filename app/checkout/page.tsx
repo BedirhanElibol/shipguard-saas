@@ -98,8 +98,14 @@ function CheckoutPageContent() {
       onSignOut={() => {
         setUser(null);
         try {
-          purgeZelsisStorage(true);
-          purgeShipguardStorage(true);
+          localStorage.removeItem('zelsis_user');
+          localStorage.removeItem('shipguard_user');
+          localStorage.removeItem('zelsis_projects');
+          localStorage.removeItem('shipguard_projects');
+          localStorage.removeItem('zelsis_selected_project_id');
+          localStorage.removeItem('shipguard_selected_project_id');
+          localStorage.removeItem('zelsis_license_key');
+          localStorage.removeItem('shipguard_license_key');
           if (typeof document !== 'undefined') {
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `zelsis_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;

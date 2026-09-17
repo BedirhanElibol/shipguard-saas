@@ -23,6 +23,7 @@ import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
+import { safeSetStorageItem } from '@/lib/storage';
 import { ShieldCheck, Plus } from 'lucide-react';
 import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
 import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
@@ -81,8 +82,22 @@ function DashboardContent() {
   };
 
   const handleAddNewProject = (newP: Project) => {
+    const normTarget = (newP.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(newP.repoUrl) || newP.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
     setProjects((prev) => {
-      const updated = [newP, ...prev];
+      const existingIdx = prev.findIndex((p) => {
+        if (p.id === newP.id) return true;
+        const pNorm = (p.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(p.repoUrl) || p.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+        return pNorm === normTarget;
+      });
+
+      let updated: Project[];
+      if (existingIdx >= 0) {
+        const copy = [...prev];
+        copy[existingIdx] = { ...copy[existingIdx], ...newP, id: copy[existingIdx].id };
+        updated = copy;
+      } else {
+        updated = [newP, ...prev];
+      }
       persistProjectsList(updated);
       return updated;
     });
@@ -523,9 +538,26 @@ function DashboardContent() {
           }
           try {
             localStorage.setItem('zelsis_user', JSON.stringify(finalUser));
-            localStorage.setItem('shipguard_user', JSON.stringify(finalUser));
+            localStorage.removeItem('shipguard_user');
           } catch (e: unknown) {
             console.warn('[Zelsis Auth] Failed to persist user session:', e);
+          }
+          if (finalUser.email) {
+            try {
+              const userProjectsKey = `zelsis_user_projects_${finalUser.email.toLowerCase().trim()}`;
+              const savedProjectsStr = localStorage.getItem(userProjectsKey);
+              if (savedProjectsStr) {
+                const parsed = JSON.parse(savedProjectsStr);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  setProjects(parsed);
+                  handleSelectProject(parsed[0]);
+                  safeSetStorageItem('zelsis_projects', JSON.stringify(parsed));
+                  safeSetStorageItem('zelsis_selected_project_id', parsed[0].id);
+                }
+              }
+            } catch (authProjErr) {
+              console.warn('[Zelsis Auth] Failed to restore user projects upon auth modal login:', authProjErr);
+            }
           }
         }}
         initialMode={authInitialMode}

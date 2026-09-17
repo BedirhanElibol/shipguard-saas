@@ -89,6 +89,32 @@ export function useDashboardState() {
             ? MOCK_PROJECTS
             : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
 
+        // Check if there is an active user session in localStorage or cookie first
+        let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+        if (!savedUserStr && typeof document !== 'undefined') {
+          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+          if (match && match[3]) {
+            try {
+              savedUserStr = decodeURIComponent(match[3]);
+              localStorage.setItem('zelsis_user', savedUserStr);
+            } catch (err) {
+              void err;
+            }
+          }
+        }
+
+        let authenticatedEmail: string | null = null;
+        if (savedUserStr) {
+          try {
+            const parsed = JSON.parse(savedUserStr);
+            if (parsed && typeof parsed === 'object' && parsed.isLoggedIn && parsed.email) {
+              authenticatedEmail = (parsed.email || '').toLowerCase().trim();
+            }
+          } catch {
+            // ignore parse errors
+          }
+        }
+
         if (savedVersion !== CURRENT_DATA_VERSION) {
           safeSetStorageItem('zelsis_data_version', CURRENT_DATA_VERSION);
           localStorage.removeItem('shipguard_data_version');
@@ -104,25 +130,51 @@ export function useDashboardState() {
         }
 
         let currentProjects = getBaseProjects();
-        const savedProjectsStr = localStorage.getItem('zelsis_projects') || localStorage.getItem('shipguard_projects');
-        if (savedProjectsStr) {
-          try {
-            const parsed = JSON.parse(savedProjectsStr);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              currentProjects = parsed.map((p: any) => {
-                if (p.repoUrl === 'https://github.com/example/shipguard' || p.id === 'proj-zelsis-self' || p.id === 'proj-shipguard-self') {
-                  return { ...p, repoUrl: 'local' };
+
+        if (authenticatedEmail) {
+          // Logged-in user: Check user-scoped projects first, then fallback to general storage
+          const userProjectsKey = `zelsis_user_projects_${authenticatedEmail}`;
+          const savedUserProjectsStr = localStorage.getItem(userProjectsKey);
+          const savedProjectsStr = savedUserProjectsStr || localStorage.getItem('zelsis_projects') || localStorage.getItem('shipguard_projects');
+
+          if (savedProjectsStr) {
+            try {
+              const parsed = JSON.parse(savedProjectsStr);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                currentProjects = parsed.map((p: any) => {
+                  if (p.repoUrl === 'https://github.com/example/shipguard' || p.id === 'proj-zelsis-self' || p.id === 'proj-shipguard-self') {
+                    return { ...p, repoUrl: 'local' };
+                  }
+                  return p;
+                });
+                if (!savedUserProjectsStr) {
+                  safeSetStorageItem(userProjectsKey, JSON.stringify(currentProjects));
                 }
-                return p;
-              });
+              }
+            } catch (jsonErr) {
+              console.warn('[Zelsis Storage] Corrupted user projects in localStorage; resetting to default.', jsonErr);
+              currentProjects = getBaseProjects();
             }
-          } catch (jsonErr) {
-            console.warn('[Zelsis Storage] Corrupted projects in localStorage; resetting to default.', jsonErr);
-            localStorage.removeItem('zelsis_projects');
-            localStorage.removeItem('shipguard_projects');
-            currentProjects = getBaseProjects();
           }
+        } else {
+          // Guest / Signed out user:
+          // A signed-out visitor must NEVER see an authenticated user's old searches or scanned repositories!
+          // We wipe leftover session projects from localStorage and present ONLY the clean demo showcase.
+          localStorage.removeItem('zelsis_projects');
+          localStorage.removeItem('shipguard_projects');
+          localStorage.removeItem('zelsis_selected_project_id');
+          localStorage.removeItem('shipguard_selected_project_id');
+          currentProjects = getBaseProjects();
         }
+
+        // Deduplicate projects by repoUrl to prevent duplicate dropdown items
+        const seenUrls = new Set<string>();
+        currentProjects = currentProjects.filter((p) => {
+          const norm = (p.repoUrl === 'local' ? 'local' : p.repoUrl.replace(/\/+$/, '')).toLowerCase().trim();
+          if (seenUrls.has(norm)) return false;
+          seenUrls.add(norm);
+          return true;
+        });
 
         // Environment isolation: Filter out local self-audit project if not permitted
         if (!allowedLocal) {
@@ -137,40 +189,26 @@ export function useDashboardState() {
         setProjects(currentProjects);
 
         const savedSelectedId = localStorage.getItem('zelsis_selected_project_id') || localStorage.getItem('shipguard_selected_project_id');
-        let chosenProject = MOCK_PROJECTS[0];
+        let chosenProject = currentProjects[0] || MOCK_PROJECTS[0];
 
         if (savedSelectedId) {
           const isStaleLocal = savedSelectedId === 'proj-zelsis-self' || savedSelectedId === 'proj-shipguard-self';
           const found = currentProjects.find((p) => p.id === savedSelectedId);
 
           if (!allowedLocal && (isStaleLocal || found?.repoUrl === 'local')) {
-            // Auto-heal: Reset selected project to clean showcase default (proj-saas-starter)
-            chosenProject = MOCK_PROJECTS[0];
-            safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
+            chosenProject = currentProjects[0] || MOCK_PROJECTS[0];
+            safeSetStorageItem('zelsis_selected_project_id', chosenProject.id);
           } else if (found) {
             chosenProject = found;
           } else {
-            chosenProject = MOCK_PROJECTS[0];
-            safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
+            chosenProject = currentProjects[0] || MOCK_PROJECTS[0];
+            safeSetStorageItem('zelsis_selected_project_id', chosenProject.id);
           }
         } else {
-          safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
+          safeSetStorageItem('zelsis_selected_project_id', chosenProject.id);
         }
 
         setSelectedProject(chosenProject);
-
-        let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
-        if (!savedUserStr && typeof document !== 'undefined') {
-          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
-          if (match && match[3]) {
-            try {
-              savedUserStr = decodeURIComponent(match[3]);
-              localStorage.setItem('zelsis_user', savedUserStr);
-            } catch (err) {
-              void err;
-            }
-          }
-        }
 
 
 
@@ -762,6 +800,11 @@ export function useDashboardState() {
         }))
       }));
       safeSetStorageItem('zelsis_projects', JSON.stringify(lightweight), selectedProject.id);
+
+      if (user?.isLoggedIn && user?.email) {
+        const userProjectsKey = `zelsis_user_projects_${user.email.toLowerCase().trim()}`;
+        safeSetStorageItem(userProjectsKey, JSON.stringify(lightweight), selectedProject.id);
+      }
     } catch (primaryQuotaErr) {
       void primaryQuotaErr;
       try {
@@ -781,6 +824,11 @@ export function useDashboardState() {
           }))
         }));
         safeSetStorageItem('zelsis_projects', JSON.stringify(ultraCompact), selectedProject.id);
+
+        if (user?.isLoggedIn && user?.email) {
+          const userProjectsKey = `zelsis_user_projects_${user.email.toLowerCase().trim()}`;
+          safeSetStorageItem(userProjectsKey, JSON.stringify(ultraCompact), selectedProject.id);
+        }
       } catch (fallbackQuotaErr) {
         console.warn('[Zelsis Storage] Silent localStorage quota limit handled gracefully:', fallbackQuotaErr);
       }
@@ -988,6 +1036,28 @@ export function useDashboardState() {
         syncUserProfileToSupabase(loggedInUser).catch(() => {});
       }
     }
+
+    if (email) {
+      try {
+        const userProjectsKey = `zelsis_user_projects_${email.toLowerCase().trim()}`;
+        const savedUserProjectsStr = localStorage.getItem(userProjectsKey);
+        if (savedUserProjectsStr) {
+          const parsed = JSON.parse(savedUserProjectsStr);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const allowedLocal = canAccessLocalAudit();
+            const filtered = allowedLocal
+              ? parsed
+              : parsed.filter((p: any) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
+            setProjects(filtered);
+            setSelectedProject(filtered[0]);
+            safeSetStorageItem('zelsis_projects', JSON.stringify(filtered));
+            safeSetStorageItem('zelsis_selected_project_id', filtered[0].id);
+          }
+        }
+      } catch (authProjErr) {
+        console.warn('[Zelsis Auth] Failed to restore user projects upon auth submit:', authProjErr);
+      }
+    }
   };
 
   const handleUpdateUserProfile = (fields: Partial<UserProfile>) => {
@@ -1025,11 +1095,37 @@ export function useDashboardState() {
   };
 
   const handleSignOut = async () => {
+    // 1. Back up authenticated user's projects before clearing active session
+    if (user?.email && projects && projects.length > 0) {
+      try {
+        const userProjectsKey = `zelsis_user_projects_${user.email.toLowerCase().trim()}`;
+        safeSetStorageItem(userProjectsKey, JSON.stringify(projects));
+      } catch (backupErr) {
+        console.warn('[Zelsis Auth] Failed to backup user projects on sign out:', backupErr);
+      }
+    }
+
     await supabaseSignOut().catch(() => {});
     setUser(null);
-    purgeZelsisStorage(true);
+
+    // 2. Reset in-memory projects and selected project to clean demo showcase
+    const cleanDemoProjects = canAccessLocalAudit()
+      ? MOCK_PROJECTS
+      : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
+
+    setProjects(cleanDemoProjects);
+    setSelectedProject(cleanDemoProjects[0]);
+
+    // 3. Purge session projects from localStorage so signed-out visitors never see previous scans
+    localStorage.removeItem('zelsis_projects');
+    localStorage.removeItem('shipguard_projects');
+    localStorage.removeItem('zelsis_selected_project_id');
+    localStorage.removeItem('shipguard_selected_project_id');
     localStorage.removeItem('zelsis_license_key');
     localStorage.removeItem('shipguard_license_key');
+    localStorage.removeItem('zelsis_user');
+    localStorage.removeItem('shipguard_user');
+
     if (typeof document !== 'undefined') {
       document.cookie = 'zelsis_user=; path=/; max-age=0; SameSite=Lax';
       document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';

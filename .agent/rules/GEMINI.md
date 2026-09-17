@@ -218,21 +218,23 @@ When user's prompt is NOT in English:
 
 ## TIER 2: DESIGN RULES (Reference)
 
-> **Design rules are in the specialist agents, NOT here.**
+> **Design rules are in the specialist agents and UI rules, NOT here.**
 
-| Task         | Read                            |
-| ------------ | ------------------------------- |
-| Web UI/UX    | `.agent/frontend-specialist.md` |
-| Mobile UI/UX | `.agent/mobile-developer.md`    |
+| Task         | Read                                       |
+| ------------ | ------------------------------------------ |
+| UI Standards | `.agent/rules/UI_ENGINEERING_STANDARDS.md` |
+| Web UI/UX    | `.agent/agents/frontend-specialist.md`     |
+| Mobile UI/UX | `.agent/agents/mobile-developer.md`        |
 
-**These agents contain:**
+**These agents and rules contain:**
 
+- The 200 Production Frontend Quality Rules
 - Purple Ban (no violet/purple colors)
 - Template Ban (no standard layouts)
 - Anti-cliché rules
 - Deep Design Thinking protocol
 
-> 🔴 **For design work:** Open and READ the agent file. Rules are there.
+> 🔴 **For design work:** Open and READ `UI_ENGINEERING_STANDARDS.md` and the agent file. Rules are binding.
 
 ---
 

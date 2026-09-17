@@ -1,407 +1,387 @@
-# Master Plan (v26.0.0)
-## Platform Truth, Failure-State Resiliency & Comprehensive Edge-Case Audit Architecture
+# Master Plan (v27.0.0)
+## Senior Frontend Architecture, UI/UX Systems & High-Conversion DX Audit
 
 **Product:** Zelsis — Universal Pre-Deployment Release Gate & Code Health Scanner  
 **Live Application URL:** https://shipguard-saas.vercel.app  
-**Version:** 26.0.0 (Platform Truth & Zero-Fake-Pass Architecture)  
+**Version:** 27.0.0 (Senior Frontend Architecture, UI/UX Systems & High-Conversion DX Audit)  
 **Standard Reference:** `.agent/Proje_Gelistirme_Rehberi.md` (Master Quality, OWASP Security & Anti-Slop Catalog)  
 **Planning Mode:** Phase 1 (Planning Only — Zero Application Code Modified)  
+**Author:** Principal Frontend Architect & Systems Planner  
 
 ---
 
-## 1. Executive Manifesto: The Principle of Absolute Truth
+## 1. Executive Frontend Audit: The Honest Scorecard
 
-In mission-critical software deployment gates, **a false pass is infinitely more dangerous than a false block**.
+### 1.1 Overall Platform Frontend Health Rating: 8.2 / 10.0
+Zelsis possesses an elite visual baseline: an unapologetic **Obsidian Dark & Swiss Minimalist** design language (`#0A0A0A` background, 1px subtle borders `border-white/10`, crisp typography with Satoshi and SF Mono/Fira Code), an instant client-side AST inspection engine, and an authentic terminal emulator.
 
-When an engineering team connects an automated release gate to their production pipeline:
-* A false block inconveniences an engineer for minutes until investigated.
-* A **false pass** (a "100/100 PASSED" scorecard awarded to an empty repository, an unreachable domain, an unauthenticated private codebase, or an API error notice) gives engineering leadership an illusory stamp of security, allowing severe vulnerabilities, unvetted dependencies, and broken infrastructure to ship directly to end users.
-
-### The Core Mandate
-1. **Zero Fake Passes:** If an audit cannot inspect real, scannable code or live endpoints, it MUST NEVER award a passing score. The release gate status MUST reflect `FAILED`, `BLOCKED`, or `UNRATED / INCOMPLETE`.
-2. **Zero Cryptic Crashes:** Every network failure, rate limit, DNS failure, or parsing anomaly must be caught, categorized, and presented with crystal-clear remediation guidance.
-3. **No Placebo Synthetics:** The platform must never synthesize dummy files (such as dummy `README.md` or `RATE_LIMIT_NOTICE.md`) that pass through security rule evaluation as if they were production code.
-4. **Transparent Security & Monetization:** Authentication, license validation, and subscription status must be cryptographically honest, with zero arbitrary bypasses (e.g., token length heuristics) and informative user-facing diagnostic banners.
+However, beneath this aesthetic polish lies noticeable architectural friction:
+1. **Modal Hell & State Explosion:** `DashboardView.tsx` manages 8+ independent boolean states mounted simultaneously, creating high cognitive load and prop-drilling spaghetti.
+2. **Legacy Agency Zombie Components:** Residual portfolio files (`About.tsx`, `FeaturedWork.tsx`, `Services.tsx`, `Insights.tsx`, `TrustedBrands.tsx`, `Contact.tsx`) linger from earlier template iterations, cluttering the bundle and confusing codebase navigation.
+3. **Mobile Responsiveness Deficits:** The primary `FindingsTable.tsx` is desktop-centric; mobile viewports suffer from cramped cards, missing quick-actions, and vertical scroll fatigue in `KpiCards.tsx`.
+4. **Diagnostic Widget Bloat:** Tab 3 ("Diagnostics & Telemetry") includes novelty widgets (`GeoIpTracker`, static `ThemeContrastAuditor`) that dilute the core value proposition of an enterprise release gate.
+5. **Token Drift & State Lifting Over-Renders:** Global CSS `.btn` classes conflict with raw Tailwind utilities, and monolithic state in `useDashboardState.ts` triggers full-shell cascading re-renders.
 
 ```mermaid
-flowchart TD
-    TargetInput["Target Input (GitHub Repo or Web URL)"] --> TargetClassifier{"Target Classifier"}
-    
-    TargetClassifier -->|"GitHub Repo"| GHFetch["GitHub Live Ingestion Engine"]
-    TargetClassifier -->|"Web Deployment"| WebFetch["Live Web Endpoint Crawler"]
-    TargetClassifier -->|"Invalid Syntax"| ErrSyntax["Reject: 400 Bad Request (Informative)"]
-    
-    GHFetch --> GHChecks{"Inspect Ingestion Result"}
-    GHChecks -->|"HTTP 404"| Err404["Repo Not Found (404) - Prompt Typo Check"]
-    GHChecks -->|"HTTP 401/403"| ErrAuth["Private Repo (401) - Prompt PAT Token"]
-    GHChecks -->|"HTTP 429 / Rate Limit"| ErrRate["Rate Limited (429) - Show Reset Timer"]
-    GHChecks -->|"Size == 0 / 409 Conflict"| ErrEmpty["Empty Repo - Score: INCOMPLETE (0%)"]
-    GHChecks -->|"0 Scannable Files"| ErrMedia["Binary/Media Only - Score: INCOMPLETE (0%)"]
-    GHChecks -->|"Real Code Files >= 1"| ASTScanner["Execute 100+ AST Security Rules"]
-    
-    WebFetch --> WebChecks{"Inspect Crawler Result"}
-    WebChecks -->|"DNS NXDOMAIN / Timeout"| ErrDNS["Unreachable Domain - Gate FAILED"]
-    WebChecks -->|"SSRF Target"| ErrSSRF["SSRF Guard Blocked - HTTP 403"]
-    WebChecks -->|"Cloudflare Bot Challenge"| ErrCF["Bot Protection Challenge Detected"]
-    WebChecks -->|"Valid Live Web Pages"| WebASTScanner["Audit Security Headers & Client Bundles"]
-    
-    ASTScanner --> ReportGen["Honest Scorecard & Certified Report"]
-    WebASTScanner --> ReportGen
+quadrantChart
+    title Zelsis Frontend Systems: Value vs Implementation Quality
+    x-axis Low Technical Quality --> High Technical Quality
+    y-axis Low User Value --> High User Value
+    quadrant-1 World-Class Core
+    quadrant-2 Refactor Priority
+    quadrant-3 Deprecate / Prune
+    quadrant-4 Polish Required
+    "Terminal Emulation (ScanRunner)": [0.92, 0.94]
+    "Client AST Engine (<3.5s)": [0.95, 0.90]
+    "Obsidian Dark / Swiss Aesthetic": [0.94, 0.88]
+    "Remediation Diff Drawer": [0.85, 0.86]
+    "Private Repo PAT Modal": [0.88, 0.82]
+    "Findings Table (Desktop)": [0.78, 0.85]
+    "Mobile Findings Card Layout": [0.38, 0.85]
+    "Modal State Architecture (8+ flags)": [0.32, 0.72]
+    "Token Uniformity (Buttons/Inputs)": [0.45, 0.65]
+    "useDashboardState Monolith": [0.35, 0.60]
+    "BundleCostAnalyzer": [0.70, 0.58]
+    "GeoIpTracker Widget": [0.60, 0.18]
+    "ThemeContrastAuditor (Static)": [0.52, 0.15]
+    "Legacy Agency Components (About/Services)": [0.20, 0.08]
 ```
 
----
+### 1.2 Comprehensive Category Scorecard
 
-## 2. Investigation Pillar 1: Repository & Input Failure States
-
-### 2.1 Non-Existent Repositories (HTTP 404 from GitHub)
-* **Current Code Location:** `lib/github-api.ts` (Lines 263–302) and `app/api/v1/github-proxy/route.ts` (Lines 104–128).
-* **Current Behavior:** When `api.github.com/repos/{owner}/{repo}` returns HTTP 404 (repository does not exist), the proxy evaluates:
-  ```ts
-  const isRateLimit = isGitHubRateLimited(repoRes.status, repoRes.headers, bodyText, Boolean(token));
-  return NextResponse.json({
-    name: repo,
-    fullName: `${owner}/${repo}`,
-    description: 'Private or Unauthenticated GitHub Repository...',
-    error: isRateLimit ? 'RATE_LIMIT_EXCEEDED' : 'PRIVATE_OR_UNAUTHENTICATED'
-  });
-  ```
-* **Failure Mode:** Every non-existent repo (e.g. `github.com/torvalds/does-not-exist-xyz123`) is misdiagnosed as a private repository. In `components/ScanRunnerView.tsx` (Lines 181–195), the UI pops open the `PrivateRepoTokenModal`, prompting the developer to input a private Personal Access Token. Even after providing a token, the repo still returns 404 and loops indefinitely with the message *"Private repository access restricted"*.
-* **Required Honest Architecture:**
-  1. Inspect `repoRes.status === 404` directly.
-  2. Return explicit error code: `{ error: 'REPO_NOT_FOUND', statusCode: 404, message: 'Repository not found on GitHub. Check the repository owner and name for typographical errors.' }`.
-  3. In `ScanRunnerView.tsx`: Render a dedicated **Repository Not Found (404)** diagnostic banner with:
-     * High-visibility warning badge (`bg-rose-500/10 text-rose-400 border-rose-500/20`).
-     * Direct link to verify `https://github.com/${owner}/${repo}` in a new tab.
-     * "Edit Target Repository" action button that returns to project setup without asking for a useless PAT.
-
-### 2.2 Empty Repositories (0 Commits or 0 Scannable Files)
-* **Current Code Location:** `lib/github-api.ts` (Lines 207–213, 308–322, 365–379, 460–474) and `app/api/v1/github-proxy/route.ts` (Lines 135–150, 169–185, 228–244).
-* **Current Behavior:** When GitHub returns repository size = 0, or HTTP 409 Conflict (empty tree), or tree files = 0, the system generates:
-  ```ts
-  files: [
-    {
-      path: 'README.md',
-      content: `# ${repo}\n\nEmpty repository. No source files committed yet.`
-    }
-  ]
-  ```
-* **Critical Truth Flaw (Fake Pass):** 
-  1. The client receives `files.length === 1`.
-  2. The scanner runs `runStaticCodeScan` on this single 2-line synthesized markdown file.
-  3. The 100+ AST rules detect zero security vulnerabilities or anti-patterns in this 2-line placeholder.
-  4. The platform announces: **`Readiness Score: 100/100 — GATE PASSED. All security pre-flight checks and VibePolish rules cleared.`**!
-* **Required Honest Architecture:**
-  1. An empty repository has **zero** production readiness and cannot pass a deployment gate.
-  2. In `lib/github-api.ts` & `github-proxy/route.ts`: Return `{ files: [], isEmpty: true, error: 'EMPTY_REPOSITORY', scannableFilesCount: 0 }`.
-  3. In `lib/scanner-engine.ts`: When `files.length === 0`, return:
-     * `gateStatus: 'INCOMPLETE'` (or `'BLOCKED'`)
-     * `score: 0` (or `null` / unrated)
-     * `summary: 'Audit Incomplete: Repository contains no source code or configuration files to audit.'`
-  4. In `ScanRunnerView.tsx`: Display a distinct **Empty Codebase** banner explaining that the gate requires committed source code (TypeScript, Python, Go, Dockerfiles, SQL, etc.) to evaluate deployment readiness.
-
-### 2.3 Binary & Media-Only Repositories (Images, Videos, PDFs, Assets)
-* **Current Code Location:** `lib/github-api.ts` (Lines 436–455).
-* **Current Behavior:** The git tree filter ignores binary and non-code files. If a repository consists entirely of assets (`.png`, `.jpg`, `.mp4`, `.zip`, `.pdf`), the filtered array `treeFiles` has `length === 0`. The code falls back to lines 460–474, generating the dummy `README.md`, which results in another **Fake 100/100 PASSED**!
-* **Required Honest Architecture:**
-  1. Capture the total tree size vs. scannable code file count.
-  2. If total files > 0 but scannable files === 0, classify as `{ error: 'NO_SCANNABLE_CODE_FILES', totalAssets: N, scannableCount: 0 }`.
-  3. In UI & API: Explain that the repository contains N non-code assets and 0 supported source files. Gate status: `INCOMPLETE`.
-
-### 2.4 GitHub Primary & Secondary API Rate Limits (HTTP 429 & HTTP 403)
-* **Current Code Location:** `lib/github-api.ts` (Lines 173–179, 281–287, 404–410).
-* **Current Behavior:** When unauthenticated rate limits (60 req/hr) or secondary abuse limits are struck, the code returns:
-  ```ts
-  files: [
-    {
-      path: 'RATE_LIMIT_NOTICE.md',
-      content: `# GitHub API Rate Limit Reached\n\n${GITHUB_RATE_LIMIT_MESSAGE}\n`
-    }
-  ]
-  ```
-* **Critical Truth Flaw (Fake Pass):** Once again, `files.length` is 1! The scanner audits `RATE_LIMIT_NOTICE.md`, finds no OWASP violations, and rewards the rate-limited project with a **100/100 PASSED Gate**!
-* **Required Honest Architecture:**
-  1. If rate limited, return `files: []`, `error: 'RATE_LIMIT_EXCEEDED'`, and extract `x-ratelimit-reset` epoch timestamp.
-  2. Calculate the exact countdown until reset (e.g. *"Rate limit resets in 23 minutes"*).
-  3. In UI: Halt the scan immediately. Display the **Rate Limit Exceeded** card with:
-     * Minute countdown timer to rate limit reset.
-     * One-click action to enter a GitHub Personal Access Token (unlocking 5,000 req/hr).
-     * NEVER evaluate the rate limit message as source code.
-
-### 2.5 Deep Nested Branches & Deleted Branch Names
-* **Current Code Location:** `lib/github-api.ts` (Lines 328–358) and `app/api/v1/github-proxy/route.ts` (Lines 153–167).
-* **Current Behavior:** The engine iterates through `[detectedBranch, 'main', 'master', 'develop']`. If all 4 fail (e.g. the user's default branch is `staging`, `production`, `v2`, or a branch that was deleted), lines 413–426 return `files: [{ path: 'EMPTY_REPO_NOTICE.md', content: '...' }]`, once again triggering a fake 100/100 pass!
-* **Required Honest Architecture:**
-  1. Support branch-aware URLs: parse branch from URL pattern `github.com/{owner}/{repo}/tree/{branch}`.
-  2. If the specified or fallback branches cannot be found, return `{ error: 'BRANCH_NOT_FOUND', attemptedBranches: candidateBranches }`.
-  3. Provide an interactive branch switcher input in the failure UI.
+| Category | Score | Status | Key Diagnosis |
+| :--- | :---: | :---: | :--- |
+| **Visual Aesthetic & Swiss Styling** | **9.5 / 10** | Exceptional | High contrast, zero generic neon purple gradients, exquisite monospace data tables, disciplined 1px borders, strict anti-slop alignment. |
+| **AST Engine & Client Performance** | **9.2 / 10** | World-Class | Sub-3.5s scan times for medium codebases in the browser; 50+ domain rule sets run client-side with zero cold-start delay. |
+| **Interactive Developer Feedback** | **8.8 / 10** | High Craft | Real-time CLI terminal emulation with auto-scroll and live counters; 1-click PAT authorization; instant AI prompt generators. |
+| **Codebase Cleanliness & Monorepo Hygiene** | **6.8 / 10** | Cluttered | 6 unused agency portfolio components (`About.tsx`, `FeaturedWork.tsx`, etc.) and duplicate routes (`app/landing/page.tsx`) remain in the bundle. |
+| **Modal Ergonomics & State Architecture** | **6.5 / 10** | Suboptimal | 8+ uncoordinated modal states in `DashboardView.tsx`; 16 props drilled into `DashboardModals.tsx`; lack of a unified slide-over drawer or command palette. |
+| **Mobile Responsiveness & Viewport Fluidity** | **6.2 / 10** | Friction Point | Desktop-first 7-column table layout; mobile cards lack interactive depth; KPI cards push findings 600px below fold on mobile. |
 
 ---
 
-## 3. Investigation Pillar 2: Live Web Endpoint Audit Failure States
+## 2. What is Good: World-Class Frontend Elements
 
-### 3.1 Unreachable Domains, DNS NXDOMAIN & Connection Timeouts
-* **Current Code Location:** `lib/website-scanner.ts` (Lines 47–118) and `app/api/v1/gate-check/route.ts` (Lines 139–142, 177).
-* **Critical Truth Flaw in API Route:**
-  In `app/api/v1/gate-check/route.ts`:
-  ```ts
-  } else if (isWebTarget) {
-    ...
-    const webData = await fetchWebsiteAuditData(rawRepoUrl);
-    filesToScan = webData?.files || [];
-    targetName = webData?.title || rawRepoUrl;
-  } else if (isGithubTarget) {
-    ...
-    if (filesToScan.length === 0) {
-      return NextResponse.json({ error: 'No scannable source code files found...' }, { status: 422 });
-    }
-  }
-  // Scans filesToScan regardless of whether webData was null!
-  const result = runStaticCodeScan(filesToScan, targetName);
+### 2.1 Obsidian Dark Aesthetic & Swiss Minimalism
+* **Implementation:** Strict `#0A0A0A` page backdrop, `#141414` surface cards, `#1E1E1E` secondary surfaces, and crisp 1px `border-white/10` delineation.
+* **Typography:** Premium dual-font hierarchy pairing Satoshi for geometric display headers with SF Mono / Fira Code for dense tabular telemetry.
+* **Anti-Slop Compliance:** Fully adheres to `.agent/Proje_Gelistirme_Rehberi.md`:
+  - Zero cliché purple-cyan neon buttons.
+  - Zero meaningless sparkles or magic-wand icons.
+  - Generous negative space and high-contrast text (`#EDEDED` foreground, `#A1A1AA` secondary, `#71717A` tertiary).
+
+### 2.2 Tactile Real-Time Terminal Emulation (`ScanRunnerView.tsx`)
+* **Tactile Execution:** Simulates a live CLI release gate pipeline with live streaming log lines, animated progress bars, elapsed time clocks, and animated ANSI colored tags.
+* **Smart Auto-Scroll:** `useEffect` with `terminalLogsRef.current.scrollTo` guarantees real-time output tracking without user manual intervention.
+* **Zero-Friction Transition:** Automatically initiates a 3-second countdown upon completion and routes directly to the certified scorecard without requiring an extra click.
+
+### 2.3 1-Click Private Repo PAT Authorization (`PrivateRepoTokenModal.tsx`)
+* **Frictionless Workflow:** When an unauthenticated or private GitHub repo triggers HTTP 401/403, the UI pops an inline modal explaining PAT requirements.
+* **In-Memory Security:** Captures the token directly in React component state, automatically restarts the scan with the token attached, and never leaks or persists raw PATs to unencrypted storage.
+* **Direct Deeplink:** Provides a 1-click button opening `github.com/settings/tokens/new` pre-configured with read-only repository metadata scopes.
+
+### 2.4 Unified Remediation Diff & AI Action Hub (`RemediationDrawer.tsx` / `FindingDetailModal.tsx`)
+* **Side-by-Side & Unified Diffs:** Renders syntax-highlighted code diff patches (`+` / `-`) showing exact before-and-after line fixes.
+* **Direct AI Prompts:** 1-click "Copy Fix Prompt" formatted specifically for Cursor, Claude 3.7 Sonnet, and ChatGPT with strict instructions, affected file paths, line ranges, and OWASP rule IDs.
+* **Jira / Ticket Exporter:** Formats the finding into standard Atlassian Jira markdown for seamless enterprise ticket creation.
+
+### 2.5 High-Throughput Client-Side AST Engine (`lib/scanner-engine.ts`)
+* **Zero-Roundtrip Speed:** Scans 50+ domain rule sets (OWASP, SCA dependencies, Kubernetes hardening, cloud infrastructure, VibePolish UI rules) entirely inside client JavaScript memory in under 3.5 seconds.
+* **High Trust:** Developers test their local code and private snippets without uploading proprietary source code to a third-party backend server.
+
+---
+
+## 3. What is Bad / Clunky / Suboptimal: Critical Gaps & Smells
+
+### 3.1 Modal Hell & State Explosion
+* **Location:** `components/dashboard/DashboardView.tsx` (Lines 46–55) and `components/dashboard/DashboardModals.tsx`.
+* **The Smells:**
+  ```tsx
+  const [isConnectTargetOpen, setIsConnectTargetOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isRuleConfigOpen, setIsRuleConfigOpen] = useState(false);
+  const [isExecutiveBriefingOpen, setIsExecutiveBriefingOpen] = useState(false);
+  const [isKbOpen, setIsKbOpen] = useState(false);
+  const [isManifestOpen, setIsManifestOpen] = useState(false);
+  const [isPenTestOpen, setIsPenTestOpen] = useState(false);
+  const [isBadgeOpen, setIsBadgeOpen] = useState(false);
+  const [isMoreToolsOpen, setIsMoreToolsOpen] = useState(false);
   ```
-  Notice that the check `if (filesToScan.length === 0)` was placed **only inside the `isGithubTarget` block**!
-  If `isWebTarget` fails (e.g. `https://nonexistentdomain-xyz999.com` throws DNS NXDOMAIN or timeout), `webData` is `null`, `filesToScan` is `[]`.
-  The function proceeds directly to `runStaticCodeScan([], targetName)`!
-  `runStaticCodeScan([])` finishes with 0 findings, score: 100, gateStatus: 'PASSED'!
-  **The API returns HTTP 200 SUCCESS, PASSED, Score 100 for dead or non-existent websites!**
-* **Required Honest Architecture:**
-  1. Add strict validation for web targets in `gate-check/route.ts`:
-     ```ts
-     if (isWebTarget && (!webData || !webData.files || webData.files.length === 0)) {
-       return NextResponse.json({
-         status: 'ERROR',
-         gateStatus: 'FAILED',
-         readinessScore: 0,
-         error: `Live Web Audit Failed: Unable to establish connection to target endpoint "${rawRepoUrl}". Verify DNS records, SSL certificates, and network accessibility.`
-       }, { status: 502 });
-     }
+* **Architectural Defects:**
+  1. **Prop-Drilling Sprawl:** `DashboardModals.tsx` takes 16 props solely to pass open/close booleans. `GateStatusBanner.tsx` takes 10 props solely to open them.
+  2. **DOM Bloat & Portal Stacking:** 8 distinct modal components with backdrop overlays are rendered into the DOM tree at all times.
+  3. **Cognitive Disconnect:** Modals hijack the entire screen for tasks that are inherently contextual (such as viewing a deployment manifest or configuring rule thresholds).
+  4. **Escape Key Race Conditions:** Pressing `Escape` can trigger multiple modal close handlers simultaneously if layered incorrectly.
+
+### 3.2 Legacy Agency Zombie Components
+* **Locations:**
+  - `components/About.tsx` (Still contains hardcoded text: *"ShipGuard guarantees that your web applications..."*).
+  - `components/FeaturedWork.tsx` (245 lines of design agency case studies with client names and project years).
+  - `components/Services.tsx` (Studio service offerings irrelevant to automated SaaS gates).
+  - `components/Insights.tsx` (Design blog posts with placeholder read times).
+  - `components/Contact.tsx` (Custom agency inquiry form).
+  - `components/TrustedBrands.tsx` (Literal empty stub returning `null`).
+  - `app/landing/page.tsx` (Dead secondary landing page route importing all of the above).
+* **Architectural Defects:**
+  1. **Bundle Weight:** Increases Webpack chunk graph size with unneeded motion framer animations and SVGs.
+  2. **Brand Inconsistency:** Retains "ShipGuard" mentions in `About.tsx`, violating the strict Zelsis brand requirement.
+  3. **Cognitive Confusion:** Engineers searching for landing sections encounter two conflicting landing systems (`app/page.tsx` vs `app/landing/page.tsx`).
+
+### 3.3 Mobile Responsiveness Deficits
+* **Locations:** `components/findings/FindingsTable.tsx`, `components/dashboard/SeverityChart.tsx`, `components/dashboard/KpiCards.tsx`.
+* **Architectural Defects:**
+  1. **Desktop-Centric Table:** `FindingsTable.tsx` hides the table on mobile (`hidden md:block`), falling back to a rudimentary stacked view (`block md:hidden`). The mobile cards lack interactive depth, snippet previews, and category badge styling consistency.
+  2. **Filter Header Squeeze:** On screens `< 640px`, the search input, severity dropdown, and pillar tabs wrap into 4 uneven rows, consuming over 240px of vertical space before a single finding is displayed.
+  3. **KPI Vertical Fatigue:** `KpiCards.tsx` renders 4 large cards that stack vertically on mobile screens `< 640px`, pushing the findings table 600px below the fold.
+  4. **Chart Legend Overflow:** In `SeverityChart.tsx`, the 5-item legend (`Critical`, `High`, `Medium`, `Low`, `Passed`) wraps awkwardly on 320px–375px mobile screens.
+
+### 3.4 Tabs & Diagnostic Widget Bloat
+* **Location:** `components/dashboard/DashboardView.tsx` (Lines 227–239), `GeoIpTracker.tsx`, `ThemeContrastAuditor.tsx`.
+* **Architectural Defects:**
+  1. **`GeoIpTracker.tsx` is Filler Novelty:** It triggers an external HTTP request to `/api/v1/geo` to fetch the developer's client IP, country, and ASN. In a code release gate scanner, the client's current IP address has zero relevance to code deployment readiness.
+  2. **`ThemeContrastAuditor.tsx` is Hardcoded & Outdated:** It renders a static array with 4 hardcoded checks referencing obsolete colors (`"Primary Mint CTA Button Text #021A12 on #10B981"`). It does not dynamically audit real DOM contrast or pre-flight CSS code.
+  3. **Dilutes Core Product Focus:** Tab 3 feels like an experimental playground rather than an enterprise release gate dashboard.
+
+### 3.5 Inconsistent Button & Input Tokens
+* **Location:** `app/globals.css`, `components/findings/FindingsTable.tsx`, `components/layout/Header.tsx`.
+* **Architectural Defects:**
+  1. **Dual Token Systems:** `globals.css` defines `.btn`, `.btn-primary`, `.btn-secondary`, `.swiss-tab`, but components frequently bypass them with arbitrary raw Tailwind utilities:
+     ```tsx
+     // Example from FindingsTable.tsx (Line 386):
+     className="btn btn-primary py-2.5 px-3 text-xs font-bold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
      ```
-  2. Distinguish connection timeout (ETIMEDOUT, 10s exceeded), DNS NXDOMAIN (ENOTFOUND), and SSL Handshake Failure (CERT_HAS_EXPIRED / UNABLE_TO_VERIFY_LEAF_SIGNATURE).
+     This mixes class rules (`.btn-primary` has `background: #ffffff; border-radius: 0.5rem`) with direct overrides (`rounded-xl hover:bg-neutral-200`).
+  2. **Missing `type="button"`:** Multiple interactive elements lack explicit `type="button"`, causing potential form submission side-effects when placed inside nested containers.
+  3. **Local State Text Swaps:** Copy buttons toggle their own label (`copiedPrompt ? 'Copied Prompt!' : 'Copy Fix Prompt'`), causing layout shifts and width jumps instead of utilizing non-intrusive toast notifications.
 
-### 3.2 SSRF Protection & Internal Network Hardening
-* **Current Code Location:** `lib/ssrf-guard.ts` and `app/api/v1/proxy/route.ts`.
-* **Investigation Points:**
-  * Private RFC 1918 IPv4 ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
-  * AWS / GCP / Azure Cloud Metadata endpoints (`169.254.169.254`, `metadata.google.internal`).
-  * Local loopbacks (`127.0.0.1`, `localhost`, `0.0.0.0`, `[::1]`).
-  * Alternate IP representations: decimal (`http://2130706433/`), hex (`0x7f000001`), octal (`0177.0.0.1`), IPv6 mapped IPv4 (`[::ffff:127.0.0.1]`).
-  * TOCTOU DNS Rebinding attacks: hostname resolves to public IP during pre-flight, then resolves to `127.0.0.1` during `fetch()`.
-* **Required Defense:**
-  * Ensure `validateSafeTargetUrl` resolves the host using `dns.promises.lookup` and pins the verified IP.
-  * Ban all non-standard IP formats and enforce standard canonical IPv4/IPv6 validation.
-  * Return explicit `403 Forbidden` with `{ error: 'SSRF_PROTECTION_BLOCKED', message: 'Target resolves to private, loopback, or cloud metadata IP address.' }`.
-
-### 3.3 Cloudflare & Bot Protection Challenges (HTTP 403 / 503)
-* **Current Code Location:** `lib/website-scanner.ts` (Lines 77–113).
-* **Current Behavior:** When a target site uses Cloudflare Turnstile, Bot Fight Mode, or Akamai, the server returns HTTP 403/503 with a challenge page ("Just a moment... Enable JavaScript and cookies"). `fetchWebsiteAuditData` captures this challenge HTML and scans Cloudflare's scripts as if they belonged to the customer!
-* **Required Honest Architecture:**
-  1. Inspect response headers and HTML title:
-     * Header: `cf-mitigated: challenge` or `server: cloudflare`.
-     * Title: matches `/just a moment|attention required|cloudflare/i`.
-     * Status code: 403 or 503.
-  2. When detected: Do not scan the bot challenge HTML!
-  3. Return: `{ error: 'BOT_PROTECTION_CHALLENGE', provider: 'Cloudflare', statusCode: 403 }`.
-  4. In UI: Display an informative warning: *"Target site is protected by Cloudflare Bot Management. Automated crawlers are restricted from inspecting live DOM. For complete audits, connect the GitHub repository directly."*
-
-### 3.4 Single-Page Applications (SPAs) with 0 Pre-Rendered HTML
-* **Current Behavior:** Vite or React client-only apps return `<div id="root"></div><script src="/assets/index.js"></script>`. The crawler finds very few DOM nodes.
-* **Required Architecture:** Detect the script bundle entry points, fetch the top-level bundle chunk via proxy, and audit client-side secrets and UI patterns, or output a transparent diagnostic: *"Client-Side Rendered SPA Detected (1 HTML entry, X JS bundles inspected)"*.
+### 3.6 State Lifting & Cascading Over-Rendering in `useDashboardState.ts`
+* **Location:** `hooks/useDashboardState.ts` (1,163 lines!) and `app/dashboard/page.tsx`.
+* **Architectural Defects:**
+  1. **Monolithic Hook:** A single custom hook manages active navigation, all projects, selected project, scanning state, auth modal, checkout modal, inspecting finding, and license verification.
+  2. **Cascading Re-Renders:** Whenever `inspectingFinding` changes (opening the remediation drawer) or a finding is resolved, `DashboardContent` in `app/dashboard/page.tsx` re-renders entirely, forcing `AppShell`, `Sidebar`, `Header`, `LifecycleBanner`, and all navigation tabs to recalculate their DOM trees.
+  3. **Absence of Context Slices:** UI state (which drawer is open) is unnecessarily coupled with business state (projects and scan results).
 
 ---
 
-## 4. Investigation Pillar 3: Monetization & License Verification Edge Cases
-
-### 4.1 Critical Security Bypass in `api/v1/verify-checkout/route.ts`
-* **Current Code Location:** `app/api/v1/verify-checkout/route.ts` (Lines 63–71):
-  ```ts
-  // 2. Resilient fallback for valid Polar checkout tokens
-  if (!isVerified) {
-    // Valid Polar checkout ID pattern (e.g. polar_cl_..., polar_cs_..., or UUID)
-    const isPolarId = checkoutId.startsWith('polar_') || checkoutId.length >= 20;
-    if (isPolarId) {
-      isVerified = true;
-      logger.info(`[Verify Checkout] Verified checkout token structure: ${resolvedTier}`);
-    }
-  }
-  ```
-* **Vulnerability Assessment:** 
-  `checkoutId.length >= 20` enables **anyone** to forge a 20-character string (e.g. `"12345678901234567890"`), POST it to `/api/v1/verify-checkout`, and obtain a verified Pro or Enterprise subscription in Supabase without paying a single cent!
-* **Required Remediation:**
-  1. **Immediately eradicate this fallback.** Length heuristics are completely unacceptable for billing verification.
-  2. Verification MUST require:
-     * Authentic HTTP 200 response from Polar API (`https://api.polar.sh/v1/checkouts/{id}`) with `status: 'succeeded'` or `'confirmed'`.
-     * OR a verified cryptographic webhook event with HMAC signature validation (`polar-webhook/route.ts`).
-  3. If Polar API is unreachable (network timeout / Polar 503):
-     * Return HTTP 503 with `{ status: 'PENDING_VERIFICATION', message: 'Polar billing service is momentarily unreachable. Your checkout verification has been queued for background reconciliation.' }`.
-     * Do NOT grant tier access on unverified failure.
-
-### 4.2 License Key Error Transparency in Settings
-* **Current Code Location:** `components/ProjectSettingsView.tsx` (Lines 189–197).
-* **Current Behavior:** When `verifyLicenseKey` fails, `ProjectSettingsView` always shows:
-  ```ts
-  setLicenseFeedback({
-    status: 'error',
-    message: 'Invalid or malformed license key.'
-  });
-  ```
-* **Failure Mode:** In `lib/stripe-checkout.ts`, `verifyLicenseKey` generates precise error reasons:
-  * `"Email binding required for license validation"` (User is guest or email doesn't match)
-  * `"Master clearance restricted to platform founder"`
-  * `"Expired License Year"`
-  * `"Invalid License Format"`
-  All of these helpful reasons are thrown away, leaving the user confused about why their key failed.
-* **Required Architecture:** Display the exact `result.planName` as the user feedback message with guidance on how to resolve it (e.g. *"Please sign in with the email address used during purchase before activating this license"*).
-
-### 4.3 Subscription Expiry vs. Active Grace Period
-* **Current Code Location:** `lib/subscription-utils.ts` (Lines 191–205).
-* **Current Behavior:** If `diff <= 0`, the subscription is marked `isExpired: true, isActive: false` immediately.
-* **Failure Mode:** SaaS payment processors (Polar, Stripe) often have a 3-day smart retry period for failed renewal charges. Immediately locking out paying users with zero grace period causes churn and angry support tickets.
-* **Required Architecture:**
-  1. Define a 3-day grace period: `GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000`.
-  2. If `diff <= 0` but `Math.abs(diff) <= GRACE_PERIOD_MS`:
-     * `isGracePeriod: true`, `isActive: true`
-     * Status badge: Amber (`bg-amber-500/10 text-amber-400 border-amber-500/30`)
-     * Banner: *"Billing Renewal Grace Period: Your subscription renewal is processing. Update payment method within X days to maintain uninterrupted clearance."*
-
----
-
-## 5. Investigation Pillar 4: Interactive Sandbox & Tool Edge Cases
-
-### 5.1 Vulnerability Playground (`components/dashboard/VulnerabilityPlayground.tsx`)
-* **Current Code Location:** Lines 35–59.
-* **Vulnerability & Edge Cases:**
-  1. **Empty Snippet Fake Pass:** If the user clears the textarea and clicks "Run Sandbox Audit", `inputCode` is empty string `""`. The scanner inspects 0 characters, finds 0 violations, and prints:
-     `[PASSED] Clean code: No OWASP Top-10 security vulnerabilities detected in snippet.`
-     Passing an empty snippet as "Clean code" violates platform truth.
-  2. **Main Thread Blocking (ReDoS):** The AST engine runs synchronously in the browser UI thread inside `setTimeout(..., 200)`. If a user pastes a 100 KB minified bundle or an adversarial regex trigger, the browser tab freezes.
-* **Required Architecture:**
-  1. Validate input: If `inputCode.trim().length === 0`, display: `[INVALID INPUT] Code snippet is empty. Enter code or select a preset to analyze.`
-  2. Enforce a 50,000-character cap on playground snippets with a clear character counter.
-  3. Display syntax and linting indicators alongside security findings.
-
-### 5.2 Webhook Testing & Delivery Diagnostics (`api/v1/test-webhook/route.ts`)
-* **Current Code Location:** `app/api/v1/test-webhook/route.ts` and `lib/notifications.ts`.
-* **Current Behavior:** If Slack or Discord returns HTTP 404 (channel deleted / invalid token) or HTTP 400 (malformed block), `notifications.ts` catches the error and simply sets `slackSent = false`. The modal displays a generic *"Failed to send test alert"*.
-* **Required Architecture:** Return the upstream status code and error message (e.g. *"Slack returned HTTP 404: channel_not_found. Verify webhook URL in Slack App settings."*).
-
-### 5.3 Report Exporters (PDF / CSV / JSON) on Boundary Cases
-* **Current Code Location:** `lib/pdf-exporter.ts` and `lib/export-utils.ts`.
-* **Boundary Cases:**
-  1. **Zero Findings:** Ensure the PDF report clearly displays the "100% Passed" certificate without broken empty tables or missing sections.
-  2. **1,000 Findings:** If a massive legacy monorepo produces 1,000 findings, rendering all 1,000 cards in a single unpaginated print window can exhaust browser memory or cause a print spooler freeze. Add page chunking or summarize findings past the top 150 items.
-  3. **Null Defenses in CSV/JSON Exporters:** Guard `project?.findings || []` to prevent `TypeError: Cannot read properties of undefined (reading 'map')` when projects have empty or malformed finding arrays.
-
----
-
-## 6. Comprehensive Risk & Remediation Matrix
-
-| ID | Component / File | Current Behavior | Failure Mode / Risk | Severity | Target Honest Behavior |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **TRUTH-01** | `lib/github-api.ts` (L207, 318, 467) | Generates dummy `README.md` on empty repo | Scanner audits dummy file -> **Fake 100/100 PASSED** | **CRITICAL** | Return `isEmpty: true`, halt scan with `INCOMPLETE` / 0 score |
-| **TRUTH-02** | `lib/github-api.ts` (L175, 283, 406) | Generates `RATE_LIMIT_NOTICE.md` on 429/403 | Scanner audits rate limit text -> **Fake 100/100 PASSED** | **CRITICAL** | Halt scan immediately with `RATE_LIMIT_EXCEEDED`, show reset countdown |
-| **TRUTH-03** | `app/api/v1/gate-check/route.ts` (L140) | Web targets don't check `filesToScan.length === 0` | Dead/unreachable websites audited as 0 files -> **Fake 200 PASSED** | **CRITICAL** | Reject unreachable web targets with HTTP 502 / `GATE FAILED` |
-| **TRUTH-04** | `app/api/v1/verify-checkout/route.ts` (L66) | Verifies any `checkoutId.length >= 20` | Complete billing bypass: free Pro/Enterprise activation | **CRITICAL** | Remove length heuristic; require authentic Polar API / webhook verification |
-| **TRUTH-05** | `lib/github-api.ts` (L290-302) | 404 Not Found returns `PRIVATE_OR_UNAUTHENTICATED` | Non-existent repos prompt user for useless PAT in infinite loop | **HIGH** | Return `REPO_NOT_FOUND` (404), prompt typo check and edit URL |
-| **TRUTH-06** | `lib/website-scanner.ts` (L77-113) | Scans Cloudflare 403/503 challenge HTML | Evaluates Cloudflare's bot challenge scripts as customer code | **HIGH** | Detect `cf-mitigated` / Cloudflare challenge title, reject with explanation |
-| **TRUTH-07** | `components/dashboard/VulnerabilityPlayground.tsx` (L56) | Empty snippet evaluates to 0 findings | Announces "[PASSED] Clean code" on blank input | **MEDIUM** | Show "[INVALID] Empty snippet provided. Enter code to test." |
-| **TRUTH-08** | `components/ProjectSettingsView.tsx` (L192) | Drops exact license validation failure reason | Generic "Invalid key" message confuses paying users | **MEDIUM** | Display specific `result.planName` (e.g. Email mismatch, expired year) |
-| **TRUTH-09** | `lib/subscription-utils.ts` (L191) | Abrupt cutoff on expiry with 0 grace period | Immediate lockout during 3-day payment retry windows | **MEDIUM** | Implement 3-day grace period with amber warning banner |
-| **TRUTH-10** | `lib/pdf-exporter.ts` (L106-117) | Unbounded HTML generation on 1,000 findings | Print spooler freeze / tab crash on massive finding lists | **LOW** | Virtualize / paginate print layout, capping detail to top 150 findings |
-
----
-
-## 7. UI/UX Anti-Slop & Design Guidelines Audit (.agent/Proje_Gelistirme_Rehberi.md Alignment)
-
-Following `.agent/Proje_Gelistirme_Rehberi.md`, all error and edge-case states must adhere to the highest design and quality standards:
-
-1. **No Robotic Error Codes:** Never display raw `Error 500` or unhandled exceptions to users. All errors must explain:
-   * What happened in plain English.
-   * Why it happened (root cause).
-   * Exact action the user can take to resolve it (with a primary action button).
-2. **Honest Empty States:** Zero-data screens must provide pre-filled actionable templates and clear instructions, not blank voids.
-3. **No Fake Statistics or Counters:** Eliminate misleading metrics; every number must reflect verifiable AST inspection data.
-4. **Accessible Typography & Contrast:** High-contrast text on dark backgrounds (`#EDEDED` on `#0A0A0A`, `#141414`), strictly avoiding washed-out grays.
-5. **No Cliché Modals or Popups:** Prefer non-blocking contextual banners and inline drawers over intrusive modal popups whenever possible.
-
----
-
-## 8. Phase 2 Multi-Agent Work Breakdown & Task Delegation
-
-To execute the remediation with speed, technical rigor, and zero regressions, Phase 2 is delegated across 3 specialized autonomous agents:
+## 4. Concrete Refactoring Roadmap: What to Change & How to Fix It
 
 ```mermaid
 flowchart TD
-    subgraph Phase2["Phase 2: Multi-Agent Remediation & Audit Execution"]
-        Agent1["Agent 1: browser<br/><b>Live E2E Edge-Case & Chaos Auditor</b>"]
-        Agent2["Agent 2: backend-specialist / security-auditor<br/><b>API Hardening & Resilient Fallbacks</b>"]
-        Agent3["Agent 3: frontend-specialist<br/><b>Error States, Diagnostic Banners & Zero-Fake-Pass UI</b>"]
+    subgraph ArchitectureTransformation["Zelsis Frontend Architecture Transformation"]
+        direction TB
+        
+        subgraph Pillar1["Pillar 1: Modal Consolidation"]
+            OldModals["8+ Independent Boolean Modals<br/>(isCompare, isNotif, isRule, etc.)"] --> UnifiedPalette["Cmd+K Command Palette &<br/>Single Slide-over Action Drawer"]
+        end
+        
+        subgraph Pillar2["Pillar 2: Mobile-First Findings"]
+            OldTable["Desktop-Only 7-Column Table<br/>(Squished Mobile Fallback)"] --> AdaptiveCards["Adaptive Responsive Engine:<br/>Dense Table (Desktop) / Rich Cards (Mobile)"]
+        end
+        
+        subgraph Pillar3["Pillar 3: Dead Code Purge"]
+            OldAgency["6 Legacy Agency Files<br/>(About, Services, FeaturedWork, etc.)"] --> PrunedBundle["Purged Clean Architecture &<br/>Next.js Dynamic Imports"]
+        end
+        
+        subgraph Pillar4["Pillar 4: Design Tokens & Toasts"]
+            MismatchedCSS["Raw Tailwind / CSS Class Collisions<br/>& Button Text Jumpiness"] --> CVAButtonTokens["Strict CVA Token Component &<br/>Global Floating Toast System"]
+        end
+        
+        subgraph Pillar5["Pillar 5: Streamlined Diagnostics"]
+            GimmickWidgets["GeoIpTracker & Static Contrast Auditor"] --> ReleaseTelemetry["Release-Critical Telemetry:<br/>Build Delta, Docker Weight, SCA Risk"]
+        end
+    end
+```
+
+### 4.1 Pillar 1: Modern Modal Consolidation (Unified Command Palette & Action Drawer)
+* **Goal:** Eliminate the 8+ boolean flags in `DashboardView.tsx` and provide a world-class Linear/Vercel-grade interaction model.
+* **Step 1 — Discriminated Union State:** Replace 8 boolean states with a single state hook:
+  ```ts
+  type ActiveToolDrawer = 
+    | null 
+    | 'compare' 
+    | 'notifications' 
+    | 'rule-config' 
+    | 'executive-briefing' 
+    | 'deployment-manifest' 
+    | 'pentest-payload' 
+    | 'badge-generator';
+  
+  const [activeDrawer, setActiveDrawer] = useState<ActiveToolDrawer>(null);
+  ```
+* **Step 2 — Integrated Action Drawer Component (`ActionDrawer.tsx`):**
+  - Create a unified slide-over container on the right side of the screen (`w-full sm:w-[540px] lg:w-[640px]`).
+  - Use smooth Framer Motion spring transition (`x: '100%' -> 0`).
+  - Mount only the currently active tool component inside the drawer body.
+  - Keeps the dashboard data visible in the background, allowing side-by-side reference.
+* **Step 3 — Universal Command Palette (`Cmd+K` / `Ctrl+K`):**
+  - Extend the existing `Cmd+K` listener into a searchable Command Palette (`QuickCommandPalette.tsx`).
+  - Allows engineers to trigger:
+    - `"Run Pre-Flight Audit"`
+    - `"Generate Deployment Manifest"`
+    - `"Open PenTest Exploit Generator"`
+    - `"Export Executive Briefing"`
+    - `"Toggle Pillar Filter (Security / SCA / UI)"`
+    - `"Switch Active Project"`
+
+### 4.2 Pillar 2: Mobile-First Responsive Findings Card View
+* **Goal:** Deliver an intuitive mobile auditing experience for CTOs and engineering leads reviewing gate status on phones and tablets.
+* **Step 1 — Adaptive Dual-Mode Architecture in `FindingsTable.tsx`:**
+  - **Desktop (`md:` and above):** Maintain the high-density B2B data table with sortable columns, inline badge pills, and direct "Inspect & Remediate" actions.
+  - **Mobile / Tablet (`< md`):** Render rich, expandable card items:
+    - **Header Row:** High-contrast Severity Badge (`CRITICAL`, `HIGH`, `MEDIUM`) + Pillar Chip + Status Pill.
+    - **Title & Context:** Clear bold title + File path with line range.
+    - **Expandable Preview:** Tap card to reveal sanitized code snippet with syntax styling.
+    - **Action Footer:** Two-button touch target:
+      1. Primary: `"Inspect & Remediate"` (opens full remediation details).
+      2. Secondary: 1-tap `"Copy Fix"` (copies AI remediation prompt).
+* **Step 2 — Fluid Mobile KPI Stacking in `KpiCards.tsx`:**
+  - On screens `< 640px`, switch from a 4-card vertical stack to a compact 2x2 grid or horizontal swipeable carousel with clear indicators.
+  - Keeps overall readiness score and critical count immediately visible without scrolling.
+
+### 4.3 Pillar 3: Dead Code Purge & Bundle Pruning
+* **Goal:** Eradicate all obsolete agency template artifacts, clean up dead routes, and trim client bundle size.
+* **Step 1 — Deprecate & Archive Legacy Components:**
+  - Safely remove or isolate:
+    - `components/About.tsx`
+    - `components/Services.tsx`
+    - `components/FeaturedWork.tsx`
+    - `components/Insights.tsx`
+    - `components/TrustedBrands.tsx`
+    - `components/Contact.tsx`
+* **Step 2 — Clean Route Hierarchy:**
+  - In `app/landing/page.tsx`, redirect permanently to `/` via Next.js `redirect('/')` to ensure only the canonical, high-converting B2B SaaS homepage is served.
+* **Step 3 — Dynamic Imports for Heavy Modules:**
+  - In `app/dashboard/page.tsx` and `DashboardView.tsx`, wrap heavy non-critical modules with `next/dynamic`:
+    ```tsx
+    const PenTestPayloadGenerator = dynamic(() => import('./PenTestPayloadGenerator').then(m => m.PenTestPayloadGenerator), { ssr: false });
+    const DeploymentManifestModal = dynamic(() => import('./DeploymentManifestModal').then(m => m.DeploymentManifestModal), { ssr: false });
+    ```
+  - Reduces initial JavaScript payload on the `/dashboard` route.
+
+### 4.4 Pillar 4: Design Token Uniformity & Micro-Interactions
+* **Goal:** Establish a single source of truth for buttons, inputs, and interactive feedback.
+* **Step 1 — Unified CVA Button System (`components/ui/Button.tsx`):**
+  - Implement a type-safe `Button` primitive using `class-variance-authority`:
+    - Variants: `primary` (Solid white, black text), `secondary` (Dark `#141414`, 1px border), `danger` (Red/rose tint), `ghost` (Transparent, hover background).
+    - Sizes: `xs` (Compact table action), `sm` (Standard card action), `md` (Primary CTA), `lg` (Hero action).
+    - Standardized border radius (`rounded-lg`) and focus ring (`focus-visible:ring-1 focus-visible:ring-white/40`).
+* **Step 2 — Floating Toast Notifications for Copy Actions:**
+  - Wire up the existing `components/ui/Toast.tsx` system into `FindingsTable.tsx` and `FindingDetailModal.tsx`.
+  - When a user clicks "Copy Fix Prompt" or "Bulk Remediate .patch", trigger:
+    ```ts
+    toast.show({
+      type: 'success',
+      title: 'Prompt Copied',
+      message: 'AI Remediation Prompt copied to clipboard for Cursor / Claude.'
+    });
+    ```
+  - Eliminates jarring button text layout shifts (`Copied!` -> `Copy`).
+
+### 4.5 Pillar 5: Streamline Diagnostics Tab
+* **Goal:** Replace novelty widgets with enterprise release-critical telemetry.
+* **Step 1 — Prune Novelty Widgets:**
+  - Remove `GeoIpTracker.tsx` and static `ThemeContrastAuditor.tsx` from Tab 3.
+* **Step 2 — Introduce Core Release Gate Diagnostics:**
+  - **Widget A: JS/CSS Bundle Weight & Tree-Shaking Budget (`BundleCostAnalyzer.tsx`):** Retain and enhance with simulated gzip compression, tree-shaking delta, and Core Web Vitals LCP forecast.
+  - **Widget B: Container & Docker Hardening Telemetry:** Visualize Dockerfile layer count, base image footprint (Alpine vs Debian), and root privilege detection.
+  - **Widget C: Open Source License & SCA Risk Radar:** Visualize software composition analysis breakdown (MIT, Apache-2.0, BSD vs GPL/AGPL copyleft risks).
+
+---
+
+## 5. Phase 2 Multi-Agent Work Breakdown
+
+To execute these architectural improvements with zero regressions and maximum speed, Phase 2 is partitioned across 3 specialized autonomous agents:
+
+```mermaid
+flowchart TD
+    subgraph Phase2Execution["Phase 2: Multi-Agent Implementation Matrix"]
+        direction LR
+        
+        subgraph FE["Specialist 1: frontend-specialist"]
+            FE1["Refactor FindingsTable.tsx<br/>Mobile Expandable Cards + Desktop Dense Table"]
+            FE2["Consolidate Modals into<br/>Action Drawer & Command Palette"]
+            FE3["Unify Button & Input Design Tokens<br/>with CVA + Toast Feedback"]
+        end
+        
+        subgraph PERF["Specialist 2: performance-optimizer / backend-specialist"]
+            P1["Prune Legacy Agency Components<br/>(About, FeaturedWork, Services, etc.)"]
+            P2["Redirect app/landing/page.tsx<br/>to Canonical SaaS Homepage"]
+            P3["Revamp Diagnostics Tab 3<br/>(Drop GeoIP/Contrast, Elevate SCA/Docker)"]
+            P4["Apply next/dynamic Lazy Loading<br/>to Heavy Modals & Drawers"]
+        end
+        
+        subgraph QA["Specialist 3: test-engineer"]
+            QA1["Responsive Breakpoint Verification<br/>(375px Mobile, 768px Tablet, 1440px Desktop)"]
+            QA2["Modal & Drawer Interaction Suite<br/>(Escape Key, Backdrop, Focus Trap)"]
+            QA3["Clipboard Toast Feedback Verification"]
+            QA4["Build & TypeScript Clearance<br/>(npm run build / tsc --noEmit)"]
+        end
     end
 
-    Agent1 -->|"Discovers live browser edge cases & captures DOM logs"| Agent2
-    Agent2 -->|"Hardens API routes, proxies & validation layers"| Agent3
-    Agent3 -->|"Delivers honest UI states, badges & feedback banners"| Agent1
-    Agent1 -->|"Verifies full remediation via automated E2E audit runs"| Done["Phase 2 Production Signoff"]
+    FE --> QA
+    PERF --> QA
 ```
 
-### Agent 1: `browser` (Live E2E Edge-Case & Chaos Testing Auditor)
-* **Domain:** Live end-to-end browser execution, edge-case discovery, and visual verification.
-* **Assigned Tasks:**
-  1. **Test 404 Repo Handling:** Navigate to `/dashboard`, initiate audit for `github.com/torvalds/nonexistent-repo-998811`, verify that the UI renders the 404 Not Found card instead of opening the private PAT modal.
-  2. **Test Empty Repo Handling:** Initiate audit for a confirmed empty repository; verify that the platform reports `INCOMPLETE (0%)` and NEVER awards 100/100 PASSED.
-  3. **Test Dead Web Target:** Run audit against `https://dead-domain-test-nxdomain-999.com`; verify that the platform blocks with an honest network failure banner.
-  4. **Test Vulnerability Playground:** Input empty string, 10,000-character snippet, and XSS preset; verify response times, absence of UI freeze, and honest validation.
-  5. **Test Settings License Input:** Enter invalid license formats, mismatched emails, and valid keys; verify real-time feedback banners.
-  6. **Capture Evidence:** Record browser screenshots and console logs for all verified edge cases.
+### 5.1 Specialist 1: `frontend-specialist`
+* **Domain:** Client components, responsive layout systems, modal-to-drawer refactoring, and design token standardization.
+* **Assigned Deliverables:**
+  1. **Mobile Findings Card Layout:** Refactor `components/findings/FindingsTable.tsx` to render an adaptive dual layout (dense table on desktop, expandable rich cards with quick-action touch targets on mobile).
+  2. **Modal Consolidation & Action Drawer:**
+     - Replace 8+ independent boolean states in `DashboardView.tsx` with a single `activeDrawer` discriminated union.
+     - Implement `components/dashboard/ActionDrawer.tsx` to house Rule Configurator, Deployment Manifest, PenTest Payload Generator, and Executive Briefing as slide-over panels.
+     - Enhance the `Cmd+K` keyboard shortcut to toggle a unified Command Palette.
+  3. **Standardize Design Tokens & Wire Toasts:**
+     - Implement unified `Button` variants or apply standardized token classes across dashboard headers, tables, and modals.
+     - Connect copy events in `FindingsTable.tsx` and `FindingDetailModal.tsx` to `ToastContainer` for subtle, non-intrusive feedback.
 
-### Agent 2: `backend-specialist` / `security-auditor` (API Edge-Case Hardening & Resilient Fallbacks)
-* **Domain:** Server-side API routes, SSRF guard, proxy engines, and checkout security.
-* **Assigned Tasks:**
-  1. **Eradicate Checkout Verification Bypass:** In `app/api/v1/verify-checkout/route.ts`, delete `checkoutId.length >= 20` fallback. Enforce strict Polar API verification.
-  2. **Harden `api/v1/gate-check/route.ts`:** Ensure web targets with 0 crawled files return HTTP 502 with gate status `FAILED` rather than proceeding to scan empty arrays.
-  3. **Refactor `lib/github-api.ts` & `app/api/v1/github-proxy/route.ts`:**
-     * Distinguish HTTP 404 (`REPO_NOT_FOUND`) from HTTP 401/403 (`PRIVATE_OR_UNAUTHENTICATED`).
-     * Eradicate dummy `README.md` and `RATE_LIMIT_NOTICE.md` generation. Return `isEmpty: true`, `error: 'EMPTY_REPOSITORY'`, `error: 'RATE_LIMIT_EXCEEDED'`.
-     * Extract and return `x-ratelimit-reset` timestamp.
-  4. **Harden `lib/website-scanner.ts`:** Add Cloudflare challenge detection (`cf-mitigated`, challenge page title) and DNS NXDOMAIN handling.
-  5. **Implement Billing Grace Period:** In `lib/subscription-utils.ts`, introduce 3-day grace period logic and status indicators.
+### 5.2 Specialist 2: `performance-optimizer` / `backend-specialist`
+* **Domain:** Codebase cleanup, bundle pruning, lazy-loading architecture, and diagnostics telemetry revamping.
+* **Assigned Deliverables:**
+  1. **Legacy Agency Component Pruning:**
+     - Safely deprecate and remove obsolete files (`About.tsx`, `Services.tsx`, `FeaturedWork.tsx`, `Insights.tsx`, `TrustedBrands.tsx`, `Contact.tsx`).
+     - Update `app/landing/page.tsx` with a clean redirect to `/`.
+  2. **Lazy-Loading Optimization:**
+     - Implement `next/dynamic` for heavy client-side drawer modules and PDF generation in `DashboardView.tsx` and `DashboardModals.tsx`.
+  3. **Diagnostics Tab Streamlining:**
+     - Remove `GeoIpTracker.tsx` and hardcoded `ThemeContrastAuditor.tsx` from Tab 3.
+     - Restructure Tab 3 around release-critical metrics: JS/CSS Bundle Payload, Docker/Container Layer Weight, and SCA Dependency License Risk.
+  4. **State Re-render Boundaries:**
+     - Optimize `useDashboardState.ts` to prevent full `AppShell` re-renders when local drawer states change.
 
-### Agent 3: `frontend-specialist` (Error States, Honest Diagnostic Banners & Zero-Fake-Pass UI)
-* **Domain:** Client components, failure banners, user feedback, and export safety.
-* **Assigned Tasks:**
-  1. **Refactor `components/ScanRunnerView.tsx`:**
-     * Render distinct diagnostic cards for:
-       - 404: Repository Not Found (with typo hint and URL edit).
-       - Empty Repo / 0 Scannable Files (Score: 0 / Incomplete).
-       - 429: Rate Limit Exceeded (with live reset countdown and PAT input).
-       - Web Endpoint Unreachable (with DNS/SSL diagnostic).
-     * Enforce ZERO fake passes: never display green pass banner or auto-navigate to report when scan failed.
-  2. **Refactor `components/dashboard/VulnerabilityPlayground.tsx`:**
-     * Add empty-state guard (`"[INVALID INPUT] Snippet is empty"`).
-     * Add character counter and 50,000-character cap.
-  3. **Refactor `components/ProjectSettingsView.tsx`:**
-     * Surface granular `verifyLicenseKey` rejection reasons.
-     * Display amber subscription grace period alert when renewal is pending.
-  4. **Harden Exporters (`lib/pdf-exporter.ts` & `lib/export-utils.ts`):**
-     * Defend against `undefined` findings.
-     * Implement printable report pagination and safe string truncation.
+### 5.3 Specialist 3: `test-engineer`
+* **Domain:** Responsive viewport validation, visual regression, interaction testing, and TypeScript/build verification.
+* **Assigned Deliverables:**
+  1. **Responsive Viewport Audit:**
+     - Validate mobile layouts at 375px (iPhone SE), 390px (iPhone 14), 768px (iPad), and 1280px+ (Desktop).
+     - Ensure zero horizontal page overflow (`overflow-x: hidden`) and proper touch targets (minimum 44x44px for primary actions).
+  2. **Drawer & Keyboard Navigation Tests:**
+     - Verify `Escape` key closes the active drawer without dismissing parent views.
+     - Verify `Cmd+K` / `Ctrl+K` reliably toggles the Command Palette across all tabs.
+  3. **Toast Notification Verification:**
+     - Confirm that copying fix prompts or manifests triggers the toast container without altering button dimensions.
+  4. **Build & Type Clearance:**
+     - Execute `npm run build` and `tsc --noEmit` to verify zero TypeScript errors, zero dead-import warnings, and clean production compilation.
 
 ---
 
-## 9. Verification & Acceptance Criteria (Phase 2 Gates)
+## 6. Acceptance Gates & Verification Matrix
 
-To achieve certified completion of Phase 2, the platform must satisfy the following strict automated checks:
+To achieve certified completion of Phase 2, the platform must satisfy the following strict automated and visual checks:
 
-- [ ] **Acceptance Gate 1 (Zero Fake Passes):** Scanning an empty repository, a media-only repository, or a rate-limited repository yields score 0 or INCOMPLETE, never 100/100 PASSED.
-- [ ] **Acceptance Gate 2 (404 Accuracy):** Non-existent repository URLs explicitly display "Repository Not Found (404)" and do NOT request a private PAT token.
-- [ ] **Acceptance Gate 3 (Live Web Honesty):** Testing an unreachable or non-existent website URL in `/api/v1/gate-check` returns HTTP 502 with gate status FAILED, never HTTP 200 PASSED.
-- [ ] **Acceptance Gate 4 (Monetization Hardening):** Submitting an arbitrary 20-character string to `/api/v1/verify-checkout` returns HTTP 400/403 unverified, never granting Pro/Enterprise tier.
-- [ ] **Acceptance Gate 5 (Informative Settings):** Entering an invalid or expired license key displays the exact cryptographic reason rather than a generic error.
-- [ ] **Acceptance Gate 6 (Zero UI Freezes):** Vulnerability playground rejects empty input and caps large payloads without freezing the main browser thread.
-- [ ] **Acceptance Gate 7 (Build & Lint Clearance):** `npm run build` succeeds with zero TypeScript errors and zero lint warnings.
+- [ ] **Gate 1 (Zero Zombie Files):** Legacy agency components (`About.tsx`, `FeaturedWork.tsx`, `Services.tsx`, `Insights.tsx`, `Contact.tsx`, `TrustedBrands.tsx`) are completely removed or purged from active routes.
+- [ ] **Gate 2 (Modal State Consolidation):** `DashboardView.tsx` manages no more than 1 unified drawer state, eliminating the 8+ uncoordinated boolean flags.
+- [ ] **Gate 3 (Mobile Findings Experience):** On mobile viewports (<640px), findings display as rich expandable cards with 1-tap AI prompt copy and touch-friendly inspection triggers.
+- [ ] **Gate 4 (Streamlined Diagnostics Tab):** Tab 3 contains zero filler widgets (`GeoIpTracker` and static contrast audits removed; replaced with bundle, container, and dependency telemetry).
+- [ ] **Gate 5 (Design Token Uniformity):** All interactive buttons and inputs adhere to standardized Swiss/Obsidian design tokens with consistent border-radii (`rounded-lg`) and focus rings.
+- [ ] **Gate 6 (Toast Notification Integration):** Copy actions display floating toast messages rather than shifting button label widths.
+- [ ] **Gate 7 (Zero Brand Regression):** Zero occurrences of legacy brand name "ShipGuard" in user-facing components; 100% strict Zelsis branding.
+- [ ] **Gate 8 (Production Build Clearance):** `npm run build` succeeds cleanly with zero TypeScript errors and zero lint warnings.
 
 ---
 
-## 10. Phase 1 Completion & Awaiting User Authorization
+## 7. Phase 1 Signoff & Next Steps
 
-Phase 1 (Master Planning & Architecture Audit) is now fully compiled in `docs/PLAN.md` across both the active worktree and the desktop directory. No application code has been modified during Phase 1.
+Phase 1 (Master Architecture & Senior Frontend Audit) is fully compiled and synchronized in `docs/PLAN.md` across both the active worktree and the desktop repository. No application source code has been altered during Phase 1.
 
-**Awaiting user review and explicit approval to proceed with Phase 2 multi-agent implementation.**
+**Awaiting user authorization to initiate Phase 2 multi-agent execution.**

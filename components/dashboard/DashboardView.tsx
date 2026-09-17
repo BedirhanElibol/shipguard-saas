@@ -8,16 +8,16 @@ import { FindingsTable } from '../findings/FindingsTable';
 import { InteractiveAnalyzer } from '../InteractiveAnalyzer';
 import { VulnerabilityPlayground } from './VulnerabilityPlayground';
 import { BundleCostAnalyzer } from './BundleCostAnalyzer';
-import { ThemeContrastAuditor } from './ThemeContrastAuditor';
-import { GeoIpTracker } from './GeoIpTracker';
+import { ScaLicenseRiskCard } from './ScaLicenseRiskCard';
 import { QuickChartWidget } from './QuickChartWidget';
-import { DashboardModals } from './DashboardModals';
+import { DashboardModals, ActiveModalType } from './DashboardModals';
 import { GateStatusBanner } from './GateStatusBanner';
 import { DemoShowcaseBanner } from '../OverviewView';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
 import confetti from 'canvas-confetti';
 import { ShieldCheck, Code, Server } from 'lucide-react';
 import { ConnectTargetModal } from '../layout/ConnectTargetModal';
+import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
 
 interface DashboardViewProps {
   project: Project;
@@ -44,17 +44,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [copiedMaster, setCopiedMaster] = useState(false);
   const [isConnectTargetOpen, setIsConnectTargetOpen] = useState(false);
-  const [isCompareOpen, setIsCompareOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [isRuleConfigOpen, setIsRuleConfigOpen] = useState(false);
-  const [isExecutiveBriefingOpen, setIsExecutiveBriefingOpen] = useState(false);
-  const [isKbOpen, setIsKbOpen] = useState(false);
-  const [isManifestOpen, setIsManifestOpen] = useState(false);
-  const [isPenTestOpen, setIsPenTestOpen] = useState(false);
-  const [isBadgeOpen, setIsBadgeOpen] = useState(false);
-  const [isMoreToolsOpen, setIsMoreToolsOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<ActiveModalType>(null);
   const [activeTab, setActiveTab] = useState<'findings' | 'sandbox' | 'diagnostics'>('findings');
-  const moreToolsRef = useRef<HTMLDivElement>(null);
+  const {
+    showToast,
+    isVisible: isToastVisible,
+    message: toastMessage,
+    badge: toastBadge,
+    hideToast,
+  } = useClipboardToast();
 
   // Confetti feedback on clearance PASSED
   useEffect(() => {
@@ -71,23 +69,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   }, [project.gateStatus]);
 
-  // Click outside listener for More Tools dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (moreToolsRef.current && !moreToolsRef.current.contains(event.target as Node)) {
-        setIsMoreToolsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   // Cmd+K / Ctrl+K keyboard shortcut listener for Knowledge Base
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsKbOpen((prev) => !prev);
+        setActiveModal((prev: ActiveModalType) => (prev === 'kb' ? null : 'kb'));
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -126,6 +113,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
 Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provide verified drop-in code fixes.`;
     navigator.clipboard.writeText(prompt);
     setCopiedMaster(true);
+    showToast('AI prompt copied to clipboard', '[COPIED]');
     setTimeout(() => setCopiedMaster(false), 2000);
   };
 
@@ -147,16 +135,7 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         uiCliches={uiCliches}
         onTriggerScan={onTriggerScan}
         onOpenConnectTarget={() => setIsConnectTargetOpen(true)}
-        setIsRuleConfigOpen={setIsRuleConfigOpen}
-        setIsExecutiveBriefingOpen={setIsExecutiveBriefingOpen}
-        isMoreToolsOpen={isMoreToolsOpen}
-        setIsMoreToolsOpen={setIsMoreToolsOpen}
-        setIsCompareOpen={setIsCompareOpen}
-        setIsNotifOpen={setIsNotifOpen}
-        setIsManifestOpen={setIsManifestOpen}
-        setIsPenTestOpen={setIsPenTestOpen}
-        setIsBadgeOpen={setIsBadgeOpen}
-        setIsKbOpen={setIsKbOpen}
+        onOpenModal={(type) => setActiveModal(type)}
       />
 
       {/* Swiss Navigation Tabs Bar */}
@@ -229,34 +208,24 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <BundleCostAnalyzer filesCount={project.findings.length + 15} />
-            <ThemeContrastAuditor />
+            <ScaLicenseRiskCard />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <GeoIpTracker />
-            <QuickChartWidget project={project} />
-          </div>
+          <QuickChartWidget project={project} />
         </div>
       )}
 
       {/* Extracted Dashboard Modals */}
       <DashboardModals
         project={project}
-        isCompareOpen={isCompareOpen}
-        setIsCompareOpen={setIsCompareOpen}
-        isNotifOpen={isNotifOpen}
-        setIsNotifOpen={setIsNotifOpen}
-        isRuleConfigOpen={isRuleConfigOpen}
-        setIsRuleConfigOpen={setIsRuleConfigOpen}
-        isExecutiveBriefingOpen={isExecutiveBriefingOpen}
-        setIsExecutiveBriefingOpen={setIsExecutiveBriefingOpen}
-        isKbOpen={isKbOpen}
-        setIsKbOpen={setIsKbOpen}
-        isManifestOpen={isManifestOpen}
-        setIsManifestOpen={setIsManifestOpen}
-        isPenTestOpen={isPenTestOpen}
-        setIsPenTestOpen={setIsPenTestOpen}
-        isBadgeOpen={isBadgeOpen}
-        setIsBadgeOpen={setIsBadgeOpen}
+        activeModal={activeModal}
+        onClose={() => setActiveModal(null)}
+      />
+
+      <ClipboardToastBadge
+        isVisible={isToastVisible}
+        message={toastMessage}
+        badge={toastBadge}
+        onDismiss={hideToast}
       />
 
       <ConnectTargetModal

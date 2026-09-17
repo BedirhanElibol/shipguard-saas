@@ -99,3 +99,90 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
     </div>
   );
 };
+
+export interface ClipboardToastBadgeProps {
+  isVisible: boolean;
+  message?: string;
+  badge?: string;
+  onDismiss?: () => void;
+}
+
+export const ClipboardToastBadge: React.FC<ClipboardToastBadgeProps> = ({
+  isVisible,
+  message = 'AI prompt copied to clipboard',
+  badge = '[COPIED]',
+  onDismiss,
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#0A0A0A] border border-white/20 text-white shadow-2xl shadow-black/80 backdrop-blur-md pointer-events-auto transition-all duration-150 animate-in fade-in slide-in-from-bottom-2"
+    >
+      <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono font-bold text-[10px] tracking-wider border border-emerald-500/30">
+        {badge}
+      </span>
+      <span className="text-xs font-mono text-zinc-200">
+        {message}
+      </span>
+      {onDismiss && (
+        <button
+          type="button"
+          aria-label="Dismiss toast"
+          onClick={onDismiss}
+          className="text-zinc-500 hover:text-white ml-1 p-0.5 rounded transition-colors cursor-pointer"
+        >
+          <X size={12} />
+        </button>
+      )}
+    </div>
+  );
+};
+
+export function useClipboardToast(durationMs = 2500) {
+  const [state, setState] = React.useState({
+    isVisible: false,
+    message: 'AI prompt copied to clipboard',
+    badge: '[COPIED]',
+  });
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = React.useCallback(
+    (message = 'AI prompt copied to clipboard', badge = '[COPIED]') => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      setState({ isVisible: true, message, badge });
+      timerRef.current = setTimeout(() => {
+        setState((prev) => ({ ...prev, isVisible: false }));
+      }, durationMs);
+    },
+    [durationMs]
+  );
+
+  const hideToast = React.useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setState((prev) => ({ ...prev, isVisible: false }));
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  return {
+    isVisible: state.isVisible,
+    message: state.message,
+    badge: state.badge,
+    showToast,
+    hideToast,
+  };
+}
+

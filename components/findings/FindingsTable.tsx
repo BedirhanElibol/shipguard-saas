@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Finding } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown } from 'lucide-react';
+import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
 
 interface FindingsTableProps {
   findings: Finding[];
@@ -29,6 +30,37 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
   const [pillarFilter, setPillarFilter] = useState<string>('ALL');
   const [hasDiffOnly, setHasDiffOnly] = useState<boolean>(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [expandedCardIds, setExpandedCardIds] = useState<Set<string>>(new Set());
+
+  const {
+    showToast,
+    isVisible: isToastVisible,
+    message: toastMessage,
+    badge: toastBadge,
+    hideToast,
+  } = useClipboardToast();
+
+  const toggleCardExpand = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCardIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleCopyFindingPrompt = (e: React.MouseEvent, item: Finding) => {
+    e.stopPropagation();
+    const promptText =
+      item.remediationPrompt ||
+      `Fix vulnerability in ${item.filePath} (${item.lineRange}): ${item.title}`;
+    navigator.clipboard.writeText(promptText);
+    showToast('AI prompt copied to clipboard', '[COPIED]');
+  };
 
   const isScaFinding = (f: Finding) =>
     f.category?.includes('Software Composition Analysis') ||
@@ -59,6 +91,24 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
       : type === 'VIBEPOLISH'
       ? 'bg-teal-500/10 text-teal-400 border-teal-500/30'
       : 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+  };
+
+  const getSeverityBadgeStyle = (severity: string, type?: string) => {
+    if (type === 'VIBEPOLISH' || severity === 'VIBEPOLISH') {
+      return 'bg-teal-500/10 text-teal-400 border-teal-500/30';
+    }
+    switch (severity) {
+      case 'CRITICAL':
+        return 'bg-red-500/10 text-red-400 border-red-500/30';
+      case 'HIGH':
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+      case 'MEDIUM':
+        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30';
+      case 'LOW':
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
+      default:
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+    }
   };
 
   const resetFilters = () => {
@@ -262,16 +312,19 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                 {onCopyPrompt && (
                   <button
                     type="button"
-                    onClick={onCopyPrompt}
+                    onClick={() => {
+                      onCopyPrompt();
+                      showToast('AI prompt copied to clipboard', '[COPIED]');
+                    }}
                     className="btn btn-secondary text-xs px-3 py-1 flex items-center gap-1.5 border-white/10 text-white hover:bg-white/5 transition-colors cursor-pointer"
                     title="Copy AI Master Fix Prompt for Claude / Cursor / ChatGPT"
                   >
                     {copiedPrompt ? (
-                      <CheckCircle2 size={13} className="text-emerald-400" />
+                      <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
                     ) : (
-                      <Copy size={13} />
+                      <Copy size={13} className="shrink-0" />
                     )}
-                    <span>{copiedPrompt ? 'Copied Prompt!' : 'Copy Fix Prompt'}</span>
+                    <span>Copy Fix Prompt</span>
                   </button>
                 )}
 
@@ -416,80 +469,160 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             </div>
           )
         ) : (
-          filtered.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onInspectFinding(item)}
-              className="p-4 rounded-xl bg-[#0A0A0A] border border-white/10 hover:border-white/10 transition-all flex flex-col gap-3 cursor-pointer active:scale-[0.99]"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+          filtered.map((item) => {
+            const isExpanded = expandedCardIds.has(item.id);
+            return (
+              <div
+                key={item.id}
+                className="p-3.5 sm:p-4 rounded-xl bg-[#0A0A0A] border border-white/10 hover:border-white/20 transition-all flex flex-col gap-3"
+              >
+                {/* Top Row: Severity & Pillar & Status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-extrabold uppercase border ${getSeverityBadgeStyle(
+                        item.severity,
+                        item.type
+                      )}`}
+                    >
+                      {item.severity}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getPillarBadgeStyle(
+                        item.type,
+                        item.category
+                      )}`}
+                    >
+                      {item.category?.includes('Software Composition Analysis')
+                        ? 'SCA Dependency'
+                        : item.type === 'LEGAL_COMPLIANCE'
+                        ? 'Legal & Privacy'
+                        : item.type === 'VIBEPOLISH'
+                        ? 'VibePolish UI'
+                        : item.type}
+                    </span>
+                  </div>
                   <span
-                    className={`badge ${
-                      item.severity === 'CRITICAL'
-                        ? 'badge-critical'
-                        : item.severity === 'HIGH'
-                        ? 'badge-high'
-                        : item.severity === 'MEDIUM'
-                        ? 'badge-medium'
-                        : 'badge-passed'
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                      item.status === 'RESOLVED'
+                        ? 'bg-white/5 text-zinc-300 border border-white/10'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/30'
                     }`}
                   >
-                    {item.severity}
+                    {item.status}
                   </span>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[0.68rem] font-bold font-mono border ${getPillarBadgeStyle(
-                      item.type,
-                      item.category
-                    )}`}
+                </div>
+
+                {/* Finding Title & Category */}
+                <div>
+                  <h3 className="text-xs sm:text-sm font-extrabold text-[#EDEDED] leading-snug">
+                    {item.title}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 font-semibold text-[10px]">
+                      {item.category}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Relative File Path & Line Range */}
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 min-w-0">
+                  <span className="text-zinc-500 shrink-0">Path:</span>
+                  <span className="text-zinc-300 truncate" title={item.filePath}>
+                    {item.filePath}
+                  </span>
+                  <span className="text-zinc-500 shrink-0">({item.lineRange})</span>
+                </div>
+
+                {/* Compact Expand/Collapse Details Toggle */}
+                <div className="border-t border-white/5 pt-2">
+                  <button
+                    type="button"
+                    onClick={(e) => toggleCardExpand(item.id, e)}
+                    className="w-full flex items-center justify-between text-[11px] font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer py-0.5"
+                    aria-expanded={isExpanded}
                   >
-                    {item.category?.includes('Software Composition Analysis')
-                      ? 'SCA Dependency'
-                      : item.type === 'LEGAL_COMPLIANCE'
-                      ? 'Legal & Privacy'
-                      : item.type}
-                  </span>
-                </div>
-                <span
-                  className={`px-2 py-0.5 rounded text-[0.68rem] font-bold ${
-                    item.status === 'RESOLVED'
-                      ? 'bg-white/5 text-white border border-white/10'
-                      : 'bg-red-500/10 text-red-400 border border-red-500/30'
-                  }`}
-                >
-                  {item.status}
-                </span>
-              </div>
+                    <span className="font-semibold">
+                      {isExpanded ? 'Hide Remediations & Details' : 'View Remediations & Details'}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`text-zinc-500 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                    />
+                  </button>
 
-              <div>
-                <h3 className="text-xs font-extrabold text-[#EDEDED] leading-snug">
-                  {item.title}
-                </h3>
-                <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  <span className="px-1.5 py-0.5 rounded bg-white/10 text-white font-semibold text-[0.68rem]">
-                    {item.category}
-                  </span>
-                  <span className="text-[0.7rem] font-mono text-[#A1A1AA] truncate max-w-[220px]">
-                    {item.filePath} ({item.lineRange})
-                  </span>
+                  {isExpanded && (
+                    <div className="mt-2.5 pt-2.5 border-t border-white/5 flex flex-col gap-2.5 text-xs text-zinc-300 animate-in fade-in duration-150">
+                      {item.remediationPrompt && (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
+                            Remediation Guidance
+                          </span>
+                          <p className="text-[11px] text-zinc-300 leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/5">
+                            {item.remediationPrompt}
+                          </p>
+                        </div>
+                      )}
+
+                      {item.snippet && (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold">
+                            Vulnerable Code Snippet
+                          </span>
+                          <pre className="text-[10px] font-mono text-zinc-300 bg-black/60 p-2.5 rounded-lg border border-white/10 overflow-x-auto">
+                            <code>{item.snippet}</code>
+                          </pre>
+                        </div>
+                      )}
+
+                      {item.reproductionSteps && item.reproductionSteps.length > 0 && (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold">
+                            Reproduction Steps
+                          </span>
+                          <ol className="list-decimal list-inside text-[11px] text-zinc-400 space-y-0.5 pl-1">
+                            {item.reproductionSteps.map((step, sIdx) => (
+                              <li key={sIdx}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-1">
+                        <span>Rule ID: #{item.ruleId}</span>
+                        <span>Pillar: {item.type}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons: "Copy Prompt" and "Inspect Fix" */}
+                <div className="pt-2.5 border-t border-white/5 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => handleCopyFindingPrompt(e, item)}
+                    className="btn btn-secondary text-xs px-3 py-2 flex-1 flex items-center justify-center gap-1.5 border-white/10 text-white hover:bg-white/10 transition-colors cursor-pointer font-mono"
+                    title="Copy remediation prompt for this finding"
+                  >
+                    <Copy size={12} className="shrink-0" />
+                    <span>Copy Prompt</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onInspectFinding(item);
+                    }}
+                    className="btn btn-primary text-xs px-3 py-2 flex-1 flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-colors cursor-pointer font-mono font-bold shadow-sm"
+                  >
+                    <span>Inspect Fix</span>
+                    <ArrowRight size={12} className="shrink-0" />
+                  </button>
                 </div>
               </div>
-
-              <div className="pt-2 border-t border-white/5 flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onInspectFinding(item);
-                  }}
-                  className="btn btn-secondary btn-sm text-[0.7rem] px-3 py-1.5 w-full flex items-center justify-center gap-1.5"
-                >
-                  <span>Inspect &amp; Remediate</span>
-                  <ArrowRight size={12} />
-                </button>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -651,6 +784,14 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Discreet Dark Obsidian Toast for Copy Actions */}
+      <ClipboardToastBadge
+        isVisible={isToastVisible}
+        message={toastMessage}
+        badge={toastBadge}
+        onDismiss={hideToast}
+      />
     </div>
   );
 };

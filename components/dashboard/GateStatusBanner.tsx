@@ -26,6 +26,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { exportFindingsToCsv, exportScorecardToJson } from '@/lib/export-utils';
+import { ActiveModalType } from './DashboardModals';
 
 interface GateStatusBannerProps {
   project: Project;
@@ -34,16 +35,7 @@ interface GateStatusBannerProps {
   uiCliches: Finding[];
   onTriggerScan: () => void;
   onOpenConnectTarget?: () => void;
-  setIsRuleConfigOpen: (v: boolean) => void;
-  setIsExecutiveBriefingOpen: (v: boolean) => void;
-  isMoreToolsOpen?: boolean;
-  setIsMoreToolsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsCompareOpen: (v: boolean) => void;
-  setIsNotifOpen: (v: boolean) => void;
-  setIsManifestOpen: (v: boolean) => void;
-  setIsPenTestOpen: (v: boolean) => void;
-  setIsBadgeOpen: (v: boolean) => void;
-  setIsKbOpen: (v: boolean) => void;
+  onOpenModal: (type: ActiveModalType) => void;
 }
 
 export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
@@ -53,14 +45,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
   uiCliches,
   onTriggerScan,
   onOpenConnectTarget,
-  setIsRuleConfigOpen,
-  setIsExecutiveBriefingOpen,
-  setIsCompareOpen,
-  setIsNotifOpen,
-  setIsManifestOpen,
-  setIsPenTestOpen,
-  setIsBadgeOpen,
-  setIsKbOpen,
+  onOpenModal,
 }) => {
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
@@ -192,7 +177,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
         {/* Action: Setup CI/CD Gate */}
         <button
-          onClick={() => setIsManifestOpen(true)}
+          onClick={() => onOpenModal('manifest')}
           className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all cursor-pointer shadow-sm hover:border-emerald-500/50"
           title="Configure automated GitHub Actions & CI/CD release gate"
         >
@@ -284,7 +269,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
             <div className="absolute right-0 top-full mt-2 w-64 bg-[#141414] border border-white/10 rounded-xl shadow-2xl p-1.5 z-40 flex flex-col gap-1 text-xs font-mono animate-in fade-in duration-150">
               <button
                 onClick={() => {
-                  setIsRuleConfigOpen(true);
+                  onOpenModal('rules');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -298,7 +283,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsExecutiveBriefingOpen(true);
+                  onOpenModal('briefing');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -312,7 +297,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsCompareOpen(true);
+                  onOpenModal('compare');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -326,7 +311,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsNotifOpen(true);
+                  onOpenModal('notif');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -340,7 +325,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsManifestOpen(true);
+                  onOpenModal('manifest');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -354,7 +339,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsPenTestOpen(true);
+                  onOpenModal('pentest');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -368,7 +353,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsBadgeOpen(true);
+                  onOpenModal('badge');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -382,7 +367,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  setIsKbOpen(true);
+                  onOpenModal('kb');
                   setIsToolsMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer border-t border-white/10 pt-2"

@@ -290,8 +290,8 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
               >
                 <Award size={14} className="text-amber-400" />
                 <div className="flex flex-col">
-                  <span className="font-bold">Executive Briefing</span>
-                  <span className="text-[10px] text-[#A1A1AA]">High-level board-ready audit</span>
+                  <span className="font-bold">Executive Briefing &amp; PDF</span>
+                  <span className="text-[10px] text-[#A1A1AA]">Export certified audit PDF &amp; CISO brief</span>
                 </div>
               </button>
 

@@ -140,8 +140,19 @@ export async function fetchGithubRepositoryData(
     try {
       const proxyEndpoint = `/api/v1/github-proxy?repoUrl=${encodeURIComponent(repoUrl)}`;
       const proxyHeaders: Record<string, string> = {};
-      if (token) {
-        proxyHeaders['Authorization'] = `Bearer ${token.trim()}`;
+      let effectiveToken = token;
+      if (!effectiveToken && isBrowser) {
+        try {
+          effectiveToken =
+            localStorage.getItem('zelsis_github_token') ||
+            localStorage.getItem('github_token') ||
+            undefined;
+        } catch {
+          // localStorage disabled or sandboxed
+        }
+      }
+      if (effectiveToken) {
+        proxyHeaders['Authorization'] = `Bearer ${effectiveToken.trim()}`;
       }
       const proxyRes = await fetch(proxyEndpoint, { headers: proxyHeaders, signal });
       if (proxyRes.ok) {

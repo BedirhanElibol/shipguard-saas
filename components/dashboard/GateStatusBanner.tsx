@@ -11,7 +11,8 @@ import {
   Download,
   Award,
   GitCompare,
-  Bell
+  Bell,
+  GitBranch
 } from 'lucide-react';
 import {
   Server,
@@ -187,6 +188,19 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
         >
           <Play size={13} fill="#0A0A0A" />
           <span>Re-Run Audit</span>
+        </button>
+
+        {/* Action: Setup CI/CD Gate */}
+        <button
+          onClick={() => setIsManifestOpen(true)}
+          className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all cursor-pointer shadow-sm hover:border-emerald-500/50"
+          title="Configure automated GitHub Actions & CI/CD release gate"
+        >
+          <GitBranch size={13} className="text-emerald-400" />
+          <span className="font-bold">Setup CI/CD Gate</span>
+          <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-emerald-400 text-black ml-0.5">
+            PR Bot
+          </span>
         </button>
 
         {/* Action 2: Export Report Dropdown (PDF, CSV, JSON) */}

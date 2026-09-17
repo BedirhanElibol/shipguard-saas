@@ -297,7 +297,13 @@ export async function GET(req: NextRequest) {
             const rawRes = await fetch(
               `https://raw.githubusercontent.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(activeBranch)}/${encodedPath}`,
               {
-                headers: token ? { Authorization: `token ${token.trim()}` } : {},
+                headers: token
+                  ? {
+                      Authorization: token.trim().startsWith('ghp_')
+                        ? `token ${token.trim()}`
+                        : `Bearer ${token.trim()}`
+                    }
+                  : {},
                 signal: AbortSignal.timeout(8000)
               }
             );

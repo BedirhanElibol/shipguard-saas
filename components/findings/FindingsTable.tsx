@@ -30,15 +30,26 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
   const [hasDiffOnly, setHasDiffOnly] = useState<boolean>(false);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
 
+  const isScaFinding = (f: Finding) =>
+    f.category?.includes('Software Composition Analysis') ||
+    f.category?.includes('Open Source License') ||
+    (f.ruleId >= 7000 && f.ruleId <= 7050);
+
+  const scaFindingsCount = findings.filter(isScaFinding).length;
+
   const PILLAR_TABS = [
     { id: 'ALL', label: 'All Findings' },
     { id: 'SECURITY', label: 'Security' },
+    { id: 'SCA_DEPS', label: scaFindingsCount > 0 ? `Dependencies (${scaFindingsCount})` : 'Dependencies (SCA)' },
     { id: 'LEGAL_COMPLIANCE', label: 'Legal & Privacy' },
     { id: 'INFRA_DATABASE', label: 'Infra & DB' },
     { id: 'VIBEPOLISH', label: 'VibePolish UI' },
   ];
 
-  const getPillarBadgeStyle = (type: string) => {
+  const getPillarBadgeStyle = (type: string, category?: string) => {
+    if (category?.includes('Software Composition Analysis')) {
+      return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+    }
     return type === 'LEGAL_COMPLIANCE'
       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
       : type === 'INFRA_DATABASE'
@@ -67,7 +78,9 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
     const matchesSeverity = severityFilter === 'ALL' || f.severity === severityFilter;
     const matchesStatus = statusFilter === 'ALL' || f.status === statusFilter;
-    const matchesPillar = pillarFilter === 'ALL' || f.type === pillarFilter;
+    const matchesPillar =
+      pillarFilter === 'ALL' ||
+      (pillarFilter === 'SCA_DEPS' ? isScaFinding(f) : f.type === pillarFilter);
 
     return matchesSearch && matchesSeverity && matchesStatus && matchesPillar;
   });
@@ -426,10 +439,15 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                   </span>
                   <span
                     className={`px-2 py-0.5 rounded text-[0.68rem] font-bold font-mono border ${getPillarBadgeStyle(
-                      item.type
+                      item.type,
+                      item.category
                     )}`}
                   >
-                    {item.type === 'LEGAL_COMPLIANCE' ? 'Legal & Privacy' : item.type}
+                    {item.category?.includes('Software Composition Analysis')
+                      ? 'SCA Dependency'
+                      : item.type === 'LEGAL_COMPLIANCE'
+                      ? 'Legal & Privacy'
+                      : item.type}
                   </span>
                 </div>
                 <span
@@ -572,10 +590,15 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-0.5 rounded text-[0.68rem] font-bold font-mono border ${getPillarBadgeStyle(
-                        item.type
+                        item.type,
+                        item.category
                       )}`}
                     >
-                      {item.type === 'LEGAL_COMPLIANCE' ? 'Legal & Privacy' : item.type}
+                      {item.category?.includes('Software Composition Analysis')
+                        ? 'SCA Dependency'
+                        : item.type === 'LEGAL_COMPLIANCE'
+                        ? 'Legal & Privacy'
+                        : item.type}
                     </span>
                   </td>
 

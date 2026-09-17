@@ -76,6 +76,7 @@ function DashboardContent() {
     } else {
       setScanProjectOverride(null);
     }
+    setActiveNav('dashboard');
     setIsScanning(true);
   };
 

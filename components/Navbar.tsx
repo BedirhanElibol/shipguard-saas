@@ -119,38 +119,46 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {onToggleDashboard && (
-              <button
-                onClick={onToggleDashboard}
-                className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center gap-2"
-              >
-                <span>{showDashboard ? 'Live Web View' : 'Audit Engine'}</span>
-              </button>
-            )}
-
             {currentUser && currentUser.isLoggedIn ? (
-              <a
-                href="/dashboard"
-                className="px-3.5 py-1.5 rounded-md text-xs font-semibold text-white bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex items-center gap-1.5"
-              >
-                <span>Dashboard</span>
-              </a>
-            ) : (
-              <a
-                href="/dashboard?auth=signin"
-                className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-[#EDEDED] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-              >
-                Sign In
-              </a>
-            )}
+              <>
+                <a
+                  href="/dashboard?view=settings"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+                  title={currentUser.email}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="max-w-[120px] truncate">{currentUser.name || currentUser.email.split('@')[0]}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white font-bold uppercase tracking-wider">
+                    {currentUser.tier || 'Pro'}
+                  </span>
+                </a>
 
-            <button
-              onClick={onToggleDashboard || (() => { window.location.href = '/dashboard'; })}
-              className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
-            >
-              <span>Scan Repo</span>
-              <ArrowUpRight size={13} />
-            </button>
+                <button
+                  onClick={() => { window.location.href = '/dashboard'; }}
+                  className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                >
+                  <span>Dashboard</span>
+                  <ArrowUpRight size={13} />
+                </button>
+              </>
+            ) : (
+              <>
+                <a
+                  href="/dashboard?auth=signin"
+                  className="px-3.5 py-1.5 rounded-md text-xs font-semibold tracking-wider uppercase text-[#EDEDED] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+                >
+                  Sign In
+                </a>
+
+                <button
+                  onClick={() => { window.location.href = '/dashboard'; }}
+                  className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                >
+                  <span>Scan Repo</span>
+                  <ArrowUpRight size={13} />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -191,46 +199,52 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
 
             <div className="mt-12 flex flex-col gap-4">
               {currentUser && currentUser.isLoggedIn ? (
-                <a
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-secondary w-full text-xs py-3 text-center border-white/10 text-white flex items-center justify-center gap-2"
-                >
-                  <span>Open Dashboard</span>
-                </a>
+                <>
+                  <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-[#A1A1AA]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <span className="text-white font-medium truncate max-w-[180px]">
+                        {currentUser.name || currentUser.email}
+                      </span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-bold uppercase">
+                      {currentUser.tier || 'Pro'}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.href = '/dashboard';
+                    }}
+                    className="btn btn-primary w-full uppercase tracking-widest text-xs py-3 flex items-center justify-center gap-2"
+                  >
+                    <span>OPEN DASHBOARD</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </>
               ) : (
-                <a
-                  href="/dashboard?auth=signin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center"
-                >
-                  Sign In / Register
-                </a>
-              )}
+                <>
+                  <a
+                    href="/dashboard?auth=signin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3 text-center"
+                  >
+                    Sign In / Register
+                  </a>
 
-              {onToggleDashboard && (
-                <button
-                  onClick={() => {
-                    onToggleDashboard();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="btn btn-secondary w-full uppercase tracking-widest text-xs py-3"
-                >
-                  {showDashboard ? 'View Web Experience' : 'Launch Dashboard'}
-                </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.href = '/dashboard';
+                    }}
+                    className="btn btn-primary w-full uppercase tracking-widest text-xs py-3 flex items-center justify-center gap-2"
+                  >
+                    <span>SCAN REPOSITORY</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </>
               )}
-
-              <button
-                onClick={() => {
-                  if (onToggleDashboard) onToggleDashboard();
-                  else window.location.href = '/dashboard';
-                  setMobileMenuOpen(false);
-                }}
-                className="btn btn-primary w-full uppercase tracking-widest text-xs py-3 flex items-center justify-center gap-2"
-              >
-                <span>SCAN REPOSITORY</span>
-                <ArrowUpRight size={14} />
-              </button>
             </div>
           </motion.div>
         )}

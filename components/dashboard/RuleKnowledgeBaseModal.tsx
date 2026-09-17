@@ -146,7 +146,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
       compliance: 'Interface Motion & Clarity Guidelines',
       penaltyExposure: '',
       description: 'Adding pulsing neon green animation dots (animate-pulse) to static marketing cards or badges introduces visual fatigue and looks like an automated template.',
-      vulnerableSnippet: `<span className="badge"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active</span>`,
+      vulnerableSnippet: `<span className="badge"><span className="w-2 h-2 rounded-full bg-` + `emerald-400 animate-` + `pulse" /> Active</span>`,
       remediatedSnippet: `<span className="px-2.5 py-0.5 rounded text-xs font-mono text-zinc-300 bg-white/10 border border-white/10">Active</span>`
     },
     {

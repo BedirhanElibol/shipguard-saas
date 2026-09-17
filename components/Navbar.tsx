@@ -126,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
                   className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-mono text-[#A1A1AA] hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
                   title={currentUser.email}
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                   <span className="max-w-[120px] truncate">{currentUser.name || currentUser.email.split('@')[0]}</span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white font-bold uppercase tracking-wider">
                     {currentUser.tier || 'Pro'}
@@ -202,7 +202,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
                 <>
                   <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-[#A1A1AA]">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                       <span className="text-white font-medium truncate max-w-[180px]">
                         {currentUser.name || currentUser.email}
                       </span>

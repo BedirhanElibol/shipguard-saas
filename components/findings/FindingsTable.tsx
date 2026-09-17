@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Finding } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown, SearchX, ExternalLink } from 'lucide-react';
 import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
 
 interface FindingsTableProps {
@@ -117,6 +117,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
     setStatusFilter('ALL');
     setPillarFilter('ALL');
     setHasDiffOnly(false);
+  };
+
+  // Extract CVE IDs from finding title or remediation prompt for NVD links
+  const extractCveIds = (finding: Finding): string[] => {
+    const text = `${finding.title} ${finding.remediationPrompt ?? ''}`;
+    const matches = text.match(/(CVE-\d{4}-\d{4,7})/gi);
+    return matches ? [...new Set(matches.map((m) => m.toUpperCase()))] : [];
   };
 
   const filtered = findings.filter((f) => {
@@ -420,14 +427,19 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
       <div className="block md:hidden space-y-3">
         {filtered.length === 0 ? (
           findings.length === 0 ? (
-            <div className="p-6 rounded-xl bg-[#0A0A0A] border border-white/10 text-center flex flex-col items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-center">
-                <CheckCircle2 size={20} className="text-white" />
+            <div className="p-8 rounded-xl bg-[#0A0A0A] border border-emerald-500/20 text-center flex flex-col items-center gap-4">
+              {/* Animated green shield */}
+              <div className="relative flex items-center justify-center w-14 h-14">
+                <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse" />
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative w-10 h-10">
+                  <path d="M20 3L5 9v11c0 9.4 6.4 18.2 15 20.4C29.6 38.2 36 29.4 36 20V9L20 3z" fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <path d="M14 20l4 4 8-8" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#EDEDED]">No Audit Findings</h3>
+                <h3 className="text-sm font-extrabold text-emerald-400">You&apos;re clear to deploy</h3>
                 <p className="text-xs text-[#A1A1AA] mt-1 leading-relaxed">
-                  This project has 0 reported vulnerabilities or has not yet undergone release gate scanning.
+                  No vulnerabilities, dependency risks, or UI anti-patterns detected.
                 </p>
               </div>
               <div className="flex flex-col w-full gap-2 pt-1">
@@ -455,8 +467,10 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             </div>
           ) : (
             <div className="p-6 rounded-xl bg-[#0A0A0A] border border-white/10 text-center flex flex-col items-center gap-3">
+              <SearchX size={22} className="text-zinc-500" />
               <p className="text-xs text-[#A1A1AA]">
-                No findings match the active search or filter rules.
+                No findings match the active search or filter rules.{' '}
+                <button type="button" onClick={resetFilters} className="text-blue-400 hover:underline font-semibold">Try clearing your filters.</button>
               </p>
               <button
                 type="button"
@@ -480,7 +494,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-extrabold uppercase border ${getSeverityBadgeStyle(
+                      className={`px-2 py-[3px] rounded text-[10px] font-mono font-extrabold uppercase border min-w-[62px] text-center tracking-[0.6px] ${getSeverityBadgeStyle(
                         item.severity,
                         item.type
                       )}`}
@@ -588,8 +602,25 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-1">
-                        <span>Rule ID: #{item.ruleId}</span>
+                      <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-1 flex-wrap gap-1">
+                        <span className="flex items-center gap-1.5 flex-wrap">
+                          {extractCveIds(item).length > 0 ? (
+                            extractCveIds(item).map((cve) => (
+                              <a
+                                key={cve}
+                                href={`https://nvd.nist.gov/vuln/detail/${cve}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="cve-link"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {cve} <ExternalLink size={9} />
+                              </a>
+                            ))
+                          ) : (
+                            <span>Rule ID: #{item.ruleId}</span>
+                          )}
+                        </span>
                         <span>Pillar: {item.type}</span>
                       </div>
                     </div>
@@ -645,14 +676,19 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               <tr>
                 <td colSpan={7} className="py-10 text-center">
                   {findings.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center">
-                        <CheckCircle2 size={24} className="text-white" />
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      {/* Animated green shield — desktop */}
+                      <div className="relative flex items-center justify-center w-16 h-16">
+                        <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse" />
+                        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative w-11 h-11">
+                          <path d="M20 3L5 9v11c0 9.4 6.4 18.2 15 20.4C29.6 38.2 36 29.4 36 20V9L20 3z" fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth="1.5" strokeLinejoin="round"/>
+                          <path d="M14 20l4 4 8-8" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </div>
                       <div>
-                        <h4 className="text-sm font-extrabold text-white">No Audit Findings</h4>
+                        <h4 className="text-sm font-extrabold text-emerald-400">You&apos;re clear to deploy</h4>
                         <p className="text-xs text-[#A1A1AA] mt-1 max-w-sm">
-                          Zero vulnerabilities detected in the active audit scope. Load sample template to inspect and test remediation workflows.
+                          No vulnerabilities, dependency risks, or UI anti-patterns detected.
                         </p>
                       </div>
                       <div className="flex items-center gap-3 pt-2">
@@ -680,8 +716,10 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-2 py-4">
+                      <SearchX size={22} className="text-zinc-500" />
                       <p className="text-xs text-[#A1A1AA]">
-                        No findings match the selected search or filter rules.
+                        No findings match the selected search or filter rules.{' '}
+                        <button type="button" onClick={resetFilters} className="text-blue-400 hover:underline font-semibold">Try clearing your filters.</button>
                       </p>
                       <button
                         type="button"

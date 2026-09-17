@@ -173,7 +173,7 @@ const DEPENDENCY_CATALOG: DependencyLicense[] = [
     commercialUse: true,
     patentGrant: false,
     cveCount: 0,
-    notes: 'Standard license covers standard web and SaaS. Commercial license required if charging end-users directly for access to animation tools.'
+    notes: 'Standard license covers standard web and SaaS. Commercial license required if charging end-users directly for access to animation tools. Always ensure revert() cleanup on component unmount.'
   },
   {
     name: 'typescript',

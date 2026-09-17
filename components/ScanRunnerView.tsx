@@ -487,13 +487,57 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-white transition-all duration-150"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        {/* 4-Stage Status Panel */}
+        {(() => {
+          const stages = [
+            { label: 'Connecting & fetching repository',   range: [0,  24] },
+            { label: 'Resolving dependency tree',          range: [25, 49] },
+            { label: 'Running AST security rules',         range: [50, 89] },
+            { label: 'Generating remediation report',      range: [90, 100] },
+          ];
+          const activeStageIdx = isFinished
+            ? 4
+            : stages.findIndex(({ range }) => progress >= range[0] && progress <= range[1]);
+          return (
+            <div className="flex flex-col gap-1 bg-[#0A0A0A] rounded-xl border border-white/10 overflow-hidden">
+              {stages.map((stage, idx) => {
+                const isDone    = isFinished ? true : idx < activeStageIdx;
+                const isActive  = !isFinished && idx === activeStageIdx;
+                return (
+                  <div
+                    key={stage.label}
+                    className={`flex items-center justify-between px-4 py-2.5 text-xs font-mono border-b border-white/5 last:border-b-0 transition-colors ${
+                      isActive ? 'bg-white/[0.04]' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {isDone ? (
+                        <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                      ) : isActive ? (
+                        <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0 inline-block" />
+                      ) : (
+                        <span className="w-2 h-2 rounded-full bg-white/20 shrink-0 inline-block" />
+                      )}
+                      <span className={`truncate ${isDone ? 'text-zinc-400' : isActive ? 'text-white font-bold' : 'text-zinc-600'}`}>
+                        Stage {idx + 1}: {stage.label}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] shrink-0 ml-4 ${isDone ? 'text-emerald-400' : isActive ? 'text-blue-400' : 'text-zinc-700'}`}>
+                      {isDone ? 'Done' : isActive ? `${progress}%` : 'Wait'}
+                    </span>
+                  </div>
+                );
+              })}
+              {/* Thin progress line at bottom */}
+              <div className="w-full h-[2px] bg-white/5">
+                <div
+                  className="h-full bg-blue-500/60 transition-all duration-150"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Real-time Terminal Log Window */}

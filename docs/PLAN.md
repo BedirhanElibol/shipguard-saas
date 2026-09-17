@@ -40,7 +40,7 @@
 
 ### Touchpoint 6: Monetization, License Generation & Checkout (`/checkout`, `CheckoutView.tsx`)
 - **Friction Points Audited:**
-  - Transparent plan limits (Starter, Pro $29, Enterprise $99).
+  - Transparent plan limits (Starter Free, Pro $19/mo, Enterprise $49/mo).
   - Deterministic cryptographic license key generation & verification (`lib/stripe-checkout.ts`).
   - Strict production hiding of developer sandbox simulator buttons.
 

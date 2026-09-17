@@ -59,7 +59,7 @@ export const ComparisonTable: React.FC = () => {
     {
       feature: 'Pricing Transparency',
       detail: 'Predictable self-serve plans vs opaque sales quotes',
-      zelsis: '$29 / month',
+      zelsis: '$19 / month',
       linters: 'Free (Low Scope)',
       enterprise: '$500 – $2,500+ / mo'
     }

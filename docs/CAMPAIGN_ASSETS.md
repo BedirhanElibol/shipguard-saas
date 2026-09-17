@@ -9,7 +9,7 @@ We analyzed the top 4 competitors in the application security and code quality s
 
 | Competitor | Their Positioning | Core Flaws & Developer Grievances (HN / Reddit) | Zelsis Counter-Punch (The Anti-Slop Angle) |
 |---|---|---|---|
-| **Snyk** | "Developer-first security platform" (SCA + SAST + Cloud) | • Astronomical pricing ($98/dev/mo, sales-gated enterprise tiers)<br>• Clunky UX stitched from 4 different company acquisitions<br>• Bloated CI pipeline runs (adds 6–10 minutes per PR)<br>• Constant aggressive upsell and sales rep outreach | **"Snyk charges $98/dev and makes you wait 8 minutes on CI. Zelsis audits your stack in 3.2 seconds for $29/mo flat. No sales calls, no code stored on our servers."** |
+| **Snyk** | "Developer-first security platform" (SCA + SAST + Cloud) | • Astronomical pricing ($98/dev/mo, sales-gated enterprise tiers)<br>• Clunky UX stitched from 4 different company acquisitions<br>• Bloated CI pipeline runs (adds 6–10 minutes per PR)<br>• Constant aggressive upsell and sales rep outreach | **"Snyk charges $98/dev and makes you wait 8 minutes on CI. Zelsis audits your stack in 3.2 seconds for $19/mo flat. No sales calls, no code stored on our servers."** |
 | **SonarQube** | "Code Quality & Clean Code Governance" | • 2005-era Java enterprise legacy architecture<br>• Floods developers with noisy false positives (missing comments, style quibbles)<br>• Completely blind to modern fullstack risks (Next.js 15 Server Actions, Supabase RLS, Docker root escalation) | **"SonarQube complains about your missing docstrings. Zelsis catches your leaking Supabase database before it burns down production."** |
 | **Semgrep** | "Fast, lightweight SAST engine" | • Requires developers to write complex custom YAML rules by hand<br>• Does not provide full-stack out-of-the-box release gate manifests<br>• Generates abstract alerts rather than instant unified Git diff patches | **"Don't spend your weekend writing custom YAML syntax. Zelsis ships with 7,850 pre-calibrated rules and outputs the exact Git diff patch to fix the flaw."** |
 | **Aikido Security** | "No-bullshit security for developers" | • Heavy emphasis on package.json CVE scanning (SCA)<br>• Limited AST inspection of real cloud deployment configurations, UX accessibility, and framework-level logic flaws | **"Aikido checks your package.json dependencies. Zelsis audits your real source code, database policies, cloud container manifests, and accessibility in memory."** |
@@ -47,7 +47,7 @@ Developer marketing fails when it uses generic AI buzzwords. Real engineers have
 - **Headlines (Max 30 chars):**
   - `Tired of Snyk's $98/Dev Fee?`
   - `Zelsis: 3s Pre-Flight Gate`
-  - `Zero Code Retention · $29/mo`
+  - `Zero Code Retention · $19/mo`
 - **Descriptions (Max 90 chars):**
   - `Don't wait 8 minutes on CI. Zelsis audits 7,850 rules thoroughly before code merges.`
   - `Deterministic AST analysis for Next.js, Supabase & Docker. Test your public repo free.`

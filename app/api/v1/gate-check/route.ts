@@ -142,8 +142,36 @@ export async function POST(req: NextRequest) {
     } else if (isGithubTarget) {
       logger.info(`[Gate Check] Initiating GitHub repository audit for ${rawRepoUrl}`);
       const liveData = await fetchGithubRepositoryData(rawRepoUrl, githubToken);
+
+      if (liveData?.error === 'PRIVATE_OR_UNAUTHENTICATED' || liveData?.requiresAuth || (liveData?.isPrivate && !githubToken)) {
+        logger.warn(`[Gate Check] Private or unauthenticated repository rejected: ${rawRepoUrl}`);
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            gateStatus: 'FAILED',
+            readinessScore: 0,
+            error: `Private Repository Access Restricted: Unable to access "${rawRepoUrl}". A GitHub Personal Access Token (PAT) with 'repo' scope must be provided in the request body ({ "githubToken": "ghp_..." }).`,
+            timestamp: new Date().toISOString()
+          },
+          { status: 401 }
+        );
+      }
+
       filesToScan = liveData?.files || [];
       targetName = liveData?.name || rawRepoUrl;
+
+      if (filesToScan.length === 0) {
+        return NextResponse.json(
+          {
+            status: 'ERROR',
+            gateStatus: 'FAILED',
+            readinessScore: 0,
+            error: `No scannable source code files found in "${rawRepoUrl}". Verify the repository is accessible and contains source code.`,
+            timestamp: new Date().toISOString()
+          },
+          { status: 422 }
+        );
+      }
     }
 
     const result = runStaticCodeScan(filesToScan, targetName);

@@ -5,9 +5,10 @@ import { Project } from '@/data/schema';
 import { runStaticCodeScan, ScanResult, CodeFile } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
-import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap } from 'lucide-react';
+import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock } from 'lucide-react';
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
 import { canAccessLocalAudit } from '@/lib/env-config';
+import { PrivateRepoTokenModal } from '@/components/dashboard/PrivateRepoTokenModal';
 
 interface ScanRunnerViewProps {
   project: Project;
@@ -28,6 +29,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [countdownSeconds, setCountdownSeconds] = useState<number>(3);
   const [scanFailureReason, setScanFailureReason] = useState<string | null>(null);
+  const [isPrivateTokenModalOpen, setIsPrivateTokenModalOpen] = useState<boolean>(false);
+  const [activeGithubToken, setActiveGithubToken] = useState<string | undefined>((project as any).githubToken);
+  const [scanRunCount, setScanRunCount] = useState<number>(0);
   const terminalLogsRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -152,14 +156,42 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to GitHub Target: ${project.repoUrl}`
         ]);
 
-        if ((project as any).githubToken) {
+        let effectiveToken = activeGithubToken || (project as any).githubToken;
+        if (!effectiveToken && typeof window !== 'undefined') {
+          try {
+            effectiveToken =
+              localStorage.getItem('zelsis_github_token') ||
+              localStorage.getItem('github_token') ||
+              undefined;
+          } catch {
+            // Sandboxed storage fallback
+          }
+        }
+
+        if (effectiveToken) {
           setLogs((prev) => [
             ...prev,
             `[${new Date().toLocaleTimeString()}] [AUTH] GitHub Personal Access Token (PAT) detected. Requesting authenticated access...`
           ]);
         }
 
-        const liveData = await fetchGithubRepositoryData(project.repoUrl, (project as any).githubToken, controller.signal);
+        const liveData = await fetchGithubRepositoryData(project.repoUrl, effectiveToken, controller.signal);
+
+        // Check if access was blocked due to private repo without valid credentials
+        if (liveData?.error === 'PRIVATE_OR_UNAUTHENTICATED' || liveData?.requiresAuth || (liveData?.isPrivate && !effectiveToken)) {
+          if (!isCancelled) {
+            setScanFailureReason(`Private repository access restricted. A GitHub Personal Access Token (PAT) with 'repo' scope is required to scan "${project.repoUrl}".`);
+            setLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 ACCESS RESTRICTED: Private or unauthenticated GitHub repository detected.`,
+              `[${new Date().toLocaleTimeString()}] [AUTH] GitHub blocked access to repository "${project.repoUrl}" (HTTP 404/403).`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Please provide a GitHub Personal Access Token (PAT) to inspect this private codebase.`
+            ]);
+            setIsFinished(true);
+            setIsPrivateTokenModalOpen(true);
+          }
+          return;
+        }
 
         if (liveData && liveData.files && liveData.files.length > 0) {
           filesToScan = liveData.files;
@@ -173,14 +205,15 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
         } else {
           if (!isCancelled) {
-            setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT) in Settings.`);
+            setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT).`);
             setLogs((prev) => [
               ...prev,
               `[${new Date().toLocaleTimeString()}] [ERROR] Unable to fetch files from GitHub repository "${project.repoUrl}".`,
-              `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT) in Settings.`
+              `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT).`
             ]);
+            setIsFinished(true);
+            setIsPrivateTokenModalOpen(true);
           }
-          setIsFinished(true);
           return;
         }
       }
@@ -255,7 +288,21 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         intervalRef.current = null;
       }
     };
-  }, [project.name, project.repoUrl]);
+  }, [project.name, project.repoUrl, scanRunCount]);
+
+  const handleSaveTokenAndScan = (newToken: string) => {
+    setActiveGithubToken(newToken);
+    (project as any).githubToken = newToken;
+    setIsPrivateTokenModalOpen(false);
+    setIsFinished(false);
+    setProgress(0);
+    setScanFailureReason(null);
+    setLogs([
+      `[${new Date().toLocaleTimeString()}] [AUTH] GitHub Personal Access Token (PAT) configured.`,
+      `[${new Date().toLocaleTimeString()}] [RELOAD] Re-authenticating and fetching private repository files...`
+    ]);
+    setScanRunCount((prev) => prev + 1);
+  };
 
   // Warn user on page exit / close when scan is running
   useEffect(() => {
@@ -431,6 +478,16 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
+                {(scanFailureReason?.includes('Private') || scanFailureReason?.includes('token') || scanFailureReason?.includes('Token')) && (
+                  <button
+                    onClick={() => setIsPrivateTokenModalOpen(true)}
+                    className="btn btn-primary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all font-mono cursor-pointer"
+                  >
+                    <Lock size={14} />
+                    <span>Enter GitHub Token</span>
+                  </button>
+                )}
+
                 {scanFailureReason?.includes('Settings') && (
                   <a
                     href="/dashboard?nav=settings"
@@ -457,6 +514,13 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           )}
         </div>
       )}
+
+      <PrivateRepoTokenModal
+        isOpen={isPrivateTokenModalOpen}
+        onClose={() => setIsPrivateTokenModalOpen(false)}
+        repoUrl={project.repoUrl}
+        onSaveTokenAndScan={handleSaveTokenAndScan}
+      />
     </div>
   );
 };

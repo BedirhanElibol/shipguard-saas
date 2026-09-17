@@ -8,6 +8,9 @@ export interface GithubRepoInfo {
   stars: number;
   language: string;
   files: CodeFile[];
+  isPrivate?: boolean;
+  requiresAuth?: boolean;
+  error?: 'RATE_LIMIT_EXCEEDED' | 'PRIVATE_OR_UNAUTHENTICATED' | 'TREE_FETCH_FAILED' | string;
 }
 
 const GITHUB_RATE_LIMIT_MESSAGE =
@@ -177,7 +180,7 @@ export async function fetchGithubRepositoryData(
           }
 
           // Handle private or unauthenticated from proxy
-          if (data.error === 'PRIVATE_OR_UNAUTHENTICATED') {
+          if (data.error === 'PRIVATE_OR_UNAUTHENTICATED' || data.isPrivate) {
             return {
               name: data.name || parsed.repo,
               fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
@@ -185,20 +188,10 @@ export async function fetchGithubRepositoryData(
               defaultBranch: data.defaultBranch || 'main',
               stars: data.stars || 0,
               language: data.language || 'TypeScript',
-              files: [
-                {
-                  path: 'repository-manifest.json',
-                  content: JSON.stringify(
-                    {
-                      repository: `${parsed.owner}/${parsed.repo}`,
-                      status: 'PRIVATE_OR_UNAUTHENTICATED',
-                      notice: 'This repository is private or unauthenticated. Provide a GitHub Personal Access Token (PAT) in Settings to enable full source file AST scanning.'
-                    },
-                    null,
-                    2
-                  )
-                }
-              ]
+              files: [],
+              isPrivate: true,
+              requiresAuth: true,
+              error: 'PRIVATE_OR_UNAUTHENTICATED'
             };
           }
 
@@ -301,20 +294,10 @@ export async function fetchGithubRepositoryData(
         defaultBranch: 'main',
         stars: 0,
         language: 'TypeScript',
-        files: [
-          {
-            path: 'repository-manifest.json',
-            content: JSON.stringify(
-              {
-                repository: `${owner}/${repo}`,
-                status: 'PRIVATE_OR_UNAUTHENTICATED',
-                notice: 'This repository is private or unauthenticated. Provide a GitHub Personal Access Token (PAT) in Settings to enable full source file AST scanning.'
-              },
-              null,
-              2
-            )
-          }
-        ]
+        files: [],
+        isPrivate: true,
+        requiresAuth: true,
+        error: 'PRIVATE_OR_UNAUTHENTICATED'
       };
     }
 

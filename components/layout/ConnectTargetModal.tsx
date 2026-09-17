@@ -33,6 +33,19 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
 
   useEffect(() => {
+    if (isOpen) {
+      try {
+        const saved =
+          localStorage.getItem('zelsis_github_token') ||
+          localStorage.getItem('github_token') ||
+          '';
+        if (saved && !githubToken) {
+          setGithubToken(saved);
+        }
+      } catch {
+        // Sandboxed storage fallback
+      }
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) onClose();
     };
@@ -92,6 +105,16 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
       uiClicheCount: 0,
       findings: []
     };
+
+    const cleanToken = githubToken.trim();
+    if (cleanToken) {
+      try {
+        localStorage.setItem('zelsis_github_token', cleanToken);
+        localStorage.setItem('github_token', cleanToken);
+      } catch {
+        // Sandboxed storage fallback
+      }
+    }
 
     if (onAddNewProject) {
       onAddNewProject(newProject);
@@ -217,8 +240,15 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label htmlFor="target-github-token" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Personal Access Token (PAT) - Optional</label>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="target-github-token" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">
+                    GitHub Personal Access Token (PAT)
+                  </label>
+                  <span className="text-[10px] text-amber-400 font-mono font-medium">
+                    Required for Private Repos
+                  </span>
+                </div>
                 <div className="relative flex items-center">
                   <input
                     id="target-github-token"
@@ -226,7 +256,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                     type={showToken ? 'text' : 'password'}
                     value={githubToken}
                     onChange={(e) => setGithubToken(e.target.value)}
-                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (unlocks 5,000 req/hr)"
+                    placeholder="github_pat_... (Required for private repositories)"
                     className="w-full px-3 py-2 pr-10 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
                   />
                   <button
@@ -238,6 +268,9 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                     {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
+                <p className="text-[10px] text-[#A1A1AA] font-mono">
+                  Optional for public repositories. Required with read permission for private repositories.
+                </p>
               </div>
             </>
           ) : (

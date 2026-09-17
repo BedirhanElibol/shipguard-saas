@@ -90,7 +90,19 @@ export const Header: React.FC<HeaderProps> = ({
       const pNorm = (p.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(p.repoUrl) || p.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
       return pNorm === normTarget;
     });
+    let savedToken: string | undefined;
+    if (typeof window !== 'undefined') {
+      try {
+        savedToken = localStorage.getItem('zelsis_github_token') || localStorage.getItem('github_token') || undefined;
+      } catch {
+        // Sandboxed storage fallback
+      }
+    }
+
     if (existing) {
+      if (!existing.githubToken && savedToken) {
+        existing.githubToken = savedToken;
+      }
       onSelectProject(existing);
       onTriggerScan(existing);
       return;
@@ -101,6 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
       id: `proj-${Date.now()}`,
       name: displayName,
       repoUrl: cleanRepoUrl,
+      githubToken: savedToken,
       framework: 'Next.js 15',
       providers: ['GitHub Action', 'Vercel'],
       lastScanAt: 'Ready to Run Audit',

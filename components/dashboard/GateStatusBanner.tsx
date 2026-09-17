@@ -12,7 +12,8 @@ import {
   Award,
   GitCompare,
   Bell,
-  GitBranch
+  GitBranch,
+  GitPullRequest
 } from 'lucide-react';
 import {
   Server,
@@ -320,6 +321,20 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
                 <div className="flex flex-col">
                   <span className="font-bold">Webhook Alerts</span>
                   <span className="text-[10px] text-[#A1A1AA]">Slack &amp; Discord dispatch setup</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenModal('cicd');
+                  setIsToolsMenuOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
+              >
+                <GitPullRequest size={14} className="text-emerald-400" />
+                <div className="flex flex-col">
+                  <span className="font-bold">CI/CD &amp; GitHub PR Gate</span>
+                  <span className="text-[10px] text-[#A1A1AA]">Automate PR block &amp; Actions workflow</span>
                 </div>
               </button>
 

@@ -44,6 +44,11 @@ const BadgeGeneratorModal = dynamic(
   { ssr: false }
 );
 
+const CiCdIntegrationModal = dynamic(
+  () => import('./CiCdIntegrationModal').then((mod) => mod.CiCdIntegrationModal),
+  { ssr: false }
+);
+
 export type ActiveModalType =
   | 'compare'
   | 'notif'
@@ -53,6 +58,7 @@ export type ActiveModalType =
   | 'manifest'
   | 'pentest'
   | 'badge'
+  | 'cicd'
   | null;
 
 export interface DashboardModalsProps {
@@ -115,6 +121,12 @@ export const DashboardModals: React.FC<DashboardModalsProps> = ({
 
       <BadgeGeneratorModal
         isOpen={activeModal === 'badge'}
+        onClose={onClose}
+        project={project}
+      />
+
+      <CiCdIntegrationModal
+        isOpen={activeModal === 'cicd'}
         onClose={onClose}
         project={project}
       />

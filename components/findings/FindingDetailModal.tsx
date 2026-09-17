@@ -397,7 +397,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
               )}
             </div>
 
-            {/* Pillar Specific Advisory Badge */}
+            {/* Category Specific Advisory Badge */}
             {finding.type === 'LEGAL_COMPLIANCE' ? (
               <div className="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3.5 flex items-start gap-2.5 text-xs text-zinc-300">
                 <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 mt-1.5" />

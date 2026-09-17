@@ -143,7 +143,7 @@ export const ProductCapabilities: React.FC = () => {
           </p>
         </div>
 
-        {/* Sequential Alternating Showcase of All 4 Pillars */}
+        {/* Sequential Alternating Showcase of All 4 Capabilities */}
         <div className="flex flex-col gap-16">
           {pillars.map((pillar, idx) => {
             const isReversed = idx % 2 === 1;

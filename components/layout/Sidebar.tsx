@@ -113,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="h-[1px] bg-white/[0.08] my-1" />
 
-      {/* Navigation Group 2: Product Pillars */}
+      {/* Navigation Group 2: Audit Gates */}
       <div className="flex flex-col gap-1">
         <span className="text-[0.68rem] font-extrabold text-[#A1A1AA] font-mono tracking-[0.1em] uppercase px-3 mb-2">
           PRODUCT PILLARS

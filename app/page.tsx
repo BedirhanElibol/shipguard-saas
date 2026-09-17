@@ -30,7 +30,7 @@ export default function Home() {
         {/* 3-Step Interactive Operational Workflow */}
         <WorkflowSteps />
 
-        {/* 4 Core Pillars Matrix featuring user screenshots */}
+        {/* Product Capabilities Matrix featuring user screenshots */}
         <ProductCapabilities />
 
         {/* Uncompromising Comparison Table: ShipGuard vs Linters vs Enterprise */}

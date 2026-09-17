@@ -332,7 +332,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
         </div>
       </div>
 
-      {/* Pillar Filter Tabs */}
+      {/* Category Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-white/5">
         {PILLAR_TABS.map((tab) => {
           const isActive = pillarFilter === tab.id;
@@ -586,7 +586,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     </span>
                   </td>
 
-                  {/* Pillar Badge */}
+                  {/* Type Badge */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-0.5 rounded text-[0.68rem] font-bold font-mono border ${getPillarBadgeStyle(

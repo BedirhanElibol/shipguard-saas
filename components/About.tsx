@@ -22,7 +22,7 @@ export const About: React.FC = () => {
           Modern software development moves at breakneck speed. Whether written by senior engineers, accelerated by AI, or assembled from open-source packages, shipping without rigorous pre-flight validation introduces critical risk. ShipGuard guarantees that your web applications, cloud containers, and database layers are secure, accessible, and production-hardened before code merges.
         </div>
 
-        {/* Core Pillars Grid */}
+        {/* Core Standards Grid */}
         <div className="w-full pt-8 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
             <span className="text-xs font-mono font-bold text-[#A1A1AA] uppercase block">Security Clearance</span>

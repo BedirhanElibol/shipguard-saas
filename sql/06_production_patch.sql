@@ -14,7 +14,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS grace_period_until TIMESTAM
 ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS grace_period_until TIMESTAMPTZ;
 ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS polar_subscription_id TEXT;
 
--- 3. Extend pillar_type enum for Legal Compliance and Database Infrastructure
+-- 3. Extend category enum for Legal Compliance and Database Infrastructure
 ALTER TYPE pillar_type ADD VALUE IF NOT EXISTS 'LEGAL_COMPLIANCE';
 ALTER TYPE pillar_type ADD VALUE IF NOT EXISTS 'INFRA_DATABASE';
 

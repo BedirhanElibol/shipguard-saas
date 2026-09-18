@@ -982,7 +982,7 @@ export function useDashboardState() {
         : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
       const lightweight = sanitized.map((p) => ({
         ...p,
-        findings: p.findings.slice(0, 60).map((f) => ({
+        findings: (p.findings ?? []).slice(0, 60).map((f) => ({
           ...f,
           snippet: typeof f.snippet === 'string' && f.snippet.length > 150 ? f.snippet.slice(0, 150) + '...' : f.snippet,
           reproductionSteps: Array.isArray(f.reproductionSteps) ? f.reproductionSteps.slice(0, 1) : []
@@ -1002,7 +1002,7 @@ export function useDashboardState() {
           : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
         const ultraCompact = sanitized.map((p) => ({
           ...p,
-          findings: p.findings.slice(0, 20).map((f) => ({
+          findings: (p.findings ?? []).slice(0, 20).map((f) => ({
             id: f.id,
             ruleId: f.ruleId,
             type: f.type,
@@ -1059,10 +1059,10 @@ export function useDashboardState() {
     setProjects((prevProjects) => {
       let newlyUpdatedSelectedProj: Project | null = null;
       const updatedList = prevProjects.map((proj) => {
-        const hasFinding = proj.findings.some((f) => f.id === findingId);
+        const hasFinding = (proj.findings ?? []).some((f) => f.id === findingId);
         if (!hasFinding) return proj;
 
-        const updatedFindings = proj.findings.map((f) => {
+        const updatedFindings = (proj.findings ?? []).map((f) => {
           if (f.id === findingId) {
             const nextStatus: Finding['status'] = f.status === 'RESOLVED' ? 'OPEN' : 'RESOLVED';
             return { ...f, status: nextStatus };

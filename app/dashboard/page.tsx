@@ -395,21 +395,21 @@ function DashboardContent() {
 
             {activeNav === 'security' && (
               <SecurityAuditView
-                findings={selectedProject.findings}
+                findings={selectedProject.findings ?? []}
                 onInspectFinding={(f) => setInspectingFinding(f)}
               />
             )}
 
             {activeNav === 'compliance' && (
               <ComplianceAuditView
-                findings={selectedProject.findings}
+                findings={selectedProject.findings ?? []}
                 onInspectFinding={(f) => setInspectingFinding(f)}
               />
             )}
 
             {activeNav === 'infra' && (
               <InfraAuditView
-                findings={selectedProject.findings}
+                findings={selectedProject.findings ?? []}
                 onInspectFinding={(f) => setInspectingFinding(f)}
               />
             )}

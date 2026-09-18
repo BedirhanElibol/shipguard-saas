@@ -493,7 +493,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 {isFinished
                   ? scanResult
                     ? `All ${queuedFilesCount} Source Files Inspected & Verified`
-                    : (project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
+                    : (project?.repoUrl === 'local' || (project?.repoUrl || '').toLowerCase() === 'local') && !canAccessLocalAudit()
                     ? 'Local workspace self-audit is available only in local development.'
                     : 'Audit Terminated'
                   : currentFileName}
@@ -629,7 +629,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                     </span>
                   </div>
                   <p className="text-sm font-bold text-[#EDEDED] mt-0.5">
-                    {scanFailureReason || ((project.repoUrl === 'local' || project.repoUrl.toLowerCase() === 'local') && !canAccessLocalAudit()
+                    {scanFailureReason || ((project?.repoUrl === 'local' || (project?.repoUrl || '').toLowerCase() === 'local') && !canAccessLocalAudit()
                       ? 'Local workspace self-audit is available only in local development.'
                       : 'Audit execution was stopped before completion.')}
                   </p>

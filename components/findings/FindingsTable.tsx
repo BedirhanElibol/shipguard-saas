@@ -128,10 +128,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
   const filtered = findings.filter((f) => {
     const safeSearch = (searchTerm ?? '').toLowerCase();
+    const titleStr = (f.title || '').toLowerCase();
+    const pathStr = (f.filePath || '').toLowerCase();
+    const catStr = (f.category || '').toLowerCase();
     const matchesSearch =
-      f.title.toLowerCase().includes(safeSearch) ||
-      f.filePath.toLowerCase().includes(safeSearch) ||
-      f.category.toLowerCase().includes(safeSearch);
+      titleStr.includes(safeSearch) ||
+      pathStr.includes(safeSearch) ||
+      catStr.includes(safeSearch);
 
     const matchesSeverity = severityFilter === 'ALL' || f.severity === severityFilter;
     const matchesStatus = statusFilter === 'ALL' || f.status === statusFilter;
@@ -195,7 +198,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
-              {findings.filter(f => f.type === 'INFRA_DATABASE' || f.category.toLowerCase().includes('sql') || f.category.toLowerCase().includes('rls') || f.category.toLowerCase().includes('database')).length}
+              {findings.filter(f => f.type === 'INFRA_DATABASE' || (f.category || '').toLowerCase().includes('sql') || (f.category || '').toLowerCase().includes('rls') || (f.category || '').toLowerCase().includes('database')).length}
             </span>
             <span className="text-[10px] text-zinc-400 font-mono">
               Postgres &amp; SQL

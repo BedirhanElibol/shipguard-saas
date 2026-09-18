@@ -222,12 +222,13 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
   if (!isOpen) return null;
 
   const filteredRules = kbRules.filter((r) => {
+    const q = (search || '').toLowerCase();
     const matchesSearch =
-      r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.id.toLowerCase().includes(search.toLowerCase()) ||
-      r.description.toLowerCase().includes(search.toLowerCase()) ||
-      (r.compliance && r.compliance.toLowerCase().includes(search.toLowerCase())) ||
-      (r.penaltyExposure && r.penaltyExposure.toLowerCase().includes(search.toLowerCase()));
+      (r.title || '').toLowerCase().includes(q) ||
+      (r.id || '').toLowerCase().includes(q) ||
+      (r.description || '').toLowerCase().includes(q) ||
+      (r.compliance ? (r.compliance || '').toLowerCase().includes(q) : false) ||
+      (r.penaltyExposure ? (r.penaltyExposure || '').toLowerCase().includes(q) : false);
     const matchesCat = categoryFilter === 'ALL' || r.category === categoryFilter;
     return matchesSearch && matchesCat;
   });

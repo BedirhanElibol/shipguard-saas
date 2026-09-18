@@ -21,9 +21,10 @@ export const SecurityAuditView: React.FC<SecurityAuditViewProps> = ({
   const categories = ['ALL', 'Secret Isolation', 'Authentication', 'Database', 'Network & CORS', 'Input & Files', 'Error & Logging', 'Supply Chain', 'Compliance & Cost'];
 
   const filteredRules = SECURITY_RULES_CATALOG.filter(rule => {
-    const matchesSearch = rule.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          rule.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          rule.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const safeSearch = (searchTerm || '').toLowerCase();
+    const matchesSearch = (rule.title || '').toLowerCase().includes(safeSearch) ||
+                          (rule.description || '').toLowerCase().includes(safeSearch) ||
+                          (rule.code || '').toLowerCase().includes(safeSearch);
     const matchesCat = selectedCategory === 'ALL' || rule.category === selectedCategory;
     return matchesSearch && matchesCat;
   });

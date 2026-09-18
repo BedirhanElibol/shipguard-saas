@@ -71,7 +71,7 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
           </div>
         ) : (
           logs
-            .filter((log) => !logSearchQuery.trim() || log.toLowerCase().includes(logSearchQuery.toLowerCase()))
+            .filter((log) => !(logSearchQuery || '').trim() || String(log || '').toLowerCase().includes((logSearchQuery || '').toLowerCase()))
             .map((log, i) => {
               const strLog = String(log || '');
               const isError = strLog.includes('CRITICAL') || strLog.includes('FAILED') || strLog.includes('[ERROR]') || strLog.includes('[FAIL]');

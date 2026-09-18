@@ -170,7 +170,8 @@ export function useDashboardState() {
         // Deduplicate projects by repoUrl to prevent duplicate dropdown items
         const seenUrls = new Set<string>();
         currentProjects = currentProjects.filter((p) => {
-          const norm = (p.repoUrl === 'local' ? 'local' : p.repoUrl.replace(/\/+$/, '')).toLowerCase().trim();
+          const pUrl = p?.repoUrl || '';
+          const norm = (pUrl === 'local' ? 'local' : pUrl.replace(/\/+$/, '')).toLowerCase().trim();
           if (seenUrls.has(norm)) return false;
           seenUrls.add(norm);
           return true;
@@ -311,7 +312,7 @@ export function useDashboardState() {
                   .then((data) => {
                     if (data) {
                       setUser((prev) => {
-                        if (!prev || prev.email.toLowerCase() !== email) return prev;
+                        if (!prev || (prev.email || '').toLowerCase() !== (email || '').toLowerCase()) return prev;
                         // Prevent false downgrades if local subscription is active or valid license key exists
                         const isLocallyValid = Boolean(
                           prev.tier !== 'Free' &&
@@ -802,7 +803,7 @@ export function useDashboardState() {
       safeSetStorageItem('zelsis_projects', JSON.stringify(lightweight), selectedProject.id);
 
       if (user?.isLoggedIn && user?.email) {
-        const userProjectsKey = `zelsis_user_projects_${user.email.toLowerCase().trim()}`;
+        const userProjectsKey = `zelsis_user_projects_${(user.email || '').toLowerCase().trim()}`;
         safeSetStorageItem(userProjectsKey, JSON.stringify(lightweight), selectedProject.id);
       }
     } catch (primaryQuotaErr) {
@@ -826,7 +827,7 @@ export function useDashboardState() {
         safeSetStorageItem('zelsis_projects', JSON.stringify(ultraCompact), selectedProject.id);
 
         if (user?.isLoggedIn && user?.email) {
-          const userProjectsKey = `zelsis_user_projects_${user.email.toLowerCase().trim()}`;
+          const userProjectsKey = `zelsis_user_projects_${(user.email || '').toLowerCase().trim()}`;
           safeSetStorageItem(userProjectsKey, JSON.stringify(ultraCompact), selectedProject.id);
         }
       } catch (fallbackQuotaErr) {
@@ -992,7 +993,7 @@ export function useDashboardState() {
         if (saved) {
           try {
             const p = JSON.parse(saved);
-            if ((p?.tier === 'Pro' || p?.tier === 'Enterprise') && p.email?.toLowerCase() === email.toLowerCase()) {
+            if ((p?.tier === 'Pro' || p?.tier === 'Enterprise') && (p.email || '').toLowerCase() === (email || '').toLowerCase()) {
               const isNotExpired = !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now();
               if (isNotExpired) {
                 resolvedTier = p.tier;
@@ -1039,7 +1040,7 @@ export function useDashboardState() {
 
     if (email) {
       try {
-        const userProjectsKey = `zelsis_user_projects_${email.toLowerCase().trim()}`;
+        const userProjectsKey = `zelsis_user_projects_${(email || '').toLowerCase().trim()}`;
         const savedUserProjectsStr = localStorage.getItem(userProjectsKey);
         if (savedUserProjectsStr) {
           const parsed = JSON.parse(savedUserProjectsStr);
@@ -1098,7 +1099,7 @@ export function useDashboardState() {
     // 1. Back up authenticated user's projects before clearing active session
     if (user?.email && projects && projects.length > 0) {
       try {
-        const userProjectsKey = `zelsis_user_projects_${user.email.toLowerCase().trim()}`;
+        const userProjectsKey = `zelsis_user_projects_${(user.email || '').toLowerCase().trim()}`;
         safeSetStorageItem(userProjectsKey, JSON.stringify(projects));
       } catch (backupErr) {
         console.warn('[Zelsis Auth] Failed to backup user projects on sign out:', backupErr);

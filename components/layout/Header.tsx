@@ -76,18 +76,21 @@ export const Header: React.FC<HeaderProps> = ({
     if (isSubmitting) return;
     setIsSubmitting(true);
     setTimeout(() => setIsSubmitting(false), 1000);
-    const cleanRepoUrl = normalizeRepoUrl(activeTargetUrl) || activeTargetUrl;
-    const normTarget = cleanRepoUrl.toLowerCase().replace(/\/+$/, '').trim();
+    const rawTarget = activeTargetUrl || '';
+    const cleanRepoUrl = normalizeRepoUrl(rawTarget) || rawTarget;
+    const normTarget = (cleanRepoUrl || '').toLowerCase().replace(/\/+$/, '').trim();
     if (!normTarget) return;
 
-    const normSelected = (selectedProject.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(selectedProject.repoUrl) || selectedProject.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+    const selectedUrl = selectedProject?.repoUrl || '';
+    const normSelected = (selectedUrl === 'local' ? 'local' : (normalizeRepoUrl(selectedUrl) || selectedUrl)).toLowerCase().replace(/\/+$/, '').trim();
     if (normTarget === normSelected) {
       onTriggerScan(selectedProject);
       return;
     }
 
     const existing = projects.find((p) => {
-      const pNorm = (p.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(p.repoUrl) || p.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+      const pUrl = p?.repoUrl || '';
+      const pNorm = (pUrl === 'local' ? 'local' : (normalizeRepoUrl(pUrl) || pUrl)).toLowerCase().replace(/\/+$/, '').trim();
       return pNorm === normTarget;
     });
     let savedToken: string | undefined;

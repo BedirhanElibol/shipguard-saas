@@ -89,7 +89,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
     const displayName = customName || extractedName;
 
     const newProject: Project = {
-      id: `proj-${targetType.toLowerCase()}-${Date.now()}`,
+      id: `proj-${(targetType || 'target').toLowerCase()}-${Date.now()}`,
       name: `${displayName} (${targetType === 'GITHUB' ? branch : 'Live Site'})`,
       repoUrl: fullUrl,
       githubToken: githubToken.trim() || undefined,

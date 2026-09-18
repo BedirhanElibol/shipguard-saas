@@ -23,9 +23,10 @@ export const VibePolishView: React.FC<VibePolishViewProps> = ({
   const categories = ['ALL', ...Array.from(new Set(rules.map(r => r.category)))];
 
   const filteredRules = rules.filter(rule => {
-    const matchesSearch = rule.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          rule.clichePattern.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          rule.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const safeSearch = (searchTerm || '').toLowerCase();
+    const matchesSearch = (rule.title || '').toLowerCase().includes(safeSearch) ||
+                          (rule.clichePattern || '').toLowerCase().includes(safeSearch) ||
+                          (rule.code || '').toLowerCase().includes(safeSearch);
     const matchesCat = selectedCat === 'ALL' || rule.category === selectedCat;
     return matchesSearch && matchesCat;
   });

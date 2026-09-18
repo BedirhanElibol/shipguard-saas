@@ -202,10 +202,11 @@ export const ScaLicenseRiskCard: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState<'ALL' | 'PERMISSIVE' | 'REVIEW'>('ALL');
 
   const filteredDependencies = useMemo(() => {
+    const safeQuery = (searchQuery || '').toLowerCase();
     return DEPENDENCY_CATALOG.filter((dep) => {
       const matchesSearch =
-        dep.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dep.license.toLowerCase().includes(searchQuery.toLowerCase());
+        (dep.name || '').toLowerCase().includes(safeQuery) ||
+        (dep.license || '').toLowerCase().includes(safeQuery);
       if (!matchesSearch) return false;
 
       if (filterCategory === 'PERMISSIVE') return dep.category === 'Permissive';

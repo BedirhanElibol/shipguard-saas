@@ -160,7 +160,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                   Line {finding.lineRange}
                 </span>
                 <span className="text-zinc-500">·</span>
-                <span className="text-zinc-400 capitalize">{finding.status.toLowerCase()}</span>
+                <span className="text-zinc-400 capitalize">{(finding.status || 'OPEN').toLowerCase()}</span>
               </div>
             </div>
 

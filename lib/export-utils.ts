@@ -62,7 +62,7 @@ export function exportFindingsToCsv(findings: Finding[], projectName: string = '
   ]);
 
   const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
-  const safeName = projectName.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  const safeName = (projectName || 'project').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
   const timestamp = new Date().toISOString().slice(0, 10);
   downloadFile(csvContent, `shipguard-findings-${safeName}-${timestamp}.csv`, 'text/csv;charset=utf-8;');
 }

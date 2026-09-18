@@ -28,13 +28,13 @@ export const ComplianceAuditView: React.FC<ComplianceAuditViewProps> = ({
   ];
 
   const filteredRules = COMPLIANCE_RULES_CATALOG.filter((rule) => {
-    const safeSearch = searchTerm.toLowerCase();
+    const safeSearch = (searchTerm || '').toLowerCase();
     const matchesSearch =
-      rule.title.toLowerCase().includes(safeSearch) ||
-      rule.description.toLowerCase().includes(safeSearch) ||
-      rule.code.toLowerCase().includes(safeSearch) ||
-      rule.legalFramework.toLowerCase().includes(safeSearch) ||
-      rule.penaltyExposure.toLowerCase().includes(safeSearch);
+      (rule.title || '').toLowerCase().includes(safeSearch) ||
+      (rule.description || '').toLowerCase().includes(safeSearch) ||
+      (rule.code || '').toLowerCase().includes(safeSearch) ||
+      (rule.legalFramework || '').toLowerCase().includes(safeSearch) ||
+      (rule.penaltyExposure || '').toLowerCase().includes(safeSearch);
     const matchesCat = selectedCategory === 'ALL' || rule.category === selectedCategory;
     return matchesSearch && matchesCat;
   });

@@ -82,11 +82,13 @@ function DashboardContent() {
   };
 
   const handleAddNewProject = (newP: Project) => {
-    const normTarget = (newP.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(newP.repoUrl) || newP.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+    const newUrl = newP?.repoUrl || '';
+    const normTarget = (newUrl === 'local' ? 'local' : (normalizeRepoUrl(newUrl) || newUrl)).toLowerCase().replace(/\/+$/, '').trim();
     setProjects((prev) => {
       const existingIdx = prev.findIndex((p) => {
         if (p.id === newP.id) return true;
-        const pNorm = (p.repoUrl === 'local' ? 'local' : (normalizeRepoUrl(p.repoUrl) || p.repoUrl)).toLowerCase().replace(/\/+$/, '').trim();
+        const pUrl = p?.repoUrl || '';
+        const pNorm = (pUrl === 'local' ? 'local' : (normalizeRepoUrl(pUrl) || pUrl)).toLowerCase().replace(/\/+$/, '').trim();
         return pNorm === normTarget;
       });
 
@@ -115,7 +117,7 @@ function DashboardContent() {
     if (!normalized) return;
 
     const existing = projects.find(
-      (p) => p.repoUrl.toLowerCase() === normalized.toLowerCase()
+      (p) => (p?.repoUrl || '').toLowerCase() === (normalized || '').toLowerCase()
     );
 
     if (existing) {
@@ -542,9 +544,9 @@ function DashboardContent() {
           } catch (e: unknown) {
             console.warn('[Zelsis Auth] Failed to persist user session:', e);
           }
-          if (finalUser.email) {
+          if (finalUser?.email) {
             try {
-              const userProjectsKey = `zelsis_user_projects_${finalUser.email.toLowerCase().trim()}`;
+              const userProjectsKey = `zelsis_user_projects_${(finalUser.email || '').toLowerCase().trim()}`;
               const savedProjectsStr = localStorage.getItem(userProjectsKey);
               if (savedProjectsStr) {
                 const parsed = JSON.parse(savedProjectsStr);

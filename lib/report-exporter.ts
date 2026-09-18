@@ -454,7 +454,7 @@ export function generateExecutiveReportHtml(project: Project): string {
                   (f) => `
           <tr>
             <td>
-              <span class="badge badge-${f.severity.toLowerCase()}">${f.severity}</span>
+              <span class="badge badge-${(f.severity || 'info').toLowerCase()}">${f.severity || 'INFO'}</span>
             </td>
             <td class="mono" style="font-weight: 700; font-size: 7.5pt;">#${f.ruleId}</td>
             <td>

@@ -1161,7 +1161,7 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   const logs: string[] = [];
 
   // Parse .zelsisignore or .shipguardignore if present in file tree
-  const ignoreFile = files.find(f => f.path.endsWith('.zelsisignore') || f.path.endsWith('.shipguardignore'));
+  const ignoreFile = files.find(f => (f?.path || '').endsWith('.zelsisignore') || (f?.path || '').endsWith('.shipguardignore'));
   const { ignoredRuleIds, ignoredPaths } = parseZelsisIgnore(ignoreFile?.content || '');
 
   logs.push(`[${new Date().toLocaleTimeString()}] [INFO] Initializing Zelsis High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
@@ -1172,7 +1172,8 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   }
 
   const validFiles = files.filter((f) => {
-    const lowerPath = f.path.toLowerCase();
+    if (!f || typeof f.path !== 'string') return false;
+    const lowerPath = (f.path || '').toLowerCase();
     if (
       lowerPath.includes('scratch/') ||
       lowerPath.includes('.agent/') ||
@@ -1210,10 +1211,10 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
   let fileIndex = 1;
 
   for (const file of targetFiles) {
-    const rawContent = file.content || '';
+    const rawContent = file?.content || '';
     const lines = rawContent.split('\n');
     const startFindingsCount = findings.length;
-    const lowerFilePath = file.path.toLowerCase();
+    const lowerFilePath = (file?.path || '').toLowerCase();
 
     // File size guard (500 KB / 512,000 bytes)
     const MAX_FILE_SIZE_BYTES = 512000;

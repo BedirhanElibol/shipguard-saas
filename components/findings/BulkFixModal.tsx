@@ -73,9 +73,10 @@ ${addedComment}
 
     const blob = new Blob([patchContent], { type: 'text/x-patch' });
     const url = URL.createObjectURL(blob);
+    const safeProjectName = (projectName || 'project').toLowerCase().replace(/\s+/g, '-');
     const a = document.createElement('a');
     a.href = url;
-    a.download = `zelsis-remediation-patch-${projectName.toLowerCase().replace(/\s+/g, '-')}.patch`;
+    a.download = `zelsis-remediation-patch-${safeProjectName}.patch`;
     a.click();
     URL.revokeObjectURL(url);
   };

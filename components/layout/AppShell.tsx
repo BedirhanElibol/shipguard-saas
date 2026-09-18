@@ -62,6 +62,10 @@ export const AppShell: React.FC<AppShellProps> = ({
     };
   }, [isMobileMenuOpen]);
 
+  const customProjectsCount = projects.filter(
+    (p) => !p.id.startsWith('proj-preset') && p.id !== 'proj-shipguard-self' && p.id !== 'proj-saas-starter' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-react-core'
+  ).length;
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[#EDEDED] flex flex-col font-sans">
       {/* Top Header with Layout Fixes & Auth Controls */}
@@ -92,7 +96,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           isMobileOpen={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
           quota={quota}
-          projectsCount={projects.length}
+          projectsCount={customProjectsCount}
           onOpenCheckout={onOpenCheckout}
         />
 

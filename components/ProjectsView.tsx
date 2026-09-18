@@ -39,7 +39,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
   const isFree = !user || user.tier === 'Free';
   const customProjects = projects.filter(
-    (p) => !p.id.startsWith('proj-preset') && p.id !== 'proj-shipguard-self' && p.id !== 'proj-saas-starter'
+    (p) => !p.id.startsWith('proj-preset') && p.id !== 'proj-shipguard-self' && p.id !== 'proj-saas-starter' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-react-core'
   );
   const isAtFreeLimit = isFree && customProjects.length >= 1;
 

@@ -112,7 +112,7 @@ export function useDashboardState() {
   useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
-        const CURRENT_DATA_VERSION = 'v9_single_starter_project';
+        const CURRENT_DATA_VERSION = 'v11_clean_single_starter';
         const savedVersion = localStorage.getItem('zelsis_data_version') || localStorage.getItem('shipguard_data_version');
         const allowedLocal = canAccessLocalAudit();
 
@@ -152,6 +152,14 @@ export function useDashboardState() {
           localStorage.removeItem('shipguard_selected_project_id');
           localStorage.removeItem('zelsis_projects');
           localStorage.removeItem('zelsis_selected_project_id');
+          if (typeof window !== 'undefined') {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith('zelsis_user_projects_') || key.startsWith('shipguard_user_projects_'))) {
+                localStorage.removeItem(key);
+              }
+            }
+          }
           const cleanProjects = getBaseProjects();
           setProjects(cleanProjects);
           setSelectedProject(MOCK_PROJECTS[0]);
@@ -196,6 +204,11 @@ export function useDashboardState() {
           currentProjects = getBaseProjects();
         }
 
+        // Filter out legacy mock projects that might be lingering in localStorage
+        currentProjects = currentProjects.filter(
+          (p) => p && p.id !== 'proj-react-core' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self' && p.id !== 'proj-preset-self'
+        );
+
         // Deduplicate projects by repoUrl to prevent duplicate dropdown items
         const seenUrls = new Set<string>();
         currentProjects = currentProjects.filter((p) => {
@@ -211,9 +224,22 @@ export function useDashboardState() {
           currentProjects = currentProjects.filter(
             (p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self'
           );
-          if (currentProjects.length === 0) {
-            currentProjects = getBaseProjects();
+        }
+
+        // For Free tier or signed-out users, cap custom projects to at most 1 active repo + starter demo
+        const isFreeTier = !user || user.tier === 'Free';
+        if (isFreeTier) {
+          const customList = currentProjects.filter(
+            (p) => !p.id.startsWith('proj-preset') && p.id !== 'proj-shipguard-self' && p.id !== 'proj-saas-starter'
+          );
+          if (customList.length > 1) {
+            const starter = currentProjects.find((p) => p.id === 'proj-saas-starter') || MOCK_PROJECTS[0];
+            currentProjects = [starter, customList[0]];
           }
+        }
+
+        if (currentProjects.length === 0) {
+          currentProjects = getBaseProjects();
         }
 
         setProjects(currentProjects);
@@ -1139,9 +1165,7 @@ export function useDashboardState() {
     setUser(null);
 
     // 2. Reset in-memory projects and selected project to clean demo showcase
-    const cleanDemoProjects = canAccessLocalAudit()
-      ? MOCK_PROJECTS
-      : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
+    const cleanDemoProjects = [MOCK_PROJECTS[0]];
 
     setProjects(cleanDemoProjects);
     setSelectedProject(cleanDemoProjects[0]);

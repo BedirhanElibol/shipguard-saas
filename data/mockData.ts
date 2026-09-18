@@ -1101,40 +1101,6 @@ export const MOCK_PROJECTS: Project[] = [
     lowCount: 2,
     uiClicheCount: 2,
     findings: SHOWCASE_DEMO_FINDINGS
-  },
-  {
-    id: 'proj-zelsis-self',
-    name: 'Zelsis SaaS (Self Audit)',
-    repoUrl: 'local',
-    previewUrl: 'http://localhost:3000',
-    framework: 'Next.js 15',
-    providers: ['PostgreSQL', 'Stripe', 'Anthropic Claude', 'Vercel'],
-    lastScanAt: 'Just now',
-    readinessScore: 100,
-    gateStatus: 'PASSED',
-    criticalCount: 0,
-    highCount: 0,
-    mediumCount: 0,
-    lowCount: 0,
-    uiClicheCount: 0,
-    findings: []
-  },
-  {
-    id: 'proj-react-core',
-    name: 'Facebook React (Core Repository)',
-    repoUrl: 'https://github.com/facebook/react',
-    previewUrl: 'https://react.dev',
-    framework: 'React Core',
-    providers: ['GitHub Action', 'Vercel'],
-    lastScanAt: 'Just now',
-    readinessScore: 100,
-    gateStatus: 'PASSED',
-    criticalCount: 0,
-    highCount: 0,
-    mediumCount: 0,
-    lowCount: 0,
-    uiClicheCount: 0,
-    findings: []
   }
 ];
 

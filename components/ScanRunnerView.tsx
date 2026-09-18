@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Project } from '@/data/schema';
+import { Project, PlanUsageQuota } from '@/data/schema';
+import { UserProfile } from '@/components/auth/AuthModal';
 import { runStaticCodeScan, ScanResult, CodeFile } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
@@ -11,15 +12,24 @@ import { canAccessLocalAudit } from '@/lib/env-config';
 import { PrivateRepoTokenModal } from '@/components/dashboard/PrivateRepoTokenModal';
 import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
 import { safeString, safeLower, safeReplace, safeTrim } from '@/lib/safe-utils';
+import { checkScanQuota, isPrivateRepoAllowed } from '@/lib/quota-manager';
 
 interface ScanRunnerViewProps {
   project: Project;
   onCompleteScan: (updatedResult?: ScanResult) => void;
+  user?: UserProfile | null;
+  quota?: PlanUsageQuota;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
+  onConsumeScanQuota?: () => void;
 }
 
 export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   project,
-  onCompleteScan
+  onCompleteScan,
+  user,
+  quota,
+  onOpenCheckout,
+  onConsumeScanQuota
 }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
@@ -39,6 +49,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   const onCompleteScanRef = useRef(onCompleteScan);
   const hasCompletedRef = useRef(false);
+  const hasConsumedQuotaRef = useRef(false);
 
   useEffect(() => {
     onCompleteScanRef.current = onCompleteScan;
@@ -86,9 +97,28 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
     const controller = new AbortController();
     abortControllerRef.current = controller;
     hasCompletedRef.current = false;
+    hasConsumedQuotaRef.current = false;
     setCountdownSeconds(3);
 
     async function executeLiveScan() {
+      const userTier = user?.tier || 'Free';
+      if (quota) {
+        const scanCheck = checkScanQuota(quota, userTier);
+        if (!scanCheck.allowed) {
+          if (!isCancelled) {
+            setScanFailureReason(`Monthly Free Scan Limit Reached (${quota.scansUsed}/${quota.scansLimit} scans used). Upgrade to Zelsis Pro ($19/mo) for unlimited automated audits.`);
+            setLogs([
+              `[${new Date().toLocaleTimeString()}] [LIMIT] Monthly Free Tier Scan Limit Reached (${quota.scansUsed}/${quota.scansLimit} scans used).`,
+              `[${new Date().toLocaleTimeString()}] [UPGRADE] Upgrade to Zelsis Pro ($19/mo) or Enterprise ($99/mo) to unlock unlimited audits and automated CI/CD scans.`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Opening subscription tier selector...`
+            ]);
+            setIsFinished(true);
+            onOpenCheckout?.('Pro');
+          }
+          return;
+        }
+      }
+
       const isLocalOrSelfAudit =
         (project.repoUrl === 'local' || safeLower(project.repoUrl) === 'local') &&
         canAccessLocalAudit();
@@ -285,6 +315,19 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         // 5. Check if access was blocked due to private repo without valid credentials
         if (liveData?.error === 'PRIVATE_OR_UNAUTHENTICATED' || liveData?.requiresAuth || (liveData?.isPrivate && !effectiveToken)) {
           if (!isCancelled) {
+            if (!isPrivateRepoAllowed(userTier)) {
+              setScanFailureReason(`Private repository audit is a Pro feature. Upgrade to Zelsis Pro ($19/mo) to inspect private codebases with your GitHub token.`);
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 PRIVATE REPOSITORY DETECTED: "${project.repoUrl}".`,
+                `[${new Date().toLocaleTimeString()}] [PAYWALL] Private codebase audits require an active Zelsis Pro subscription ($19/mo).`,
+                `[${new Date().toLocaleTimeString()}] [ACTION] Upgrade to Pro to audit private repositories and proprietary code.`
+              ]);
+              setIsFinished(true);
+              onOpenCheckout?.('Pro');
+              return;
+            }
+
             setScanFailureReason(`Private repository access restricted. A GitHub Personal Access Token (PAT) with 'repo' scope is required to scan "${project.repoUrl}".`);
             setLogs((prev) => [
               ...prev,
@@ -319,6 +362,17 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 `[${new Date().toLocaleTimeString()}] [ACTION] Push your application source code to run a deployment readiness audit.`
               ]);
             } else {
+              if (!isPrivateRepoAllowed(userTier)) {
+                setScanFailureReason(`Private repository audit is a Pro feature. Upgrade to Zelsis Pro ($19/mo) to inspect private codebases.`);
+                setLogs((prev) => [
+                  ...prev,
+                  `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 Unable to fetch files from GitHub repository "${project.repoUrl}".`,
+                  `[${new Date().toLocaleTimeString()}] [PAYWALL] If this is a private repository, private audits require a Zelsis Pro subscription ($19/mo).`
+                ]);
+                setIsFinished(true);
+                onOpenCheckout?.('Pro');
+                return;
+              }
               setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT).`);
               setLogs((prev) => [
                 ...prev,
@@ -376,6 +430,11 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           intervalRef.current = null;
           setProgress(100);
           setIsFinished(true);
+
+          if (!hasConsumedQuotaRef.current) {
+            hasConsumedQuotaRef.current = true;
+            onConsumeScanQuota?.();
+          }
 
           if (typeof document !== 'undefined') {
             document.title = `Audit Complete | ${project.name}`;
@@ -641,9 +700,20 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
+                {(scanFailureReason?.includes('Pro') || scanFailureReason?.includes('Limit') || scanFailureReason?.includes('Upgrade')) && (
+                  <button
+                    onClick={() => onOpenCheckout?.('Pro')}
+                    className="btn btn-primary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black transition-all font-mono cursor-pointer"
+                  >
+                    <Lock size={14} />
+                    <span>Upgrade to Pro ($19/mo)</span>
+                  </button>
+                )}
+
                 {(scanFailureReason?.includes('Private') || scanFailureReason?.includes('token') || scanFailureReason?.includes('Token') || scanFailureReason?.includes('PAT') || scanFailureReason?.includes('rate limit')) &&
                   !scanFailureReason?.includes('not found') &&
-                  !scanFailureReason?.includes('404') && (
+                  !scanFailureReason?.includes('404') &&
+                  !scanFailureReason?.includes('Pro feature') && (
                   <button
                     onClick={() => setIsPrivateTokenModalOpen(true)}
                     className="btn btn-primary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all font-mono cursor-pointer"

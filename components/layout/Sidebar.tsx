@@ -25,6 +25,8 @@ import {
 import { UserProfile } from '@/components/auth/AuthModal';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 import { getSubscriptionValidity } from '@/lib/subscription-utils';
+import { UsageGauge } from './UsageGauge';
+import { PlanUsageQuota } from '@/data/schema';
 
 interface SidebarProps {
   activeNav: string;
@@ -34,6 +36,9 @@ interface SidebarProps {
   onNavigateSettings?: () => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  quota?: PlanUsageQuota;
+  projectsCount?: number;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -43,7 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAuth,
   onNavigateSettings,
   isMobileOpen = false,
-  onCloseMobile
+  onCloseMobile,
+  quota,
+  projectsCount = 0,
+  onOpenCheckout
 }) => {
   useEffect(() => {
     if (!isMobileOpen || !onCloseMobile) return;
@@ -257,8 +265,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       {/* Desktop Persistent Sidebar */}
       <aside className="hidden md:flex w-64 bg-[#0A0A0A] border-r border-white/10 p-5 flex-col justify-between shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        {renderNavList()}
-        {renderFooter()}
+        <div className="flex flex-col">
+          {renderNavList()}
+        </div>
+        <div className="flex flex-col gap-3 mt-4">
+          {quota && (
+            <UsageGauge
+              tier={user?.tier || 'Free'}
+              quota={quota}
+              projectsCount={projectsCount}
+              onOpenCheckout={onOpenCheckout}
+            />
+          )}
+          {renderFooter()}
+        </div>
       </aside>
 
       {/* Mobile Drawer Overlay */}
@@ -286,7 +306,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               {renderNavList()}
             </div>
-            {renderFooter()}
+            <div className="flex flex-col gap-3 mt-4">
+              {quota && (
+                <UsageGauge
+                  tier={user?.tier || 'Free'}
+                  quota={quota}
+                  projectsCount={projectsCount}
+                  onOpenCheckout={onOpenCheckout}
+                />
+              )}
+              {renderFooter()}
+            </div>
           </aside>
         </div>
       )}

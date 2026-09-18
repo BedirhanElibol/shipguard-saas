@@ -116,3 +116,15 @@ export type UiRule = z.infer<typeof UiRuleSchema>;
 export type ComplianceRule = z.infer<typeof ComplianceRuleSchema>;
 export type InfraRule = z.infer<typeof InfraRuleSchema>;
 
+export type UserTier = 'Free' | 'Pro' | 'Enterprise';
+
+export interface PlanUsageQuota {
+  scansUsed: number;
+  scansLimit: number;
+  projectsUsed: number;
+  projectsLimit: number;
+  aiPromptsUsed: number;
+  aiPromptsLimit: number;
+  billingCycleReset: string;
+}
+

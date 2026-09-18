@@ -2,15 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Finding } from '@/data/schema';
-import { X, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, User, GitCommit, FileText, Split, AlignJustify } from 'lucide-react';
+import { Finding, PlanUsageQuota } from '@/data/schema';
+import { UserProfile } from '@/components/auth/AuthModal';
+import { X, Copy, CheckCircle2, AlertTriangle, Code, ShieldCheck, User, GitCommit, FileText, Split, AlignJustify, Lock } from 'lucide-react';
 import { formatFindingForJira } from '@/lib/export-utils';
+import { checkAiPromptQuota } from '@/lib/quota-manager';
 
 export interface FindingDetailModalProps {
   isOpen: boolean;
   finding: Finding | null;
   onClose: () => void;
   onToggleResolve?: (id: string) => void;
+  user?: UserProfile | null;
+  quota?: PlanUsageQuota;
+  onRecordAiPrompt?: () => void;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 /**
@@ -30,12 +36,19 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
   finding,
   onClose,
   onToggleResolve,
+  user,
+  quota,
+  onRecordAiPrompt,
+  onOpenCheckout,
 }) => {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedDiff, setCopiedDiff] = useState(false);
   const [copiedJira, setCopiedJira] = useState(false);
   const [activeTab, setActiveTab] = useState<'diff' | 'prompt' | 'jira'>('diff');
   const [diffViewMode, setDiffViewMode] = useState<'split' | 'unified'>('split');
+
+  const userTier = user?.tier || 'Free';
+  const aiPromptCheck = quota ? checkAiPromptQuota(quota, userTier) : { allowed: true, remaining: Infinity };
 
   // Keyboard accessibility: Close on Escape
   useEffect(() => {
@@ -60,14 +73,24 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
     `--- a/${finding.filePath}\n+++ b/${finding.filePath}\n@@ -${finding.lineRange} @@\n- ${cleanSnippet}\n+ // REMEDIATION: ${cleanPrompt}`;
 
   const copyDiff = () => {
+    if (!aiPromptCheck.allowed) {
+      onOpenCheckout?.('Pro');
+      return;
+    }
     navigator.clipboard.writeText(diffText);
     setCopiedDiff(true);
+    onRecordAiPrompt?.();
     setTimeout(() => setCopiedDiff(false), 2000);
   };
 
   const copyPrompt = () => {
+    if (!aiPromptCheck.allowed) {
+      onOpenCheckout?.('Pro');
+      return;
+    }
     navigator.clipboard.writeText(cleanPrompt);
     setCopiedPrompt(true);
+    onRecordAiPrompt?.();
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
@@ -247,8 +270,22 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                     onClick={copyDiff}
                     className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold font-mono flex items-center gap-1.5 transition-all cursor-pointer"
                   >
-                    {copiedDiff ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Code size={13} />}
-                    <span>{copiedDiff ? 'Diff Copied!' : 'Copy Diff Patch'}</span>
+                    {!aiPromptCheck.allowed ? (
+                      <>
+                        <Lock size={12} className="text-amber-400" />
+                        <span>Copy Diff (Pro)</span>
+                      </>
+                    ) : copiedDiff ? (
+                      <>
+                        <CheckCircle2 size={13} className="text-emerald-400" />
+                        <span>Diff Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Code size={13} />
+                        <span>Copy Diff Patch</span>
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -338,18 +375,54 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                     <span className="text-[0.68rem] font-mono text-zinc-400 uppercase">
                       Paste into Claude / Cursor / GitHub Copilot:
                     </span>
-                    <button
-                      type="button"
-                      onClick={copyPrompt}
-                      className="px-3 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      {copiedPrompt ? <CheckCircle2 size={13} /> : <Copy size={13} />}
-                      <span>{copiedPrompt ? 'Prompt Copied!' : 'Copy Fix Prompt'}</span>
-                    </button>
+                    {aiPromptCheck.allowed ? (
+                      <button
+                        type="button"
+                        onClick={copyPrompt}
+                        className="px-3 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold font-mono flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        {copiedPrompt ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                        <span>{copiedPrompt ? 'Prompt Copied!' : 'Copy Fix Prompt'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onOpenCheckout?.('Pro')}
+                        className="px-3 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold font-mono flex items-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Lock size={12} />
+                        <span>Upgrade to Pro</span>
+                      </button>
+                    )}
                   </div>
-                  <div className="bg-[#0A0A0C] p-4 rounded-xl border border-white/10 font-mono text-xs text-zinc-200 leading-relaxed select-text">
-                    {cleanPrompt}
-                  </div>
+
+                  {!aiPromptCheck.allowed ? (
+                    <div className="bg-[#0A0A0C] p-6 rounded-xl border border-amber-500/30 flex flex-col items-center text-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                        <Lock size={20} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white mb-1 font-mono">
+                          Trial AI Remediation Limit Reached (1/1)
+                        </div>
+                        <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+                          You have used your 1 free AI fix prompt. Upgrade to Zelsis Pro ($19/mo) to unlock unlimited 1-click Claude, Cursor, and Copilot remediation prompts and automated diff patches.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onOpenCheckout?.('Pro')}
+                        className="btn btn-primary px-5 py-2.5 text-xs font-bold font-mono uppercase tracking-wider rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black transition-all cursor-pointer flex items-center gap-2"
+                      >
+                        <Lock size={13} />
+                        <span>Unlock Unlimited AI Fixes ($19/mo)</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-[#0A0A0C] p-4 rounded-xl border border-white/10 font-mono text-xs text-zinc-200 leading-relaxed select-text">
+                      {cleanPrompt}
+                    </div>
+                  )}
                 </div>
               )}
 

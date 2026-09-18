@@ -38,6 +38,8 @@ interface GateStatusBannerProps {
   onTriggerScan: () => void;
   onOpenConnectTarget?: () => void;
   onOpenModal: (type: ActiveModalType) => void;
+  user?: { tier?: string } | null;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
@@ -48,6 +50,8 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
   onTriggerScan,
   onOpenConnectTarget,
   onOpenModal,
+  user,
+  onOpenCheckout,
 }) => {
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
@@ -213,6 +217,11 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
             <div className="absolute right-0 top-full mt-2 w-60 bg-[#141414] border border-white/10 rounded-xl shadow-2xl p-1.5 z-40 flex flex-col gap-1 text-xs font-mono animate-in fade-in duration-150">
               <button
                 onClick={() => {
+                  if (user?.tier === 'Free') {
+                    setIsExportMenuOpen(false);
+                    onOpenCheckout?.('Pro');
+                    return;
+                  }
                   generateAuditPdfReport(project);
                   setIsExportMenuOpen(false);
                 }}
@@ -220,8 +229,17 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
               >
                 <FileText size={14} className="text-blue-400" />
                 <div className="flex flex-col">
-                  <span className="font-bold">Executive PDF Report</span>
-                  <span className="text-[10px] text-[#A1A1AA]">Formal stakeholder sign-off</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold">Executive PDF Report</span>
+                    {user?.tier === 'Free' && (
+                      <span className="text-[9px] font-mono font-extrabold uppercase px-1 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        PRO
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-[#A1A1AA]">
+                    {user?.tier === 'Free' ? 'Requires Pro subscription ($19/mo)' : 'Formal stakeholder sign-off'}
+                  </span>
                 </div>
               </button>
 

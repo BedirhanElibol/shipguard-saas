@@ -26,10 +26,11 @@ interface DashboardViewProps {
   onInspectFinding: (f: Finding) => void;
   onNavigatePillar: (pillar: string) => void;
   onLoadDemoFindings?: (findings: Finding[]) => void;
-  user?: { isLoggedIn?: boolean } | null;
+  user?: { isLoggedIn?: boolean; tier?: string } | null;
   onOpenAuth?: (mode: 'signin' | 'signup') => void;
   onAddNewProject?: (p: Project) => void;
   onSelectProject?: (p: Project) => void;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -42,6 +43,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenAuth,
   onAddNewProject,
   onSelectProject,
+  onOpenCheckout,
 }) => {
   const [copiedMaster, setCopiedMaster] = useState(false);
   const [isConnectTargetOpen, setIsConnectTargetOpen] = useState(false);
@@ -138,6 +140,8 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
           onTriggerScan={onTriggerScan}
           onOpenConnectTarget={() => setIsConnectTargetOpen(true)}
           onOpenModal={(type) => setActiveModal(type)}
+          user={user}
+          onOpenCheckout={onOpenCheckout}
         />
       </ComponentErrorBoundary>
 

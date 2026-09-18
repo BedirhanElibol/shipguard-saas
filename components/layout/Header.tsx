@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Project } from '@/data/schema';
-import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink, Terminal } from 'lucide-react';
+import { Project, PlanUsageQuota, UserTier } from '@/data/schema';
+import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink, Terminal, Shield } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
 import { getSubscriptionValidity } from '@/lib/subscription-utils';
+import { TierDetailsModal } from '../pricing/TierDetailsModal';
 
 interface HeaderProps {
   projects: Project[];
@@ -20,9 +21,10 @@ interface HeaderProps {
   user?: UserProfile | null;
   onOpenAuth?: (mode: 'signin' | 'signup') => void;
   onSignOut?: () => void;
-  onOpenCheckout?: () => void;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
   onNavigateSettings?: () => void;
   onToggleMobileMenu?: () => void;
+  quota?: PlanUsageQuota;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,9 +39,11 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
   onOpenCheckout,
   onNavigateSettings,
-  onToggleMobileMenu
+  onToggleMobileMenu,
+  quota
 }) => {
   const [isGithubModalOpen, setIsGithubModalOpen] = useState<boolean>(false);
+  const [isTierDetailsOpen, setIsTierDetailsOpen] = useState<boolean>(false);
   const [activeTargetUrl, setActiveTargetUrl] = useState<string>(selectedProject.repoUrl);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -228,6 +232,27 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: User Auth Info / Profile Dropdown */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
+          {/* Quick Plan Quota Badge */}
+          {quota && (
+            <button
+              type="button"
+              onClick={() => setIsTierDetailsOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-mono font-bold transition-all cursor-pointer bg-white/5 hover:bg-white/10 text-white border-white/10 shadow-sm"
+              title="View Plan Details & Quotas"
+            >
+              <Shield size={11} className={user?.tier === 'Pro' ? 'text-blue-400' : user?.tier === 'Enterprise' ? 'text-emerald-400' : 'text-zinc-400'} />
+              {user?.tier === 'Pro' ? (
+                <span className="text-blue-300">PRO · UNLIMITED</span>
+              ) : user?.tier === 'Enterprise' ? (
+                <span className="text-emerald-300">ENTERPRISE</span>
+              ) : (
+                <span className={quota.scansUsed >= quota.scansLimit ? 'text-rose-400 font-extrabold' : 'text-zinc-300'}>
+                  FREE · {Math.max(0, quota.scansLimit - quota.scansUsed)}/3 SCANS LEFT
+                </span>
+              )}
+            </button>
+          )}
 
           {/* User Auth Info / Profile Dropdown */}
           {user && user.isLoggedIn ? (
@@ -429,6 +454,15 @@ export const Header: React.FC<HeaderProps> = ({
         onAddNewProject={onAddNewProject}
         onSelectProject={onSelectProject}
         onTriggerScan={onTriggerScan}
+      />
+
+      <TierDetailsModal
+        isOpen={isTierDetailsOpen}
+        onClose={() => setIsTierDetailsOpen(false)}
+        currentTier={(user?.tier as UserTier) || 'Free'}
+        onSelectPlan={(plan) => {
+          if (onOpenCheckout) onOpenCheckout(plan);
+        }}
       />
     </>
   );

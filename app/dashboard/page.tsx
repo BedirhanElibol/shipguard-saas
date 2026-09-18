@@ -59,6 +59,10 @@ function DashboardContent() {
     setAuthInitialMode,
     isCheckoutOpen,
     setIsCheckoutOpen,
+    quota,
+    setQuota,
+    recordScanUsage,
+    recordAiPromptUsage,
     persistProjectsList,
     handleSelectProject,
     handleDeleteProject,
@@ -281,6 +285,7 @@ function DashboardContent() {
       }}
       onSignOut={handleSignOut}
       onOpenCheckout={() => handleOpenCheckoutModal()}
+      quota={quota}
     >
       <div className="flex flex-col gap-6 w-full">
         <LifecycleBanner user={user} />
@@ -288,6 +293,10 @@ function DashboardContent() {
           <ComponentErrorBoundary componentName="ScanRunnerView" resetKeys={[scanProjectOverride?.id, selectedProject?.id]}>
             <ScanRunnerView
               project={scanProjectOverride || selectedProject}
+              user={user}
+              quota={quota}
+              onOpenCheckout={(plan) => handleOpenCheckoutModal(plan)}
+              onConsumeScanQuota={recordScanUsage}
               onCompleteScan={(result) => {
                 const currentTarget = scanProjectOverride || selectedProject;
                 if (result) {
@@ -349,6 +358,7 @@ function DashboardContent() {
                   }}
                   onAddNewProject={handleAddNewProject}
                   onSelectProject={handleSelectProject}
+                  onOpenCheckout={handleOpenCheckoutModal}
                 />
               </ComponentErrorBoundary>
             )}
@@ -500,6 +510,10 @@ function DashboardContent() {
         finding={inspectingFinding}
         onClose={() => setInspectingFinding(null)}
         onToggleResolve={handleToggleResolveFinding}
+        user={user}
+        quota={quota}
+        onRecordAiPrompt={recordAiPromptUsage}
+        onOpenCheckout={handleOpenCheckoutModal}
       />
 
       {/* Authentication Modal */}

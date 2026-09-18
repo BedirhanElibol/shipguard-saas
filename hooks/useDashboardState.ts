@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Project, Finding } from '@/data/schema';
+import { Project, Finding, PlanUsageQuota, UserTier } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
 import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engine';
 import { UserProfile } from '@/components/auth/AuthModal';
@@ -8,6 +8,17 @@ import { purgeZelsisStorage, safeSetStorageItem } from '@/lib/storage';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { verifyLicenseKey, generateLicenseKey } from '@/lib/stripe-checkout';
 import { useSearchParams } from 'next/navigation';
+import {
+  loadUserQuota,
+  saveUserQuota,
+  consumeScanQuota,
+  consumeAiPromptQuota,
+  checkScanQuota,
+  checkAiPromptQuota,
+  checkProjectQuota,
+  isPrivateRepoAllowed,
+  isPdfExportAllowed
+} from '@/lib/quota-manager';
 
 const VALID_NAVS = [
   'dashboard', 'projects', 'scans', 'security', 'compliance',
@@ -44,6 +55,28 @@ export function useDashboardState() {
     authParam === 'signup' ? 'signup' : 'signin'
   );
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
+  const [quota, setQuota] = useState<PlanUsageQuota>(() => {
+    return loadUserQuota((user?.tier as UserTier) || 'Free');
+  });
+
+  useEffect(() => {
+    const q = loadUserQuota((user?.tier as UserTier) || 'Free');
+    setQuota(q);
+  }, [user?.tier]);
+
+  const recordScanUsage = () => {
+    setQuota((prev) => {
+      const updated = consumeScanQuota(prev, (user?.tier as UserTier) || 'Free');
+      return updated;
+    });
+  };
+
+  const recordAiPromptUsage = () => {
+    setQuota((prev) => {
+      const updated = consumeAiPromptQuota(prev, (user?.tier as UserTier) || 'Free');
+      return updated;
+    });
+  };
 
   useEffect(() => {
     const nav = searchParams.get('nav');
@@ -1159,5 +1192,9 @@ export function useDashboardState() {
     handleAuthSubmit,
     handleSignOut,
     handleUpdateUserProfile,
+    quota,
+    setQuota,
+    recordScanUsage,
+    recordAiPromptUsage,
   };
 }

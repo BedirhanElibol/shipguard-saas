@@ -7,6 +7,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { PageTransition } from '../PageTransition';
 import { UserProfile } from '@/components/auth/AuthModal';
+import { PlanUsageQuota } from '@/data/schema';
 
 interface AppShellProps {
   children?: React.ReactNode;
@@ -21,7 +22,8 @@ interface AppShellProps {
   user?: UserProfile | null;
   onOpenAuth?: (mode: 'signin' | 'signup') => void;
   onSignOut?: () => void;
-  onOpenCheckout?: () => void;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
+  quota?: PlanUsageQuota;
 }
 
 export const AppShell: React.FC<AppShellProps> = ({
@@ -37,7 +39,8 @@ export const AppShell: React.FC<AppShellProps> = ({
   user,
   onOpenAuth,
   onSignOut,
-  onOpenCheckout
+  onOpenCheckout,
+  quota
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -75,6 +78,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         onOpenCheckout={onOpenCheckout}
         onNavigateSettings={() => onNavigate('settings')}
         onToggleMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
+        quota={quota}
       />
 
       <div className="flex flex-1 relative">
@@ -87,6 +91,9 @@ export const AppShell: React.FC<AppShellProps> = ({
           onNavigateSettings={() => onNavigate('settings')}
           isMobileOpen={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
+          quota={quota}
+          projectsCount={projects.length}
+          onOpenCheckout={onOpenCheckout}
         />
 
         {/* Content Area with Fluid Page Transition */}

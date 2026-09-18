@@ -9,6 +9,7 @@ import { canAccessLocalAudit } from '@/lib/env-config';
 import { verifyLicenseKey, generateLicenseKey } from '@/lib/stripe-checkout';
 import { useSearchParams } from 'next/navigation';
 import {
+  FREE_SCAN_LIMIT,
   loadUserQuota,
   saveUserQuota,
   consumeScanQuota,
@@ -59,16 +60,148 @@ export function useDashboardState() {
     return loadUserQuota((user?.tier as UserTier) || 'Free');
   });
 
+  // Authoritative server quota synchronization
   useEffect(() => {
-    const q = loadUserQuota((user?.tier as UserTier) || 'Free');
-    setQuota(q);
-  }, [user?.tier]);
+    let isCancelled = false;
+
+    async function fetchAuthoritativeQuota() {
+      try {
+        const { getActiveUserAuth } = await import('@/lib/supabase-client');
+        const { accessToken } = await getActiveUserAuth();
+        const headers: Record<string, string> = {};
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+
+        const res = await fetch('/api/v1/quota', { headers });
+        if (res.ok && !isCancelled) {
+          const data = await res.json();
+          const isFree = data.tier === 'Free';
+          setQuota((prev) => {
+            const updated: PlanUsageQuota = {
+              ...prev,
+              scansUsed: data.scansUsed ?? prev.scansUsed,
+              scansLimit: isFree ? (data.scansLimit ?? FREE_SCAN_LIMIT) : Infinity,
+              billingCycleReset: data.billingCycleReset || prev.billingCycleReset
+            };
+            saveUserQuota(updated);
+            return updated;
+          });
+        }
+      } catch (err) {
+        // Fallback gracefully to cached localStorage quota
+        void err;
+      }
+    }
+
+    fetchAuthoritativeQuota();
+    return () => {
+      isCancelled = true;
+    };
+  }, [user?.email, user?.tier]);
 
   const recordScanUsage = () => {
     setQuota((prev) => {
       const updated = consumeScanQuota(prev, (user?.tier as UserTier) || 'Free');
       return updated;
     });
+  };
+
+  const requestScanAuthorization = async (scanDetails: {
+    projectId?: string;
+    projectName?: string;
+    repoUrl: string;
+    framework?: string;
+  }): Promise<{ allowed: boolean; reason?: string; scanId?: string; projectId?: string }> => {
+    try {
+      const { getActiveUserAuth } = await import('@/lib/supabase-client');
+      const { accessToken } = await getActiveUserAuth();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
+      const res = await fetch('/api/v1/quota', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          action: 'consume_scan',
+          projectId: scanDetails.projectId,
+          projectName: scanDetails.projectName,
+          repoUrl: scanDetails.repoUrl,
+          framework: scanDetails.framework
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.allowed) {
+        return {
+          allowed: false,
+          reason: data.error || 'Scan limit reached. Please upgrade to Pro.'
+        };
+      }
+
+      setQuota((prev) => {
+        const updated: PlanUsageQuota = {
+          ...prev,
+          scansUsed: data.scansUsed ?? (prev.scansUsed + 1),
+          scansLimit: data.scansLimit === 'Unlimited' ? Infinity : (data.scansLimit ?? prev.scansLimit)
+        };
+        saveUserQuota(updated);
+        return updated;
+      });
+
+      return {
+        allowed: true,
+        scanId: data.scanId,
+        projectId: data.projectId
+      };
+    } catch (err) {
+      void err;
+      const localCheck = checkScanQuota(quota, (user?.tier as UserTier) || 'Free');
+      if (!localCheck.allowed) {
+        return { allowed: false, reason: localCheck.reason };
+      }
+      setQuota((prev) => consumeScanQuota(prev, (user?.tier as UserTier) || 'Free'));
+      return { allowed: true };
+    }
+  };
+
+  const completeScanTelemetry = async (details: {
+    scanId?: string;
+    projectId?: string;
+    readinessScore: number;
+    gateStatus: 'PASSED' | 'FAILED' | 'WARNING';
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    lowCount: number;
+    uiClicheCount: number;
+    scanDurationMs: number;
+  }) => {
+    try {
+      const { getActiveUserAuth } = await import('@/lib/supabase-client');
+      const { accessToken } = await getActiveUserAuth();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
+      await fetch('/api/v1/quota', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          action: 'complete_scan',
+          ...details
+        })
+      });
+    } catch {
+      // Non-blocking telemetry
+    }
   };
 
   const recordAiPromptUsage = () => {
@@ -1216,5 +1349,7 @@ export function useDashboardState() {
     setQuota,
     recordScanUsage,
     recordAiPromptUsage,
+    requestScanAuthorization,
+    completeScanTelemetry,
   };
 }

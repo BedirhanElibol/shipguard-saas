@@ -67,6 +67,8 @@ function DashboardContent() {
     setQuota,
     recordScanUsage,
     recordAiPromptUsage,
+    requestScanAuthorization,
+    completeScanTelemetry,
     persistProjectsList,
     handleSelectProject,
     handleDeleteProject,
@@ -321,6 +323,8 @@ function DashboardContent() {
               quota={quota}
               onOpenCheckout={(plan) => handleOpenCheckoutModal(plan)}
               onConsumeScanQuota={recordScanUsage}
+              onRequestScanAuthorization={requestScanAuthorization}
+              onCompleteScanTelemetry={completeScanTelemetry}
               onCompleteScan={(result) => {
                 const currentTarget = scanProjectOverride || selectedProject;
                 if (result) {

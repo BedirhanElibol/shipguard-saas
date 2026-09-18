@@ -21,6 +21,24 @@ interface ScanRunnerViewProps {
   quota?: PlanUsageQuota;
   onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
   onConsumeScanQuota?: () => void;
+  onRequestScanAuthorization?: (details: {
+    projectId?: string;
+    projectName?: string;
+    repoUrl: string;
+    framework?: string;
+  }) => Promise<{ allowed: boolean; reason?: string; scanId?: string; projectId?: string }>;
+  onCompleteScanTelemetry?: (details: {
+    scanId?: string;
+    projectId?: string;
+    readinessScore: number;
+    gateStatus: 'PASSED' | 'FAILED' | 'WARNING';
+    criticalCount: number;
+    highCount: number;
+    mediumCount: number;
+    lowCount: number;
+    uiClicheCount: number;
+    scanDurationMs: number;
+  }) => Promise<void>;
 }
 
 export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
@@ -29,7 +47,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   user,
   quota,
   onOpenCheckout,
-  onConsumeScanQuota
+  onConsumeScanQuota,
+  onRequestScanAuthorization,
+  onCompleteScanTelemetry
 }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
@@ -50,6 +70,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   const onCompleteScanRef = useRef(onCompleteScan);
   const hasCompletedRef = useRef(false);
   const hasConsumedQuotaRef = useRef(false);
+  const scanIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     onCompleteScanRef.current = onCompleteScan;
@@ -88,9 +109,23 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
     if (!isFinished || !scanResult) return;
     if (countdownSeconds === 0 && !hasCompletedRef.current) {
       hasCompletedRef.current = true;
+      if (onCompleteScanTelemetry) {
+        onCompleteScanTelemetry({
+          scanId: scanIdRef.current || undefined,
+          projectId: project.id,
+          readinessScore: scanResult.score,
+          gateStatus: scanResult.gateStatus,
+          criticalCount: scanResult.criticalCount,
+          highCount: scanResult.highCount,
+          mediumCount: scanResult.mediumCount,
+          lowCount: scanResult.lowCount,
+          uiClicheCount: scanResult.uiClicheCount,
+          scanDurationMs: elapsedSeconds * 1000
+        }).catch(() => {});
+      }
       onCompleteScanRef.current(scanResult);
     }
-  }, [countdownSeconds, isFinished, scanResult]);
+  }, [countdownSeconds, isFinished, scanResult, project.id, elapsedSeconds, onCompleteScanTelemetry]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -117,6 +152,38 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
           return;
         }
+      }
+
+      // Server-authoritative quota reservation and audit logging in Supabase
+      if (onRequestScanAuthorization && !hasConsumedQuotaRef.current) {
+        hasConsumedQuotaRef.current = true;
+        const serverAuth = await onRequestScanAuthorization({
+          projectId: project.id,
+          projectName: project.name,
+          repoUrl: project.repoUrl,
+          framework: project.framework
+        });
+
+        if (!serverAuth.allowed) {
+          if (!isCancelled) {
+            setScanFailureReason(serverAuth.reason || `Monthly Free Scan Limit Reached. Upgrade to Zelsis Pro ($19/mo) for unlimited automated audits.`);
+            setLogs([
+              `[${new Date().toLocaleTimeString()}] [LIMIT] ${serverAuth.reason || 'Monthly Free Scan Limit Reached.'}`,
+              `[${new Date().toLocaleTimeString()}] [UPGRADE] Upgrade to Zelsis Pro ($19/mo) or Enterprise ($99/mo) to unlock unlimited audits and automated CI/CD scans.`,
+              `[${new Date().toLocaleTimeString()}] [ACTION] Opening subscription tier selector...`
+            ]);
+            setIsFinished(true);
+            onOpenCheckout?.('Pro');
+          }
+          return;
+        }
+
+        if (serverAuth.scanId) {
+          scanIdRef.current = serverAuth.scanId;
+        }
+      } else if (onConsumeScanQuota && !hasConsumedQuotaRef.current) {
+        hasConsumedQuotaRef.current = true;
+        onConsumeScanQuota();
       }
 
       const isLocalOrSelfAudit =

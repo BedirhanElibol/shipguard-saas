@@ -1,0 +1,421 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
+import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
+import { FREE_SCAN_LIMIT } from '@/lib/quota-manager';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+function getAdminClient() {
+  const key = SERVICE_ROLE_KEY || ANON_KEY;
+  return createClient(SUPABASE_URL, key, {
+    auth: { persistSession: false }
+  });
+}
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    '127.0.0.1'
+  );
+}
+
+/**
+ * Resolves user from Supabase JWT Bearer token
+ */
+async function resolveAuthUser(req: NextRequest) {
+  const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
+  if (!authHeader) return null;
+
+  try {
+    const authClient = createClient(SUPABASE_URL, ANON_KEY, {
+      auth: { persistSession: false }
+    });
+    const { data: { user }, error } = await authClient.auth.getUser(authHeader);
+    if (error || !user) return null;
+    return user;
+  } catch (err) {
+    logger.warn('[Quota API] Error resolving JWT bearer token:', err);
+    return null;
+  }
+}
+
+/**
+ * GET /api/v1/quota
+ * Fetches authoritative scan quota, tier limits, and billing cycle for the authenticated user.
+ * Automatically performs monthly rollover reset if current_period_end has elapsed.
+ */
+export async function GET(req: NextRequest) {
+  const rateLimit = await checkRateLimit(req, {
+    maxRequests: 60,
+    windowSeconds: 60,
+    prefix: 'quota-get'
+  });
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit);
+  }
+
+  const user = await resolveAuthUser(req);
+  if (!user) {
+    return NextResponse.json({
+      tier: 'Free',
+      scansUsed: 0,
+      scansLimit: FREE_SCAN_LIMIT,
+      remaining: FREE_SCAN_LIMIT,
+      billingCycleReset: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'unauthenticated'
+    });
+  }
+
+  const adminClient = getAdminClient();
+  const userId = user.id;
+
+  try {
+    // 1. Fetch user profile and subscription
+    const { data: sub, error: subError } = await adminClient
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (subError) {
+      logger.warn(`[Quota API] Subscriptions query notice for ${userId}:`, subError.message);
+    }
+
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('tier, status')
+      .eq('id', userId)
+      .maybeSingle();
+
+    let planTier: 'Free' | 'Pro' | 'Enterprise' = (profile?.tier as any) || (sub?.plan_tier as any) || 'Free';
+    let status = sub?.status || profile?.status || 'active';
+    let monthlyQuota = sub?.monthly_scan_quota ?? (planTier === 'Free' ? FREE_SCAN_LIMIT : 1000);
+    let scansUsed = sub?.scans_used_this_month ?? 0;
+    let periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    // 2. Check Monthly Rollover
+    if (periodEnd.getTime() < Date.now()) {
+      logger.info(`[Quota API] Monthly period expired for ${userId}. Rolling over usage counter.`);
+      scansUsed = 0;
+      const newStart = new Date().toISOString();
+      const newEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      periodEnd = new Date(newEnd);
+
+      if (SERVICE_ROLE_KEY) {
+        await adminClient
+          .from('subscriptions')
+          .update({
+            scans_used_this_month: 0,
+            current_period_start: newStart,
+            current_period_end: newEnd,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+
+        await adminClient.from('audit_logs').insert({
+          user_id: userId,
+          action: 'MONTHLY_QUOTA_RESET',
+          entity_type: 'subscription',
+          entity_id: sub?.id || userId,
+          metadata: { previousScansUsed: sub?.scans_used_this_month, newPeriodEnd: newEnd },
+          ip_address: getClientIp(req)
+        });
+      }
+    }
+
+    const isUnlimited = planTier !== 'Free';
+    const remaining = isUnlimited ? 'Unlimited' : Math.max(0, monthlyQuota - scansUsed);
+
+    return NextResponse.json({
+      tier: planTier,
+      scansUsed,
+      scansLimit: isUnlimited ? 'Unlimited' : monthlyQuota,
+      remaining,
+      billingCycleReset: periodEnd.toISOString(),
+      status
+    });
+  } catch (err: unknown) {
+    logger.error('[Quota API] Error retrieving quota:', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/v1/quota
+ * Enforces atomic scan reservation, deducts monthly quota, records scan executions in public.scans,
+ * and logs telemetry in public.audit_logs.
+ */
+export async function POST(req: NextRequest) {
+  const rateLimit = await checkRateLimit(req, {
+    maxRequests: 30,
+    windowSeconds: 60,
+    prefix: 'quota-post'
+  });
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(rateLimit);
+  }
+
+  const user = await resolveAuthUser(req);
+  const body = await req.json().catch(() => ({}));
+  const action = body.action || 'consume_scan';
+  const ip = getClientIp(req);
+  const adminClient = getAdminClient();
+
+  // 1. Handle Anonymous / Guest Scans
+  if (!user) {
+    const guestRateLimit = await checkRateLimit(req, {
+      maxRequests: 3,
+      windowSeconds: 86400,
+      prefix: `guest-quota-${ip}`
+    });
+
+    if (!guestRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          allowed: false,
+          error: 'Free anonymous scan limit reached for your IP address. Please sign in or create a free account to continue auditing.',
+          scansUsed: 3,
+          scansLimit: 3,
+          remaining: 0
+        },
+        { status: 402 }
+      );
+    }
+
+    if (SERVICE_ROLE_KEY && action === 'consume_scan') {
+      try {
+        await adminClient.from('audit_logs').insert({
+          user_id: null,
+          action: 'GUEST_SCAN_EXECUTED',
+          entity_type: 'scan',
+          entity_id: body.repoUrl || 'unknown',
+          metadata: {
+            repoUrl: body.repoUrl,
+            ipAddress: ip,
+            framework: body.framework
+          },
+          ip_address: ip
+        });
+      } catch (logErr) {
+        logger.warn('[Quota API] Guest audit log notice:', logErr);
+      }
+    }
+
+    return NextResponse.json({
+      allowed: true,
+      scansUsed: 1,
+      scansLimit: 3,
+      remaining: 2,
+      guest: true
+    });
+  }
+
+  const userId = user.id;
+
+  try {
+    // 2. Fetch active subscription & profile
+    const { data: sub } = await adminClient
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('tier, status')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const planTier: 'Free' | 'Pro' | 'Enterprise' = (profile?.tier as any) || (sub?.plan_tier as any) || 'Free';
+    const isFree = planTier === 'Free';
+    const monthlyQuota = sub?.monthly_scan_quota ?? FREE_SCAN_LIMIT;
+    const currentScansUsed = sub?.scans_used_this_month ?? 0;
+
+    // 3. ACTION: CONSUME_SCAN
+    if (action === 'consume_scan') {
+      if (isFree && currentScansUsed >= monthlyQuota) {
+        logger.warn(`[Quota API] User ${userId} (${user.email}) exceeded free monthly quota: ${currentScansUsed}/${monthlyQuota}`);
+        return NextResponse.json(
+          {
+            allowed: false,
+            error: `Monthly scan quota reached (${currentScansUsed}/${monthlyQuota} scans used). Upgrade to Zelsis Pro for unlimited automated audits.`,
+            tier: planTier,
+            scansUsed: currentScansUsed,
+            scansLimit: monthlyQuota,
+            remaining: 0
+          },
+          { status: 402 }
+        );
+      }
+
+      const newScansUsed = currentScansUsed + 1;
+      if (SERVICE_ROLE_KEY) {
+        await adminClient
+          .from('subscriptions')
+          .update({
+            scans_used_this_month: newScansUsed,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId);
+      }
+
+      let targetProjectId: string | null = null;
+      const rawProjectId = body.projectId;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawProjectId || '');
+
+      if (isUuid && rawProjectId) {
+        const { data: existingProj } = await adminClient
+          .from('projects')
+          .select('id')
+          .eq('id', rawProjectId)
+          .maybeSingle();
+        if (existingProj?.id) {
+          targetProjectId = existingProj.id;
+        }
+      }
+
+      if (!targetProjectId && body.repoUrl && SERVICE_ROLE_KEY) {
+        const { data: existingByUrl } = await adminClient
+          .from('projects')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('repo_url', body.repoUrl)
+          .maybeSingle();
+
+        if (existingByUrl?.id) {
+          targetProjectId = existingByUrl.id;
+        } else {
+          const { data: newProj } = await adminClient
+            .from('projects')
+            .insert({
+              user_id: userId,
+              name: body.projectName || body.repoUrl.split('/').pop() || 'Audit Project',
+              repo_url: body.repoUrl,
+              framework: body.framework || 'Auto-Detect',
+              readiness_score: body.readinessScore ?? 100,
+              gate_status: body.gateStatus ?? 'PASSED'
+            })
+            .select('id')
+            .maybeSingle();
+          if (newProj?.id) {
+            targetProjectId = newProj.id;
+          }
+        }
+      }
+
+      let scanId: string | null = null;
+      if (targetProjectId && SERVICE_ROLE_KEY) {
+        const { data: scanRecord } = await adminClient
+          .from('scans')
+          .insert({
+            project_id: targetProjectId,
+            user_id: userId,
+            trigger_type: body.triggerType || 'MANUAL',
+            readiness_score: body.readinessScore ?? 100,
+            gate_status: body.gateStatus || 'PASSED',
+            critical_count: body.criticalCount ?? 0,
+            high_count: body.highCount ?? 0,
+            medium_count: body.mediumCount ?? 0,
+            low_count: body.lowCount ?? 0,
+            ui_cliche_count: body.uiClicheCount ?? 0,
+            scan_duration_ms: body.scanDurationMs ?? 0
+          })
+          .select('id')
+          .maybeSingle();
+
+        if (scanRecord?.id) {
+          scanId = scanRecord.id;
+        }
+      }
+
+      if (SERVICE_ROLE_KEY) {
+        await adminClient.from('audit_logs').insert({
+          user_id: userId,
+          action: 'SCAN_EXECUTED',
+          entity_type: 'scan',
+          entity_id: scanId || targetProjectId || userId,
+          metadata: {
+            repoUrl: body.repoUrl,
+            tier: planTier,
+            scansUsed: newScansUsed,
+            quotaLimit: monthlyQuota,
+            scanId
+          },
+          ip_address: ip
+        });
+      }
+
+      logger.info(`[Quota API] Scan successfully authorized for ${user.email} (tier: ${planTier}, used: ${newScansUsed})`);
+
+      return NextResponse.json({
+        allowed: true,
+        tier: planTier,
+        scansUsed: newScansUsed,
+        scansLimit: isFree ? monthlyQuota : 'Unlimited',
+        remaining: isFree ? Math.max(0, monthlyQuota - newScansUsed) : 'Unlimited',
+        scanId,
+        projectId: targetProjectId
+      });
+    }
+
+    // 4. ACTION: COMPLETE_SCAN (Updates final scan metrics)
+    if (action === 'complete_scan') {
+      const scanId = body.scanId;
+      if (scanId && SERVICE_ROLE_KEY) {
+        await adminClient
+          .from('scans')
+          .update({
+            readiness_score: body.readinessScore,
+            gate_status: body.gateStatus,
+            critical_count: body.criticalCount,
+            high_count: body.highCount,
+            medium_count: body.mediumCount,
+            low_count: body.lowCount,
+            ui_cliche_count: body.uiClicheCount,
+            scan_duration_ms: body.scanDurationMs
+          })
+          .eq('id', scanId);
+
+        if (body.projectId) {
+          await adminClient
+            .from('projects')
+            .update({
+              readiness_score: body.readinessScore,
+              gate_status: body.gateStatus,
+              critical_count: body.criticalCount,
+              high_count: body.highCount,
+              medium_count: body.mediumCount,
+              low_count: body.lowCount,
+              ui_cliche_count: body.uiClicheCount,
+              last_scan_at: new Date().toISOString()
+            })
+            .eq('id', body.projectId);
+        }
+
+        await adminClient.from('audit_logs').insert({
+          user_id: userId,
+          action: 'SCAN_COMPLETED',
+          entity_type: 'scan',
+          entity_id: scanId,
+          metadata: {
+            score: body.readinessScore,
+            gateStatus: body.gateStatus,
+            durationMs: body.scanDurationMs
+          },
+          ip_address: ip
+        });
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
+  } catch (err: unknown) {
+    logger.error('[Quota API] Post handler error:', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

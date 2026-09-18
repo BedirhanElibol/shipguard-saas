@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { runStaticCodeScan } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
 import { fetchWebsiteAuditData, isValidWebUrl } from '@/lib/website-scanner';
@@ -87,7 +88,83 @@ export async function POST(req: NextRequest) {
     }
 
     const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+    const apiKeyHeader = req.headers.get('x-api-key')?.trim();
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '127.0.0.1';
     const githubToken = (body.githubToken || authHeader || '').trim() || undefined;
+
+    // Database Quota Verification
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    let authenticatedUserId: string | null = null;
+    let userTier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
+
+    if (authHeader && supabaseUrl && anonKey) {
+      try {
+        const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
+        const { data: { user } } = await authClient.auth.getUser(authHeader);
+        if (user) {
+          authenticatedUserId = user.id;
+        }
+      } catch {
+        // Non-blocking auth parse
+      }
+    }
+
+    if (!authenticatedUserId && apiKeyHeader && serviceRoleKey) {
+      try {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+        const crypto = await import('crypto');
+        const hash = crypto.createHash('sha256').update(apiKeyHeader).digest('hex');
+        const { data: keyRow } = await adminClient
+          .from('api_keys')
+          .select('user_id')
+          .eq('key_hash', hash)
+          .maybeSingle();
+        if (keyRow?.user_id) {
+          authenticatedUserId = keyRow.user_id;
+        }
+      } catch {
+        // Non-blocking API key parse
+      }
+    }
+
+    if (authenticatedUserId && serviceRoleKey) {
+      try {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+        const { data: sub } = await adminClient
+          .from('subscriptions')
+          .select('plan_tier, monthly_scan_quota, scans_used_this_month')
+          .eq('user_id', authenticatedUserId)
+          .maybeSingle();
+
+        if (sub) {
+          userTier = (sub.plan_tier as any) || 'Free';
+          const monthlyQuota = sub.monthly_scan_quota ?? 3;
+          const scansUsed = sub.scans_used_this_month ?? 0;
+
+          if (userTier === 'Free' && scansUsed >= monthlyQuota) {
+            return NextResponse.json(
+              {
+                status: 'ERROR',
+                gateStatus: 'FAILED',
+                error: `Monthly scan quota reached (${scansUsed}/${monthlyQuota} scans used). Upgrade to Zelsis Pro for unlimited automated audits.`,
+                timestamp: new Date().toISOString()
+              },
+              { status: 402 }
+            );
+          }
+
+          await adminClient
+            .from('subscriptions')
+            .update({ scans_used_this_month: scansUsed + 1, updated_at: new Date().toISOString() })
+            .eq('user_id', authenticatedUserId);
+        }
+      } catch (subErr) {
+        logger.warn('[Gate Check] Quota check notice:', subErr);
+      }
+    }
 
     const isWebTarget = isValidWebUrl(rawRepoUrl);
     const isGithubTarget = !isWebTarget && (isValidGithubUrl(rawRepoUrl) || parseGithubUrl(rawRepoUrl) !== null);
@@ -233,6 +310,72 @@ export async function POST(req: NextRequest) {
       dispatchWebhookAlerts(targetName, rawRepoUrl, result, { slackWebhookUrl, discordWebhookUrl }).catch((err) =>
         logger.warn('[Webhook Auto-dispatch Error]:', err?.message)
       );
+    }
+
+    // Persist scan run and audit log to Supabase
+    if (serviceRoleKey) {
+      try {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+        let projectId: string | null = null;
+        if (authenticatedUserId) {
+          const { data: existingProj } = await adminClient
+            .from('projects')
+            .select('id')
+            .eq('user_id', authenticatedUserId)
+            .eq('repo_url', rawRepoUrl)
+            .maybeSingle();
+
+          if (existingProj?.id) {
+            projectId = existingProj.id;
+          } else {
+            const { data: newProj } = await adminClient
+              .from('projects')
+              .insert({
+                user_id: authenticatedUserId,
+                name: targetName,
+                repo_url: rawRepoUrl,
+                readiness_score: result.score,
+                gate_status: result.gateStatus
+              })
+              .select('id')
+              .maybeSingle();
+            if (newProj?.id) projectId = newProj.id;
+          }
+        }
+
+        if (projectId && authenticatedUserId) {
+          await adminClient.from('scans').insert({
+            project_id: projectId,
+            user_id: authenticatedUserId,
+            trigger_type: 'CI_CD',
+            readiness_score: result.score,
+            gate_status: result.gateStatus,
+            critical_count: result.criticalCount,
+            high_count: result.highCount,
+            medium_count: result.mediumCount,
+            low_count: result.lowCount,
+            ui_cliche_count: result.uiClicheCount,
+            scan_duration_ms: 3000
+          });
+        }
+
+        await adminClient.from('audit_logs').insert({
+          user_id: authenticatedUserId,
+          action: 'CI_CD_SCAN_EXECUTED',
+          entity_type: 'scan',
+          entity_id: rawRepoUrl,
+          metadata: {
+            repoUrl: rawRepoUrl,
+            gateStatus: result.gateStatus,
+            score: result.score,
+            tier: userTier
+          },
+          ip_address: clientIp
+        });
+      } catch (telemetryErr) {
+        logger.warn('[Gate Check] Telemetry record notice:', telemetryErr);
+      }
     }
 
     const failOnBlock = req.nextUrl.searchParams.get('failOnBlock') === 'true';

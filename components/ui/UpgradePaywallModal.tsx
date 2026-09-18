@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock, Zap, ShieldCheck } from 'lucide-react';
+import { X, Lock, Zap, ShieldCheck, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { UserTier } from '@/data/schema';
 
 interface UpgradePaywallModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface UpgradePaywallModalProps {
   featureTitle?: string;
   featureDescription?: string;
   requiredTier?: 'Pro' | 'Enterprise';
+  currentTier?: UserTier;
 }
 
 export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
@@ -18,9 +20,29 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
   onClose,
   featureTitle = 'Automated Claude PR & Webhook Integration',
   featureDescription = 'Upgrade your plan to unlock automated Claude AI code fixes, unlimited security scans, and CI/CD webhook triggers.',
-  requiredTier = 'Pro'
+  requiredTier = 'Pro',
+  currentTier
 }) => {
   const router = useRouter();
+  const [activeTier, setActiveTier] = React.useState<UserTier>(currentTier || 'Free');
+
+  React.useEffect(() => {
+    if (currentTier) {
+      setActiveTier(currentTier);
+      return;
+    }
+    try {
+      let saved = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+      if (!saved && typeof document !== 'undefined') {
+        const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+        if (match && match[3]) saved = decodeURIComponent(match[3]);
+      }
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.tier) setActiveTier(parsed.tier);
+      }
+    } catch {}
+  }, [currentTier, isOpen]);
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -72,10 +94,20 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
           {/* Plan Comparison Box */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Pro Plan Card */}
-            <div className="p-4 rounded-xl bg-[#0A0A0A] border border-white/20 flex flex-col justify-between gap-4">
+            <div className={`p-4 rounded-xl bg-[#0A0A0A] flex flex-col justify-between gap-4 ${
+              activeTier === 'Pro' ? 'border-2 border-emerald-500/50' : 'border border-white/20'
+            }`}>
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Pro Plan</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Pro Plan</span>
+                    {activeTier === 'Pro' && (
+                      <span className="text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                        Active
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs font-mono font-bold text-white">$19/mo</span>
                 </div>
                 <ul className="mt-3 space-y-2 text-[0.75rem] text-[#A1A1AA]">
@@ -95,32 +127,60 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
               </div>
 
               <div className="flex flex-col gap-2">
-                <a
-                  href="https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm font-mono cursor-pointer text-center"
-                >
-                  <span>Pay with Polar ($19/mo)</span>
-                  <Zap size={13} />
-                </a>
-                <button
-                  onClick={() => {
-                    onClose();
-                    router.push('/checkout?plan=zelsis-core&billing=annual');
-                  }}
-                  className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
-                >
-                  View Checkout &amp; Invoicing &rarr;
-                </button>
+                {activeTier === 'Pro' ? (
+                  <a
+                    href="https://polar.sh/purchases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 transition-all shadow-sm font-mono cursor-pointer text-center"
+                  >
+                    <span>Manage at Polar</span>
+                    <ExternalLink size={13} />
+                  </a>
+                ) : activeTier === 'Enterprise' ? (
+                  <div className="w-full py-2.5 text-xs font-mono font-medium rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-center">
+                    Included in Enterprise
+                  </div>
+                ) : (
+                  <>
+                    <a
+                      href="https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm font-mono cursor-pointer text-center"
+                    >
+                      <span>Pay with Polar ($19/mo)</span>
+                      <Zap size={13} />
+                    </a>
+                    <button
+                      onClick={() => {
+                        onClose();
+                        router.push('/checkout?plan=zelsis-core&billing=annual');
+                      }}
+                      className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
+                    >
+                      View Checkout &amp; Invoicing &rarr;
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Enterprise Plan Card */}
-            <div className="p-4 rounded-xl bg-[#0A0A0A] border border-white/10 flex flex-col justify-between gap-4">
+            <div className={`p-4 rounded-xl bg-[#0A0A0A] flex flex-col justify-between gap-4 ${
+              activeTier === 'Enterprise' ? 'border-2 border-emerald-500/50' : 'border border-white/10'
+            }`}>
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Enterprise</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-mono font-extrabold uppercase text-[#EDEDED]">Enterprise</span>
+                    {activeTier === 'Enterprise' && (
+                      <span className="text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                        Active
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs font-mono font-bold text-white">$99/mo</span>
                 </div>
                 <ul className="mt-3 space-y-2 text-[0.75rem] text-[#A1A1AA]">
@@ -140,24 +200,38 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
               </div>
 
               <div className="flex flex-col gap-2">
-                <a
-                  href="https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 border border-white/20 text-[#EDEDED] hover:bg-white/5 transition-all shadow-sm font-mono cursor-pointer text-center"
-                >
-                  <span>Pay with Polar ($99/mo)</span>
-                  <ShieldCheck size={13} />
-                </a>
-                <button
-                  onClick={() => {
-                    onClose();
-                    router.push('/checkout?plan=vibecare&billing=annual');
-                  }}
-                  className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
-                >
-                  View Checkout &amp; Invoicing &rarr;
-                </button>
+                {activeTier === 'Enterprise' ? (
+                  <a
+                    href="https://polar.sh/purchases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 transition-all shadow-sm font-mono cursor-pointer text-center"
+                  >
+                    <span>Manage at Polar</span>
+                    <ExternalLink size={13} />
+                  </a>
+                ) : (
+                  <>
+                    <a
+                      href="https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 border border-white/20 text-[#EDEDED] hover:bg-white/5 transition-all shadow-sm font-mono cursor-pointer text-center"
+                    >
+                      <span>Pay with Polar ($99/mo)</span>
+                      <ShieldCheck size={13} />
+                    </a>
+                    <button
+                      onClick={() => {
+                        onClose();
+                        router.push('/checkout?plan=vibecare&billing=annual');
+                      }}
+                      className="text-[10px] text-[#A1A1AA] hover:text-white text-center py-1 transition-colors"
+                    >
+                      View Checkout &amp; Invoicing &rarr;
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -7,7 +7,6 @@ import { SaasHero } from '@/components/saas/SaasHero';
 import { WorkflowSteps } from '@/components/saas/WorkflowSteps';
 import { ProductCapabilities } from '@/components/saas/ProductCapabilities';
 import { ComparisonTable } from '@/components/saas/ComparisonTable';
-import { PricingView } from '@/components/PricingView';
 import { FaqSection } from '@/components/saas/FaqSection';
 import { FinalCta } from '@/components/saas/FinalCta';
 import { Footer } from '@/components/Footer';
@@ -33,13 +32,8 @@ export default function Home() {
         {/* Product Capabilities Matrix featuring user screenshots */}
         <ProductCapabilities />
 
-        {/* Uncompromising Comparison Table: ShipGuard vs Linters vs Enterprise */}
+        {/* Comprehensive Plan Comparison Matrix */}
         <ComparisonTable />
-
-        {/* 3-Tier Pricing Section */}
-        <div id="pricing" className="py-20 bg-[#0A0A0A] border-b border-white/10">
-          <PricingView />
-        </div>
 
         {/* Developer & Enterprise Architecture FAQ */}
         <FaqSection />

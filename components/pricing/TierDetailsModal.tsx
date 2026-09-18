@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { X, Check, Lock, Shield, ArrowRight, Zap, ExternalLink } from 'lucide-react';
@@ -101,40 +101,89 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Pro Tier */}
-          <div className="p-4 rounded-xl border border-blue-500/40 bg-blue-500/5 flex flex-col justify-between gap-3 relative shadow-lg">
-            <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500 text-white uppercase tracking-wider">
-              Most Popular
-            </span>
-            <div>
-              <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Pro Developer</span>
-              <div className="text-2xl font-extrabold text-white mt-1">$19 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
-              <p className="text-[11px] text-zinc-300 mt-1">Unlimited scans, private repos, 1-click AI fixes &amp; PDF certificates.</p>
+            {/* Pro Tier */}
+            <div className={`p-4 rounded-xl flex flex-col justify-between gap-3 relative shadow-lg ${
+              currentTier === 'Pro' ? 'border-2 border-emerald-500/50 bg-emerald-500/5' : 'border border-blue-500/40 bg-blue-500/5'
+            }`}>
+              <div className="absolute -top-2.5 right-4 flex items-center gap-1">
+                {currentTier === 'Pro' ? (
+                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                    Active Plan
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500 text-white uppercase tracking-wider">
+                    Most Popular
+                  </span>
+                )}
+              </div>
+              <div>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                  currentTier === 'Pro' ? 'text-emerald-400' : 'text-blue-400'
+                }`}>Pro Developer</span>
+                <div className="text-2xl font-extrabold text-white mt-1">$19 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
+                <p className="text-[11px] text-zinc-300 mt-1">Unlimited scans, private repos, 1-click AI fixes &amp; PDF certificates.</p>
+              </div>
+              {currentTier === 'Pro' ? (
+                <a
+                  href="https://polar.sh/purchases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+                >
+                  <span>Manage at Polar</span>
+                  <ExternalLink size={13} />
+                </a>
+              ) : currentTier === 'Enterprise' ? (
+                <div className="w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-400 font-medium text-xs text-center">
+                  Included in Enterprise
+                </div>
+              ) : (
+                <button
+                  onClick={() => { onClose(); onSelectPlan('Pro'); }}
+                  className="w-full py-2 px-3 rounded-lg bg-white text-black hover:bg-neutral-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <span>Upgrade to Pro ($19)</span>
+                  <ArrowRight size={13} />
+                </button>
+              )}
             </div>
-            <button
-              onClick={() => { onClose(); onSelectPlan('Pro'); }}
-              className="w-full py-2 px-3 rounded-lg bg-white text-black hover:bg-neutral-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <span>{currentTier === 'Pro' ? 'Active Plan' : 'Upgrade to Pro'}</span>
-              <ArrowRight size={13} />
-            </button>
-          </div>
 
-          {/* Enterprise Tier */}
-          <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 flex flex-col justify-between gap-3">
-            <div>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Enterprise Team</span>
-              <div className="text-2xl font-extrabold text-white mt-1">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
-              <p className="text-[11px] text-zinc-400 mt-1">Custom company rules, multi-seat RBAC, and dedicated 1h SLA support.</p>
+            {/* Enterprise Tier */}
+            <div className={`p-4 rounded-xl flex flex-col justify-between gap-3 relative shadow-lg ${
+              currentTier === 'Enterprise' ? 'border-2 border-emerald-500/50 bg-emerald-500/5' : 'border border-emerald-500/30 bg-emerald-500/5'
+            }`}>
+              {currentTier === 'Enterprise' && (
+                <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                  Active Plan
+                </span>
+              )}
+              <div>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Enterprise Team</span>
+                <div className="text-2xl font-extrabold text-white mt-1">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
+                <p className="text-[11px] text-zinc-400 mt-1">Custom company rules, multi-seat RBAC, and dedicated 1h SLA support.</p>
+              </div>
+              {currentTier === 'Enterprise' ? (
+                <a
+                  href="https://polar.sh/purchases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+                >
+                  <span>Manage at Polar</span>
+                  <ExternalLink size={13} />
+                </a>
+              ) : (
+                <button
+                  onClick={() => { onClose(); onSelectPlan('Enterprise'); }}
+                  className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <span>Upgrade to Enterprise ($99)</span>
+                  <ArrowRight size={13} />
+                </button>
+              )}
             </div>
-            <button
-              onClick={() => { onClose(); onSelectPlan('Enterprise'); }}
-              className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <span>View Enterprise</span>
-              <ArrowRight size={13} />
-            </button>
-          </div>
         </div>
 
         {/* Feature Comparison Matrix Table */}

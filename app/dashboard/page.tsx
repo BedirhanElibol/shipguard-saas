@@ -495,7 +495,7 @@ function DashboardContent() {
               }}
               onDeleteAccount={() => {
                 setUser(null);
-                setProjects(MOCK_PROJECTS);
+                setProjects([MOCK_PROJECTS[0]]);
                 setSelectedProject(MOCK_PROJECTS[0]);
                 router.push('/');
               }}

@@ -31,7 +31,7 @@ export function useDashboardState() {
   const rawNav = searchParams.get('nav');
   const initialNav = rawNav && VALID_NAVS.includes(rawNav) ? rawNav : 'dashboard';
   const [activeNav, setActiveNav] = useState<string>(initialNav);
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
+  const [projects, setProjects] = useState<Project[]>([MOCK_PROJECTS[0]]);
   const [selectedProject, setSelectedProject] = useState<Project>(MOCK_PROJECTS[0]);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [inspectingFinding, setInspectingFinding] = useState<Finding | null>(null);
@@ -112,15 +112,12 @@ export function useDashboardState() {
   useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
-        const CURRENT_DATA_VERSION = 'v8_zelsis_rebrand_clean';
+        const CURRENT_DATA_VERSION = 'v9_single_starter_project';
         const savedVersion = localStorage.getItem('zelsis_data_version') || localStorage.getItem('shipguard_data_version');
         const allowedLocal = canAccessLocalAudit();
 
-        // Helper to obtain default projects sanitized for current environment
-        const getBaseProjects = () =>
-          allowedLocal
-            ? MOCK_PROJECTS
-            : MOCK_PROJECTS.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
+        // Helper to obtain single starter demo project for clean initial state
+        const getBaseProjects = () => [MOCK_PROJECTS[0]];
 
         // Check if there is an active user session in localStorage or cookie first
         let savedUserStr = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
@@ -153,13 +150,12 @@ export function useDashboardState() {
           localStorage.removeItem('shipguard_data_version');
           localStorage.removeItem('shipguard_projects');
           localStorage.removeItem('shipguard_selected_project_id');
-          // Preserve existing projects; only reset if no zelsis projects are saved
-          if (!localStorage.getItem('zelsis_projects')) {
-            const cleanProjects = getBaseProjects();
-            setProjects(cleanProjects);
-            setSelectedProject(MOCK_PROJECTS[0]);
-            safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
-          }
+          localStorage.removeItem('zelsis_projects');
+          localStorage.removeItem('zelsis_selected_project_id');
+          const cleanProjects = getBaseProjects();
+          setProjects(cleanProjects);
+          setSelectedProject(MOCK_PROJECTS[0]);
+          safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
         }
 
         let currentProjects = getBaseProjects();

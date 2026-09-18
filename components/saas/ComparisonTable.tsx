@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
-import { Check, X, Shield, ArrowRight, Lock, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, X, Shield, ArrowRight, Lock, ExternalLink, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 
 interface ComparisonItem {
   name: string;
@@ -22,6 +23,74 @@ export const ComparisonTable: React.FC = () => {
 
   const POLAR_PRO_URL = 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC';
   const POLAR_ENTERPRISE_URL = 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od';
+
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authInitialMode, setAuthInitialMode] = useState<'signin' | 'signup'>('signup');
+  const [pendingPlan, setPendingPlan] = useState<'Pro' | 'Enterprise' | null>(null);
+
+  useEffect(() => {
+    const loadUser = () => {
+      try {
+        let saved = localStorage.getItem('zelsis_user') || localStorage.getItem('shipguard_user');
+        if (!saved && typeof document !== 'undefined') {
+          const match = document.cookie.match(/(^|;)\s*(zelsis_user|shipguard_user)=([^;]+)/);
+          if (match && match[3]) {
+            saved = decodeURIComponent(match[3]);
+          }
+        }
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.isLoggedIn) {
+            setCurrentUser(parsed);
+            return;
+          }
+        }
+        setCurrentUser(null);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+
+    loadUser();
+    window.addEventListener('storage', loadUser);
+    return () => window.removeEventListener('storage', loadUser);
+  }, []);
+
+  const handleSelectPlan = (plan: 'Pro' | 'Enterprise') => {
+    if (!currentUser || !currentUser.isLoggedIn) {
+      setPendingPlan(plan);
+      setAuthInitialMode('signup');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    const currentTier = currentUser.tier || 'Free';
+    if (plan === 'Pro') {
+      if (currentTier === 'Pro' || currentTier === 'Enterprise') {
+        window.open('https://polar.sh/purchases', '_blank');
+        return;
+      }
+      router.push('/checkout?plan=zelsis-core');
+    } else if (plan === 'Enterprise') {
+      if (currentTier === 'Enterprise') {
+        window.open('https://polar.sh/purchases', '_blank');
+        return;
+      }
+      router.push('/checkout?plan=vibecare');
+    }
+  };
+
+  const handleLoginSuccess = (authedUser: UserProfile) => {
+    setCurrentUser(authedUser);
+    setIsAuthModalOpen(false);
+    if (pendingPlan === 'Enterprise') {
+      router.push('/checkout?plan=vibecare');
+    } else if (pendingPlan === 'Pro') {
+      router.push('/checkout?plan=zelsis-core');
+    }
+    setPendingPlan(null);
+  };
 
   const categories: ComparisonCategory[] = [
     {
@@ -197,8 +266,13 @@ export const ComparisonTable: React.FC = () => {
     );
   };
 
+  const currentTier = currentUser?.tier || 'Free';
+  const isLoggedIn = Boolean(currentUser?.isLoggedIn);
+
   return (
-    <section id="comparison" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10 font-sans">
+    <section id="pricing" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10 font-sans relative">
+      <div id="comparison" className="absolute -top-24 left-0 pointer-events-none" />
+
       <div className="max-w-7xl mx-auto flex flex-col gap-16">
         {/* Section Header */}
         <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
@@ -227,16 +301,39 @@ export const ComparisonTable: React.FC = () => {
                   {/* Free Plan Header */}
                   <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-zinc-300 w-[22%] align-bottom border-l border-white/10">
                     <div className="flex flex-col gap-2">
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Free</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Free</span>
+                        {isLoggedIn && currentTier === 'Free' && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-zinc-500/10 text-zinc-300 px-2 py-0.5 rounded border border-zinc-500/20">
+                            Active
+                          </span>
+                        )}
+                      </div>
                       <div className="text-2xl font-extrabold text-white font-mono">$0</div>
                       <span className="text-[11px] text-zinc-500 font-sans">For hobbyists and testing public repositories</span>
-                      <button
-                        type="button"
-                        onClick={() => router.push('/dashboard')}
-                        className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold font-mono transition-colors text-center cursor-pointer"
-                      >
-                        Start Free (3 Scans)
-                      </button>
+
+                      {isLoggedIn && currentTier === 'Free' ? (
+                        <button
+                          type="button"
+                          onClick={() => router.push('/dashboard')}
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span>Current Plan</span>
+                        </button>
+                      ) : isLoggedIn && (currentTier === 'Pro' || currentTier === 'Enterprise') ? (
+                        <div className="mt-2 w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-500 text-xs font-bold font-mono text-center">
+                          Included Baseline
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => router.push('/dashboard')}
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold font-mono transition-colors text-center cursor-pointer"
+                        >
+                          Start Free (3 Scans)
+                        </button>
+                      )}
                     </div>
                   </th>
 
@@ -246,43 +343,112 @@ export const ComparisonTable: React.FC = () => {
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-widest">Pro</span>
-                        <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
-                          Recommended
-                        </span>
+                        {isLoggedIn && currentTier === 'Pro' ? (
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>Active Plan</span>
+                          </span>
+                        ) : isLoggedIn && currentTier === 'Enterprise' ? (
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300 px-2 py-0.5 rounded border border-white/15">
+                            Included
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                            Recommended
+                          </span>
+                        )}
                       </div>
                       <div className="text-2xl font-extrabold text-white font-mono">
                         $19 <span className="text-xs text-zinc-400 font-normal">/ month</span>
                       </div>
                       <span className="text-[11px] text-zinc-400 font-sans">For professional developers and shipping teams</span>
-                      <a
-                        href={POLAR_PRO_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 w-full py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
-                      >
-                        <span>Upgrade to Pro ($19)</span>
-                        <ArrowRight size={13} />
-                      </a>
+
+                      {isLoggedIn && currentTier === 'Pro' ? (
+                        <div className="flex flex-col gap-1 mt-2">
+                          <a
+                            href="https://polar.sh/purchases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                          >
+                            <span>Manage at Polar</span>
+                            <ExternalLink size={12} />
+                          </a>
+                          <span className="text-[10px] text-zinc-400 text-center">Active subscription</span>
+                        </div>
+                      ) : isLoggedIn && currentTier === 'Enterprise' ? (
+                        <div className="flex flex-col gap-1 mt-2">
+                          <div className="w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-xs font-bold font-mono text-center">
+                            Included in Enterprise
+                          </div>
+                          <span className="text-[10px] text-zinc-500 text-center">All Pro features active</span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectPlan('Pro')}
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                        >
+                          <span>Upgrade to Pro ($19)</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      )}
                     </div>
                   </th>
 
                   {/* Enterprise Plan Header */}
                   <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-zinc-300 w-[22%] align-bottom border-l border-white/10">
                     <div className="flex flex-col gap-2">
-                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Enterprise</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Enterprise</span>
+                        {isLoggedIn && currentTier === 'Enterprise' ? (
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span>Active Plan</span>
+                          </span>
+                        ) : isLoggedIn && currentTier === 'Pro' ? (
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded border border-amber-500/25">
+                            Upgrade
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="text-2xl font-extrabold text-white font-mono">
                         $99 <span className="text-xs text-zinc-400 font-normal">/ month</span>
                       </div>
                       <span className="text-[11px] text-zinc-500 font-sans">For organizations requiring CI/CD gates &amp; SLAs</span>
-                      <a
-                        href={POLAR_ENTERPRISE_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-center"
-                      >
-                        <span>Deploy Enterprise ($99)</span>
-                        <ArrowRight size={13} />
-                      </a>
+
+                      {isLoggedIn && currentTier === 'Enterprise' ? (
+                        <div className="flex flex-col gap-1 mt-2">
+                          <a
+                            href="https://polar.sh/purchases"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                          >
+                            <span>Manage at Polar</span>
+                            <ExternalLink size={12} />
+                          </a>
+                          <span className="text-[10px] text-zinc-400 text-center">Active enterprise cluster</span>
+                        </div>
+                      ) : isLoggedIn && currentTier === 'Pro' ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectPlan('Enterprise')}
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                        >
+                          <span>Upgrade to Enterprise ($99)</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSelectPlan('Enterprise')}
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                        >
+                          <span>Deploy Enterprise ($99)</span>
+                          <ArrowRight size={13} />
+                        </button>
+                      )}
                     </div>
                   </th>
                 </tr>
@@ -341,19 +507,51 @@ export const ComparisonTable: React.FC = () => {
               >
                 Launch Console
               </button>
-              <a
-                href={POLAR_PRO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow cursor-pointer"
-              >
-                <span>Upgrade to Pro ($19/mo)</span>
-                <ArrowRight size={14} />
-              </a>
+
+              {isLoggedIn && currentTier === 'Enterprise' ? (
+                <a
+                  href="https://polar.sh/purchases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Manage Enterprise Plan</span>
+                  <ExternalLink size={13} />
+                </a>
+              ) : isLoggedIn && currentTier === 'Pro' ? (
+                <button
+                  type="button"
+                  onClick={() => handleSelectPlan('Enterprise')}
+                  className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow cursor-pointer"
+                >
+                  <span>Upgrade to Enterprise ($99/mo)</span>
+                  <ArrowRight size={14} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSelectPlan('Pro')}
+                  className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow cursor-pointer"
+                >
+                  <span>Upgrade to Pro ($19/mo)</span>
+                  <ArrowRight size={14} />
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Auth Modal for Unauthenticated Checkout Actions */}
+      <AuthModal
+        isOpen={isAuthModalOpen && !currentUser?.isLoggedIn}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setPendingPlan(null);
+        }}
+        initialMode={authInitialMode}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </section>
   );
 };

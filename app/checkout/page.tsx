@@ -80,7 +80,7 @@ function CheckoutPageContent() {
 
   return (
     <AppShell
-      projects={MOCK_PROJECTS}
+      projects={[MOCK_PROJECTS[0]]}
       activeNav="checkout"
       onNavigate={(nav) => {
         if (nav === 'dashboard') router.push('/dashboard');

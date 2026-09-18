@@ -4,7 +4,10 @@ import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GithubProxyQuerySchema, validateQueryParams } from '@/lib/validations/api-schemas';
 import { logger } from '@/lib/logger';
 
-export const maxDuration = 60;
+// CLOUD-01 Remediation: Enforce <= 15s synchronous serverless execution ceiling.
+// Long-running batch background tasks (>15s) must be queued to async workers (SQS/Inngest/QStash)
+// to prevent gateway 504 timeouts, client connection hanging, and serverless compute exhaustion (OWASP A04:2021).
+export const maxDuration = 15;
 export const dynamic = 'force-dynamic';
 
 const GITHUB_RATE_LIMIT_MESSAGE =
@@ -100,7 +103,7 @@ export async function GET(req: NextRequest) {
     logger.info(`Fetching GitHub repository metadata: ${owner}/${repo}`);
     const repoRes = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, {
       headers,
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(5000)
     });
 
     if (!repoRes.ok) {
@@ -169,7 +172,7 @@ export async function GET(req: NextRequest) {
       try {
         const res = await fetch(
           `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(branch)}?recursive=1`,
-          { headers, signal: AbortSignal.timeout(12000) }
+          { headers, signal: AbortSignal.timeout(5000) }
         );
         if (res.ok) {
           treeRes = res;
@@ -297,7 +300,7 @@ export async function GET(req: NextRequest) {
                         : `Bearer ${token.trim()}`
                     }
                   : {},
-                signal: AbortSignal.timeout(8000)
+                signal: AbortSignal.timeout(4000)
               }
             );
             if (rawRes.ok) {

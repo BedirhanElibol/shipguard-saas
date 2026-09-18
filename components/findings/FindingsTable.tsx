@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Finding } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, CheckCircle2, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown, SearchX, ExternalLink } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, Check, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown, SearchX, ExternalLink } from 'lucide-react';
 import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
 
 interface FindingsTableProps {
@@ -327,7 +327,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     title="Copy AI Master Fix Prompt for Claude / Cursor / ChatGPT"
                   >
                     {copiedPrompt ? (
-                      <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                      <Check size={13} className="text-emerald-400" />
                     ) : (
                       <Copy size={13} className="shrink-0" />
                     )}
@@ -430,7 +430,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             <div className="p-8 rounded-xl bg-[#0A0A0A] border border-emerald-500/20 text-center flex flex-col items-center gap-4">
               {/* Animated green shield */}
               <div className="relative flex items-center justify-center w-14 h-14">
-                <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse" />
+                <div className="absolute inset-0 rounded-full bg-emerald-500/10" />
                 <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative w-10 h-10">
                   <path d="M20 3L5 9v11c0 9.4 6.4 18.2 15 20.4C29.6 38.2 36 29.4 36 20V9L20 3z" fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth="1.5" strokeLinejoin="round"/>
                   <path d="M14 20l4 4 8-8" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -679,7 +679,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     <div className="flex flex-col items-center justify-center gap-4">
                       {/* Animated green shield — desktop */}
                       <div className="relative flex items-center justify-center w-16 h-16">
-                        <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-pulse" />
+                        <div className="absolute inset-0 rounded-full bg-emerald-500/10" />
                         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative w-11 h-11">
                           <path d="M20 3L5 9v11c0 9.4 6.4 18.2 15 20.4C29.6 38.2 36 29.4 36 20V9L20 3z" fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth="1.5" strokeLinejoin="round"/>
                           <path d="M14 20l4 4 8-8" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

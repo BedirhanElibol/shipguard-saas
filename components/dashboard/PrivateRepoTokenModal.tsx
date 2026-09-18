@@ -172,7 +172,6 @@ export const PrivateRepoTokenModal: React.FC<PrivateRepoTokenModalProps> = ({
                     if (error) setError(null);
                   }}
                   placeholder="github_pat_xxxxxxxxxxxxxxxxxxxx"
-                  autoFocus
                   className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] focus-visible:ring-1 focus-visible:ring-white/30 focus-visible:outline-none focus:border-white/30 font-mono"
                 />
                 <button

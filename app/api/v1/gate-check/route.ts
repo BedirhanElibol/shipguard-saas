@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!rateLimit.allowed) {
-      return createRateLimitResponse(rateLimit);
+      const response = createRateLimitResponse(rateLimit);
+      response.headers.set('Retry-After', String(Math.ceil(rateLimit.resetSeconds)));
+      return response;
     }
 
     // 2. Safe JSON body extraction and Zod validation

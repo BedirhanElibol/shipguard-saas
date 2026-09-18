@@ -300,11 +300,13 @@ export const ScaLicenseRiskCard: React.FC = () => {
         <div className="relative flex-1">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
           <input
+            id="sca-license-search-input"
+            aria-label="Search package or license"
             type="text"
             placeholder="Search package or license (e.g. next, Apache, MIT)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder:text-[#52525B] focus:outline-none focus:border-white/30 font-mono"
+            className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder:text-[#52525B] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none focus:border-white/30 font-mono"
           />
         </div>
 
@@ -341,7 +343,7 @@ export const ScaLicenseRiskCard: React.FC = () => {
 
       {/* Dependency Matrix List */}
       <div className="bg-[#0A0A0A] border border-white/10 rounded-xl overflow-hidden">
-        <div className="max-h-64 overflow-y-auto divide-y divide-white/5">
+        <div className="max-h-[16rem] overflow-y-auto divide-y divide-white/5">
           {filteredDependencies.length === 0 ? (
             <div className="p-6 text-center text-xs text-[#94A3B8] font-mono">
               No dependencies matched the search criteria.
@@ -402,7 +404,7 @@ export const ScaLicenseRiskCard: React.FC = () => {
         <Info size={16} className="text-white shrink-0 mt-0.5" />
         <div className="leading-relaxed">
           <span className="text-white font-bold">Enterprise Legal Clearance Policy: </span>
-          ShipGuard continuously inspects all packages in the dependency tree against the SPDX Master License Database. Strong copyleft licenses (GPL-3.0, AGPL-3.0, SSPL) are automatically flagged as blocking release gates to guarantee complete proprietary codebase protection.
+          Zelsis continuously inspects all packages in the dependency tree against the SPDX Master License Database. Strong copyleft licenses (GPL-3.0, AGPL-3.0, SSPL) are automatically flagged as blocking release gates to guarantee complete proprietary codebase protection.
         </div>
       </div>
     </div>

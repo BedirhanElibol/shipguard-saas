@@ -15,9 +15,9 @@ export function generateExecutiveMarkdown(project: Project): string {
 
   return `# 🛡️ ZELSIS EXECUTIVE RELEASE GATE BRIEFING
 
-**Project:** ${project.name}
-**Repository:** ${project.repoUrl}
-**Framework:** ${project.framework}
+**Project:** ${project.name ?? 'Project'}
+**Repository:** ${project.repoUrl ?? 'Repository'}
+**Framework:** ${project.framework ?? 'Web Application'}
 **Evaluation Date:** ${project.lastScanAt}
 **Readiness Score:** ${project.readinessScore}/100
 **Gate Status:** ${isPassed ? '✅ APPROVED FOR PRODUCTION' : '❌ BLOCKED - CRITICAL RISKS DETECTED'}
@@ -41,7 +41,7 @@ ${
     : topBlockers
         .map(
           (b, i) =>
-            `${i + 1}. **[${b.severity}] ${b.title}**\n   - *File:* \`${b.filePath}:${b.lineRange}\`\n   - *Action:* ${b.remediationPrompt.slice(0, 140)}...`
+            `${i + 1}. **[${b.severity}] ${b.title}**\n   - *File:* \`${b.filePath}:${b.lineRange}\`\n   - *Action:* ${(b.remediationPrompt ?? 'Remediation guidance').slice(0, 140)}...`
         )
         .join('\n\n')
 }
@@ -81,7 +81,7 @@ export function generateExecutiveReportHtml(project: Project): string {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Zelsis Executive Audit Report — ${project.name}</title>
+  <title>Zelsis Executive Audit Report — ${project.name ?? 'Project'}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -386,8 +386,8 @@ export function generateExecutiveReportHtml(project: Project): string {
       <div class="meta-box">
         <div><strong>Certificate ID:</strong> <span class="mono">${certId}</span></div>
         <div><strong>Audit Date:</strong> ${project.lastScanAt || new Date().toISOString().slice(0, 10)}</div>
-        <div><strong>Repository:</strong> <span class="mono">${project.repoUrl}</span></div>
-        <div><strong>Framework:</strong> ${project.framework}</div>
+        <div><strong>Repository:</strong> <span class="mono">${project.repoUrl ?? 'Repository'}</span></div>
+        <div><strong>Framework:</strong> ${project.framework ?? 'Web Application'}</div>
       </div>
     </div>
 
@@ -462,7 +462,7 @@ export function generateExecutiveReportHtml(project: Project): string {
               <div class="mono" style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${f.filePath}:${f.lineRange}</div>
             </td>
             <td style="color: #334155; font-size: 8pt;">
-              ${f.remediationPrompt.length > 130 ? f.remediationPrompt.slice(0, 130) + '...' : f.remediationPrompt}
+              ${(f.remediationPrompt ?? 'Remediation guidance').length > 130 ? (f.remediationPrompt ?? 'Remediation guidance').slice(0, 130) + '...' : (f.remediationPrompt ?? 'Remediation guidance')}
             </td>
           </tr>`
                 )
@@ -482,7 +482,7 @@ export function generateExecutiveReportHtml(project: Project): string {
         </div>
         <div>
           <strong style="display: block; color: #09090b; margin-bottom: 2px;">Framework Gate</strong>
-          <span style="color: #09090b; font-weight: 600;">${project.framework}</span>
+          <span style="color: #09090b; font-weight: 600;">${project.framework ?? 'Web Application'}</span>
           <div style="font-size: 7.5pt; color: #64748b;">AST security rules applied</div>
         </div>
         <div>

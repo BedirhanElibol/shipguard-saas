@@ -53,7 +53,7 @@ export default function CookiePolicyPage() {
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">1. How We Use Cookies</h2>
             <p>
-              Zelsis employs strictly essential, functional cookies and secure client storage to maintain authenticated developer sessions, preserve scan configuration preferences, and protect against Cross-Site Request Forgery (CSRF). We do not utilize intrusive third-party cross-site advertising or surveillance trackers.
+              Zelsis employs strictly essential, functional cookies and secure client storage to maintain authenticated developer sessions, preserve scan configuration preferences, and protect against Cross-Site Request Forgery (CSRF). We do not use intrusive third-party cross-site advertising or surveillance trackers.
             </p>
           </section>
 

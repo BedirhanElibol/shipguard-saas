@@ -16,7 +16,12 @@ const GITHUB_RATE_LIMIT_MESSAGE =
 /**
  * Checks whether a GitHub API response indicates a primary or secondary rate limit.
  */
-function isGitHubRateLimited(status: number, headers: Headers, bodyText: string = '', hasToken: boolean = false): boolean {
+function isGitHubRateLimited(
+  status: number,
+  headers: Headers,
+  bodyText: string = '',
+  hasToken: boolean = false
+): boolean {
   if (status === 429) return true;
   if (headers.get('x-ratelimit-remaining') === '0') return true;
   if (headers.has('retry-after')) return true;
@@ -26,6 +31,171 @@ function isGitHubRateLimited(status: number, headers: Headers, bodyText: string 
     if (!hasToken) return true;
   }
   return false;
+}
+
+interface TokenState {
+  token: string;
+  remaining: number;
+  resetTime: number; // Unix epoch ms
+  isCoolingDown: boolean;
+  consecutiveErrors: number;
+}
+
+/**
+ * Server-Side Managed Rotating GitHub Token Pool
+ * Distributes requests across multiple tokens configured via process.env.GITHUB_TOKENS,
+ * tracks rate-limit quotas, automatically applies cooldowns for throttled tokens (< 10 requests remaining or 429s),
+ * and seamlessly rotates to the next healthiest token without user intervention.
+ */
+class GitHubTokenPool {
+  private tokens: TokenState[] = [];
+  private currentIndex: number = 0;
+
+  constructor() {
+    this.initTokens();
+  }
+
+  public initTokens(): void {
+    const rawTokens =
+      process.env.GITHUB_TOKENS ||
+      process.env.GITHUB_TOKEN ||
+      process.env.GITHUB_PAT ||
+      '';
+
+    const tokenList = rawTokens
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+
+    const existingMap = new Map(this.tokens.map(t => [t.token, t]));
+    this.tokens = tokenList.map(token => {
+      const existing = existingMap.get(token);
+      return (
+        existing || {
+          token,
+          remaining: 5000,
+          resetTime: 0,
+          isCoolingDown: false,
+          consecutiveErrors: 0
+        }
+      );
+    });
+  }
+
+  /**
+   * Retrieves the healthiest available token.
+   * If a user-provided token (OAuth or custom PAT) is passed, it takes precedence.
+   */
+  public getEffectiveToken(userOverrideToken?: string): string | undefined {
+    if (userOverrideToken && userOverrideToken.trim().length > 0) {
+      return userOverrideToken.trim();
+    }
+
+    if (this.tokens.length === 0) {
+      this.initTokens();
+    }
+
+    if (this.tokens.length === 0) {
+      return undefined;
+    }
+
+    const now = Date.now();
+    // Release tokens whose cooldown has expired
+    for (const t of this.tokens) {
+      if (t.isCoolingDown && now > t.resetTime) {
+        t.isCoolingDown = false;
+        t.remaining = 5000;
+        t.consecutiveErrors = 0;
+      }
+    }
+
+    // Filter tokens that are not cooling down and have at least 10 remaining requests
+    const healthyTokens = this.tokens.filter(t => !t.isCoolingDown && t.remaining >= 10);
+
+    if (healthyTokens.length > 0) {
+      // Pick token with highest remaining quota
+      healthyTokens.sort((a, b) => b.remaining - a.remaining);
+      return healthyTokens[0].token;
+    }
+
+    // Fallback: If all tokens are cooling down or depleted, select the one closest to reset
+    const sortedByReset = [...this.tokens].sort((a, b) => a.resetTime - b.resetTime);
+    const fallback = sortedByReset[this.currentIndex % sortedByReset.length];
+    this.currentIndex = (this.currentIndex + 1) % sortedByReset.length;
+    return fallback?.token;
+  }
+
+  /**
+   * Records rate limit telemetry and status feedback for a token.
+   */
+  public reportFeedback(
+    token: string | undefined,
+    status: number,
+    headers: Headers,
+    bodyText: string = ''
+  ): void {
+    if (!token) return;
+    const state = this.tokens.find(t => t.token === token);
+    if (!state) return;
+
+    const remainingHeader = headers.get('x-ratelimit-remaining');
+    const resetHeader = headers.get('x-ratelimit-reset');
+
+    if (remainingHeader !== null) {
+      const parsedRemaining = parseInt(remainingHeader, 10);
+      if (!isNaN(parsedRemaining)) {
+        state.remaining = parsedRemaining;
+      }
+    }
+
+    if (resetHeader !== null) {
+      const parsedReset = parseInt(resetHeader, 10);
+      if (!isNaN(parsedReset)) {
+        state.resetTime = parsedReset * 1000;
+      }
+    }
+
+    const rateLimited = isGitHubRateLimited(status, headers, bodyText, true);
+
+    if (rateLimited || status === 429 || state.remaining < 10) {
+      state.isCoolingDown = true;
+      state.consecutiveErrors++;
+      if (!state.resetTime || state.resetTime <= Date.now()) {
+        state.resetTime = Date.now() + 60_000; // 1-minute fallback cooldown
+      }
+      logger.warn(
+        `[GitHubTokenPool] Token marked for cooldown until ${new Date(state.resetTime).toISOString()}. Remaining: ${state.remaining}`
+      );
+    } else if (status >= 200 && status < 300) {
+      state.consecutiveErrors = 0;
+      if (state.remaining >= 10) {
+        state.isCoolingDown = false;
+      }
+    }
+  }
+
+  public getPoolSize(): number {
+    return this.tokens.length;
+  }
+
+  public getStats(): { total: number; healthy: number; coolingDown: number } {
+    const now = Date.now();
+    return {
+      total: this.tokens.length,
+      healthy: this.tokens.filter(t => !t.isCoolingDown && t.remaining >= 10).length,
+      coolingDown: this.tokens.filter(t => t.isCoolingDown || (t.resetTime > now && t.remaining < 10)).length
+    };
+  }
+}
+
+const tokenPool = new GitHubTokenPool();
+
+function getAuthHeader(token: string): string {
+  const trimmed = token.trim();
+  if (trimmed.startsWith('ghp_')) {
+    return `token ${trimmed}`;
+  }
+  return `Bearer ${trimmed}`;
 }
 
 /**
@@ -84,30 +254,66 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 4. Secure Token Extraction: Read from Authorization header or server environment fallback
+  // 4. Secure Token Extraction: User-provided token (Authorization header, custom header, or OAuth cookie) takes precedence
   const authHeader = req.headers.get('authorization');
-  const userToken = authHeader?.replace(/^Bearer\s+/i, '').trim() || undefined;
-  const serverToken = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || undefined;
-  const token = userToken || serverToken;
+  const userToken =
+    authHeader?.replace(/^Bearer\s+/i, '').trim() ||
+    req.headers.get('x-github-token')?.trim() ||
+    req.cookies.get('sb-provider-token')?.value?.trim() ||
+    req.cookies.get('github_token')?.value?.trim() ||
+    undefined;
 
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.github.v3+json',
-    'User-Agent': 'Zelsis-Release-Gate-Scanner/4.0'
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  let activeToken = tokenPool.getEffectiveToken(userToken);
 
   try {
-    logger.info(`Fetching GitHub repository metadata: ${owner}/${repo}`);
-    const repoRes = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, {
-      headers,
-      signal: AbortSignal.timeout(5000)
-    });
+    let repoRes: Response | null = null;
+    let attempts = 0;
+    const maxAttempts = !userToken && tokenPool.getPoolSize() > 1 ? 2 : 1;
 
-    if (!repoRes.ok) {
-      if (repoRes.status === 404) {
+    while (attempts < maxAttempts) {
+      attempts++;
+      const headers: Record<string, string> = {
+        Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'Zelsis-Release-Gate-Scanner/4.0'
+      };
+
+      if (activeToken) {
+        headers['Authorization'] = getAuthHeader(activeToken);
+      }
+
+      logger.info(`Fetching GitHub repository metadata: ${owner}/${repo} (attempt ${attempts}/${maxAttempts})`);
+      repoRes = await fetch(
+        `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
+        {
+          headers,
+          signal: AbortSignal.timeout(5000)
+        }
+      );
+
+      let bodyText = '';
+      if (!repoRes.ok && repoRes.status !== 404) {
+        try {
+          bodyText = await repoRes.clone().text();
+        } catch {
+          bodyText = '';
+        }
+      }
+
+      tokenPool.reportFeedback(activeToken, repoRes.status, repoRes.headers, bodyText);
+
+      const isRateLimit = isGitHubRateLimited(repoRes.status, repoRes.headers, bodyText, Boolean(activeToken));
+
+      if (isRateLimit && !userToken && attempts < maxAttempts) {
+        logger.warn(`[GitHub Proxy] Primary token rate limited. Rotating to next token from pool...`);
+        activeToken = tokenPool.getEffectiveToken();
+        continue;
+      }
+
+      break;
+    }
+
+    if (!repoRes || !repoRes.ok) {
+      if (repoRes && repoRes.status === 404) {
         return NextResponse.json({
           name: repo,
           fullName: `${owner}/${repo}`,
@@ -119,12 +325,12 @@ export async function GET(req: NextRequest) {
 
       let bodyText = '';
       try {
-        bodyText = await repoRes.text();
+        if (repoRes) bodyText = await repoRes.text();
       } catch {
         bodyText = '';
       }
 
-      const isRateLimit = isGitHubRateLimited(repoRes.status, repoRes.headers, bodyText, Boolean(token));
+      const isRateLimit = repoRes ? isGitHubRateLimited(repoRes.status, repoRes.headers, bodyText, Boolean(activeToken)) : false;
 
       return NextResponse.json({
         name: repo,
@@ -170,10 +376,21 @@ export async function GET(req: NextRequest) {
 
     for (const branch of candidateBranches) {
       try {
+        const headers: Record<string, string> = {
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'Zelsis-Release-Gate-Scanner/4.0'
+        };
+        if (activeToken) {
+          headers['Authorization'] = getAuthHeader(activeToken);
+        }
+
         const res = await fetch(
           `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(branch)}?recursive=1`,
           { headers, signal: AbortSignal.timeout(5000) }
         );
+
+        tokenPool.reportFeedback(activeToken, res.status, res.headers);
+
         if (res.ok) {
           treeRes = res;
           activeBranch = branch;
@@ -184,6 +401,27 @@ export async function GET(req: NextRequest) {
           activeBranch = branch;
           break;
         } else if (res.status === 403 || res.status === 429 || res.headers.get('x-ratelimit-remaining') === '0') {
+          // If rate limited and using server pool, rotate token once and retry branch
+          if (!userToken && tokenPool.getPoolSize() > 1) {
+            activeToken = tokenPool.getEffectiveToken();
+            const retryHeaders: Record<string, string> = {
+              Accept: 'application/vnd.github.v3+json',
+              'User-Agent': 'Zelsis-Release-Gate-Scanner/4.0'
+            };
+            if (activeToken) {
+              retryHeaders['Authorization'] = getAuthHeader(activeToken);
+            }
+            const retryRes = await fetch(
+              `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(branch)}?recursive=1`,
+              { headers: retryHeaders, signal: AbortSignal.timeout(5000) }
+            );
+            tokenPool.reportFeedback(activeToken, retryRes.status, retryRes.headers);
+            if (retryRes.ok || retryRes.status === 409) {
+              treeRes = retryRes;
+              activeBranch = branch;
+              break;
+            }
+          }
           treeRes = res;
           break;
         }
@@ -212,7 +450,7 @@ export async function GET(req: NextRequest) {
       } catch {
         treeBody = '';
       }
-      const isTreeRateLimit = treeRes ? isGitHubRateLimited(treeRes.status, treeRes.headers, treeBody, Boolean(token)) : false;
+      const isTreeRateLimit = treeRes ? isGitHubRateLimited(treeRes.status, treeRes.headers, treeBody, Boolean(activeToken)) : false;
 
       if (isTreeRateLimit) {
         return NextResponse.json({
@@ -288,21 +526,24 @@ export async function GET(req: NextRequest) {
       const chunkResults = await Promise.all(
         chunk.map(async (file: any) => {
           try {
+            const currentToken = tokenPool.getEffectiveToken(userToken);
+            const rawHeaders: Record<string, string> = {};
+            if (currentToken) {
+              rawHeaders['Authorization'] = getAuthHeader(currentToken);
+            }
+
             // Encode URI components in path while preserving slashes
             const encodedPath = file.path.split('/').map(encodeURIComponent).join('/');
             const rawRes = await fetch(
               `https://raw.githubusercontent.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(activeBranch)}/${encodedPath}`,
               {
-                headers: token
-                  ? {
-                      Authorization: token.trim().startsWith('ghp_')
-                        ? `token ${token.trim()}`
-                        : `Bearer ${token.trim()}`
-                    }
-                  : {},
+                headers: rawHeaders,
                 signal: AbortSignal.timeout(4000)
               }
             );
+
+            tokenPool.reportFeedback(currentToken, rawRes.status, rawRes.headers);
+
             if (rawRes.ok) {
               let content = await rawRes.text();
               // File size guard: cap at 200KB per-file limit to avoid ReDoS or memory exhaustion across rules

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { exportFindingsToCsv, exportScorecardToJson } from '@/lib/export-utils';
 import { ActiveModalType } from './DashboardModals';
+import { safeReplace, safeTrim, safeString, safeLower } from '@/lib/safe-utils';
 
 interface GateStatusBannerProps {
   project: Project;
@@ -124,15 +125,15 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[11px] font-mono text-[#A1A1AA]">Audited Target:</span>
-            {project?.repoUrl ? (
+            {safeTrim(project?.repoUrl) ? (
               <a
-                href={project.repoUrl.startsWith('http') ? project.repoUrl : `https://${project.repoUrl}`}
+                href={safeTrim(project.repoUrl).startsWith('http') ? safeTrim(project.repoUrl) : `https://${safeTrim(project.repoUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] font-mono font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
                 title="Open target repository"
               >
-                <span className="truncate">{(project.repoUrl || '').replace(/^https?:\/\//, '')}</span>
+                <span className="truncate">{safeReplace(safeTrim(project.repoUrl), /^https?:\/\//, '')}</span>
                 <ExternalLink size={11} className="shrink-0" />
               </a>
             ) : (

@@ -9,6 +9,8 @@ import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock } from 'l
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { PrivateRepoTokenModal } from '@/components/dashboard/PrivateRepoTokenModal';
+import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
+import { safeString, safeLower, safeReplace, safeTrim } from '@/lib/safe-utils';
 
 interface ScanRunnerViewProps {
   project: Project;
@@ -88,7 +90,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
     async function executeLiveScan() {
       const isLocalOrSelfAudit =
-        (project.repoUrl === 'local' || project.repoUrl?.toLowerCase() === 'local') &&
+        (project.repoUrl === 'local' || safeLower(project.repoUrl) === 'local') &&
         canAccessLocalAudit();
       const isWebTarget = isValidWebUrl(project.repoUrl);
 
@@ -333,7 +335,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
       setQueuedFilesCount(filesToScan.length);
 
-      const result = runStaticCodeScan(filesToScan, project.name);
+      const result = await runStaticCodeScan(filesToScan, project.name);
       if (isCancelled || controller.signal.aborted) return;
 
       setScanResult(result);
@@ -357,7 +359,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             const rawLog = realLogs[currentIdx];
             if (rawLog) {
               const liveTime = new Date().toLocaleTimeString();
-              const updatedLog = String(rawLog || '').replace(/^\[\d{1,2}:\d{2}:\d{2}(\s?[AP]M)?\]/, `[${liveTime}]`);
+              const updatedLog = safeReplace(rawLog, /^\[\d{1,2}:\d{2}:\d{2}(\s?[AP]M)?\]/, `[${liveTime}]`);
               newLogItems.push(updatedLog);
             }
             currentIdx++;
@@ -431,7 +433,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isFinished]);
 
-  const activeFileLog = [...logs].reverse().find(l => l.includes('Opening & AST Inspecting') || l.includes('Inspecting ') || l.includes('[FETCH]'));
+  const activeFileLog = [...logs].reverse().find(l => safeString(l).includes('Opening & AST Inspecting') || safeString(l).includes('Inspecting ') || safeString(l).includes('[FETCH]'));
   const currentFileName = activeFileLog
     ? (activeFileLog.includes('Inspecting ') ? activeFileLog.split('Inspecting ')[1] : null) ||
       (activeFileLog.includes('[FETCH] ') ? activeFileLog.split('[FETCH] ')[1] : null) ||
@@ -493,7 +495,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 {isFinished
                   ? scanResult
                     ? `All ${queuedFilesCount} Source Files Inspected & Verified`
-                    : (project?.repoUrl === 'local' || (project?.repoUrl || '').toLowerCase() === 'local') && !canAccessLocalAudit()
+                    : (project?.repoUrl === 'local' || safeLower(project?.repoUrl) === 'local') && !canAccessLocalAudit()
                     ? 'Local workspace self-audit is available only in local development.'
                     : 'Audit Terminated'
                   : currentFileName}
@@ -568,13 +570,15 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       </div>
 
       {/* Real-time Terminal Log Window */}
-      <TerminalLogWindow
-        logs={logs}
-        repoUrl={project.repoUrl}
-        queuedFilesCount={queuedFilesCount}
-        scanResult={scanResult}
-        terminalLogsRef={terminalLogsRef}
-      />
+      <ComponentErrorBoundary componentName="TerminalLogWindow" resetKeys={[logs.length, project.repoUrl]}>
+        <TerminalLogWindow
+          logs={logs}
+          repoUrl={project.repoUrl}
+          queuedFilesCount={queuedFilesCount}
+          scanResult={scanResult}
+          terminalLogsRef={terminalLogsRef}
+        />
+      </ComponentErrorBoundary>
 
       {/* Complete Action Banner & Button */}
       {isFinished && (
@@ -629,7 +633,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                     </span>
                   </div>
                   <p className="text-sm font-bold text-[#EDEDED] mt-0.5">
-                    {scanFailureReason || ((project?.repoUrl === 'local' || (project?.repoUrl || '').toLowerCase() === 'local') && !canAccessLocalAudit()
+                    {scanFailureReason || ((project?.repoUrl === 'local' || safeLower(project?.repoUrl) === 'local') && !canAccessLocalAudit()
                       ? 'Local workspace self-audit is available only in local development.'
                       : 'Audit execution was stopped before completion.')}
                   </p>

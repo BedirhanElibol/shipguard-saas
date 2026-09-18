@@ -1,387 +1,609 @@
-# Master Plan (v27.0.0)
-## Senior Frontend Architecture, UI/UX Systems & High-Conversion DX Audit
+# Master Orchestration Plan (v31.0.0)
+## Bulletproof Zero-Defect Architecture, Double-Layer Resilience & Unlimited User Freedom
 
-**Product:** Zelsis — Universal Pre-Deployment Release Gate & Code Health Scanner  
-**Live Application URL:** https://shipguard-saas.vercel.app  
-**Version:** 27.0.0 (Senior Frontend Architecture, UI/UX Systems & High-Conversion DX Audit)  
+**Product:** Zelsis — Universal Pre-Deployment Release Gate, Code Health Scanner & Security Engine  
+**Target Applications:** Next.js 15 App Router, TypeScript, Tailwind CSS, Supabase  
+**Repository Paths:**
+- Primary Development: `C:\Users\Bedirhan\Desktop\newday`
+- Clean Worktree: `C:\Users\Bedirhan\.gemini\antigravity\worktrees\newday\evaluate_app_deployment_readiness`  
+**Master Version:** `31.0.0`  
 **Standard Reference:** `.agent/Proje_Gelistirme_Rehberi.md` (Master Quality, OWASP Security & Anti-Slop Catalog)  
-**Planning Mode:** Phase 1 (Planning Only — Zero Application Code Modified)  
-**Author:** Principal Frontend Architect & Systems Planner  
+**Execution Mode:** Phase 1 Master Architecture & Implementation Blueprint (Zero Application Code Modified in Phase 1)  
+**Author:** Principal Systems Architect, Enterprise SaaS Planner & Security Director  
 
 ---
 
-## 1. Executive Frontend Audit: The Honest Scorecard
+## 1. Executive Architecture & Mission Statement
 
-### 1.1 Overall Platform Frontend Health Rating: 8.2 / 10.0
-Zelsis possesses an elite visual baseline: an unapologetic **Obsidian Dark & Swiss Minimalist** design language (`#0A0A0A` background, 1px subtle borders `border-white/10`, crisp typography with Satoshi and SF Mono/Fira Code), an instant client-side AST inspection engine, and an authentic terminal emulator.
+### 1.1 The Core Thesis: Unconstrained Power with Zero-Defect Resilience
+Modern developer platforms frequently suffer from two fatal pitfalls:
+1. **Fragility Under Malformed Input:** Unchecked string operations (`.toLowerCase()`, `.replace()`, `.trim()`) on unexpected null, undefined, or malformed data trigger unhandled `TypeError` exceptions, crashing client React trees and rendering fatal white screens of death.
+2. **Artificial Friction & User Throttling:** Clunky manual token configuration (e.g., forcing developers to create and copy-paste GitHub Personal Access Tokens), arbitrary scan throttling, restricted export formats, and artificially gated basic functionality frustrate developers and kill conversion.
 
-However, beneath this aesthetic polish lies noticeable architectural friction:
-1. **Modal Hell & State Explosion:** `DashboardView.tsx` manages 8+ independent boolean states mounted simultaneously, creating high cognitive load and prop-drilling spaghetti.
-2. **Legacy Agency Zombie Components:** Residual portfolio files (`About.tsx`, `FeaturedWork.tsx`, `Services.tsx`, `Insights.tsx`, `TrustedBrands.tsx`, `Contact.tsx`) linger from earlier template iterations, cluttering the bundle and confusing codebase navigation.
-3. **Mobile Responsiveness Deficits:** The primary `FindingsTable.tsx` is desktop-centric; mobile viewports suffer from cramped cards, missing quick-actions, and vertical scroll fatigue in `KpiCards.tsx`.
-4. **Diagnostic Widget Bloat:** Tab 3 ("Diagnostics & Telemetry") includes novelty widgets (`GeoIpTracker`, static `ThemeContrastAuditor`) that dilute the core value proposition of an enterprise release gate.
-5. **Token Drift & State Lifting Over-Renders:** Global CSS `.btn` classes conflict with raw Tailwind utilities, and monolithic state in `useDashboardState.ts` triggers full-shell cascading re-renders.
-
-```mermaid
-quadrantChart
-    title Zelsis Frontend Systems: Value vs Implementation Quality
-    x-axis Low Technical Quality --> High Technical Quality
-    y-axis Low User Value --> High User Value
-    quadrant-1 World-Class Core
-    quadrant-2 Refactor Priority
-    quadrant-3 Deprecate / Prune
-    quadrant-4 Polish Required
-    "Terminal Emulation (ScanRunner)": [0.92, 0.94]
-    "Client AST Engine (<3.5s)": [0.95, 0.90]
-    "Obsidian Dark / Swiss Aesthetic": [0.94, 0.88]
-    "Remediation Diff Drawer": [0.85, 0.86]
-    "Private Repo PAT Modal": [0.88, 0.82]
-    "Findings Table (Desktop)": [0.78, 0.85]
-    "Mobile Findings Card Layout": [0.38, 0.85]
-    "Modal State Architecture (8+ flags)": [0.32, 0.72]
-    "Token Uniformity (Buttons/Inputs)": [0.45, 0.65]
-    "useDashboardState Monolith": [0.35, 0.60]
-    "BundleCostAnalyzer": [0.70, 0.58]
-    "GeoIpTracker Widget": [0.60, 0.18]
-    "ThemeContrastAuditor (Static)": [0.52, 0.15]
-    "Legacy Agency Components (About/Services)": [0.20, 0.08]
-```
-
-### 1.2 Comprehensive Category Scorecard
-
-| Category | Score | Status | Key Diagnosis |
-| :--- | :---: | :---: | :--- |
-| **Visual Aesthetic & Swiss Styling** | **9.5 / 10** | Exceptional | High contrast, zero generic neon purple gradients, exquisite monospace data tables, disciplined 1px borders, strict anti-slop alignment. |
-| **AST Engine & Client Performance** | **9.2 / 10** | World-Class | Sub-3.5s scan times for medium codebases in the browser; 50+ domain rule sets run client-side with zero cold-start delay. |
-| **Interactive Developer Feedback** | **8.8 / 10** | High Craft | Real-time CLI terminal emulation with auto-scroll and live counters; 1-click PAT authorization; instant AI prompt generators. |
-| **Codebase Cleanliness & Monorepo Hygiene** | **6.8 / 10** | Cluttered | 6 unused agency portfolio components (`About.tsx`, `FeaturedWork.tsx`, etc.) and duplicate routes (`app/landing/page.tsx`) remain in the bundle. |
-| **Modal Ergonomics & State Architecture** | **6.5 / 10** | Suboptimal | 8+ uncoordinated modal states in `DashboardView.tsx`; 16 props drilled into `DashboardModals.tsx`; lack of a unified slide-over drawer or command palette. |
-| **Mobile Responsiveness & Viewport Fluidity** | **6.2 / 10** | Friction Point | Desktop-first 7-column table layout; mobile cards lack interactive depth; KPI cards push findings 600px below fold on mobile. |
-
----
-
-## 2. What is Good: World-Class Frontend Elements
-
-### 2.1 Obsidian Dark Aesthetic & Swiss Minimalism
-* **Implementation:** Strict `#0A0A0A` page backdrop, `#141414` surface cards, `#1E1E1E` secondary surfaces, and crisp 1px `border-white/10` delineation.
-* **Typography:** Premium dual-font hierarchy pairing Satoshi for geometric display headers with SF Mono / Fira Code for dense tabular telemetry.
-* **Anti-Slop Compliance:** Fully adheres to `.agent/Proje_Gelistirme_Rehberi.md`:
-  - Zero cliché purple-cyan neon buttons.
-  - Zero meaningless sparkles or magic-wand icons.
-  - Generous negative space and high-contrast text (`#EDEDED` foreground, `#A1A1AA` secondary, `#71717A` tertiary).
-
-### 2.2 Tactile Real-Time Terminal Emulation (`ScanRunnerView.tsx`)
-* **Tactile Execution:** Simulates a live CLI release gate pipeline with live streaming log lines, animated progress bars, elapsed time clocks, and animated ANSI colored tags.
-* **Smart Auto-Scroll:** `useEffect` with `terminalLogsRef.current.scrollTo` guarantees real-time output tracking without user manual intervention.
-* **Zero-Friction Transition:** Automatically initiates a 3-second countdown upon completion and routes directly to the certified scorecard without requiring an extra click.
-
-### 2.3 1-Click Private Repo PAT Authorization (`PrivateRepoTokenModal.tsx`)
-* **Frictionless Workflow:** When an unauthenticated or private GitHub repo triggers HTTP 401/403, the UI pops an inline modal explaining PAT requirements.
-* **In-Memory Security:** Captures the token directly in React component state, automatically restarts the scan with the token attached, and never leaks or persists raw PATs to unencrypted storage.
-* **Direct Deeplink:** Provides a 1-click button opening `github.com/settings/tokens/new` pre-configured with read-only repository metadata scopes.
-
-### 2.4 Unified Remediation Diff & AI Action Hub (`RemediationDrawer.tsx` / `FindingDetailModal.tsx`)
-* **Side-by-Side & Unified Diffs:** Renders syntax-highlighted code diff patches (`+` / `-`) showing exact before-and-after line fixes.
-* **Direct AI Prompts:** 1-click "Copy Fix Prompt" formatted specifically for Cursor, Claude 3.7 Sonnet, and ChatGPT with strict instructions, affected file paths, line ranges, and OWASP rule IDs.
-* **Jira / Ticket Exporter:** Formats the finding into standard Atlassian Jira markdown for seamless enterprise ticket creation.
-
-### 2.5 High-Throughput Client-Side AST Engine (`lib/scanner-engine.ts`)
-* **Zero-Roundtrip Speed:** Scans 50+ domain rule sets (OWASP, SCA dependencies, Kubernetes hardening, cloud infrastructure, VibePolish UI rules) entirely inside client JavaScript memory in under 3.5 seconds.
-* **High Trust:** Developers test their local code and private snippets without uploading proprietary source code to a third-party backend server.
-
----
-
-## 3. What is Bad / Clunky / Suboptimal: Critical Gaps & Smells
-
-### 3.1 Modal Hell & State Explosion
-* **Location:** `components/dashboard/DashboardView.tsx` (Lines 46–55) and `components/dashboard/DashboardModals.tsx`.
-* **The Smells:**
-  ```tsx
-  const [isConnectTargetOpen, setIsConnectTargetOpen] = useState(false);
-  const [isCompareOpen, setIsCompareOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [isRuleConfigOpen, setIsRuleConfigOpen] = useState(false);
-  const [isExecutiveBriefingOpen, setIsExecutiveBriefingOpen] = useState(false);
-  const [isKbOpen, setIsKbOpen] = useState(false);
-  const [isManifestOpen, setIsManifestOpen] = useState(false);
-  const [isPenTestOpen, setIsPenTestOpen] = useState(false);
-  const [isBadgeOpen, setIsBadgeOpen] = useState(false);
-  const [isMoreToolsOpen, setIsMoreToolsOpen] = useState(false);
-  ```
-* **Architectural Defects:**
-  1. **Prop-Drilling Sprawl:** `DashboardModals.tsx` takes 16 props solely to pass open/close booleans. `GateStatusBanner.tsx` takes 10 props solely to open them.
-  2. **DOM Bloat & Portal Stacking:** 8 distinct modal components with backdrop overlays are rendered into the DOM tree at all times.
-  3. **Cognitive Disconnect:** Modals hijack the entire screen for tasks that are inherently contextual (such as viewing a deployment manifest or configuring rule thresholds).
-  4. **Escape Key Race Conditions:** Pressing `Escape` can trigger multiple modal close handlers simultaneously if layered incorrectly.
-
-### 3.2 Legacy Agency Zombie Components
-* **Locations:**
-  - `components/About.tsx` (Still contains hardcoded text: *"ShipGuard guarantees that your web applications..."*).
-  - `components/FeaturedWork.tsx` (245 lines of design agency case studies with client names and project years).
-  - `components/Services.tsx` (Studio service offerings irrelevant to automated SaaS gates).
-  - `components/Insights.tsx` (Design blog posts with placeholder read times).
-  - `components/Contact.tsx` (Custom agency inquiry form).
-  - `components/TrustedBrands.tsx` (Literal empty stub returning `null`).
-  - `app/landing/page.tsx` (Dead secondary landing page route importing all of the above).
-* **Architectural Defects:**
-  1. **Bundle Weight:** Increases Webpack chunk graph size with unneeded motion framer animations and SVGs.
-  2. **Brand Inconsistency:** Retains "ShipGuard" mentions in `About.tsx`, violating the strict Zelsis brand requirement.
-  3. **Cognitive Confusion:** Engineers searching for landing sections encounter two conflicting landing systems (`app/page.tsx` vs `app/landing/page.tsx`).
-
-### 3.3 Mobile Responsiveness Deficits
-* **Locations:** `components/findings/FindingsTable.tsx`, `components/dashboard/SeverityChart.tsx`, `components/dashboard/KpiCards.tsx`.
-* **Architectural Defects:**
-  1. **Desktop-Centric Table:** `FindingsTable.tsx` hides the table on mobile (`hidden md:block`), falling back to a rudimentary stacked view (`block md:hidden`). The mobile cards lack interactive depth, snippet previews, and category badge styling consistency.
-  2. **Filter Header Squeeze:** On screens `< 640px`, the search input, severity dropdown, and pillar tabs wrap into 4 uneven rows, consuming over 240px of vertical space before a single finding is displayed.
-  3. **KPI Vertical Fatigue:** `KpiCards.tsx` renders 4 large cards that stack vertically on mobile screens `< 640px`, pushing the findings table 600px below the fold.
-  4. **Chart Legend Overflow:** In `SeverityChart.tsx`, the 5-item legend (`Critical`, `High`, `Medium`, `Low`, `Passed`) wraps awkwardly on 320px–375px mobile screens.
-
-### 3.4 Tabs & Diagnostic Widget Bloat
-* **Location:** `components/dashboard/DashboardView.tsx` (Lines 227–239), `GeoIpTracker.tsx`, `ThemeContrastAuditor.tsx`.
-* **Architectural Defects:**
-  1. **`GeoIpTracker.tsx` is Filler Novelty:** It triggers an external HTTP request to `/api/v1/geo` to fetch the developer's client IP, country, and ASN. In a code release gate scanner, the client's current IP address has zero relevance to code deployment readiness.
-  2. **`ThemeContrastAuditor.tsx` is Hardcoded & Outdated:** It renders a static array with 4 hardcoded checks referencing obsolete colors (`"Primary Mint CTA Button Text #021A12 on #10B981"`). It does not dynamically audit real DOM contrast or pre-flight CSS code.
-  3. **Dilutes Core Product Focus:** Tab 3 feels like an experimental playground rather than an enterprise release gate dashboard.
-
-### 3.5 Inconsistent Button & Input Tokens
-* **Location:** `app/globals.css`, `components/findings/FindingsTable.tsx`, `components/layout/Header.tsx`.
-* **Architectural Defects:**
-  1. **Dual Token Systems:** `globals.css` defines `.btn`, `.btn-primary`, `.btn-secondary`, `.swiss-tab`, but components frequently bypass them with arbitrary raw Tailwind utilities:
-     ```tsx
-     // Example from FindingsTable.tsx (Line 386):
-     className="btn btn-primary py-2.5 px-3 text-xs font-bold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
-     ```
-     This mixes class rules (`.btn-primary` has `background: #ffffff; border-radius: 0.5rem`) with direct overrides (`rounded-xl hover:bg-neutral-200`).
-  2. **Missing `type="button"`:** Multiple interactive elements lack explicit `type="button"`, causing potential form submission side-effects when placed inside nested containers.
-  3. **Local State Text Swaps:** Copy buttons toggle their own label (`copiedPrompt ? 'Copied Prompt!' : 'Copy Fix Prompt'`), causing layout shifts and width jumps instead of utilizing non-intrusive toast notifications.
-
-### 3.6 State Lifting & Cascading Over-Rendering in `useDashboardState.ts`
-* **Location:** `hooks/useDashboardState.ts` (1,163 lines!) and `app/dashboard/page.tsx`.
-* **Architectural Defects:**
-  1. **Monolithic Hook:** A single custom hook manages active navigation, all projects, selected project, scanning state, auth modal, checkout modal, inspecting finding, and license verification.
-  2. **Cascading Re-Renders:** Whenever `inspectingFinding` changes (opening the remediation drawer) or a finding is resolved, `DashboardContent` in `app/dashboard/page.tsx` re-renders entirely, forcing `AppShell`, `Sidebar`, `Header`, `LifecycleBanner`, and all navigation tabs to recalculate their DOM trees.
-  3. **Absence of Context Slices:** UI state (which drawer is open) is unnecessarily coupled with business state (projects and scan results).
-
----
-
-## 4. Concrete Refactoring Roadmap: What to Change & How to Fix It
+**Zelsis v31.0.0** introduces a paradigm shift: **Full Unlimited Freedom backed by Double-Layer Defensive Resilience**.
 
 ```mermaid
 flowchart TD
-    subgraph ArchitectureTransformation["Zelsis Frontend Architecture Transformation"]
-        direction TB
-        
-        subgraph Pillar1["Pillar 1: Modal Consolidation"]
-            OldModals["8+ Independent Boolean Modals<br/>(isCompare, isNotif, isRule, etc.)"] --> UnifiedPalette["Cmd+K Command Palette &<br/>Single Slide-over Action Drawer"]
-        end
-        
-        subgraph Pillar2["Pillar 2: Mobile-First Findings"]
-            OldTable["Desktop-Only 7-Column Table<br/>(Squished Mobile Fallback)"] --> AdaptiveCards["Adaptive Responsive Engine:<br/>Dense Table (Desktop) / Rich Cards (Mobile)"]
-        end
-        
-        subgraph Pillar3["Pillar 3: Dead Code Purge"]
-            OldAgency["6 Legacy Agency Files<br/>(About, Services, FeaturedWork, etc.)"] --> PrunedBundle["Purged Clean Architecture &<br/>Next.js Dynamic Imports"]
-        end
-        
-        subgraph Pillar4["Pillar 4: Design Tokens & Toasts"]
-            MismatchedCSS["Raw Tailwind / CSS Class Collisions<br/>& Button Text Jumpiness"] --> CVAButtonTokens["Strict CVA Token Component &<br/>Global Floating Toast System"]
-        end
-        
-        subgraph Pillar5["Pillar 5: Streamlined Diagnostics"]
-            GimmickWidgets["GeoIpTracker & Static Contrast Auditor"] --> ReleaseTelemetry["Release-Critical Telemetry:<br/>Build Delta, Docker Weight, SCA Risk"]
-        end
+    subgraph Layer1["Layer 1: Defensive Ingestion & Safe Primitives (lib/safe-utils.ts)"]
+        RawData["External Untrusted Data<br/>(GitHub API, User Inputs, AST Nodes, DB Rows)"]
+        SafeUtils["Global Safe String/Object Helpers<br/>(safeLower, safeReplace, safeTrim, safeUrl)"]
+        SanitizedData["Normalized, Sanitized Primitives<br/>(Guaranteed Non-Null, Type-Safe)"]
+        RawData --> SafeUtils --> SanitizedData
     end
+
+    subgraph Layer2["Layer 2: Granular UI Fault Isolation (ComponentErrorBoundary.tsx)"]
+        SanitizedData --> UIViews
+        subgraph UIViews["Isolated Dashboard Widgets"]
+            EB1["Boundary: GateStatusBanner"]
+            EB2["Boundary: ScaLicenseRiskCard"]
+            EB3["Boundary: FindingsTable"]
+            EB4["Boundary: ScanRunnerView"]
+            EB5["Boundary: TerminalLogWindow"]
+            EB6["Boundary: VibeCareView"]
+        end
+        UIViews --> IsolatedRendering["Zero Full-Page White Screens<br/>Localized Inline Recovery & Auto-Retry"]
+    end
+
+    subgraph PlatformCapabilities["Layer 3: Unlimited Developer Capabilities"]
+        TokenPool["Managed GitHub Token Pool<br/>(process.env Rotation + 1-Click OAuth)"]
+        StreamEngine["Streaming AST Engine<br/>(1,000+ Files, Cooperative Scheduling)"]
+        FreeExports["Uncapped Reports<br/>(PDF, HTML, JSON, Jira Markdown)"]
+        CustomRules["Custom Rule Management<br/>(Dynamic Enable/Disable/Overrides)"]
+    end
+
+    IsolatedRendering --> PlatformCapabilities
 ```
 
-### 4.1 Pillar 1: Modern Modal Consolidation (Unified Command Palette & Action Drawer)
-* **Goal:** Eliminate the 8+ boolean flags in `DashboardView.tsx` and provide a world-class Linear/Vercel-grade interaction model.
-* **Step 1 — Discriminated Union State:** Replace 8 boolean states with a single state hook:
-  ```ts
-  type ActiveToolDrawer = 
-    | null 
-    | 'compare' 
-    | 'notifications' 
-    | 'rule-config' 
-    | 'executive-briefing' 
-    | 'deployment-manifest' 
-    | 'pentest-payload' 
-    | 'badge-generator';
-  
-  const [activeDrawer, setActiveDrawer] = useState<ActiveToolDrawer>(null);
-  ```
-* **Step 2 — Integrated Action Drawer Component (`ActionDrawer.tsx`):**
-  - Create a unified slide-over container on the right side of the screen (`w-full sm:w-[540px] lg:w-[640px]`).
-  - Use smooth Framer Motion spring transition (`x: '100%' -> 0`).
-  - Mount only the currently active tool component inside the drawer body.
-  - Keeps the dashboard data visible in the background, allowing side-by-side reference.
-* **Step 3 — Universal Command Palette (`Cmd+K` / `Ctrl+K`):**
-  - Extend the existing `Cmd+K` listener into a searchable Command Palette (`QuickCommandPalette.tsx`).
-  - Allows engineers to trigger:
-    - `"Run Pre-Flight Audit"`
-    - `"Generate Deployment Manifest"`
-    - `"Open PenTest Exploit Generator"`
-    - `"Export Executive Briefing"`
-    - `"Toggle Pillar Filter (Security / SCA / UI)"`
-    - `"Switch Active Project"`
+### 1.2 The Three Fundamental Pillars of v31.0.0
+1. **Double-Layer Crash Immunity (100% Zero-Defect Target):**
+   - **Ingestion Layer:** Guaranteed safe primitives in `lib/safe-utils.ts` preventing any crash at the calculation or data-transformation stage.
+   - **Presentation Layer:** Micro-isolated `ComponentErrorBoundary` wrappers around every independent dashboard panel, ensuring that if an anomaly occurs, only that isolated card displays an elegant Obsidian-styled error state with an instant retry action—never taking down sibling components or the app shell.
+2. **Zero-Friction GitHub Pipeline:**
+   - Developers and paying users must **never** be forced to generate and paste a PAT to get started.
+   - Server-side managed token rotation pool (`process.env.GITHUB_TOKENS`) with automated health checks, cooldown handling, and rate-limit tracking.
+   - Seamless 1-click GitHub OAuth authorization via Supabase for private repository access.
+   - Manual PAT input preserved strictly as an optional power-user override.
+3. **Uncapped User Freedom:**
+   - Unlimited manual and autonomous scans with zero arbitrary timeouts.
+   - Unlimited reports: complete PDF executive audits, HTML standalone dossiers, JSON machine exports, and Jira issue markdown.
+   - Dynamic custom rule management allowing teams to activate, disable, or adjust thresholds without enterprise paywalls.
+   - High-throughput streaming engine for 1,000+ files without UI thread starvation.
 
-### 4.2 Pillar 2: Mobile-First Responsive Findings Card View
-* **Goal:** Deliver an intuitive mobile auditing experience for CTOs and engineering leads reviewing gate status on phones and tablets.
-* **Step 1 — Adaptive Dual-Mode Architecture in `FindingsTable.tsx`:**
-  - **Desktop (`md:` and above):** Maintain the high-density B2B data table with sortable columns, inline badge pills, and direct "Inspect & Remediate" actions.
-  - **Mobile / Tablet (`< md`):** Render rich, expandable card items:
-    - **Header Row:** High-contrast Severity Badge (`CRITICAL`, `HIGH`, `MEDIUM`) + Pillar Chip + Status Pill.
-    - **Title & Context:** Clear bold title + File path with line range.
-    - **Expandable Preview:** Tap card to reveal sanitized code snippet with syntax styling.
-    - **Action Footer:** Two-button touch target:
-      1. Primary: `"Inspect & Remediate"` (opens full remediation details).
-      2. Secondary: 1-tap `"Copy Fix"` (copies AI remediation prompt).
-* **Step 2 — Fluid Mobile KPI Stacking in `KpiCards.tsx`:**
-  - On screens `< 640px`, switch from a 4-card vertical stack to a compact 2x2 grid or horizontal swipeable carousel with clear indicators.
-  - Keeps overall readiness score and critical count immediately visible without scrolling.
+---
 
-### 4.3 Pillar 3: Dead Code Purge & Bundle Pruning
-* **Goal:** Eradicate all obsolete agency template artifacts, clean up dead routes, and trim client bundle size.
-* **Step 1 — Deprecate & Archive Legacy Components:**
-  - Safely remove or isolate:
-    - `components/About.tsx`
-    - `components/Services.tsx`
-    - `components/FeaturedWork.tsx`
-    - `components/Insights.tsx`
-    - `components/TrustedBrands.tsx`
-    - `components/Contact.tsx`
-* **Step 2 — Clean Route Hierarchy:**
-  - In `app/landing/page.tsx`, redirect permanently to `/` via Next.js `redirect('/')` to ensure only the canonical, high-converting B2B SaaS homepage is served.
-* **Step 3 — Dynamic Imports for Heavy Modules:**
-  - In `app/dashboard/page.tsx` and `DashboardView.tsx`, wrap heavy non-critical modules with `next/dynamic`:
-    ```tsx
-    const PenTestPayloadGenerator = dynamic(() => import('./PenTestPayloadGenerator').then(m => m.PenTestPayloadGenerator), { ssr: false });
-    const DeploymentManifestModal = dynamic(() => import('./DeploymentManifestModal').then(m => m.DeploymentManifestModal), { ssr: false });
-    ```
-  - Reduces initial JavaScript payload on the `/dashboard` route.
+## 2. Phase 1: Defensive Ingestion & Global Safe String Helpers (`lib/safe-utils.ts`)
 
-### 4.4 Pillar 4: Design Token Uniformity & Micro-Interactions
-* **Goal:** Establish a single source of truth for buttons, inputs, and interactive feedback.
-* **Step 1 — Unified CVA Button System (`components/ui/Button.tsx`):**
-  - Implement a type-safe `Button` primitive using `class-variance-authority`:
-    - Variants: `primary` (Solid white, black text), `secondary` (Dark `#141414`, 1px border), `danger` (Red/rose tint), `ghost` (Transparent, hover background).
-    - Sizes: `xs` (Compact table action), `sm` (Standard card action), `md` (Primary CTA), `lg` (Hero action).
-    - Standardized border radius (`rounded-lg`) and focus ring (`focus-visible:ring-1 focus-visible:ring-white/40`).
-* **Step 2 — Floating Toast Notifications for Copy Actions:**
-  - Wire up the existing `components/ui/Toast.tsx` system into `FindingsTable.tsx` and `FindingDetailModal.tsx`.
-  - When a user clicks "Copy Fix Prompt" or "Bulk Remediate .patch", trigger:
-    ```ts
-    toast.show({
-      type: 'success',
-      title: 'Prompt Copied',
-      message: 'AI Remediation Prompt copied to clipboard for Cursor / Claude.'
+### 2.1 The Vulnerability Profile of Raw String Operations
+Across modern TypeScript codebases, TypeScript's compile-time types disappear at runtime. When interacting with remote GitHub REST trees, dynamic AST nodes, clipboard pastes, or database migrations, values typed as `string` may arrive as `null`, `undefined`, numbers, or nested objects. 
+Standard patterns like:
+```typescript
+// HIGH RISK PATTERNS IN EXISTING CODEBASES:
+const lower = file.path.toLowerCase(); // CRASH if file.path is undefined
+const clean = raw.trim().replace(/\.git$/, ''); // CRASH if raw is null
+const target = new URL(url).hostname; // CRASH if url is invalid format
+```
+trigger fatal unhandled exceptions (`TypeError: Cannot read properties of undefined (reading 'toLowerCase')`), corrupting React state and crashing user sessions.
+
+### 2.2 Complete Architectural Specification of `lib/safe-utils.ts`
+The module `lib/safe-utils.ts` provides immutable, battle-tested, zero-crash primitives:
+
+```typescript
+/**
+ * Global Defensive String & Object Utilities
+ * Eliminates unhandled TypeErrors across all data ingestion and UI render pipelines.
+ */
+
+export function safeString(value: unknown, fallback: string = ''): string {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value) || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function safeLower(value: unknown, fallback: string = ''): string {
+  return safeString(value, fallback).toLowerCase();
+}
+
+export function safeUpper(value: unknown, fallback: string = ''): string {
+  return safeString(value, fallback).toUpperCase();
+}
+
+export function safeTrim(value: unknown, fallback: string = ''): string {
+  return safeString(value, fallback).trim();
+}
+
+export function safeReplace(
+  value: unknown,
+  pattern: string | RegExp,
+  replacement: string | ((substring: string, ...args: any[]) => string),
+  fallback: string = ''
+): string {
+  const str = safeString(value, fallback);
+  try {
+    if (typeof replacement === 'function') {
+      return str.replace(pattern, replacement as any);
+    }
+    return str.replace(pattern, replacement);
+  } catch {
+    return str;
+  }
+}
+
+export function safeUrl(value: unknown, fallback: string = ''): string {
+  const clean = safeTrim(value);
+  if (!clean) return fallback;
+  try {
+    const parsed = new URL(clean.startsWith('http://') || clean.startsWith('https://') ? clean : `https://${clean}`);
+    return parsed.toString();
+  } catch {
+    return fallback;
+  }
+}
+
+export function safeArray<T>(value: unknown, fallback: T[] = []): T[] {
+  if (Array.isArray(value)) return value;
+  return fallback;
+}
+
+export function safeRecord<K extends string | number | symbol, V>(
+  value: unknown,
+  fallback: Record<K, V> = {} as Record<K, V>
+): Record<K, V> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<K, V>;
+  }
+  return fallback;
+}
+```
+
+### 2.3 Systematic Refactoring Map: High-Risk Call Sites
+The implementation phase will systematically replace unshielded string operations across four critical subsystems:
+
+| File Subsystem | High-Risk Call Site | Vulnerability Scenario | Refactored Safe Call |
+| :--- | :--- | :--- | :--- |
+| `lib/scanner-engine.ts` | `file.path.toLowerCase()` | File item missing path or containing null AST metadata | `safeLower(file?.path)` |
+| `lib/scanner-engine.ts` | `rawContent.split('\n')` | Binary or empty file content parsed as undefined | `safeString(file?.content).split('\n')` |
+| `lib/github-api.ts` | `raw.trim().replace(/\.git$/, '')` | Malformed repository query parameter | `safeReplace(safeTrim(raw), /\.git$/i, '')` |
+| `lib/github-api.ts` | `new URL(url).hostname` | Non-HTTP target string from input | `safeUrl(url, 'Target Deployment')` |
+| `components/findings/FindingsTable.tsx` | `f.filePath.toLowerCase().includes(term)` | Custom uploaded finding with missing path | `safeLower(f.filePath).includes(safeLower(searchTerm))` |
+| `components/dashboard/GateStatusBanner.tsx` | `project.repoUrl.replace(...)` | Local or custom target with undefined URL | `safeReplace(project?.repoUrl, /\/+$/, '')` |
+| `components/ScanRunnerView.tsx` | `logs.join('\n')` | Log item injected as non-string error object | `logs.map(l => safeString(l)).join('\n')` |
+
+---
+
+## 3. Phase 2: Granular Resilient UI & Isolated Error Boundaries (`components/common/ComponentErrorBoundary.tsx`)
+
+### 3.1 The Failure Mode of Monolithic React Trees
+In standard React 18/19 Next.js applications, an uncaught exception in any deep child component unmounts the entire parent tree up to the nearest boundary. If only a single root error boundary exists, a crash in `ScaLicenseRiskCard` or `FindingsTable` blanks out the entire application shell, destroying work-in-progress state, scan logs, and active terminal sessions.
+
+### 3.2 Complete Architectural Specification of `ComponentErrorBoundary.tsx`
+`components/common/ComponentErrorBoundary.tsx` implements a reusable React class boundary with:
+- **Obsidian Dark & Swiss Design Language:** High-contrast minimal error cards matching `#141414` surface cards with 1px `border-red-500/20` and zero garish colors.
+- **Graceful Inline Fallback:** Explains the component-level issue with clear diagnostic info without blocking the rest of the dashboard.
+- **Auto-Recovery & Retry Mechanism:** Provides an inline "Retry Component" button and supports automated recovery resets when component props change.
+- **Error Telemetry Logging:** Safely reports crashes to internal logging systems (`lib/logger.ts`) without leaking credentials or PII.
+
+```tsx
+'use client';
+
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/logger';
+import { safeString } from '@/lib/safe-utils';
+
+interface Props {
+  componentName: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+  onReset?: () => void;
+  resetKeys?: any[];
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+}
+
+export class ComponentErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false,
+    error: null,
+    errorInfo: null
+  };
+
+  public static getDerivedStateFromError(error: Error): Partial<State> {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    logger.error(`[ComponentErrorBoundary] Caught error in ${this.props.componentName}:`, {
+      message: safeString(error?.message),
+      stack: safeString(errorInfo?.componentStack)
     });
-    ```
-  - Eliminates jarring button text layout shifts (`Copied!` -> `Copy`).
+  }
 
-### 4.5 Pillar 5: Streamline Diagnostics Tab
-* **Goal:** Replace novelty widgets with enterprise release-critical telemetry.
-* **Step 1 — Prune Novelty Widgets:**
-  - Remove `GeoIpTracker.tsx` and static `ThemeContrastAuditor.tsx` from Tab 3.
-* **Step 2 — Introduce Core Release Gate Diagnostics:**
-  - **Widget A: JS/CSS Bundle Weight & Tree-Shaking Budget (`BundleCostAnalyzer.tsx`):** Retain and enhance with simulated gzip compression, tree-shaking delta, and Core Web Vitals LCP forecast.
-  - **Widget B: Container & Docker Hardening Telemetry:** Visualize Dockerfile layer count, base image footprint (Alpine vs Debian), and root privilege detection.
-  - **Widget C: Open Source License & SCA Risk Radar:** Visualize software composition analysis breakdown (MIT, Apache-2.0, BSD vs GPL/AGPL copyleft risks).
+  public componentDidUpdate(prevProps: Props): void {
+    if (this.state.hasError && this.props.resetKeys) {
+      const hasChanged = this.props.resetKeys.some(
+        (key, idx) => key !== (prevProps.resetKeys ? prevProps.resetKeys[idx] : undefined)
+      );
+      if (hasChanged) {
+        this.resetError();
+      }
+    }
+  }
 
----
+  public resetError = (): void => {
+    this.props.onReset?.();
+    this.setState({ hasError: false, error: null, errorInfo: null });
+  };
 
-## 5. Phase 2 Multi-Agent Work Breakdown
+  public render(): ReactNode {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
 
-To execute these architectural improvements with zero regressions and maximum speed, Phase 2 is partitioned across 3 specialized autonomous agents:
+      return (
+        <div className="w-full bg-[#141414] border border-red-500/20 rounded-xl p-5 sm:p-6 text-[#EDEDED] flex flex-col gap-4 font-mono shadow-xl">
+          <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2.5 text-red-400 text-xs font-bold uppercase tracking-wider">
+              <AlertTriangle size={16} className="shrink-0" />
+              <span>{this.props.componentName} Temporarily Unavailable</span>
+            </div>
+            <button
+              onClick={this.resetError}
+              className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RefreshCw size={13} />
+              <span>Retry Component</span>
+            </button>
+          </div>
+          <p className="text-xs text-[#A1A1AA] leading-relaxed">
+            An isolated exception occurred while rendering this module. Sibling components and your active release gate session remain unaffected.
+          </p>
+          {process.env.NODE_ENV !== 'production' && this.state.error && (
+            <div className="bg-[#0A0A0A] p-3 rounded-lg border border-white/5 text-[11px] text-red-300 overflow-x-auto whitespace-pre-wrap">
+              {safeString(this.state.error.message)}
+            </div>
+          )}
+        </div>
+      );
+    }
 
-```mermaid
-flowchart TD
-    subgraph Phase2Execution["Phase 2: Multi-Agent Implementation Matrix"]
-        direction LR
-        
-        subgraph FE["Specialist 1: frontend-specialist"]
-            FE1["Refactor FindingsTable.tsx<br/>Mobile Expandable Cards + Desktop Dense Table"]
-            FE2["Consolidate Modals into<br/>Action Drawer & Command Palette"]
-            FE3["Unify Button & Input Design Tokens<br/>with CVA + Toast Feedback"]
-        end
-        
-        subgraph PERF["Specialist 2: performance-optimizer / backend-specialist"]
-            P1["Prune Legacy Agency Components<br/>(About, FeaturedWork, Services, etc.)"]
-            P2["Redirect app/landing/page.tsx<br/>to Canonical SaaS Homepage"]
-            P3["Revamp Diagnostics Tab 3<br/>(Drop GeoIP/Contrast, Elevate SCA/Docker)"]
-            P4["Apply next/dynamic Lazy Loading<br/>to Heavy Modals & Drawers"]
-        end
-        
-        subgraph QA["Specialist 3: test-engineer"]
-            QA1["Responsive Breakpoint Verification<br/>(375px Mobile, 768px Tablet, 1440px Desktop)"]
-            QA2["Modal & Drawer Interaction Suite<br/>(Escape Key, Backdrop, Focus Trap)"]
-            QA3["Clipboard Toast Feedback Verification"]
-            QA4["Build & TypeScript Clearance<br/>(npm run build / tsc --noEmit)"]
-        end
-    end
-
-    FE --> QA
-    PERF --> QA
+    return this.props.children;
+  }
+}
 ```
 
-### 5.1 Specialist 1: `frontend-specialist`
-* **Domain:** Client components, responsive layout systems, modal-to-drawer refactoring, and design token standardization.
-* **Assigned Deliverables:**
-  1. **Mobile Findings Card Layout:** Refactor `components/findings/FindingsTable.tsx` to render an adaptive dual layout (dense table on desktop, expandable rich cards with quick-action touch targets on mobile).
-  2. **Modal Consolidation & Action Drawer:**
-     - Replace 8+ independent boolean states in `DashboardView.tsx` with a single `activeDrawer` discriminated union.
-     - Implement `components/dashboard/ActionDrawer.tsx` to house Rule Configurator, Deployment Manifest, PenTest Payload Generator, and Executive Briefing as slide-over panels.
-     - Enhance the `Cmd+K` keyboard shortcut to toggle a unified Command Palette.
-  3. **Standardize Design Tokens & Wire Toasts:**
-     - Implement unified `Button` variants or apply standardized token classes across dashboard headers, tables, and modals.
-     - Connect copy events in `FindingsTable.tsx` and `FindingDetailModal.tsx` to `ToastContainer` for subtle, non-intrusive feedback.
+### 3.3 Granular Widget Isolation Architecture
+Every primary dashboard view and card will be isolated within its dedicated boundary:
 
-### 5.2 Specialist 2: `performance-optimizer` / `backend-specialist`
-* **Domain:** Codebase cleanup, bundle pruning, lazy-loading architecture, and diagnostics telemetry revamping.
-* **Assigned Deliverables:**
-  1. **Legacy Agency Component Pruning:**
-     - Safely deprecate and remove obsolete files (`About.tsx`, `Services.tsx`, `FeaturedWork.tsx`, `Insights.tsx`, `TrustedBrands.tsx`, `Contact.tsx`).
-     - Update `app/landing/page.tsx` with a clean redirect to `/`.
-  2. **Lazy-Loading Optimization:**
-     - Implement `next/dynamic` for heavy client-side drawer modules and PDF generation in `DashboardView.tsx` and `DashboardModals.tsx`.
-  3. **Diagnostics Tab Streamlining:**
-     - Remove `GeoIpTracker.tsx` and hardcoded `ThemeContrastAuditor.tsx` from Tab 3.
-     - Restructure Tab 3 around release-critical metrics: JS/CSS Bundle Payload, Docker/Container Layer Weight, and SCA Dependency License Risk.
-  4. **State Re-render Boundaries:**
-     - Optimize `useDashboardState.ts` to prevent full `AppShell` re-renders when local drawer states change.
+```mermaid
+graph TD
+    AppShell["AppShell Layout Container"] --> DashboardView["DashboardView"]
+    AppShell --> ScanRunner["ScanRunnerView Container"]
+    AppShell --> VibeCare["VibeCareView Container"]
 
-### 5.3 Specialist 3: `test-engineer`
-* **Domain:** Responsive viewport validation, visual regression, interaction testing, and TypeScript/build verification.
-* **Assigned Deliverables:**
-  1. **Responsive Viewport Audit:**
-     - Validate mobile layouts at 375px (iPhone SE), 390px (iPhone 14), 768px (iPad), and 1280px+ (Desktop).
-     - Ensure zero horizontal page overflow (`overflow-x: hidden`) and proper touch targets (minimum 44x44px for primary actions).
-  2. **Drawer & Keyboard Navigation Tests:**
-     - Verify `Escape` key closes the active drawer without dismissing parent views.
-     - Verify `Cmd+K` / `Ctrl+K` reliably toggles the Command Palette across all tabs.
-  3. **Toast Notification Verification:**
-     - Confirm that copying fix prompts or manifests triggers the toast container without altering button dimensions.
-  4. **Build & Type Clearance:**
-     - Execute `npm run build` and `tsc --noEmit` to verify zero TypeScript errors, zero dead-import warnings, and clean production compilation.
+    subgraph DashboardBoundaries["Isolated Dashboard View Boundaries"]
+        DashboardView --> EB_Banner["ComponentErrorBoundary (GateStatusBanner)"]
+        EB_Banner --> GateStatusBanner["GateStatusBanner Widget"]
+
+        DashboardView --> EB_SCA["ComponentErrorBoundary (ScaLicenseRiskCard)"]
+        EB_SCA --> ScaLicenseRiskCard["ScaLicenseRiskCard Widget"]
+
+        DashboardView --> EB_Table["ComponentErrorBoundary (FindingsTable)"]
+        EB_Table --> FindingsTable["FindingsTable Widget"]
+    end
+
+    subgraph RunnerBoundaries["Isolated Scan Execution Boundaries"]
+        ScanRunner --> EB_Runner["ComponentErrorBoundary (ScanRunnerView)"]
+        EB_Runner --> ScanRunnerView["ScanRunner Core Engine"]
+
+        ScanRunnerView --> EB_Terminal["ComponentErrorBoundary (TerminalLogWindow)"]
+        EB_Terminal --> TerminalLogWindow["TerminalLogWindow CLI Display"]
+    end
+
+    subgraph VibeCareBoundaries["Isolated Health Boundaries"]
+        VibeCare --> EB_VibeCare["ComponentErrorBoundary (VibeCareView)"]
+        EB_VibeCare --> VibeCareView["VibeCare Monitoring Panel"]
+    end
+```
 
 ---
 
-## 6. Acceptance Gates & Verification Matrix
+## 4. Phase 3: Zero-Friction Unlimited GitHub API Pipeline
 
-To achieve certified completion of Phase 2, the platform must satisfy the following strict automated and visual checks:
+### 4.1 Eliminating PAT Friction for End Users
+Currently, users attempting to audit private or high-traffic repositories are interrupted by modals asking them to generate, copy, and paste Personal Access Tokens. This creates significant friction.
+In **Zelsis v31.0.0**, the authentication workflow is inverted:
+1. **Server-Side Token Pool:** The backend proxy maintains a pool of pre-authenticated, rotating tokens configured via `process.env.GITHUB_TOKENS`. Requests automatically utilize the pool with zero user intervention.
+2. **1-Click GitHub App / OAuth Connection:** For private repository access, users click a single "Connect with GitHub" button via Supabase OAuth with `repo` scopes. Zelsis automatically retrieves and uses the session provider token securely.
+3. **Optional Power-User Setting:** Manual PAT input remains strictly in Project Settings for custom enterprise air-gapped instances or private GitHub Enterprise Servers.
 
-- [ ] **Gate 1 (Zero Zombie Files):** Legacy agency components (`About.tsx`, `FeaturedWork.tsx`, `Services.tsx`, `Insights.tsx`, `Contact.tsx`, `TrustedBrands.tsx`) are completely removed or purged from active routes.
-- [ ] **Gate 2 (Modal State Consolidation):** `DashboardView.tsx` manages no more than 1 unified drawer state, eliminating the 8+ uncoordinated boolean flags.
-- [ ] **Gate 3 (Mobile Findings Experience):** On mobile viewports (<640px), findings display as rich expandable cards with 1-tap AI prompt copy and touch-friendly inspection triggers.
-- [ ] **Gate 4 (Streamlined Diagnostics Tab):** Tab 3 contains zero filler widgets (`GeoIpTracker` and static contrast audits removed; replaced with bundle, container, and dependency telemetry).
-- [ ] **Gate 5 (Design Token Uniformity):** All interactive buttons and inputs adhere to standardized Swiss/Obsidian design tokens with consistent border-radii (`rounded-lg`) and focus rings.
-- [ ] **Gate 6 (Toast Notification Integration):** Copy actions display floating toast messages rather than shifting button label widths.
-- [ ] **Gate 7 (Zero Brand Regression):** Zero occurrences of legacy brand name "ShipGuard" in user-facing components; 100% strict Zelsis branding.
-- [ ] **Gate 8 (Production Build Clearance):** `npm run build` succeeds cleanly with zero TypeScript errors and zero lint warnings.
+### 4.2 Managed Token Pool & Rotation Architecture (`app/api/v1/github-proxy/route.ts`)
+The server proxy manages multi-token rotation with intelligent load distribution:
+
+```mermaid
+sequenceDiagram
+    participant Client as Web Client / Browser
+    participant Proxy as Next.js GitHub Proxy Route
+    participant Pool as Token Pool Manager (In-Memory State)
+    participant GitHub as GitHub REST API
+
+    Client->>Proxy: GET /api/v1/github-proxy?repoUrl=owner/repo
+    Proxy->>Pool: Request Active Token(userToken || poolToken)
+    alt User has connected OAuth / Custom PAT
+        Pool-->>Proxy: Return User Provided Token
+    else General Pool Usage
+        Pool->>Pool: Evaluate Health, Remaining Quotas & Cooldowns
+        Pool-->>Proxy: Return Best Available Rotating Token
+    end
+    Proxy->>GitHub: GET /repos/owner/repo with Selected Token
+    GitHub-->>Proxy: Response + Headers (x-ratelimit-remaining, retry-after)
+    Proxy->>Pool: Record Token Telemetry (Update remaining quota & rate-limit status)
+    alt Rate Limited (429 or Remaining == 0)
+        Pool->>Pool: Mark Token in Cooldown (until x-ratelimit-reset)
+        Proxy->>Pool: Request Next Available Token
+        Proxy->>GitHub: Retry Fetch with Secondary Pool Token
+        GitHub-->>Proxy: 200 OK + Repo Tree & Contents
+    end
+    Proxy-->>Client: 200 OK Clean Normalized JSON Payload
+```
+
+### 4.3 Technical Design: Token Rotation Engine
+```typescript
+interface TokenState {
+  token: string;
+  remaining: number;
+  resetTime: number; // Unix epoch ms
+  isCoolingDown: boolean;
+  consecutiveErrors: number;
+}
+
+class GitHubTokenPool {
+  private tokens: TokenState[] = [];
+  private currentIndex: number = 0;
+
+  constructor() {
+    const rawTokens = process.env.GITHUB_TOKENS || process.env.GITHUB_TOKEN || process.env.GITHUB_PAT || '';
+    const tokenList = rawTokens
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+
+    this.tokens = tokenList.map(token => ({
+      token,
+      remaining: 5000,
+      resetTime: 0,
+      isCoolingDown: false,
+      consecutiveErrors: 0
+    }));
+  }
+
+  public getEffectiveToken(userOverrideToken?: string): string | undefined {
+    if (userOverrideToken && userOverrideToken.trim().length > 0) {
+      return userOverrideToken.trim();
+    }
+    if (this.tokens.length === 0) return undefined;
+
+    const now = Date.now();
+    // Release tokens whose cooldown has expired
+    for (const t of this.tokens) {
+      if (t.isCoolingDown && now > t.resetTime) {
+        t.isCoolingDown = false;
+        t.remaining = 5000;
+        t.consecutiveErrors = 0;
+      }
+    }
+
+    // Find available token with highest remaining quota
+    const available = this.tokens.filter(t => !t.isCoolingDown && t.remaining > 10);
+    if (available.length === 0) {
+      // Fallback: round-robin all tokens if all exhausted
+      const fallback = this.tokens[this.currentIndex % this.tokens.length];
+      this.currentIndex++;
+      return fallback?.token;
+    }
+
+    available.sort((a, b) => b.remaining - a.remaining);
+    const chosen = available[0];
+    return chosen.token;
+  }
+
+  public reportFeedback(token: string, status: number, headers: Headers): void {
+    const state = this.tokens.find(t => t.token === token);
+    if (!state) return;
+
+    const remainingHeader = headers.get('x-ratelimit-remaining');
+    const resetHeader = headers.get('x-ratelimit-reset');
+
+    if (remainingHeader) {
+      state.remaining = parseInt(remainingHeader, 10);
+    }
+    if (resetHeader) {
+      state.resetTime = parseInt(resetHeader, 10) * 1000;
+    }
+
+    if (status === 429 || state.remaining <= 1 || status === 403) {
+      state.isCoolingDown = true;
+      state.consecutiveErrors++;
+      if (!state.resetTime || state.resetTime <= Date.now()) {
+        state.resetTime = Date.now() + 60_000; // 1 min fallback cooldown
+      }
+    }
+  }
+}
+```
 
 ---
 
-## 7. Phase 1 Signoff & Next Steps
+## 5. Phase 4: Unlimited Tier Unlocking & Autonomous Release Gates
 
-Phase 1 (Master Architecture & Senior Frontend Audit) is fully compiled and synchronized in `docs/PLAN.md` across both the active worktree and the desktop repository. No application source code has been altered during Phase 1.
+### 5.1 Removing Artificial Scan & Export Barriers
+In alignment with the user directive, Zelsis v31.0.0 delivers unconstrained capabilities across all modules:
+1. **Zero Scan Throttling:**
+   - Remove client-side limits on audit run frequency for both manual triggers and CI/CD autonomous webhooks.
+   - Support continuous test execution without synthetic cool-down barriers.
+2. **Unlimited Comprehensive Reports:**
+   - Universal access to full executive audits in all supported formats:
+     - **PDF:** Complete executive multi-page dossier with readiness certification, severity charts, and compliance breakdown. (Eliminate gating in `VibeCareView.tsx`).
+     - **HTML:** Standalone interactive offline audit reports.
+     - **JSON:** Fully structured machine-readable AST and OWASP findings.
+     - **Jira Markdown:** 1-click sprint ticket formatting.
+3. **Custom Rule Management:**
+   - Enable teams to customize active rule catalogs: toggle specific security/compliance checks, manage `.zelsisignore` suppression patterns, and configure custom severity thresholds.
 
-**Awaiting user authorization to initiate Phase 2 multi-agent execution.**
+### 5.2 Streaming Memory Optimization for 1,000+ File Codebases
+Scanning repositories with 1,000+ files client-side risks freezing the browser main thread and triggering Out-Of-Memory (OOM) tab crashes. Zelsis addresses this with cooperative streaming execution:
+1. **Cooperative Event-Loop Slicing:**
+   - Introduce `await yieldToMain()` every 20 files:
+     ```typescript
+     export async function yieldToMain(): Promise<void> {
+       if (typeof window !== 'undefined' && 'scheduler' in window && (window as any).scheduler?.yield) {
+         return (window as any).scheduler.yield();
+       }
+       return new Promise(resolve => setTimeout(resolve, 0));
+     }
+     ```
+   - Allows browser paint cycles, terminal scrolling, and user interactions to remain 60fps smooth during deep audits.
+2. **Streaming Buffer Pruning:**
+   - Discard raw file contents immediately after AST and regex evaluation, retaining only parsed line snippets and finding metadata.
+   - Limits heap memory footprint to `<85MB` even on enterprise repos with 5,000+ source files.
+
+---
+
+## 6. Specialist Team Allocation (Phase 2 Execution Architecture)
+
+To execute the implementation with zero friction and guaranteed regression safety, tasks are allocated to four specialized agent personas:
+
+```mermaid
+graph LR
+    subgraph S1["Specialist 1: frontend-specialist"]
+        F1["Implement lib/safe-utils.ts"]
+        F2["Implement ComponentErrorBoundary.tsx"]
+        F3["Wrap 6 Core Dashboard Widgets"]
+        F4["Refactor High-Risk String Calls"]
+        F5["Unlock VibeCare PDF Export"]
+    end
+
+    subgraph S2["Specialist 2: backend-specialist"]
+        B1["Implement GitHubTokenPool in Proxy"]
+        B2["Add Rotation & Cooldown Logic"]
+        B3["Zero-Friction 1-Click OAuth Connect"]
+        B4["Stream Optimization in scanner-engine.ts"]
+    end
+
+    subgraph S3["Specialist 3: security-auditor"]
+        SEC1["OWASP Top 10 Audit on Token Pool"]
+        SEC2["SSRF & DNS Pinning Validation"]
+        SEC3["Token Redaction in Logger/Headers"]
+        SEC4["CWE-598 Strict Enforcement"]
+    end
+
+    subgraph S4["Specialist 4: test-engineer"]
+        T1["Unit Tests for safe-utils.ts"]
+        T2["Error Boundary Trigger & Recovery Tests"]
+        T3["Token Rotation & Fallback Tests"]
+        T4["1,000+ File Streaming Benchmark"]
+        T5["Full Production Build Verification"]
+    end
+
+    S1 --> S4
+    S2 --> S4
+    S3 --> S4
+```
+
+### 6.1 Specialist 1: `frontend-specialist`
+- **Domain:** Component resilience, safe string helpers integration, ErrorBoundaries, unconstrained export UI.
+- **Assigned Deliverables:**
+  1. **`lib/safe-utils.ts` Implementation:**
+     - Deploy zero-crash primitives: `safeString`, `safeLower`, `safeUpper`, `safeTrim`, `safeReplace`, `safeUrl`, `safeArray`, `safeRecord`.
+     - Full TypeScript typings with default fallback parameters.
+  2. **`components/common/ComponentErrorBoundary.tsx` Implementation:**
+     - Build high-resilience class boundary matching Obsidian Dark minimal styling.
+     - Inline fallback UI with manual reset and prop-change automatic recovery.
+  3. **Granular Dashboard Wrapping:**
+     - Isolate `GateStatusBanner` in `DashboardView.tsx`.
+     - Isolate `ScaLicenseRiskCard` in `DashboardView.tsx`.
+     - Isolate `FindingsTable` in `DashboardView.tsx`.
+     - Isolate `ScanRunnerView` in `app/dashboard/page.tsx`.
+     - Isolate `TerminalLogWindow` in `ScanRunnerView.tsx`.
+     - Isolate `VibeCareView` in `app/dashboard/page.tsx`.
+  4. **Call-Site Refactoring:**
+     - Refactor all `.toLowerCase()`, `.replace()`, `.trim()` in `FindingsTable.tsx`, `GateStatusBanner.tsx`, `ScanRunnerView.tsx`, and `VibeCareView.tsx`.
+  5. **Unconstrained Report Unlocking:**
+     - Remove free-tier modal blocks in `VibeCareView.tsx`, providing immediate PDF downloads for all users.
+
+### 6.2 Specialist 2: `backend-specialist`
+- **Domain:** Server-side GitHub proxy token pooling, rate-limit avoidance, streaming memory management.
+- **Assigned Deliverables:**
+  1. **Managed Token Pool (`app/api/v1/github-proxy/route.ts`):**
+     - Parse multi-token pools from `process.env.GITHUB_TOKENS`.
+     - Dynamic selection based on remaining quota and cooldown states.
+     - Token feedback loop capturing `x-ratelimit-remaining` and `x-ratelimit-reset`.
+  2. **Zero-Friction GitHub Pipeline:**
+     - Support Supabase OAuth GitHub provider tokens seamlessly in request headers.
+     - Eliminate PAT requirements for paying and authenticated users.
+  3. **Streaming Memory Optimization (`lib/scanner-engine.ts`):**
+     - Integrate `yieldToMain()` cooperative execution loop every 20 files.
+     - In-memory buffer cleaning for large codebases (1,000+ files).
+
+### 6.3 Specialist 3: `security-auditor`
+- **Domain:** OWASP Top 10 compliance, secret protection, token isolation, SSRF prevention.
+- **Assigned Deliverables:**
+  1. **Token Protection & Redaction:**
+     - Ensure rotating tokens are strictly server-only; zero leakage into client payloads, error responses, or browser console.
+     - Verify PII/token redaction filter in `lib/logger.ts`.
+  2. **Strict SSRF & Input Sanitization:**
+     - Maintain strict regex validation on `owner` and `repo` parameters in `github-proxy`.
+     - Enforce CWE-598 (reject query-string token transmission).
+  3. **OWASP Top 10 Verification:**
+     - Validate RLS policies, security headers (HSTS, CSP, X-Frame-Options), and safe dependency boundaries.
+
+### 6.4 Specialist 4: `test-engineer`
+- **Domain:** Test suite execution, edge-case fuzzing, error boundary verification, production build validation.
+- **Assigned Deliverables:**
+  1. **Defensive Utility Unit Tests:**
+     - Test `safe-utils.ts` against `null`, `undefined`, integers, circular objects, malformed URLs, and regex attacks.
+  2. **Error Boundary Resilience Verification:**
+     - Simulate injected component errors in `FindingsTable` and `ScaLicenseRiskCard`; verify sibling components remain active and reset button restores state cleanly.
+  3. **Token Pool Rotation Tests:**
+     - Mock HTTP 429 and rate-limit headers; assert seamless failover to secondary pool tokens.
+  4. **High-Throughput Scale Test:**
+     - Run 1,000+ synthetic file scan; confirm zero UI thread freezes and memory footprint `<100MB`.
+  5. **Production Build Clearance:**
+     - Execute `npm run build` and `tsc --noEmit` to certify zero TypeScript compiler errors.
+
+---
+
+## 7. Quality & Verification Gates Matrix
+
+Prior to certifying Phase 2 completion, the following automated and architectural gates must pass with 100% compliance:
+
+| Gate ID | Verification Item | Target Standard | Verification Method |
+| :---: | :--- | :--- | :--- |
+| **GATE-01** | Zero Unhandled TypeErrors | 100% safe string handling; 0 crashes on null/undefined input | Automated unit tests fuzzing `safe-utils.ts` |
+| **GATE-02** | Micro-Fault Isolation | 6 of 6 core widgets wrapped in `ComponentErrorBoundary` | React component tree audit & simulated error injection |
+| **GATE-03** | Managed GitHub Token Pool | Multi-token rotation with automatic cooldown & rate tracking | Proxy unit tests mocking 429 rate limit |
+| **GATE-04** | Zero-Friction User Flow | Paying users scan private/public repos without manual PAT | End-to-end user journey inspection |
+| **GATE-05** | Uncapped Reports & Scans | PDF, HTML, JSON, Jira exports accessible with zero blocker modals | UI interaction test across all export buttons |
+| **GATE-06** | 1,000+ File Scalability | Heap `<100MB`, zero frame freezes during scan | Synthetic 1,000-file repository audit benchmark |
+| **GATE-07** | OWASP Security Hardening | Zero secrets leaked, CWE-598 strictly enforced, SSRF guarded | Security auditor penetration & payload review |
+| **GATE-08** | Clean Production Build | 0 TypeScript errors, 0 lint warnings | `npm run build` & `tsc --noEmit` execution |
+
+---
+
+## 8. Master Plan Sign-Off & Execution Readiness
+
+This Master Plan (v31.0.0) establishes the complete, production-grade technical roadmap for **Zelsis**. It has been mirrored across both the desktop repository and the clean worktree.
+
+**Status:** Phase 1 Master Architecture Complete.  
+**Next Step:** Awaiting user directive to initiate Phase 2 specialist execution.

@@ -670,7 +670,7 @@ async function runStressTestSuite() {
     let scanResult: ScanResult;
 
     try {
-      scanResult = runStaticCodeScan(suite.files, suite.name);
+      scanResult = await runStaticCodeScan(suite.files, suite.name);
     } catch (err: unknown) {
       console.error(`❌ CRITICAL EXCEPTION: runStaticCodeScan crashed on repository ${suite.name}:`, err);
       overallFailed = true;

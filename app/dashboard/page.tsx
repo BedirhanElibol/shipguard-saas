@@ -27,6 +27,7 @@ import { safeSetStorageItem } from '@/lib/storage';
 import { ShieldCheck, Plus } from 'lucide-react';
 import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
 import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
+import { ComponentErrorBoundary } from '@/components/common/ComponentErrorBoundary';
 
 export default function DashboardPage() {
   return (
@@ -284,68 +285,72 @@ function DashboardContent() {
       <div className="flex flex-col gap-6 w-full">
         <LifecycleBanner user={user} />
         {isScanning ? (
-          <ScanRunnerView
-            project={scanProjectOverride || selectedProject}
-            onCompleteScan={(result) => {
-              const currentTarget = scanProjectOverride || selectedProject;
-              if (result) {
-                const newScanHistoryItem: ScanHistoryItem = {
-                  id: `SCAN-${Date.now().toString(36).toUpperCase()}`,
-                  date: new Date().toLocaleString(),
-                  target: currentTarget.repoUrl,
-                  score: result.score,
-                  gateStatus: result.gateStatus,
-                  criticalCount: result.criticalCount,
-                  highCount: result.highCount,
-                  mediumCount: result.mediumCount,
-                  duration: '3.4s',
-                  triggeredBy: 'Manual Dashboard Audit'
-                };
-                const updatedProject: Project = {
-                  ...currentTarget,
-                  readinessScore: result.score,
-                  gateStatus: result.gateStatus,
-                  criticalCount: result.criticalCount,
-                  highCount: result.highCount,
-                  mediumCount: result.mediumCount,
-                  lowCount: result.lowCount,
-                  uiClicheCount: result.uiClicheCount,
-                  findings: result.findings,
-                  lastScanAt: new Date().toLocaleString(),
-                  scanHistory: [newScanHistoryItem, ...((currentTarget as any).scanHistory || [])].slice(0, 20)
-                };
-                setSelectedProject(updatedProject);
-                setProjects((prev) => {
-                  const exists = prev.some((p) => p.id === currentTarget.id);
-                  const updatedList = exists
-                    ? prev.map((p) => (p.id === currentTarget.id ? updatedProject : p))
-                    : [updatedProject, ...prev];
-                  persistProjectsList(updatedList);
-                  return updatedList;
-                });
-              }
-              setScanProjectOverride(null);
-              setIsScanning(false);
-              setActiveNav('dashboard');
-            }}
-          />
+          <ComponentErrorBoundary componentName="ScanRunnerView" resetKeys={[scanProjectOverride?.id, selectedProject?.id]}>
+            <ScanRunnerView
+              project={scanProjectOverride || selectedProject}
+              onCompleteScan={(result) => {
+                const currentTarget = scanProjectOverride || selectedProject;
+                if (result) {
+                  const newScanHistoryItem: ScanHistoryItem = {
+                    id: `SCAN-${Date.now().toString(36).toUpperCase()}`,
+                    date: new Date().toLocaleString(),
+                    target: currentTarget.repoUrl,
+                    score: result.score,
+                    gateStatus: result.gateStatus,
+                    criticalCount: result.criticalCount,
+                    highCount: result.highCount,
+                    mediumCount: result.mediumCount,
+                    duration: '3.4s',
+                    triggeredBy: 'Manual Dashboard Audit'
+                  };
+                  const updatedProject: Project = {
+                    ...currentTarget,
+                    readinessScore: result.score,
+                    gateStatus: result.gateStatus,
+                    criticalCount: result.criticalCount,
+                    highCount: result.highCount,
+                    mediumCount: result.mediumCount,
+                    lowCount: result.lowCount,
+                    uiClicheCount: result.uiClicheCount,
+                    findings: result.findings,
+                    lastScanAt: new Date().toLocaleString(),
+                    scanHistory: [newScanHistoryItem, ...((currentTarget as any).scanHistory || [])].slice(0, 20)
+                  };
+                  setSelectedProject(updatedProject);
+                  setProjects((prev) => {
+                    const exists = prev.some((p) => p.id === currentTarget.id);
+                    const updatedList = exists
+                      ? prev.map((p) => (p.id === currentTarget.id ? updatedProject : p))
+                      : [updatedProject, ...prev];
+                    persistProjectsList(updatedList);
+                    return updatedList;
+                  });
+                }
+                setScanProjectOverride(null);
+                setIsScanning(false);
+                setActiveNav('dashboard');
+              }}
+            />
+          </ComponentErrorBoundary>
         ) : (
           <>
             {activeNav === 'dashboard' && (
-              <DashboardView
-                project={selectedProject}
-                onTriggerScan={handleTriggerScan}
-                onInspectFinding={(f) => setInspectingFinding(f)}
-                onNavigatePillar={(p) => setActiveNav(p)}
-                onLoadDemoFindings={handleLoadDemoFindings}
-                user={user}
-                onOpenAuth={(mode) => {
-                  setAuthInitialMode(mode);
-                  setIsAuthModalOpen(true);
-                }}
-                onAddNewProject={handleAddNewProject}
-                onSelectProject={handleSelectProject}
-              />
+              <ComponentErrorBoundary componentName="DashboardView" resetKeys={[selectedProject?.id, selectedProject?.lastScanAt]}>
+                <DashboardView
+                  project={selectedProject}
+                  onTriggerScan={handleTriggerScan}
+                  onInspectFinding={(f) => setInspectingFinding(f)}
+                  onNavigatePillar={(p) => setActiveNav(p)}
+                  onLoadDemoFindings={handleLoadDemoFindings}
+                  user={user}
+                  onOpenAuth={(mode) => {
+                    setAuthInitialMode(mode);
+                    setIsAuthModalOpen(true);
+                  }}
+                  onAddNewProject={handleAddNewProject}
+                  onSelectProject={handleSelectProject}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'security' && (
@@ -394,11 +399,13 @@ function DashboardContent() {
             )}
 
             {activeNav === 'vibecare' && (
-              <VibeCareView
-                project={selectedProject}
-                user={user}
-                onOpenCheckout={() => handleOpenCheckoutModal('Enterprise')}
-              />
+              <ComponentErrorBoundary componentName="VibeCareView" resetKeys={[selectedProject?.id]}>
+                <VibeCareView
+                  project={selectedProject}
+                  user={user}
+                  onOpenCheckout={() => handleOpenCheckoutModal('Enterprise')}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'cicd' && (

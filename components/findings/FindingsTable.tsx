@@ -6,6 +6,7 @@ import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
 import { Search, Filter, ArrowRight, Layers, Check, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown, SearchX, ExternalLink } from 'lucide-react';
 import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
+import { safeLower, safeString, safeTrim, safeReplace } from '@/lib/safe-utils';
 
 interface FindingsTableProps {
   findings: Finding[];
@@ -57,7 +58,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
     e.stopPropagation();
     const promptText =
       item.remediationPrompt ||
-      `Fix vulnerability in ${item.filePath} (${item.lineRange}): ${item.title}`;
+      `Fix vulnerability in ${safeString(item.filePath)} (${safeString(item.lineRange)}): ${safeString(item.title)}`;
     navigator.clipboard.writeText(promptText);
     showToast('AI prompt copied to clipboard', '[COPIED]');
   };
@@ -121,16 +122,16 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
   // Extract CVE IDs from finding title or remediation prompt for NVD links
   const extractCveIds = (finding: Finding): string[] => {
-    const text = `${finding.title} ${finding.remediationPrompt ?? ''}`;
+    const text = `${safeString(finding.title)} ${safeString(finding.remediationPrompt)}`;
     const matches = text.match(/(CVE-\d{4}-\d{4,7})/gi);
     return matches ? [...new Set(matches.map((m) => m.toUpperCase()))] : [];
   };
 
   const filtered = findings.filter((f) => {
-    const safeSearch = (searchTerm ?? '').toLowerCase();
-    const titleStr = (f.title || '').toLowerCase();
-    const pathStr = (f.filePath || '').toLowerCase();
-    const catStr = (f.category || '').toLowerCase();
+    const safeSearch = safeLower(safeTrim(searchTerm));
+    const titleStr = safeLower(f.title);
+    const pathStr = safeLower(f.filePath);
+    const catStr = safeLower(f.category);
     const matchesSearch =
       titleStr.includes(safeSearch) ||
       pathStr.includes(safeSearch) ||
@@ -198,7 +199,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
-              {findings.filter(f => f.type === 'INFRA_DATABASE' || (f.category || '').toLowerCase().includes('sql') || (f.category || '').toLowerCase().includes('rls') || (f.category || '').toLowerCase().includes('database')).length}
+              {findings.filter(f => f.type === 'INFRA_DATABASE' || safeLower(f.category).includes('sql') || safeLower(f.category).includes('rls') || safeLower(f.category).includes('database')).length}
             </span>
             <span className="text-[10px] text-zinc-400 font-mono">
               Postgres &amp; SQL

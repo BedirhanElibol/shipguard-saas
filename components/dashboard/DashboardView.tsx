@@ -18,6 +18,7 @@ import confetti from 'canvas-confetti';
 import { ShieldCheck, Code, Server } from 'lucide-react';
 import { ConnectTargetModal } from '../layout/ConnectTargetModal';
 import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
+import { ComponentErrorBoundary } from '../common/ComponentErrorBoundary';
 
 interface DashboardViewProps {
   project: Project;
@@ -128,15 +129,17 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
       )}
 
       {/* Top Gate Status Banner */}
-      <GateStatusBanner
-        project={project}
-        criticals={criticals}
-        highs={highs}
-        uiCliches={uiCliches}
-        onTriggerScan={onTriggerScan}
-        onOpenConnectTarget={() => setIsConnectTargetOpen(true)}
-        onOpenModal={(type) => setActiveModal(type)}
-      />
+      <ComponentErrorBoundary componentName="GateStatusBanner" resetKeys={[project?.id, project?.gateStatus]}>
+        <GateStatusBanner
+          project={project}
+          criticals={criticals}
+          highs={highs}
+          uiCliches={uiCliches}
+          onTriggerScan={onTriggerScan}
+          onOpenConnectTarget={() => setIsConnectTargetOpen(true)}
+          onOpenModal={(type) => setActiveModal(type)}
+        />
+      </ComponentErrorBoundary>
 
       {/* Swiss Navigation Tabs Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-3">
@@ -184,14 +187,16 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         <div className="flex flex-col gap-6">
           <KpiCards project={project} onNavigatePillar={onNavigatePillar} />
           <SeverityChart project={project} />
-          <FindingsTable
-            findings={project.findings}
-            onInspectFinding={onInspectFinding}
-            onTriggerScan={onTriggerScan}
-            onLoadDemoFindings={onLoadDemoFindings}
-            onCopyPrompt={copyMasterPrompt}
-            copiedPrompt={copiedMaster}
-          />
+          <ComponentErrorBoundary componentName="FindingsTable" resetKeys={[project?.id, project?.findings?.length]}>
+            <FindingsTable
+              findings={project.findings}
+              onInspectFinding={onInspectFinding}
+              onTriggerScan={onTriggerScan}
+              onLoadDemoFindings={onLoadDemoFindings}
+              onCopyPrompt={copyMasterPrompt}
+              copiedPrompt={copiedMaster}
+            />
+          </ComponentErrorBoundary>
         </div>
       )}
 
@@ -208,7 +213,9 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <BundleCostAnalyzer filesCount={project.findings.length + 15} />
-            <ScaLicenseRiskCard />
+            <ComponentErrorBoundary componentName="ScaLicenseRiskCard" resetKeys={[project?.id]}>
+              <ScaLicenseRiskCard />
+            </ComponentErrorBoundary>
           </div>
           <QuickChartWidget project={project} />
         </div>

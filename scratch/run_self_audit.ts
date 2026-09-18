@@ -25,25 +25,29 @@ function getFiles(dir: string, fileList: CodeFile[] = []): CodeFile[] {
   return fileList;
 }
 
-const files = getFiles(repoRoot);
-console.log(`Auditing ${files.length} project files...`);
+async function main() {
+  const files = getFiles(repoRoot);
+  console.log(`Auditing ${files.length} project files...`);
 
-const result = runStaticCodeScan(files, 'shipguard-saas (main)');
-console.log('\n================ AUDIT SUMMARY ================');
-console.log(`Readiness Score: ${result.score}/100`);
-console.log(`Gate Status:     ${result.gateStatus}`);
-console.log(`Critical Count:  ${result.criticalCount}`);
-console.log(`High Count:      ${result.highCount}`);
-console.log(`Medium Count:    ${result.mediumCount}`);
-console.log(`Low Count:       ${result.lowCount}`);
-console.log(`Total Findings:  ${result.findings.length}`);
-console.log('================================================\n');
+  const result = await runStaticCodeScan(files, 'shipguard-saas (main)');
+  console.log('\n================ AUDIT SUMMARY ================');
+  console.log(`Readiness Score: ${result.score}/100`);
+  console.log(`Gate Status:     ${result.gateStatus}`);
+  console.log(`Critical Count:  ${result.criticalCount}`);
+  console.log(`High Count:      ${result.highCount}`);
+  console.log(`Medium Count:    ${result.mediumCount}`);
+  console.log(`Low Count:       ${result.lowCount}`);
+  console.log(`Total Findings:  ${result.findings.length}`);
+  console.log('================================================\n');
 
-if (result.findings.length > 0) {
-  console.log('Findings list:');
-  result.findings.forEach((f, idx) => {
-    console.log(`${idx + 1}. [${f.severity}] ${f.title} (${f.filePath}:${f.lineRange})`);
-  });
-} else {
-  console.log('🎉 ZERO FINDINGS! PERFECT 100/100 DEPLOYMENT READINESS!');
+  if (result.findings.length > 0) {
+    console.log('Findings list:');
+    result.findings.forEach((f, idx) => {
+      console.log(`${idx + 1}. [${f.severity}] ${f.title} (${f.filePath}:${f.lineRange})`);
+    });
+  } else {
+    console.log('🎉 ZERO FINDINGS! PERFECT 100/100 DEPLOYMENT READINESS!');
+  }
 }
+
+main().catch(console.error);

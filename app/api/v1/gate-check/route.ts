@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result = runStaticCodeScan(filesToScan, targetName);
+    const result = await runStaticCodeScan(filesToScan, targetName);
 
     // Auto-dispatch webhook notifications if URLs provided
     if (slackWebhookUrl || discordWebhookUrl) {

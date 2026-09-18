@@ -123,7 +123,7 @@ export function exportScorecardToJson(project: Project): void {
   };
 
   const jsonContent = JSON.stringify(auditReport, null, 2);
-  const safeName = (project.name || 'project').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  const safeName = (project?.name || 'project').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
   const timestamp = new Date().toISOString().slice(0, 10);
   downloadFile(jsonContent, `shipguard-scorecard-${safeName}-${timestamp}.json`, 'application/json');
 }

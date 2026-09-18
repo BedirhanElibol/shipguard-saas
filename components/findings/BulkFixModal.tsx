@@ -59,7 +59,7 @@ export const BulkFixModal: React.FC<BulkFixModalProps> = ({
 
         const snippetLines = (f.snippet || '').split('\n');
         const removedLines = snippetLines.map((l) => `-${l}`).join('\n');
-        const addedComment = `+// REMEDIATION [${f.severity} - ${f.title}]: ${f.remediationPrompt.replace(/\r?\n/g, ' ')}`;
+        const addedComment = `+// REMEDIATION [${f.severity} - ${f.title}]: ${(f.remediationPrompt || 'Remediation').replace(/\r?\n/g, ' ')}`;
 
         patchContent += `--- a/${f.filePath}
 +++ b/${f.filePath}

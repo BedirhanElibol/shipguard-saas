@@ -752,7 +752,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   disabled={!isAuthenticated}
                   onClick={() => {
                     if (!isAuthenticated) return;
-                    const handle = profileName.trim().replace(/\s+/g, '') || 'github';
+                    const handle = (profileName || '').trim().replace(/\s+/g, '') || 'github';
                     setProfileAvatarUrl(`https://github.com/${handle}.png`);
                   }}
                   className={`px-3 py-2 border rounded-xl text-[11px] font-mono transition-colors whitespace-nowrap ${

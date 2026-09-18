@@ -90,7 +90,7 @@ export async function dispatchWebhookAlerts(
             description: isPassed
               ? `Production Clearance Audit PASSED. All security pre-flight checks and VibePolish rules cleared.`
               : `Release BLOCKED. Detected ${result.criticalCount} Critical vulnerabilities requiring remediation before production deployment.`,
-            color: parseInt(colorHex.replace('#', ''), 16),
+            color: parseInt((colorHex || '#10B981').replace('#', ''), 16),
             fields: [
               { name: 'Readiness Score', value: `${result.score}%`, inline: true },
               { name: 'Critical Vulnerabilities', value: `${result.criticalCount}`, inline: true },

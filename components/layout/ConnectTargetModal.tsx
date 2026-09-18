@@ -63,14 +63,16 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
     let finalUrl = targetType === 'GITHUB' ? githubUrl : webSiteUrl;
     let customName = repoName.trim();
 
-    if (customName.startsWith('http') || customName.includes('github.com')) {
-      const sanitized = sanitizeTargetUrl(customName);
+    const rawCustom = (customName || '').trim();
+    if (rawCustom.startsWith('http') || rawCustom.includes('github.com')) {
+      const sanitized = sanitizeTargetUrl(rawCustom);
       finalUrl = sanitized;
-      const parts = sanitized.replace('https://', '').replace('github.com/', '').split('/');
+      const parts = (sanitized || '').replace('https://', '').replace('github.com/', '').split('/');
       customName = parts[1] || parts[0] || 'GitHub Repository';
     }
 
-    const fullUrl = finalUrl.startsWith('http') ? finalUrl : `https://${finalUrl}`;
+    const safeFinal = (finalUrl || '').trim();
+    const fullUrl = safeFinal.startsWith('http') ? safeFinal : `https://${safeFinal}`;
     const isGithub = isValidGithubUrl(fullUrl);
     const isWeb = isValidWebUrl(fullUrl);
 
@@ -85,7 +87,15 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
       return;
     }
 
-    const extractedName = isGithub ? (fullUrl.replace('https://', '').replace('github.com/', '').split('/')[1] || 'GitHub Repository') : new URL(fullUrl).hostname;
+    let hostname = 'Target Web App';
+    try {
+      hostname = new URL(fullUrl).hostname || 'Target Web App';
+    } catch {
+      hostname = 'Target Web App';
+    }
+    const extractedName = isGithub
+      ? ((fullUrl || '').replace('https://', '').replace('github.com/', '').split('/')[1] || 'GitHub Repository')
+      : hostname;
     const displayName = customName || extractedName;
 
     const newProject: Project = {

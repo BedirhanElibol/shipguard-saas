@@ -922,7 +922,7 @@ export function useDashboardState() {
     if (mode === 'signup') {
       const res = await supabaseSignUp(email, pass, name || '');
       if (res.error) throw new Error(res.error);
-      const derivedName = name?.trim() || res.user?.name || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
+      const derivedName = name?.trim() || res.user?.name || (email ? email.split('@')[0].replace(/[._-]/g, ' ') : '') || 'User';
 
       let resolvedSignUpTier: 'Free' | 'Pro' | 'Enterprise' = res.user?.tier || 'Free';
       let resolvedSignUpExpiresAt: string | undefined = undefined;
@@ -984,7 +984,7 @@ export function useDashboardState() {
     } else {
       const res = await supabaseSignIn(email, pass);
       if (res.error) throw new Error(res.error);
-      const derivedName = res.user?.name || email.split('@')[0].replace(/[._-]/g, ' ') || 'User';
+      const derivedName = res.user?.name || (email ? email.split('@')[0].replace(/[._-]/g, ' ') : '') || 'User';
       
       let resolvedTier = res.user?.tier || 'Free';
       let resolvedExpiresAt = res.user?.expiresAt;

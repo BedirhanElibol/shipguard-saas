@@ -357,7 +357,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             const rawLog = realLogs[currentIdx];
             if (rawLog) {
               const liveTime = new Date().toLocaleTimeString();
-              const updatedLog = rawLog.replace(/^\[\d{1,2}:\d{2}:\d{2}(\s?[AP]M)?\]/, `[${liveTime}]`);
+              const updatedLog = String(rawLog || '').replace(/^\[\d{1,2}:\d{2}:\d{2}(\s?[AP]M)?\]/, `[${liveTime}]`);
               newLogItems.push(updatedLog);
             }
             currentIdx++;

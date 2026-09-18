@@ -124,16 +124,20 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[11px] font-mono text-[#A1A1AA]">Audited Target:</span>
-            <a
-              href={project.repoUrl.startsWith('http') ? project.repoUrl : `https://${project.repoUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] font-mono font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
-              title="Open target repository"
-            >
-              <span className="truncate">{project.repoUrl.replace(/^https?:\/\//, '')}</span>
-              <ExternalLink size={11} className="shrink-0" />
-            </a>
+            {project?.repoUrl ? (
+              <a
+                href={project.repoUrl.startsWith('http') ? project.repoUrl : `https://${project.repoUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-mono font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
+                title="Open target repository"
+              >
+                <span className="truncate">{(project.repoUrl || '').replace(/^https?:\/\//, '')}</span>
+                <ExternalLink size={11} className="shrink-0" />
+              </a>
+            ) : (
+              <span className="text-[11px] font-mono font-bold text-zinc-400">Local Workspace</span>
+            )}
             {onOpenConnectTarget && (
               <button
                 type="button"

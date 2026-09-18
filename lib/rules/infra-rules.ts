@@ -63,7 +63,7 @@ export function evaluateInfraRules(
     let match: RegExpExecArray | null;
 
     while ((match = tableRegex.exec(cleanContent)) !== null) {
-      const rawTableName = match[1].replace(/["']/g, '');
+      const rawTableName = (match[1] || '').replace(/["']/g, '');
       const simpleName = rawTableName.includes('.') ? rawTableName.split('.').pop()! : rawTableName;
 
       // Check if RLS is enabled for this table anywhere in the file

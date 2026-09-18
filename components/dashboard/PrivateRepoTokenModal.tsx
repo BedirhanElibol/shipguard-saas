@@ -74,7 +74,7 @@ export const PrivateRepoTokenModal: React.FC<PrivateRepoTokenModalProps> = ({
     onSaveTokenAndScan(cleanToken);
   };
 
-  const cleanRepoName = repoUrl.replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '');
+  const cleanRepoName = (repoUrl || '').replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '') || 'Repository';
 
   return (
     <AnimatePresence>

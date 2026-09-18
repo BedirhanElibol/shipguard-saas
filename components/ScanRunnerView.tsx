@@ -88,11 +88,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
     async function executeLiveScan() {
       const isLocalOrSelfAudit =
-        project.repoUrl === 'local' ||
-        project.repoUrl.toLowerCase() === 'local' ||
-        project.id === 'proj-zelsis-self' ||
-        project.id === 'proj-shipguard-self' ||
-        project.id === 'proj-preset-self';
+        (project.repoUrl === 'local' || project.repoUrl?.toLowerCase() === 'local') &&
+        canAccessLocalAudit();
       const isWebTarget = isValidWebUrl(project.repoUrl);
 
       let filesToScan: CodeFile[] = [];
@@ -110,9 +107,11 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           return;
         }
 
+        setProgress(10);
         const { WORKSPACE_SOURCE_FILES } = await import('@/data/workspaceFiles');
         filesToScan = WORKSPACE_SOURCE_FILES;
         setQueuedFilesCount(filesToScan.length);
+        setProgress(25);
         if (!isCancelled) {
           setLogs([
             `[${new Date().toLocaleTimeString()}] [LOAD] Loaded Repository Files for "${project.name}" (${filesToScan.length} source files queued).`,
@@ -175,8 +174,10 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         }
       } else {
         setLogs([
-          `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to GitHub Target: ${project.repoUrl}`
+          `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to GitHub Target: ${project.repoUrl}`,
+          `[${new Date().toLocaleTimeString()}] [STAGE 1] Initializing repository connection and resolving git tree...`
         ]);
+        setProgress(2);
 
         let effectiveToken = activeGithubToken || (project as any).githubToken;
         if (!effectiveToken && typeof window !== 'undefined') {
@@ -197,7 +198,30 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           ]);
         }
 
-        const liveData = await fetchGithubRepositoryData(project.repoUrl, effectiveToken, controller.signal);
+        const liveData = await fetchGithubRepositoryData(
+          project.repoUrl,
+          effectiveToken,
+          controller.signal,
+          ({ phase, loaded, total, currentFile }) => {
+            if (isCancelled) return;
+            if (phase === 'connecting') {
+              setProgress(3);
+            } else if (phase === 'tree') {
+              setProgress(6);
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] [TREE] Scanning git tree hierarchy...`
+              ]);
+            } else if (phase === 'fetching') {
+              const fetchPct = Math.min(24, Math.max(6, Math.round(6 + (loaded / Math.max(1, total)) * 18)));
+              setProgress(fetchPct);
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] [FETCH] (${loaded}/${total}) ${currentFile}`
+              ]);
+            }
+          }
+        );
 
         // 1. Check for Cloudflare bot challenge
         if (liveData?.error === 'CLOUDFLARE_BOT_PROTECTION') {
@@ -275,6 +299,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         if (liveData && liveData.files && liveData.files.length > 0) {
           filesToScan = liveData.files;
           setQueuedFilesCount(liveData.files.length);
+          setProgress(25);
           if (!isCancelled) {
             setLogs((prev) => [
               ...prev,
@@ -339,7 +364,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
 
           setLogs((prev) => [...prev, ...newLogItems]);
-          const pct = Math.min(100, Math.round((currentIdx / realLogs.length) * 100));
+          const pct = Math.min(100, Math.round(25 + (currentIdx / realLogs.length) * 75));
           setProgress(pct);
           if (typeof document !== 'undefined') {
             document.title = `(${pct}%) Zelsis Audit | ${project.name}`;
@@ -406,9 +431,11 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isFinished]);
 
-  const activeFileLog = [...logs].reverse().find(l => l.includes('Opening & AST Inspecting') || l.includes('Inspect'));
+  const activeFileLog = [...logs].reverse().find(l => l.includes('Opening & AST Inspecting') || l.includes('Inspecting ') || l.includes('[FETCH]'));
   const currentFileName = activeFileLog
-    ? activeFileLog.split('Inspecting ')[1] || 'Scanning Source File...'
+    ? (activeFileLog.includes('Inspecting ') ? activeFileLog.split('Inspecting ')[1] : null) ||
+      (activeFileLog.includes('[FETCH] ') ? activeFileLog.split('[FETCH] ')[1] : null) ||
+      'Scanning Source File...'
     : queuedFilesCount === 0
     ? 'Connecting to Remote Target & Resolving Git Tree...'
     : 'Queuing Repository Files...';

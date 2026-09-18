@@ -4,6 +4,9 @@ import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GithubProxyQuerySchema, validateQueryParams } from '@/lib/validations/api-schemas';
 import { logger } from '@/lib/logger';
 
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 const GITHUB_RATE_LIMIT_MESSAGE =
   'GitHub API rate limit reached (60 req/hr). Add a GitHub Personal Access Token (PAT) in Settings to unlock 5,000 req/hr.';
 
@@ -274,7 +277,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch raw file contents in parallel chunks from GitHub
-    const CHUNK_SIZE = 40;
+    const CHUNK_SIZE = 50;
     const fetchedFiles: Array<{ path: string; content: string }> = [];
 
     for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {

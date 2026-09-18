@@ -1,5 +1,25 @@
 import { CodeFile } from './scanner-engine';
 
+export interface FetchProgress {
+  phase: 'connecting' | 'tree' | 'fetching';
+  loaded: number;
+  total: number;
+  currentFile: string;
+}
+
+export function createTimeoutSignal(timeoutMs: number, userSignal?: AbortSignal): AbortSignal {
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  if (!userSignal) return timeoutSignal;
+  if (typeof (AbortSignal as any).any === 'function') {
+    return (AbortSignal as any).any([userSignal, timeoutSignal]);
+  }
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  userSignal.addEventListener('abort', onAbort, { once: true });
+  timeoutSignal.addEventListener('abort', onAbort, { once: true });
+  return controller.signal;
+}
+
 export interface GithubRepoInfo {
   name: string;
   fullName: string;
@@ -133,7 +153,8 @@ export function isValidGithubUrl(url: string): boolean {
 export async function fetchGithubRepositoryData(
   repoUrl: string,
   token?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  onProgress?: (progress: FetchProgress) => void
 ): Promise<GithubRepoInfo | null> {
   const parsed = parseGithubUrl(repoUrl);
   if (!parsed) return null;
@@ -142,6 +163,13 @@ export async function fetchGithubRepositoryData(
   const isBrowser = typeof window !== 'undefined';
   if (isBrowser) {
     try {
+      onProgress?.({
+        phase: 'connecting',
+        loaded: 0,
+        total: 0,
+        currentFile: `Connecting to ${parsed.owner}/${parsed.repo}...`
+      });
+
       const proxyEndpoint = `/api/v1/github-proxy?repoUrl=${encodeURIComponent(repoUrl)}`;
       const proxyHeaders: Record<string, string> = {};
       let effectiveToken = token;
@@ -158,7 +186,10 @@ export async function fetchGithubRepositoryData(
       if (effectiveToken) {
         proxyHeaders['Authorization'] = `Bearer ${effectiveToken.trim()}`;
       }
-      const proxyRes = await fetch(proxyEndpoint, { headers: proxyHeaders, signal });
+      const proxyRes = await fetch(proxyEndpoint, {
+        headers: proxyHeaders,
+        signal: createTimeoutSignal(15000, signal)
+      });
       if (proxyRes.ok) {
         const data = await proxyRes.json();
         if (data) {
@@ -245,6 +276,13 @@ export async function fetchGithubRepositoryData(
               return { path: f.path, content };
             });
 
+            onProgress?.({
+              phase: 'fetching',
+              loaded: files.length,
+              total: files.length,
+              currentFile: `Retrieved ${files.length} source code files`
+            });
+
             return {
               name: data.name || parsed.repo,
               fullName: data.fullName || `${parsed.owner}/${parsed.repo}`,
@@ -277,9 +315,16 @@ export async function fetchGithubRepositoryData(
   }
 
   try {
+    onProgress?.({
+      phase: 'connecting',
+      loaded: 0,
+      total: 0,
+      currentFile: `Connecting directly to GitHub API: ${owner}/${repo}...`
+    });
+
     const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers,
-      signal: signal || AbortSignal.timeout(8000)
+      signal: createTimeoutSignal(8000, signal)
     });
 
     if (!repoRes.ok) {
@@ -362,9 +407,15 @@ export async function fetchGithubRepositoryData(
     for (const branch of candidateBranches) {
       if (signal?.aborted) return null;
       try {
+        onProgress?.({
+          phase: 'tree',
+          loaded: 0,
+          total: 0,
+          currentFile: `Resolving Git tree for branch "${branch}"...`
+        });
         const res = await fetch(
           `https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`,
-          { headers, signal: signal || AbortSignal.timeout(10000) }
+          { headers, signal: createTimeoutSignal(10000, signal) }
         );
         if (res.ok) {
           treeRes = res;
@@ -488,7 +539,14 @@ export async function fetchGithubRepositoryData(
       };
     }
 
-    const CHUNK_SIZE = 35;
+    onProgress?.({
+      phase: 'tree',
+      loaded: 0,
+      total: treeFiles.length,
+      currentFile: `Discovered ${treeFiles.length} scannable source files`
+    });
+
+    const CHUNK_SIZE = 30;
     const fetchedFiles: (CodeFile | null)[] = [];
 
     for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {
@@ -502,7 +560,7 @@ export async function fetchGithubRepositoryData(
               `https://raw.githubusercontent.com/${owner}/${repo}/${resolvedBranch}/${encodedPath}`,
               {
                 headers: effectiveToken ? { Authorization: `token ${effectiveToken.trim()}` } : {},
-                signal: signal || AbortSignal.timeout(6000)
+                signal: createTimeoutSignal(8000, signal)
               }
             );
             if (rawRes.ok) {
@@ -523,6 +581,14 @@ export async function fetchGithubRepositoryData(
         })
       );
       fetchedFiles.push(...chunkResults);
+      const currentLoaded = Math.min(treeFiles.length, i + chunk.length);
+      const activePath = chunk[chunk.length - 1]?.path || 'source file';
+      onProgress?.({
+        phase: 'fetching',
+        loaded: currentLoaded,
+        total: treeFiles.length,
+        currentFile: activePath
+      });
     }
 
     const codeFiles: CodeFile[] = fetchedFiles.filter((f): f is CodeFile => f !== null);

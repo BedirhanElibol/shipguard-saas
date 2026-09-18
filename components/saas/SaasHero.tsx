@@ -271,7 +271,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-emerald-400">●</span>
-              <span>All 4 Pillars Calibrated for Deployment</span>
+              <span>All Core Capabilities Calibrated for Deployment</span>
             </div>
           </div>
         </motion.div>

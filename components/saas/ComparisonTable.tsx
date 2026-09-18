@@ -15,7 +15,7 @@ export const ComparisonTable: React.FC = () => {
       enterprise: '15–45 minutes'
     },
     {
-      feature: 'Multi-Pillar Verification',
+      feature: 'Multi-Vector Verification',
       detail: 'Security, UI/UX, Cloud Infra, and Legal Compliance combined',
       zelsis: true,
       linters: false,

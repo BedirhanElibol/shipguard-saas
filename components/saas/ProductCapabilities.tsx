@@ -16,7 +16,7 @@ import {
   Zap
 } from 'lucide-react';
 
-interface CapabilityPillar {
+interface ProductCapability {
   id: string;
   badge: string;
   title: string;
@@ -32,10 +32,10 @@ interface CapabilityPillar {
 export const ProductCapabilities: React.FC = () => {
   const [zoomImage, setZoomImage] = useState<string | null>(null);
 
-  const pillars: CapabilityPillar[] = [
+  const capabilities: ProductCapability[] = [
     {
       id: 'rules',
-      badge: 'PILLAR 01 // RULE TAXONOMY',
+      badge: 'CAPABILITY 01 // RULE TAXONOMY',
       title: 'Exhaustive Pre-Flight Release Rules',
       subtitle: 'Continuous verification across OWASP Top 10, database isolation, and cloud architecture.',
       description:
@@ -57,7 +57,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'findings',
-      badge: 'PILLAR 02 // SURGICAL AST TRIAGE',
+      badge: 'CAPABILITY 02 // SURGICAL AST TRIAGE',
       title: 'Line-by-Line Vulnerability Triage & Context',
       subtitle: 'Pinpoint vulnerabilities down to the exact line number with 1-click AI remediation prompts.',
       description:
@@ -79,7 +79,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'sandbox',
-      badge: 'PILLAR 03 // ZERO-INSTALL REPL',
+      badge: 'CAPABILITY 03 // ZERO-INSTALL REPL',
       title: 'Interactive In-Memory AST Sandbox',
       subtitle: 'Test production code snippets against clearance rules in live browser memory.',
       description:
@@ -101,7 +101,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'profiler',
-      badge: 'PILLAR 04 // WEB VITALS & INFRASTRUCTURE',
+      badge: 'CAPABILITY 04 // WEB VITALS & INFRASTRUCTURE',
       title: 'Deep Bundle & Core Web Vitals Profiler',
       subtitle: 'Identify layout shifts, unoptimized asset weights, and container resource limits.',
       description:
@@ -123,7 +123,7 @@ export const ProductCapabilities: React.FC = () => {
     }
   ];
 
-  if (pillars.length === 0) {
+  if (capabilities.length === 0) {
     return <div className="text-neutral-500 font-mono text-sm">No capabilities defined.</div>;
   }
 
@@ -136,7 +136,7 @@ export const ProductCapabilities: React.FC = () => {
             <span>ENTERPRISE CAPABILITIES</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            Production Readiness Across 4 Core Pillars
+            Production Readiness Across 4 Core Capabilities
           </h2>
           <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed font-sans">
             Engineered to replace fragmented linters, manual security spreadsheets, and bloated compliance suites with a unified developer platform.
@@ -145,11 +145,11 @@ export const ProductCapabilities: React.FC = () => {
 
         {/* Sequential Alternating Showcase of All 4 Capabilities */}
         <div className="flex flex-col gap-16">
-          {pillars.map((pillar, idx) => {
+          {capabilities.map((capability, idx) => {
             const isReversed = idx % 2 === 1;
             return (
               <div
-                key={pillar.id}
+                key={capability.id}
                 className={`rounded-2xl border border-white/15 bg-[#121212] p-6 sm:p-10 shadow-2xl flex flex-col ${
                   isReversed ? 'lg:flex-row-reverse' : 'lg:flex-row'
                 } gap-10 items-center`}
@@ -157,24 +157,24 @@ export const ProductCapabilities: React.FC = () => {
                 {/* Text & Architecture Pills Column (5 cols) */}
                 <div className="w-full lg:w-5/12 flex flex-col gap-6">
                   <div className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
-                    <span>{pillar.badge}</span>
+                    <span>{capability.badge}</span>
                   </div>
 
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
-                    {pillar.title}
+                    {capability.title}
                   </h3>
 
                   <p className="text-xs sm:text-sm font-semibold text-zinc-300 leading-normal">
-                    {pillar.subtitle}
+                    {capability.subtitle}
                   </p>
 
                   <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-sans">
-                    {pillar.description}
+                    {capability.description}
                   </p>
 
                   {/* Architecture Capability Tags (No Fake Numbers) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-4 border-y border-white/10">
-                    {pillar.architecturePills.map((pill, pIdx) => (
+                    {capability.architecturePills.map((pill, pIdx) => (
                       <div key={pIdx} className="p-2.5 rounded-lg bg-[#0E0E10] border border-white/5 flex items-center">
                         <span className="text-xs font-mono text-zinc-300">{pill}</span>
                       </div>
@@ -183,7 +183,7 @@ export const ProductCapabilities: React.FC = () => {
 
                   {/* Bullet List */}
                   <ul className="flex flex-col gap-2.5">
-                    {pillar.bulletPoints.map((bp, bpIdx) => (
+                    {capability.bulletPoints.map((bp, bpIdx) => (
                       <li key={bpIdx} className="flex items-start gap-2.5 text-xs text-zinc-300">
                         <span className="text-emerald-400/80 font-mono text-xs select-none shrink-0">—</span>
                         <span>{bp}</span>
@@ -196,8 +196,8 @@ export const ProductCapabilities: React.FC = () => {
                 <div className="w-full lg:w-7/12 flex flex-col gap-3">
                   <div className="relative aspect-[16/10] w-full rounded-xl border border-white/15 bg-[#0A0A0A] overflow-hidden shadow-2xl group">
                     <Image
-                      src={pillar.image}
-                      alt={pillar.alt}
+                      src={capability.image}
+                      alt={capability.alt}
                       fill
                       sizes="(max-width: 1200px) 100vw, 700px"
                       className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
@@ -205,7 +205,7 @@ export const ProductCapabilities: React.FC = () => {
 
                     {/* Zoom Trigger Button */}
                     <button
-                      onClick={() => setZoomImage(pillar.image)}
+                      onClick={() => setZoomImage(capability.image)}
                       className="absolute top-3 right-3 p-2 rounded-lg bg-[#0E0E10]/80 backdrop-blur-md border border-white/15 text-zinc-300 hover:text-white transition-all opacity-0 group-hover:opacity-100 shadow-lg cursor-pointer"
                       aria-label="Zoom Image Preview"
                     >
@@ -213,8 +213,8 @@ export const ProductCapabilities: React.FC = () => {
                     </button>
 
                     <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-center justify-between text-xs font-mono text-zinc-400">
-                      <span className="text-[11px] text-zinc-300 font-semibold">{pillar.alt}</span>
-                      <span className="text-[10px] text-emerald-400 font-bold">● {pillar.tag}</span>
+                      <span className="text-[11px] text-zinc-300 font-semibold">{capability.alt}</span>
+                      <span className="text-[10px] text-emerald-400 font-bold">● {capability.tag}</span>
                     </div>
                   </div>
                 </div>

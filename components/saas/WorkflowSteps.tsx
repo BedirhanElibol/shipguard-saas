@@ -35,7 +35,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
     {
       number: '02',
       badge: 'DEEP RELEASE AUDIT',
-      title: 'Real-Time Evaluation Across 4 Core Pillars',
+      title: 'Real-Time Evaluation Across Security & Architecture Vectors',
       description:
         'Deterministic release rules inspect your application layers simultaneously, isolating regressions before staging or production builds.',
       codeSnippet: `[EVALUATING PRODUCTION RELEASE GATES]

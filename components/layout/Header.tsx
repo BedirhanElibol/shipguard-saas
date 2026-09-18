@@ -181,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
                 const found = projects.find((p) => p.id === e.target.value);
                 if (found) onSelectProject(found);
               }}
-              className="bg-[#141414] border border-white/10 rounded-lg px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-mono font-bold text-white outline-none cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-[240px] truncate"
+              className="bg-[#141414] border border-white/10 rounded-lg px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-mono font-bold text-white outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-[240px] truncate"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -198,7 +198,8 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => setIsGithubModalOpen(true)}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors shrink-0"
+              aria-label="Connect Repository / Website"
+              className="min-w-[36px] min-h-[36px] p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors shrink-0 flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               title="Connect Repository / Website"
             >
               <FolderGit2 size={14} />
@@ -216,12 +217,12 @@ export const Header: React.FC<HeaderProps> = ({
               value={activeTargetUrl}
               onChange={(e) => setActiveTargetUrl(e.target.value)}
               placeholder="github.com/owner/repo or web URL..."
-              className="w-full bg-[#141414] border border-white/15 rounded-lg pl-7 sm:pl-8 pr-16 sm:pr-20 py-1.5 text-xs font-mono text-[#EDEDED] placeholder-zinc-500 outline-none focus:border-emerald-500/50 transition-all shadow-inner"
+              className="w-full bg-[#141414] border border-white/15 rounded-lg pl-7 sm:pl-8 pr-16 sm:pr-20 py-1.5 text-xs font-mono text-[#EDEDED] placeholder-zinc-500 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-inner"
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="absolute right-1 px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0"
+              className="absolute right-1 min-h-[32px] px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               title="Audit Target Repository"
             >
               <Play size={10} fill="#0A0A0A" />

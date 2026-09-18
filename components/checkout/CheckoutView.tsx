@@ -45,6 +45,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [isAnnual, setIsAnnual] = useState<boolean>(initialBilling === 'annual');
   const [isVerifying, setIsVerifying] = useState<boolean>(Boolean(checkoutId));
   const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationRetryCount, setVerificationRetryCount] = useState<number>(0);
 
   // User Authentication State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(user ?? null);
@@ -201,7 +202,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
         isMounted = false;
       };
     }
-  }, [checkoutId, selectedPlanId, currentUser?.email, email]);
+  }, [checkoutId, selectedPlanId, currentUser?.email, email, verificationRetryCount]);
 
   const selectedPlan: PricingPlanItem =
     ZELSIS_PRICING_PLANS.find((p) => p.id === selectedPlanId) ||
@@ -303,9 +304,20 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       )}
 
       {verificationError && !isSubmitted && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-200 flex items-center gap-2.5 shadow-md">
-          <AlertCircle size={16} className="text-red-400 shrink-0" />
-          <span className="leading-relaxed">{verificationError}</span>
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle size={16} className="text-red-400 shrink-0" />
+            <span className="leading-relaxed">{verificationError}</span>
+          </div>
+          {checkoutId && (
+            <button
+              type="button"
+              onClick={() => setVerificationRetryCount((c) => c + 1)}
+              className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-white font-mono text-[11px] font-bold shrink-0 transition-colors cursor-pointer"
+            >
+              Retry Verification
+            </button>
+          )}
         </div>
       )}
 
@@ -588,10 +600,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Sandbox / Demo Simulator Section */}
-                  {(process.env.NODE_ENV !== 'production' ||
-                    (typeof window !== 'undefined' && (window.location.search.includes('sandbox=true') || window.location.search.includes('demo=true'))) ||
-                    currentUser?.email === 'bedirelibol7@gmail.com') && (
+                  {/* Sandbox / Demo Simulator Section (strictly disabled in production) */}
+                  {process.env.NODE_ENV !== 'production' && (
                     <div className="mt-6 p-5 rounded-xl bg-[#0A0A0A] border border-dashed border-white/20 flex flex-col gap-3">
                       <div className="flex items-center gap-2">
                         <Terminal size={16} className="text-white" />

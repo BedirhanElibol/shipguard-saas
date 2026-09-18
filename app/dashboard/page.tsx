@@ -1,28 +1,32 @@
 'use client';
 
 import React, { Suspense, useState, useEffect } from 'react';
-import { Project, Finding, ScanHistoryItem } from '@/data/schema';
+import dynamic from 'next/dynamic';
+import { Project, Finding, ScanHistoryItem, UserTier } from '@/data/schema';
 import { MOCK_PROJECTS, VIBEPOLISH_30_CATALOG, UI_RULES_CATALOG, AI_CLICHE_25_CATALOG } from '@/data/mockData';
 import { AppShell } from '@/components/layout/AppShell';
 import { DashboardView } from '@/components/dashboard/DashboardView';
-import { SecurityAuditView } from '@/components/SecurityAuditView';
-import { ComplianceAuditView } from '@/components/ComplianceAuditView';
-import { InfraAuditView } from '@/components/InfraAuditView';
-import { CicdAutomationView } from '@/components/CicdAutomationView';
-import { VibePolishView } from '@/components/VibePolishView';
-import { VibeCareView } from '@/components/VibeCareView';
-import { RemediationQueueView } from '@/components/RemediationQueueView';
-import { ProjectsView } from '@/components/ProjectsView';
 import { ScanRunnerView } from '@/components/ScanRunnerView';
-import { ScanHistoryView } from '@/components/ScanHistoryView';
-import { ProjectSettingsView } from '@/components/ProjectSettingsView';
 import { RemediationDrawer } from '@/components/findings/RemediationDrawer';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
-import { CheckoutView } from '@/components/checkout/CheckoutView';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
+import { checkScanQuota } from '@/lib/quota-manager';
+
+// Next.js Dynamic Code Splitting for heavy dashboard views
+const SecurityAuditView = dynamic(() => import('@/components/SecurityAuditView').then(m => m.SecurityAuditView), { ssr: false });
+const ComplianceAuditView = dynamic(() => import('@/components/ComplianceAuditView').then(m => m.ComplianceAuditView), { ssr: false });
+const InfraAuditView = dynamic(() => import('@/components/InfraAuditView').then(m => m.InfraAuditView), { ssr: false });
+const CicdAutomationView = dynamic(() => import('@/components/CicdAutomationView').then(m => m.CicdAutomationView), { ssr: false });
+const VibePolishView = dynamic(() => import('@/components/VibePolishView').then(m => m.VibePolishView), { ssr: false });
+const VibeCareView = dynamic(() => import('@/components/VibeCareView').then(m => m.VibeCareView), { ssr: false });
+const RemediationQueueView = dynamic(() => import('@/components/RemediationQueueView').then(m => m.RemediationQueueView), { ssr: false });
+const ProjectsView = dynamic(() => import('@/components/ProjectsView').then(m => m.ProjectsView), { ssr: false });
+const ScanHistoryView = dynamic(() => import('@/components/ScanHistoryView').then(m => m.ScanHistoryView), { ssr: false });
+const ProjectSettingsView = dynamic(() => import('@/components/ProjectSettingsView').then(m => m.ProjectSettingsView), { ssr: false });
+const CheckoutView = dynamic(() => import('@/components/checkout/CheckoutView').then(m => m.CheckoutView), { ssr: false });
 import { safeSetStorageItem } from '@/lib/storage';
 import { ShieldCheck, Plus } from 'lucide-react';
 import { LifecycleBanner } from '@/components/dashboard/LifecycleBanner';
@@ -76,6 +80,15 @@ function DashboardContent() {
   const hasProcessedRepoRef = React.useRef(false);
 
   const handleTriggerScan = (projectOverride?: Project) => {
+    const userTier = (user?.tier as UserTier) || 'Free';
+    if (quota) {
+      const scanCheck = checkScanQuota(quota, userTier);
+      if (!scanCheck.allowed) {
+        handleOpenCheckoutModal('Pro');
+        return;
+      }
+    }
+
     if (projectOverride) {
       handleSelectProject(projectOverride);
       setScanProjectOverride(projectOverride);
@@ -272,6 +285,17 @@ function DashboardContent() {
       onNavigate={(nav) => {
         setIsScanning(false);
         setActiveNav(nav);
+        if (typeof window !== 'undefined') {
+          try {
+            const url = new URL(window.location.href);
+            if (nav === 'dashboard') {
+              url.searchParams.delete('nav');
+            } else {
+              url.searchParams.set('nav', nav);
+            }
+            window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+          } catch {}
+        }
       }}
       selectedProject={selectedProject}
       onSelectProject={handleSelectProject}

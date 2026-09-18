@@ -45,6 +45,20 @@ function verifyPolarWebhookSignature(
     headers.get('polar-webhook-timestamp') ||
     '';
 
+  // Enforce timestamp freshness: reject payloads older than 5 minutes (300 seconds) or in the future
+  if (timestamp) {
+    const tsNum = parseInt(timestamp, 10);
+    if (isNaN(tsNum)) {
+      return false;
+    }
+    const nowSec = Math.floor(Date.now() / 1000);
+    const eventSec = tsNum > 1e11 ? Math.floor(tsNum / 1000) : tsNum;
+    if (Math.abs(nowSec - eventSec) > 300) {
+      logger.warn('[Polar Webhook] Rejected webhook payload due to stale/future timestamp');
+      return false;
+    }
+  }
+
   // Support keys starting with "whsec_" (standard webhooks) as base64 or raw
   const secretKeys: Buffer[] = [];
   if (secret.startsWith('whsec_')) {
@@ -128,6 +142,10 @@ export async function POST(req: NextRequest) {
 
   const rawBody = await req.text();
   const webhookSecret = process.env.POLAR_WEBHOOK_SECRET;
+  if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+    logger.error('[Polar Webhook] POLAR_WEBHOOK_SECRET is not configured in production environment. Rejecting request for security.');
+    return NextResponse.json({ error: 'Webhook configuration error' }, { status: 500 });
+  }
 
   if (webhookSecret) {
     const isValid = verifyPolarWebhookSignature(rawBody, req.headers, webhookSecret);
@@ -135,8 +153,6 @@ export async function POST(req: NextRequest) {
       logger.warn('[Polar Webhook] Rejected webhook payload due to invalid HMAC signature');
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
     }
-  } else if (process.env.NODE_ENV === 'production') {
-    logger.warn('[Polar Webhook Security Warning] POLAR_WEBHOOK_SECRET is not configured in production environment. Webhook verification is bypassed.');
   }
 
   let body: {

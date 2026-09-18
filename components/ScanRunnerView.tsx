@@ -174,6 +174,10 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         if (webData && webData.files && webData.files.length > 0) {
           filesToScan = webData.files;
           setQueuedFilesCount(webData.files.length);
+          if (!hasConsumedQuotaRef.current) {
+            hasConsumedQuotaRef.current = true;
+            onConsumeScanQuota?.();
+          }
           const isHealthy = webData.statusCode >= 200 && webData.statusCode < 400;
           if (!isCancelled) {
             setLogs((prev) => [
@@ -345,6 +349,10 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           filesToScan = liveData.files;
           setQueuedFilesCount(liveData.files.length);
           setProgress(25);
+          if (!hasConsumedQuotaRef.current) {
+            hasConsumedQuotaRef.current = true;
+            onConsumeScanQuota?.();
+          }
           if (!isCancelled) {
             setLogs((prev) => [
               ...prev,
@@ -430,11 +438,6 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           intervalRef.current = null;
           setProgress(100);
           setIsFinished(true);
-
-          if (!hasConsumedQuotaRef.current) {
-            hasConsumedQuotaRef.current = true;
-            onConsumeScanQuota?.();
-          }
 
           if (typeof document !== 'undefined') {
             document.title = `Audit Complete | ${project.name}`;

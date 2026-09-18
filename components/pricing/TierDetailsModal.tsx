@@ -17,6 +17,15 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
   currentTier = 'Free',
   onSelectPlan
 }) => {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const features = [
@@ -81,7 +90,8 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Close modal"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={18} />
           </button>
@@ -93,7 +103,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
           <div className="p-4 rounded-xl border border-white/10 bg-[#0E0E12] flex flex-col justify-between gap-3">
             <div>
               <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Free Starter</span>
-              <div className="text-2xl font-extrabold text-white mt-1">$0</div>
+              <div className="text-2xl font-extrabold text-white mt-1 tabular-nums">$0</div>
               <p className="text-[11px] text-zinc-400 mt-1">For testing public repositories and open source projects.</p>
             </div>
             <div className="text-[11px] text-zinc-400 font-bold border-t border-white/5 pt-2">
@@ -111,17 +121,17 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
                     Active Plan
                   </span>
-                ) : (
+                ) : currentTier === 'Free' ? (
                   <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500 text-white uppercase tracking-wider">
                     Most Popular
                   </span>
-                )}
+                ) : null}
               </div>
               <div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${
                   currentTier === 'Pro' ? 'text-emerald-400' : 'text-blue-400'
                 }`}>Pro Developer</span>
-                <div className="text-2xl font-extrabold text-white mt-1">$19 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
+                <div className="text-2xl font-extrabold text-white mt-1 tabular-nums">$19 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
                 <p className="text-[11px] text-zinc-300 mt-1">Unlimited scans, private repos, 1-click AI fixes &amp; PDF certificates.</p>
               </div>
               {currentTier === 'Pro' ? (
@@ -161,7 +171,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
               )}
               <div>
                 <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Enterprise Team</span>
-                <div className="text-2xl font-extrabold text-white mt-1">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
+                <div className="text-2xl font-extrabold text-white mt-1 tabular-nums">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
                 <p className="text-[11px] text-zinc-400 mt-1">Custom company rules, multi-seat RBAC, and dedicated 1h SLA support.</p>
               </div>
               {currentTier === 'Enterprise' ? (

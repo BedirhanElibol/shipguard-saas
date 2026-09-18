@@ -401,8 +401,10 @@ export function evaluateApiRules(
   }
 
   // API-15: GET Endpoint Performing State-Mutating Actions
-  if (/(?:app\/api|pages\/api)/i.test(lowerPath) && /export\s+async\s+function\s+GET/i.test(cleanContent) && /(?:\.delete\(|\.update\(|\.insert\(|DELETE\s+FROM)/i.test(cleanContent)) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/api-15|get/i.test(l) || lines.indexOf(l) === 0));
+  const getFuncMatch = cleanContent.match(/export\s+async\s+function\s+GET[\s\S]*?(?=export\s+(?:async\s+)?function|$)/i);
+  const getBody = getFuncMatch ? getFuncMatch[0] : '';
+  if (/(?:app\/api|pages\/api)/i.test(lowerPath) && getBody && /(?:\.delete\(|\.update\(|\.insert\(|DELETE\s+FROM)/i.test(getBody)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/(?:\.delete\(|\.update\(|\.insert\(|DELETE\s+FROM)/i.test(l) || /export\s+async\s+function\s+GET/i.test(l)));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `api15-${Date.now()}-${findingCounter.count++}`,

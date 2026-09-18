@@ -97,34 +97,12 @@ export async function GET(req: NextRequest) {
     let scansUsed = sub?.scans_used_this_month ?? 0;
     let periodEnd = sub?.current_period_end ? new Date(sub.current_period_end) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    // 2. Check Monthly Rollover
+    // 2. Check Monthly Rollover (Computed in-memory for idempotent GET requests)
     if (periodEnd.getTime() < Date.now()) {
-      logger.info(`[Quota API] Monthly period expired for ${userId}. Rolling over usage counter.`);
+      logger.info(`[Quota API] Monthly period expired for ${userId}. Projecting rollover counter in-memory.`);
       scansUsed = 0;
-      const newStart = new Date().toISOString();
       const newEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       periodEnd = new Date(newEnd);
-
-      if (SERVICE_ROLE_KEY) {
-        await adminClient
-          .from('subscriptions')
-          .update({
-            scans_used_this_month: 0,
-            current_period_start: newStart,
-            current_period_end: newEnd,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', userId);
-
-        await adminClient.from('audit_logs').insert({
-          user_id: userId,
-          action: 'MONTHLY_QUOTA_RESET',
-          entity_type: 'subscription',
-          entity_id: sub?.id || userId,
-          metadata: { previousScansUsed: sub?.scans_used_this_month, newPeriodEnd: newEnd },
-          ip_address: getClientIp(req)
-        });
-      }
     }
 
     const isUnlimited = planTier !== 'Free';

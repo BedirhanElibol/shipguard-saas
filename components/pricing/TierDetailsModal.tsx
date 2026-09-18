@@ -118,7 +118,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
               <div className="absolute -top-2.5 right-4 flex items-center gap-1">
                 {currentTier === 'Pro' ? (
                   <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-black" />
                     Active Plan
                   </span>
                 ) : currentTier === 'Free' ? (
@@ -165,7 +165,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
             }`}>
               {currentTier === 'Enterprise' && (
                 <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
                   Active Plan
                 </span>
               )}
@@ -198,23 +198,33 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
 
         {/* Feature Comparison Matrix Table */}
         <div className="space-y-6 pt-2">
-          {features.map((cat, idx) => (
-            <div key={idx} className="space-y-2">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-white/10 pb-1 text-zinc-300">
-                {cat.category}
-              </h3>
-              <div className="divide-y divide-white/5 text-xs">
-                {cat.items.map((item, itemIdx) => (
-                  <div key={itemIdx} className="grid grid-cols-1 md:grid-cols-4 py-2 gap-1 items-center">
-                    <span className="text-zinc-300 font-medium md:col-span-1">{item.label}</span>
-                    <span className="text-zinc-400 text-[11px] md:col-span-1 md:text-center">{item.free}</span>
-                    <span className="text-blue-300 font-bold text-[11px] md:col-span-1 md:text-center">{item.pro}</span>
-                    <span className="text-emerald-300 font-bold text-[11px] md:col-span-1 md:text-center">{item.enterprise}</span>
-                  </div>
-                ))}
-              </div>
+          {features.length === 0 ? (
+            <div className="p-8 text-center bg-[#0A0A0A] rounded-xl border border-white/10 text-xs text-zinc-400 font-mono">
+              No comparison data available.
             </div>
-          ))}
+          ) : (
+            features.map((cat, idx) => (
+              <div key={idx} className="space-y-2">
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider border-b border-white/10 pb-1 text-zinc-300">
+                  {cat.category}
+                </h3>
+                <div className="divide-y divide-white/5 text-xs">
+                  {cat.items.length === 0 ? (
+                    <div className="py-2 text-zinc-500 text-[11px] font-mono">No items in this category.</div>
+                  ) : (
+                    cat.items.map((item, itemIdx) => (
+                      <div key={itemIdx} className="grid grid-cols-1 md:grid-cols-4 py-2 gap-1 items-center">
+                        <span className="text-zinc-300 font-medium md:col-span-1">{item.label}</span>
+                        <span className="text-zinc-400 text-[11px] md:col-span-1 md:text-center">{item.free}</span>
+                        <span className="text-blue-300 font-bold text-[11px] md:col-span-1 md:text-center">{item.pro}</span>
+                        <span className="text-emerald-300 font-bold text-[11px] md:col-span-1 md:text-center">{item.enterprise}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

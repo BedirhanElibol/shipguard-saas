@@ -430,12 +430,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-export async function GET() {
-  return NextResponse.json({
-    service: 'Zelsis 3.0 Release Gate API Engine',
-    status: 'HEALTHY',
-    version: '3.0.0',
-    documentation: 'Send POST requests with { repoUrl: string, githubToken?: string } to trigger automated release gate audits.'
-  });
-}

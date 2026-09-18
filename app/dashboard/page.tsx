@@ -296,7 +296,9 @@ function DashboardContent() {
               url.searchParams.set('nav', nav);
             }
             window.history.replaceState({}, '', url.pathname + url.search + url.hash);
-          } catch {}
+          } catch (navSyncErr: unknown) {
+            console.warn('[UI-106] Handled error in DashboardPage URL sync:', navSyncErr instanceof Error ? navSyncErr.message : String(navSyncErr));
+          }
         }
       }}
       selectedProject={selectedProject}

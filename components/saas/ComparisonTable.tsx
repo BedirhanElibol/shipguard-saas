@@ -322,14 +322,14 @@ export const ComparisonTable: React.FC = () => {
                           <span>Current Plan</span>
                         </button>
                       ) : isLoggedIn && (currentTier === 'Pro' || currentTier === 'Enterprise') ? (
-                        <div className="mt-2 w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-500 text-xs font-bold font-mono text-center">
+                        <div className="mt-2 w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-500 text-xs font-bold font-mono">
                           Included Baseline
                         </div>
                       ) : (
                         <button
                           type="button"
                           onClick={() => router.push('/dashboard')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold font-mono transition-colors text-center cursor-pointer"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold font-mono transition-colors cursor-pointer"
                         >
                           Start Free (3 Scans)
                         </button>
@@ -345,7 +345,7 @@ export const ComparisonTable: React.FC = () => {
                         <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-widest">Pro</span>
                         {isLoggedIn && currentTier === 'Pro' ? (
                           <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                             <span>Active Plan</span>
                           </span>
                         ) : isLoggedIn && currentTier === 'Enterprise' ? (
@@ -369,25 +369,25 @@ export const ComparisonTable: React.FC = () => {
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                           >
                             <span>Manage at Polar</span>
                             <ExternalLink size={12} />
                           </a>
-                          <span className="text-[10px] text-zinc-400 text-center">Active subscription</span>
+                          <span className="text-[10px] text-zinc-400">Active subscription</span>
                         </div>
                       ) : isLoggedIn && currentTier === 'Enterprise' ? (
                         <div className="flex flex-col gap-1 mt-2">
-                          <div className="w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-xs font-bold font-mono text-center">
+                          <div className="w-full py-2 px-3 rounded-lg bg-white/5 border border-white/10 text-zinc-400 text-xs font-bold font-mono">
                             Included in Enterprise
                           </div>
-                          <span className="text-[10px] text-zinc-500 text-center">All Pro features active</span>
+                          <span className="text-[10px] text-zinc-500">All Pro features active</span>
                         </div>
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleSelectPlan('Pro')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                         >
                           <span>Upgrade to Pro ($19)</span>
                           <ArrowRight size={13} />
@@ -403,7 +403,7 @@ export const ComparisonTable: React.FC = () => {
                         <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Enterprise</span>
                         {isLoggedIn && currentTier === 'Enterprise' ? (
                           <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                             <span>Active Plan</span>
                           </span>
                         ) : isLoggedIn && currentTier === 'Pro' ? (
@@ -423,18 +423,18 @@ export const ComparisonTable: React.FC = () => {
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                           >
                             <span>Manage at Polar</span>
                             <ExternalLink size={12} />
                           </a>
-                          <span className="text-[10px] text-zinc-400 text-center">Active enterprise cluster</span>
+                          <span className="text-[10px] text-zinc-400">Active enterprise cluster</span>
                         </div>
                       ) : isLoggedIn && currentTier === 'Pro' ? (
                         <button
                           type="button"
                           onClick={() => handleSelectPlan('Enterprise')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                         >
                           <span>Upgrade to Enterprise ($99)</span>
                           <ArrowRight size={13} />
@@ -443,7 +443,7 @@ export const ComparisonTable: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSelectPlan('Enterprise')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <span>Deploy Enterprise ($99)</span>
                           <ArrowRight size={13} />
@@ -455,41 +455,57 @@ export const ComparisonTable: React.FC = () => {
               </thead>
 
               <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
-                {categories.map((category, catIdx) => (
-                  <React.Fragment key={catIdx}>
-                    {/* Category Divider Header */}
-                    <tr className="bg-[#0A0A0E] border-y border-white/10">
-                      <td colSpan={4} className="px-5 sm:px-6 py-3 text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-300">
-                        {category.title}
-                      </td>
-                    </tr>
-
-                    {/* Category Items */}
-                    {category.items.map((item, itemIdx) => (
-                      <tr key={itemIdx} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="p-4 sm:p-5">
-                          <div className="font-bold text-white mb-0.5 text-xs sm:text-sm">{item.name}</div>
-                          <div className="text-[11px] text-zinc-400 font-sans leading-snug">{item.description}</div>
-                        </td>
-
-                        {/* Free Value */}
-                        <td className="p-4 sm:p-5 border-l border-white/10">
-                          {renderCellContent(item.free)}
-                        </td>
-
-                        {/* Pro Value */}
-                        <td className="p-4 sm:p-5 bg-emerald-500/[0.02] border-x border-emerald-500/20 text-emerald-200">
-                          {renderCellContent(item.pro)}
-                        </td>
-
-                        {/* Enterprise Value */}
-                        <td className="p-4 sm:p-5 border-l border-white/10">
-                          {renderCellContent(item.enterprise)}
+                {categories.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="p-8 text-center bg-[#0A0A0A] text-xs text-zinc-400 font-mono">
+                      No comparison categories available.
+                    </td>
+                  </tr>
+                ) : (
+                  categories.map((category, catIdx) => (
+                    <React.Fragment key={catIdx}>
+                      {/* Category Divider Header */}
+                      <tr className="bg-[#0A0A0E] border-y border-white/10">
+                        <td colSpan={4} className="px-5 sm:px-6 py-3 text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-300">
+                          {category.title}
                         </td>
                       </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
+
+                      {/* Category Items */}
+                      {category.items.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-4 text-xs font-mono text-zinc-500">
+                            No criteria defined for this category.
+                          </td>
+                        </tr>
+                      ) : (
+                        category.items.map((item, itemIdx) => (
+                          <tr key={itemIdx} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="p-4 sm:p-5">
+                              <div className="font-bold text-white mb-0.5 text-xs sm:text-sm">{item.name}</div>
+                              <div className="text-[11px] text-zinc-400 font-sans leading-snug">{item.description}</div>
+                            </td>
+
+                            {/* Free Value */}
+                            <td className="p-4 sm:p-5 border-l border-white/10">
+                              {renderCellContent(item.free)}
+                            </td>
+
+                            {/* Pro Value */}
+                            <td className="p-4 sm:p-5 bg-emerald-500/[0.02] border-x border-emerald-500/20 text-emerald-200">
+                              {renderCellContent(item.pro)}
+                            </td>
+
+                            {/* Enterprise Value */}
+                            <td className="p-4 sm:p-5 border-l border-white/10">
+                              {renderCellContent(item.enterprise)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </React.Fragment>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

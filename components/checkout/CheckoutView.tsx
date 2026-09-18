@@ -521,7 +521,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                               className="w-full sm:w-auto min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-black font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                             >
                               <Zap size={14} className="fill-black" />
-                              <span>Upgrade to Enterprise ($49/mo)</span>
+                              <span>Upgrade to Enterprise ($99/mo)</span>
                             </button>
                           )}
                         </div>

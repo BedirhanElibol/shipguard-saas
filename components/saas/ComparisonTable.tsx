@@ -1,165 +1,360 @@
 'use client';
 
 import React from 'react';
-import { Check, X, Minus, ArrowRight, ShieldCheck, Zap, Scale } from 'lucide-react';
+import { Check, X, Shield, ArrowRight, Lock, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+interface ComparisonItem {
+  name: string;
+  description: string;
+  free: string | boolean;
+  pro: string | boolean;
+  enterprise: string | boolean;
+}
+
+interface ComparisonCategory {
+  title: string;
+  items: ComparisonItem[];
+}
 
 export const ComparisonTable: React.FC = () => {
   const router = useRouter();
 
-  const comparisonRows = [
+  const POLAR_PRO_URL = 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC';
+  const POLAR_ENTERPRISE_URL = 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od';
+
+  const categories: ComparisonCategory[] = [
     {
-      feature: 'Evaluation Time',
-      zelsis: 'Real-Time In-Memory Stream',
-      linters: '10–45 seconds',
-      enterprise: '15–45 minutes'
+      title: 'Audit Capacity & Concurrency',
+      items: [
+        {
+          name: 'Monthly Live Scans',
+          description: 'Maximum pre-flight audits performed per monthly billing cycle',
+          free: '3 Scans / month (Strict Cap)',
+          pro: 'Unlimited Scans (Zero Throttling)',
+          enterprise: 'Unlimited Scans (Dedicated Runners)'
+        },
+        {
+          name: 'Repository Scope & Privacy',
+          description: 'Supported repository types and permission boundary',
+          free: '1 Public Repository only',
+          pro: 'Unlimited Public & Private Repos',
+          enterprise: 'Unlimited Org-Wide & GHES Repos'
+        },
+        {
+          name: 'Concurrent Analysis Workers',
+          description: 'Simultaneous scanning pipeline capability',
+          free: '1 Scan at a time (Shared Queue)',
+          pro: '5 Concurrent Scans (Priority Pool)',
+          enterprise: 'Unlimited Parallel Workers (Isolated Cluster)'
+        }
+      ]
     },
     {
-      feature: 'Multi-Vector Verification',
-      detail: 'Security, UI/UX, Cloud Infra, and Legal Compliance combined',
-      zelsis: true,
-      linters: false,
-      enterprise: 'Partial (Security only)'
+      title: 'Security & Inspection Depth',
+      items: [
+        {
+          name: 'Static & AST Rule Inventory',
+          description: 'Coverage of security vulnerabilities, misconfigurations, and anti-patterns',
+          free: '20 Baseline Static Rules',
+          pro: '7,850+ Deep Production Rules',
+          enterprise: '7,850+ Rules + Custom Org Rulesets'
+        },
+        {
+          name: 'Secret & API Key Leak Detection',
+          description: 'Scanning engine for hardcoded tokens, AWS keys, and private credentials',
+          free: 'Surface Regex Pattern Check',
+          pro: 'Deep AST & Vault Tracing',
+          enterprise: 'Deep AST + Custom Secret Entropy Patterns'
+        },
+        {
+          name: 'Repository Size Scalability',
+          description: 'Analysis capability for large multi-package and monorepo codebases',
+          free: 'Standard Buffer (Small Repos)',
+          pro: 'Yielded Event Loop (1,000+ Files, No OOM)',
+          enterprise: 'Distributed Multi-Process Monorepo Runner'
+        },
+        {
+          name: 'Zero-Code Retention Privacy',
+          description: 'In-memory execution model ensuring intellectual property safety',
+          free: 'Ephemeral RAM (Never Stored)',
+          pro: 'Ephemeral RAM (Zero Code Retention)',
+          enterprise: 'Ephemeral RAM + Air-Gapped / VPC Runner'
+        }
+      ]
     },
     {
-      feature: 'Zero-Retention Privacy',
-      detail: 'Code is scanned purely in ephemeral memory, never stored or trained on',
-      zelsis: true,
-      linters: true,
-      enterprise: false
+      title: 'AI Remediation & Surgical Diffs',
+      items: [
+        {
+          name: 'Surgical Unified Git Diffs',
+          description: 'Visual before/after line-by-line code replacement for every detected flaw',
+          free: 'Line Numbers only (No Diffs)',
+          pro: 'Interactive Unified Git Diffs',
+          enterprise: 'Multi-File Refactoring Diffs'
+        },
+        {
+          name: 'Context-Engineered AI Prompts',
+          description: 'Tailored prompts with CVE context for Cursor, Claude, and GitHub Copilot',
+          free: '1 Lifetime Trial Prompt',
+          pro: 'Unlimited 1-Click Fix Prompts',
+          enterprise: 'Unlimited Prompts + Custom Team Guidelines'
+        },
+        {
+          name: 'Autonomous GitHub PR Fix Bot',
+          description: 'Automated remediation pull request generation directly into repository branch',
+          free: false,
+          pro: '1-Click PR Fix Creation',
+          enterprise: 'Autonomous CI/CD PR Merge Gate'
+        }
+      ]
     },
     {
-      feature: 'Setup Overhead',
-      detail: 'Zero installation required; works directly with GitHub URLs & Webhooks',
-      zelsis: '0 minutes (Instant)',
-      linters: '30+ min configuration',
-      enterprise: 'Days of agent setup'
+      title: 'CI/CD & Production Gates',
+      items: [
+        {
+          name: 'Automated PR Gate Enforcement',
+          description: 'Blocks production deployment and fails merge checks on security policy breach',
+          free: 'Manual Web Dashboard only',
+          pro: 'GitHub Actions & Webhook Release Gate',
+          enterprise: 'GitLab CI, Jenkins, Azure & Custom Webhooks'
+        },
+        {
+          name: 'Policy Profile Configuration',
+          description: 'Custom severity thresholds for blocking releases (Critical / High / Medium)',
+          free: 'Default Strict Presets',
+          pro: 'Custom Severity Thresholds & Rulesets',
+          enterprise: 'Org-Wide Enforced Compliance Profiles'
+        }
+      ]
     },
     {
-      feature: 'Surgical Line-by-Line AST Diffs',
-      detail: 'Pinpoints exact file line with pre-engineered AI prompts for Cursor/Copilot',
-      zelsis: true,
-      linters: 'Partial (Syntax only)',
-      enterprise: false
+      title: 'Executive Compliance & Reports',
+      items: [
+        {
+          name: 'Cryptographic PDF Certificate',
+          description: 'Tamper-proof signed verification PDF proving pre-flight compliance for stakeholders',
+          free: false,
+          pro: 'Instant Signed PDF Certificate',
+          enterprise: 'White-Labeled Certificate + Auditor Pack'
+        },
+        {
+          name: 'Issue Tracker Export',
+          description: 'Direct export to team tracking systems (Jira, Linear, GitHub Issues)',
+          free: 'Manual Markdown Copy',
+          pro: '1-Click Jira & Linear Markdown',
+          enterprise: 'Two-Way Jira, GitHub & Slack Sync'
+        },
+        {
+          name: 'Audit History Retention',
+          description: 'Time window for historical telemetry, scan logs, and trend analytics',
+          free: '7 Days Retention',
+          pro: '90 Days Historical Telemetry',
+          enterprise: 'Unlimited Audit History & Compliance Logs'
+        }
+      ]
     },
     {
-      feature: 'Signed Release Manifest (SOC 2 / ISO 27001)',
-      detail: 'Cryptographic certificate proving pre-flight compliance before merge',
-      zelsis: true,
-      linters: false,
-      enterprise: 'Add-on ($$$)'
-    },
-    {
-      feature: 'Interactive Browser Sandbox & REPL',
-      detail: 'Test code snippets and custom regex rules in browser memory without sign-up',
-      zelsis: true,
-      linters: false,
-      enterprise: false
-    },
-    {
-      feature: 'Pricing Transparency',
-      detail: 'Predictable self-serve plans vs opaque sales quotes',
-      zelsis: '$19 / month',
-      linters: 'Free (Low Scope)',
-      enterprise: '$500 – $2,500+ / mo'
+      title: 'Operational SLA & Support',
+      items: [
+        {
+          name: 'Technical Support Channel',
+          description: 'Direct engineering support and issue escalation channel',
+          free: 'Community Forum',
+          pro: '24-Hour Priority Email Support',
+          enterprise: '1-Hour Dedicated SLA (Slack & Teams)'
+        },
+        {
+          name: 'Security Architect Check-in',
+          description: 'Direct consultation with lead security engineers on architecture & compliance',
+          free: false,
+          pro: false,
+          enterprise: 'Dedicated Solutions Architect Consultation'
+        }
+      ]
     }
   ];
 
-  if (comparisonRows.length === 0) {
-    return <div className="text-neutral-500 font-mono text-sm">No comparison data available.</div>;
-  }
-
-  const renderValue = (val: boolean | string) => {
+  const renderCellContent = (val: string | boolean) => {
     if (typeof val === 'boolean') {
       return val ? (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-400">
           <Check size={14} className="stroke-[3]" />
         </span>
       ) : (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500/10 text-red-400">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/5 text-zinc-500">
           <X size={14} className="stroke-[2.5]" />
         </span>
       );
     }
-    return <span className="font-mono text-xs font-semibold">{val}</span>;
+
+    const isLocked = val.toLowerCase().includes('locked') || val.toLowerCase().includes('not available') || val.toLowerCase().includes('strict cap');
+
+    return (
+      <span className={`text-xs font-mono font-medium leading-tight ${isLocked ? 'text-zinc-400' : 'text-zinc-200'}`}>
+        {val}
+      </span>
+    );
   };
 
   return (
-    <section id="comparison" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10">
-      <div className="max-w-6xl mx-auto flex flex-col gap-16">
+    <section id="comparison" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10 font-sans">
+      <div className="max-w-7xl mx-auto flex flex-col gap-16">
         {/* Section Header */}
         <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-zinc-400">
-            <span>UNCOMPROMISING COMPARISON</span>
+          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-zinc-400 bg-white/5 px-3 py-1 rounded-full border border-white/10 self-center">
+            <span>PLAN COMPARISON MATRIX</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            Why Developers Choose Zelsis
+            Transparent Capabilities. Zero Guesswork.
           </h2>
-          <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed font-sans">
-            Traditional linters only check syntax formatting. Heavy enterprise scanners take 15–45 minutes and lock you into annual enterprise contracts. Zelsis provides deterministic release gates in real time.
+          <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed">
+            Understand exactly what you are paying for. Compare operational limits, rule depth, surgical diffs, and release gate enforcement across Free, Pro, and Enterprise tiers.
           </p>
         </div>
 
-        {/* Comparison Table Container */}
-        <div className="rounded-2xl border border-white/15 bg-[#121212] overflow-hidden shadow-2xl">
+        {/* Matrix Container */}
+        <div className="rounded-2xl border border-white/15 bg-[#121216] overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[760px]">
               <thead>
-                <tr className="border-b border-white/10 bg-[#0E0E10]">
-                  <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-2/5">
-                    Operational Capability
+                <tr className="border-b border-white/15 bg-[#0E0E12]">
+                  <th className="p-5 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-[34%] align-bottom">
+                    <span className="text-white font-bold block text-sm">Criteria / Capability</span>
+                    <span className="text-zinc-500 text-[11px] font-normal lowercase tracking-normal">feature breakdown &amp; boundaries</span>
                   </th>
-                  <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-white bg-white/[0.04] border-x border-white/10 w-1/5">
-                    <span className="font-bold text-white">Zelsis</span>
+
+                  {/* Free Plan Header */}
+                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-zinc-300 w-[22%] align-bottom border-l border-white/10">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Free</span>
+                      <div className="text-2xl font-extrabold text-white font-mono">$0</div>
+                      <span className="text-[11px] text-zinc-500 font-sans">For hobbyists and testing public repositories</span>
+                      <button
+                        type="button"
+                        onClick={() => router.push('/dashboard')}
+                        className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold font-mono transition-colors text-center cursor-pointer"
+                      >
+                        Start Free (3 Scans)
+                      </button>
+                    </div>
                   </th>
-                  <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-1/5">
-                    Standard Linters
+
+                  {/* Pro Plan Header */}
+                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-white w-[22%] align-bottom bg-emerald-500/[0.04] border-x border-emerald-500/30 relative">
+                    <div className="absolute -top-px left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-widest">Pro</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                          Recommended
+                        </span>
+                      </div>
+                      <div className="text-2xl font-extrabold text-white font-mono">
+                        $19 <span className="text-xs text-zinc-400 font-normal">/ month</span>
+                      </div>
+                      <span className="text-[11px] text-zinc-400 font-sans">For professional developers and shipping teams</span>
+                      <a
+                        href={POLAR_PRO_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 w-full py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer text-center"
+                      >
+                        <span>Upgrade to Pro ($19)</span>
+                        <ArrowRight size={13} />
+                      </a>
+                    </div>
                   </th>
-                  <th className="p-4 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-1/5">
-                    Legacy Enterprise
+
+                  {/* Enterprise Plan Header */}
+                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-zinc-300 w-[22%] align-bottom border-l border-white/10">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Enterprise</span>
+                      <div className="text-2xl font-extrabold text-white font-mono">
+                        $99 <span className="text-xs text-zinc-400 font-normal">/ month</span>
+                      </div>
+                      <span className="text-[11px] text-zinc-500 font-sans">For organizations requiring CI/CD gates &amp; SLAs</span>
+                      <a
+                        href={POLAR_ENTERPRISE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                      >
+                        <span>Deploy Enterprise ($99)</span>
+                        <ArrowRight size={13} />
+                      </a>
+                    </div>
                   </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
-                {comparisonRows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="p-4 sm:p-6">
-                      <div className="font-bold text-white mb-0.5">{row.feature}</div>
-                      {row.detail && (
-                        <div className="text-xs text-zinc-500 font-sans">{row.detail}</div>
-                      )}
-                    </td>
-                    <td className="p-4 sm:p-6 bg-emerald-500/[0.03] border-x border-white/10 text-emerald-300 font-medium">
-                      {renderValue(row.zelsis)}
-                    </td>
-                    <td className="p-4 sm:p-6 text-zinc-400">
-                      {renderValue(row.linters)}
-                    </td>
-                    <td className="p-4 sm:p-6 text-zinc-400">
-                      {renderValue(row.enterprise)}
-                    </td>
-                  </tr>
+                {categories.map((category, catIdx) => (
+                  <React.Fragment key={catIdx}>
+                    {/* Category Divider Header */}
+                    <tr className="bg-[#0A0A0E] border-y border-white/10">
+                      <td colSpan={4} className="px-5 sm:px-6 py-3 text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-300">
+                        {category.title}
+                      </td>
+                    </tr>
+
+                    {/* Category Items */}
+                    {category.items.map((item, itemIdx) => (
+                      <tr key={itemIdx} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-4 sm:p-5">
+                          <div className="font-bold text-white mb-0.5 text-xs sm:text-sm">{item.name}</div>
+                          <div className="text-[11px] text-zinc-400 font-sans leading-snug">{item.description}</div>
+                        </td>
+
+                        {/* Free Value */}
+                        <td className="p-4 sm:p-5 border-l border-white/10">
+                          {renderCellContent(item.free)}
+                        </td>
+
+                        {/* Pro Value */}
+                        <td className="p-4 sm:p-5 bg-emerald-500/[0.02] border-x border-emerald-500/20 text-emerald-200">
+                          {renderCellContent(item.pro)}
+                        </td>
+
+                        {/* Enterprise Value */}
+                        <td className="p-4 sm:p-5 border-l border-white/10">
+                          {renderCellContent(item.enterprise)}
+                        </td>
+                      </tr>
+                    ))}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
           </div>
 
           {/* Bottom Bar CTA */}
-          <div className="p-6 bg-[#0E0E10] border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-6 bg-[#0E0E12] border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs font-mono text-zinc-400 text-center sm:text-left">
-              <span>Ready to accelerate your production release cycles?</span>
-              <strong className="text-white block sm:inline sm:ml-1">Start with 3 free scans today.</strong>
+              <span>Looking for custom on-premise deployments or custom procurement?</span>
+              <strong className="text-white block sm:inline sm:ml-1">Instant digital delivery on all plans.</strong>
             </div>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-2.5 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
-            >
-              <span>Test Your Repository</span>
-              <ArrowRight size={14} />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white/10 hover:bg-white/15 text-white transition-all cursor-pointer"
+              >
+                Launch Console
+              </button>
+              <a
+                href={POLAR_PRO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-2 shadow cursor-pointer"
+              >
+                <span>Upgrade to Pro ($19/mo)</span>
+                <ArrowRight size={14} />
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
 };
+

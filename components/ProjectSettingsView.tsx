@@ -439,7 +439,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   </div>
                 </div>
                 <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                  {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$49 / mo' : '$0 / Free Tier'}
+                  {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$99 / mo' : '$0 / Free Tier'}
                 </span>
               </div>
 
@@ -573,7 +573,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
                     >
                       <Zap size={14} className="fill-black" />
-                      <span>Upgrade to Enterprise ($49/mo)</span>
+                      <span>Upgrade to Enterprise ($99/mo)</span>
                     </button>
                   </>
                 ) : user?.tier === 'Enterprise' ? (

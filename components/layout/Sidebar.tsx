@@ -264,19 +264,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex w-64 bg-[#0A0A0A] border-r border-white/10 p-5 flex-col justify-between shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        <div className="flex flex-col">
+      <aside className="hidden md:flex w-64 bg-[#0A0A0A] border-r border-white/10 p-4 flex-col justify-between shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="flex flex-col gap-4">
+          {quota && (
+            <div className="shrink-0 mb-1">
+              <UsageGauge
+                tier={user?.tier || 'Free'}
+                quota={quota}
+                projectsCount={projectsCount}
+                onOpenCheckout={onOpenCheckout}
+              />
+            </div>
+          )}
           {renderNavList()}
         </div>
-        <div className="flex flex-col gap-3 mt-4">
-          {quota && (
-            <UsageGauge
-              tier={user?.tier || 'Free'}
-              quota={quota}
-              projectsCount={projectsCount}
-              onOpenCheckout={onOpenCheckout}
-            />
-          )}
+        <div className="pt-4 border-t border-white/10 mt-6 shrink-0">
           {renderFooter()}
         </div>
       </aside>
@@ -293,8 +295,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Drawer Menu */}
           <aside className="relative w-72 max-w-[85vw] bg-[#0E0E12] border-r border-white/10 p-5 flex flex-col justify-between shadow-2xl z-10 overflow-y-auto h-full animate-in slide-in-from-left duration-200">
-            <div>
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <ZelsisLogo size="sm" />
                 <button
                   onClick={onCloseMobile}
@@ -304,17 +306,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <X size={18} />
                 </button>
               </div>
+              {quota && (
+                <div className="shrink-0 mb-1">
+                  <UsageGauge
+                    tier={user?.tier || 'Free'}
+                    quota={quota}
+                    projectsCount={projectsCount}
+                    onOpenCheckout={onOpenCheckout}
+                  />
+                </div>
+              )}
               {renderNavList()}
             </div>
-            <div className="flex flex-col gap-3 mt-4">
-              {quota && (
-                <UsageGauge
-                  tier={user?.tier || 'Free'}
-                  quota={quota}
-                  projectsCount={projectsCount}
-                  onOpenCheckout={onOpenCheckout}
-                />
-              )}
+            <div className="pt-4 border-t border-white/10 mt-6 shrink-0">
               {renderFooter()}
             </div>
           </aside>

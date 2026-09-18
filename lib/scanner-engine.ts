@@ -103,6 +103,8 @@ import { evaluateAiAgentEthicsGovernanceRules } from './rules/ai-agent-ethics-go
 import { evaluateEdgeAiModelQuantizationRules } from './rules/edge-ai-model-quantization-rules';
 import { evaluateServerlessVectorCacheRules } from './rules/serverless-vector-cache-rules';
 import { evaluateScaDependencyRules } from './rules/sca-dependency-rules';
+import { evaluateStrixPentestRules } from './rules/strix-pentest-rules';
+import { evaluateNoAiSlopRules } from './rules/no-ai-slop-rules';
 
 export interface CodeFile {
   path: string;
@@ -3530,6 +3532,28 @@ export function runStaticCodeScan(files: CodeFile[], repoName: string = 'Target 
       }
     }
     logs.push(...scaResult.logs);
+ 
+    // Wave 33: Strix AI Penetration Testing & OWASP 2025 Release Gate (SEC-API-01, SEC-SSRF-01, SEC-A10-01, SEC-ERR-02)
+    const strixCounter = { count: findingCounter };
+    const strixResult = evaluateStrixPentestRules(file, lines, cleanContent, strixCounter);
+    findingCounter = strixCounter.count;
+    for (const item of strixResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...strixResult.logs);
+
+    // Wave 34: No-AI-Slop & Human Voice Engineering Gate (COPY-SLOP-01, COPY-SLOP-02, UI-CLICHE-04)
+    const slopCounter = { count: findingCounter };
+    const slopResult = evaluateNoAiSlopRules(file, lines, cleanContent, slopCounter);
+    findingCounter = slopCounter.count;
+    for (const item of slopResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...slopResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

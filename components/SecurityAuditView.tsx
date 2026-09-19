@@ -60,7 +60,7 @@ export const SecurityAuditView: React.FC<SecurityAuditViewProps> = ({
             placeholder="Search security rules or OWASP tags..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
+            className="focus-visible:ring-1 focus-visible:ring-white/20 rounded"
             style={{ background: 'transparent', border: 'none', outline: 'none', color: '#EDEDED', width: '100%', fontSize: '0.85rem' }}
           />
         </div>
@@ -71,7 +71,7 @@ export const SecurityAuditView: React.FC<SecurityAuditViewProps> = ({
             aria-label="Filter security rules by category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+            className="focus-visible:ring-1 focus-visible:ring-white/20 outline-none"
             style={{ background: 'var(--bg-surface)', color: '#EDEDED', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)', fontSize: '0.85rem', cursor: 'pointer' }}
           >
             {categories.map(cat => (

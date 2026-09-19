@@ -33,7 +33,7 @@ export const Footer: React.FC = () => {
             NAVIGATION
           </span>
           <a href="#features" className="text-sm hover:text-white transition-colors">
-            Release Capabilities
+            Platform Features
           </a>
           <a href="#workflow" className="text-sm hover:text-white transition-colors">
             How It Works

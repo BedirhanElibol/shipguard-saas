@@ -56,11 +56,11 @@ export const CookieBanner: React.FC = () => {
 
         <p className="text-xs text-[#94A3B8] leading-relaxed">
           We use strictly essential cookies for secure authentication and active security scan state. No invasive third-party tracking or advertising cookies are utilized. Read our{' '}
-          <Link href="/cookies" className="text-emerald-400 hover:underline">
+          <Link href="/cookies" className="text-white hover:underline underline-offset-2">
             Cookie Policy
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="text-emerald-400 hover:underline">
+          <Link href="/privacy" className="text-white hover:underline underline-offset-2">
             Privacy Policy
           </Link>.
         </p>

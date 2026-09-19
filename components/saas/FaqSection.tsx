@@ -69,11 +69,11 @@ export const FaqSection: React.FC = () => {
             <div key={idx} className="py-6">
               <button
                 onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
-                className="w-full flex items-center justify-between gap-4 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-md cursor-pointer"
+                className="w-full flex items-center justify-between gap-4 text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-md cursor-pointer"
                 aria-expanded={openIdx === idx}
                 aria-label={`Toggle answer for: ${faq.question}`}
               >
-                <span className="text-base sm:text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                <span className="text-base sm:text-lg font-bold text-white group-hover:text-zinc-300 transition-colors">
                   {faq.question}
                 </span>
                 <span className={`p-1.5 rounded-md border border-white/10 bg-white/[0.02] text-zinc-400 group-hover:text-white transition-all transform ${openIdx === idx ? 'rotate-180 bg-white/10' : ''}`}>

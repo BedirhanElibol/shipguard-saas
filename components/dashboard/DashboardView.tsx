@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Project, Finding } from '@/data/schema';
+import { Project, Finding, UserTier } from '@/data/schema';
 import { KpiCards } from './KpiCards';
 import { SeverityChart } from './SeverityChart';
 import { FindingsTable } from '../findings/FindingsTable';
@@ -179,9 +179,8 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
           </button>
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-[#A1A1AA] font-mono">
+        <div className="flex items-center gap-4 text-xs text-[#A1A1AA] font-mono">
           <span>Framework: <strong className="text-white font-medium">{project.framework}</strong></span>
-          <span className="text-white/20">•</span>
           <span>Last Scan: <strong className="text-white font-medium">{project.lastScanAt}</strong></span>
         </div>
       </div>
@@ -199,6 +198,8 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
               onLoadDemoFindings={onLoadDemoFindings}
               onCopyPrompt={copyMasterPrompt}
               copiedPrompt={copiedMaster}
+              userTier={user?.tier as UserTier | undefined}
+              onOpenCheckout={onOpenCheckout}
             />
           </ComponentErrorBoundary>
         </div>
@@ -230,6 +231,8 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         project={project}
         activeModal={activeModal}
         onClose={() => setActiveModal(null)}
+        userTier={user?.tier as UserTier | undefined}
+        onOpenCheckout={onOpenCheckout}
       />
 
       <ClipboardToastBadge

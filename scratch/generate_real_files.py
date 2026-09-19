@@ -12,6 +12,8 @@ for td in target_dirs:
         continue
     for root, dirs, files in os.walk(dir_path):
         for file in files:
+            if file == "workspaceFiles.ts":
+                continue
             if file.endswith((".ts", ".tsx", ".js", ".css")):
                 full_path = os.path.join(root, file)
                 rel_path = os.path.relpath(full_path, workspace_dir).replace("\\", "/")

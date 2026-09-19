@@ -2,7 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { Project } from '@/data/schema';
+import { Project, UserTier } from '@/data/schema';
 
 const AuditCompareModal = dynamic(
   () => import('./AuditCompareModal').then((mod) => mod.AuditCompareModal),
@@ -65,12 +65,16 @@ export interface DashboardModalsProps {
   project: Project;
   activeModal: ActiveModalType;
   onClose: () => void;
+  userTier?: UserTier;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const DashboardModals: React.FC<DashboardModalsProps> = ({
   project,
   activeModal,
   onClose,
+  userTier,
+  onOpenCheckout,
 }) => {
   if (!activeModal) return null;
 
@@ -93,12 +97,16 @@ export const DashboardModals: React.FC<DashboardModalsProps> = ({
         isOpen={activeModal === 'rules'}
         onClose={onClose}
         projectName={project.name}
+        userTier={userTier}
+        onOpenCheckout={onOpenCheckout}
       />
 
       <ExecutiveBriefingModal
         isOpen={activeModal === 'briefing'}
         onClose={onClose}
         project={project}
+        userTier={userTier}
+        onOpenCheckout={onOpenCheckout}
       />
 
       <RuleKnowledgeBaseModal
@@ -110,6 +118,8 @@ export const DashboardModals: React.FC<DashboardModalsProps> = ({
         isOpen={activeModal === 'manifest'}
         onClose={onClose}
         projectName={project.name}
+        userTier={userTier}
+        onOpenCheckout={onOpenCheckout}
       />
 
       <PenTestPayloadGenerator
@@ -129,6 +139,8 @@ export const DashboardModals: React.FC<DashboardModalsProps> = ({
         isOpen={activeModal === 'cicd'}
         onClose={onClose}
         project={project}
+        userTier={userTier}
+        onOpenCheckout={onOpenCheckout}
       />
     </>
   );

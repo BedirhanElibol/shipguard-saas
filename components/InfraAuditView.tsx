@@ -94,7 +94,7 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
             placeholder="Search rules, stacks (Supabase, Docker, Next.js), or categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-transparent border-none outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 text-[#EDEDED] w-full text-xs font-mono placeholder:text-zinc-500 rounded"
+            className="bg-transparent border-none outline-none focus-visible:ring-1 focus-visible:ring-white/20 text-[#EDEDED] w-full text-xs font-mono placeholder:text-zinc-500 rounded"
           />
         </div>
 
@@ -104,7 +104,7 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
             aria-label="Filter infrastructure rules by category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#141414] text-[#EDEDED] px-3.5 py-2.5 rounded-xl border border-white/10 text-xs font-mono font-bold cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
+            className="bg-[#141414] text-[#EDEDED] px-3.5 py-2.5 rounded-xl border border-white/10 text-xs font-mono font-bold cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-white/20"
           >
             {categories.map((c) => (
               <option key={c} value={c} className="bg-[#141414]">

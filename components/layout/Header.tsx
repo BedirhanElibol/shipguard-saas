@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Project, PlanUsageQuota, UserTier } from '@/data/schema';
-import { Play, ArrowLeft, FolderGit2, LogOut, User, ChevronDown, Zap, Settings, Menu, Calendar, ExternalLink, Terminal, Shield } from 'lucide-react';
+import { Play, ArrowLeft, ArrowRight, FolderGit2, LogOut, User, ChevronDown, Settings, Menu, Calendar, ExternalLink, Terminal, Shield } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
@@ -181,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
                 const found = projects.find((p) => p.id === e.target.value);
                 if (found) onSelectProject(found);
               }}
-              className="bg-[#141414] border border-white/10 rounded-lg px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-mono font-bold text-white outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-[240px] truncate"
+              className="bg-[#141414] border border-white/10 rounded-lg px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-mono font-bold text-white outline-none focus-visible:ring-2 focus-visible:ring-white/20 cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-[240px] truncate"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -199,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => setIsGithubModalOpen(true)}
               aria-label="Connect Repository / Website"
-              className="min-w-[36px] min-h-[36px] p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors shrink-0 flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+              className="min-w-[36px] min-h-[36px] p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors shrink-0 flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-white/20"
               title="Connect Repository / Website"
             >
               <FolderGit2 size={14} />
@@ -210,19 +210,19 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Center: Interactive Target Command Bar */}
         <form onSubmit={handleAuditAction} className="flex items-center flex-1 max-w-sm sm:max-w-md lg:max-w-lg mx-2 sm:mx-4 min-w-0">
           <div className="relative w-full flex items-center">
-            <Terminal size={14} className="absolute left-2.5 sm:left-3 text-emerald-400 pointer-events-none shrink-0" />
+            <Terminal size={14} className="absolute left-2.5 sm:left-3 text-[#A1A1AA] pointer-events-none shrink-0" />
             <input
               type="text"
               aria-label="Target repository or deployment URL"
               value={activeTargetUrl}
               onChange={(e) => setActiveTargetUrl(e.target.value)}
               placeholder="github.com/owner/repo or web URL..."
-              className="w-full bg-[#141414] border border-white/15 rounded-lg pl-7 sm:pl-8 pr-16 sm:pr-20 py-1.5 text-xs font-mono text-[#EDEDED] placeholder-zinc-500 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-inner"
+              className="w-full bg-[#141414] border border-white/15 rounded-lg pl-7 sm:pl-8 pr-16 sm:pr-20 py-1.5 text-xs font-mono text-[#EDEDED] placeholder-zinc-500 outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus:border-white/30 transition-all shadow-inner"
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="absolute right-1 min-h-[32px] px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              className="absolute right-1 min-h-[32px] px-2.5 sm:px-3 py-1 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shadow-sm active:scale-95 shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-white/20"
               title="Audit Target Repository"
             >
               <Play size={10} fill="#0A0A0A" />
@@ -242,11 +242,11 @@ export const Header: React.FC<HeaderProps> = ({
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-mono font-bold transition-all cursor-pointer bg-white/5 hover:bg-white/10 text-white border-white/10 shadow-sm"
               title="View Plan Details & Quotas"
             >
-              <Shield size={11} className={user?.tier === 'Pro' ? 'text-blue-400' : user?.tier === 'Enterprise' ? 'text-emerald-400' : 'text-zinc-400'} />
+              <Shield size={11} className="text-zinc-400" />
               {user?.tier === 'Pro' ? (
-                <span className="text-blue-300">PRO · UNLIMITED</span>
+                <span className="text-zinc-200">PRO · UNLIMITED</span>
               ) : user?.tier === 'Enterprise' ? (
-                <span className="text-emerald-300">ENTERPRISE</span>
+                <span className="text-white">ENTERPRISE</span>
               ) : (
                 <span className={quota.scansUsed >= quota.scansLimit ? 'text-rose-400 font-extrabold' : 'text-zinc-300'}>
                   FREE · {Math.max(0, quota.scansLimit - quota.scansUsed)}/3 SCANS LEFT
@@ -282,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                   user.tier === 'Free'
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    ? 'bg-white/10 border border-white/15 text-zinc-300'
                     : user.tier === 'Pro'
                     ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
                     : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
@@ -320,7 +320,6 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="px-3 py-2 bg-white/[0.03] rounded-lg my-1 border border-white/5 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                             <span className="text-[11px] font-bold text-white">Free Plan</span>
                           </div>
                           <span className="text-[10px] font-mono font-medium text-zinc-300 bg-white/10 border border-white/15 px-1.5 py-0.5 rounded">
@@ -337,7 +336,7 @@ export const Header: React.FC<HeaderProps> = ({
                               }}
                               className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 transition-colors cursor-pointer"
                             >
-                              <Zap size={10} className="fill-amber-400" />
+                              <ArrowRight size={11} className="text-amber-400" />
                               <span>Upgrade</span>
                             </button>
                           )}
@@ -347,7 +346,6 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="p-3 bg-white/[0.03] rounded-lg my-1 border border-white/5 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <span className={`w-1.5 h-1.5 rounded-full ${validity.badgeColors.dot}`} />
                             <span className="text-[11px] font-bold text-white">{validity.tier} Plan</span>
                           </div>
                           <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${validity.badgeColors.bg} ${validity.badgeColors.text} ${validity.badgeColors.border}`}>
@@ -368,7 +366,7 @@ export const Header: React.FC<HeaderProps> = ({
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium underline underline-offset-2 flex items-center gap-0.5 shrink-0 ml-1.5"
+                            className="text-[10px] text-zinc-300 hover:text-white font-medium underline underline-offset-2 flex items-center gap-0.5 shrink-0 ml-1.5"
                           >
                             <span>Manage</span>
                             <ExternalLink size={9} />
@@ -397,7 +395,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2 transition-colors font-medium"
                     >
-                      <Zap size={13} className="text-amber-400" />
+                      <ArrowRight size={13} className="text-amber-400" />
                       <span>Upgrade Plan</span>
                     </button>
                   )}

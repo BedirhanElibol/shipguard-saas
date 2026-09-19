@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Finding } from '@/data/schema';
+import { Finding, UserTier } from '@/data/schema';
 import { DEMO_AUDIT_FINDINGS } from '@/data/mockData';
 import { BulkFixModal } from './BulkFixModal';
-import { Search, Filter, ArrowRight, Layers, Check, RotateCcw, Play, Zap, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown, SearchX, ExternalLink } from 'lucide-react';
+import { Search, Filter, ArrowRight, Layers, Check, RotateCcw, Play, Copy, ShieldCheck, Database, Server, Sliders, AlertOctagon, GitCommit, ChevronDown, SearchX, ExternalLink } from 'lucide-react';
 import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
 import { safeLower, safeString, safeTrim, safeReplace } from '@/lib/safe-utils';
 
@@ -15,6 +15,8 @@ interface FindingsTableProps {
   onLoadDemoFindings?: (demoFindings: Finding[]) => void;
   onCopyPrompt?: () => void;
   copiedPrompt?: boolean;
+  userTier?: UserTier;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const FindingsTable: React.FC<FindingsTableProps> = ({
@@ -24,6 +26,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
   onLoadDemoFindings,
   onCopyPrompt,
   copiedPrompt,
+  userTier,
+  onOpenCheckout,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState<string>('ALL');
@@ -156,13 +160,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'SECURITY' ? 'ALL' : 'SECURITY')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'SECURITY'
-              ? 'bg-emerald-500/10 border-emerald-500/40 shadow-lg shadow-emerald-500/5'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
               : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-              <ShieldCheck size={14} />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+              <ShieldCheck size={14} className="text-zinc-400" />
               <span>Security &amp; OWASP</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -186,13 +190,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'INFRA_DATABASE' ? 'ALL' : 'INFRA_DATABASE')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'INFRA_DATABASE'
-              ? 'bg-cyan-500/10 border-cyan-500/40 shadow-lg shadow-cyan-500/5'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
               : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-              <Database size={14} />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+              <Database size={14} className="text-zinc-400" />
               <span>Database &amp; Storage</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -216,13 +220,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'LEGAL_COMPLIANCE' ? 'ALL' : 'LEGAL_COMPLIANCE')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'LEGAL_COMPLIANCE'
-              ? 'bg-amber-500/10 border-amber-500/40 shadow-lg shadow-amber-500/5'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
               : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-              <Server size={14} />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+              <Server size={14} className="text-zinc-400" />
               <span>Legal &amp; Privacy</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -246,13 +250,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'VIBEPOLISH' ? 'ALL' : 'VIBEPOLISH')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'VIBEPOLISH'
-              ? 'bg-teal-500/10 border-teal-500/40 shadow-lg shadow-teal-500/5'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
               : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-400 flex items-center gap-1.5">
-              <Sliders size={14} />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+              <Sliders size={14} className="text-zinc-400" />
               <span>UX &amp; VibePolish</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -302,8 +306,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setHasDiffOnly(!hasDiffOnly)}
           className={`px-2.5 py-1 rounded-md border text-[11px] transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
             hasDiffOnly
-              ? 'bg-emerald-500 text-black font-bold border-emerald-500 shadow-sm'
-              : 'bg-[#0E0E10] border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+              ? 'bg-white text-black font-bold border-white shadow-sm'
+              : 'bg-[#0E0E10] border-white/10 text-zinc-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <GitCommit size={12} />
@@ -360,6 +364,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClose={() => setIsBulkOpen(false)}
           findings={findings}
           projectName="Target-Project"
+          userTier={userTier}
+          onOpenCheckout={onOpenCheckout}
         />
 
         {/* Search & Filters */}
@@ -373,7 +379,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               placeholder="Search findings or files..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 w-full placeholder:text-[#A1A1AA] rounded"
+              className="bg-transparent text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 w-full placeholder:text-[#A1A1AA] rounded"
             />
           </div>
 
@@ -384,7 +390,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               aria-label="Filter findings by severity"
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 cursor-pointer rounded"
+              className="bg-transparent text-xs font-bold text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 cursor-pointer rounded"
             >
               <option value="ALL" className="bg-[#141414]">All Severities</option>
               <option value="CRITICAL" className="bg-[#141414] text-[#EF4444]">Critical</option>
@@ -431,7 +437,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
       <div className="block md:hidden space-y-3">
         {filtered.length === 0 ? (
           findings.length === 0 ? (
-            <div className="p-8 rounded-xl bg-[#0A0A0A] border border-emerald-500/20 text-center flex flex-col items-center gap-4">
+            <div className="p-8 rounded-xl bg-[#0A0A0A] border border-white/10 text-center flex flex-col items-center gap-4">
               {/* Animated green shield */}
               <div className="relative flex items-center justify-center w-14 h-14">
                 <div className="absolute inset-0 rounded-full bg-emerald-500/10" />
@@ -441,7 +447,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-emerald-400">You&apos;re clear to deploy</h3>
+                <h3 className="text-sm font-extrabold text-[#EDEDED]">You&apos;re clear to deploy</h3>
                 <p className="text-xs text-[#A1A1AA] mt-1 leading-relaxed">
                   No vulnerabilities, dependency risks, or UI anti-patterns detected.
                 </p>
@@ -453,7 +459,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     onClick={() => onLoadDemoFindings(DEMO_AUDIT_FINDINGS)}
                     className="btn btn-primary py-2.5 px-3 text-xs font-bold w-full flex items-center justify-center gap-2 rounded-xl bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
                   >
-                    <Zap size={14} />
+                    <Layers size={14} />
                     <span>Load 1-Click Demo Template</span>
                   </button>
                 )}
@@ -573,7 +579,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                     <div className="mt-2.5 pt-2.5 border-t border-white/5 flex flex-col gap-2.5 text-xs text-zinc-300 animate-in fade-in duration-150">
                       {item.remediationPrompt && (
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300 font-bold">
                             Remediation Guidance
                           </span>
                           <p className="text-[11px] text-zinc-300 leading-relaxed bg-white/[0.02] p-2 rounded-lg border border-white/5">
@@ -584,7 +590,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
 
                       {item.snippet && (
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300 font-bold">
                             Vulnerable Code Snippet
                           </span>
                           <pre className="text-[10px] font-mono text-zinc-300 bg-black/60 p-2.5 rounded-lg border border-white/10 overflow-x-auto">
@@ -690,7 +696,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                         </svg>
                       </div>
                       <div>
-                        <h4 className="text-sm font-extrabold text-emerald-400">You&apos;re clear to deploy</h4>
+                        <h4 className="text-sm font-extrabold text-[#EDEDED]">You&apos;re clear to deploy</h4>
                         <p className="text-xs text-[#A1A1AA] mt-1 max-w-sm">
                           No vulnerabilities, dependency risks, or UI anti-patterns detected.
                         </p>
@@ -702,7 +708,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                             onClick={() => onLoadDemoFindings(DEMO_AUDIT_FINDINGS)}
                             className="btn btn-primary btn-sm px-4 py-2 text-xs font-bold flex items-center gap-2"
                           >
-                            <Zap size={13} />
+                            <Layers size={13} />
                             <span>Load 1-Click Demo Template</span>
                           </button>
                         )}

@@ -2,21 +2,30 @@
 
 import React from 'react';
 import { Project, ScanHistoryItem } from '@/data/schema';
-import { History, Play, CheckCircle2, AlertTriangle, ShieldCheck, Clock, ExternalLink } from 'lucide-react';
+import { UserTier } from '@/data/schema';
+import { History, Play, CheckCircle2, AlertTriangle, ShieldCheck, Clock, Lock } from 'lucide-react';
+import { filterHistoryByRetention, TIER_CONFIGS } from '@/lib/quota-manager';
 
 interface ScanHistoryViewProps {
   project: Project;
   onTriggerScan: () => void;
+  userTier?: UserTier;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
   project,
-  onTriggerScan
+  onTriggerScan,
+  userTier = 'Free',
+  onOpenCheckout
 }) => {
   // Read authentic historical audit records from project state
-  const historyRecords: ScanHistoryItem[] = ((project as any).scanHistory && (project as any).scanHistory.length > 0)
+  const allRecords: ScanHistoryItem[] = ((project as any).scanHistory && (project as any).scanHistory.length > 0)
     ? (project as any).scanHistory
     : [];
+
+  const { visible: historyRecords, locked: lockedRecords } = filterHistoryByRetention(allRecords, userTier);
+  const retentionDays = TIER_CONFIGS[userTier].historyRetentionDays;
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,13 +60,41 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
       <div className="bg-[#141414] border border-white/10 rounded-xl p-6 bg-[#141414] border-white/10 flex flex-col gap-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="text-xs font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">
-            PAST AUDIT EXECUTIONS ({historyRecords.length})
+            PAST AUDIT EXECUTIONS ({historyRecords.length}
+            {lockedRecords.length > 0 && (
+              <span className="text-amber-400 ml-1">+ {lockedRecords.length} locked</span>
+            )}
+            )
           </div>
           <span className="text-xs font-mono text-white">Target: {project.repoUrl}</span>
         </div>
 
+        {/* Retention paywall banner */}
+        {lockedRecords.length > 0 && (
+          <div className="flex items-center justify-between gap-4 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20">
+            <div className="flex items-center gap-2.5">
+              <Lock size={15} className="text-amber-400 shrink-0" />
+              <p className="text-xs text-amber-300 leading-relaxed">
+                <span className="font-bold">{lockedRecords.length} older records</span> are hidden.{' '}
+                {typeof retentionDays === 'number'
+                  ? `Free tier shows the last ${retentionDays} days.`
+                  : `Pro tier shows 90 days.`}{' '}
+                Upgrade to unlock full audit history.
+              </p>
+            </div>
+            {onOpenCheckout && (
+              <button
+                onClick={() => onOpenCheckout('Pro')}
+                className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-black bg-white hover:bg-neutral-200 transition-colors rounded-lg px-3 py-1.5"
+              >
+                Upgrade
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="space-y-3">
-          {historyRecords.length === 0 ? (
+          {historyRecords.length === 0 && lockedRecords.length === 0 ? (
             <div className="p-8 text-center bg-[#0A0A0A] rounded-xl border border-white/10 text-xs text-[#A1A1AA] flex flex-col items-center justify-center gap-3">
               <History size={28} className="text-white/20" />
               <div>
@@ -85,7 +122,7 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono font-bold text-[#EDEDED]">{scan.id}</span>
-                      <span className="text-[0.68rem] text-[#A1A1AA] font-mono">• {scan.date}</span>
+                      <span className="text-[0.68rem] text-[#A1A1AA] font-mono">{scan.date}</span>
                     </div>
                     <div className="text-[0.68rem] text-white font-mono mt-0.5 flex items-center gap-1.5">
                       <Clock size={12} />
@@ -124,3 +161,4 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
     </div>
   );
 };
+

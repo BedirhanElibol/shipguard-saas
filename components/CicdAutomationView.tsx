@@ -1,14 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Terminal, GitPullRequest, ShieldCheck, Copy, CheckCircle2, Download, Settings2, Sliders, CheckSquare, AlertTriangle } from 'lucide-react';
+import { Terminal, GitPullRequest, ShieldCheck, Copy, CheckCircle2, Download, Settings2, Sliders, CheckSquare, AlertTriangle, Lock, ArrowRight } from 'lucide-react';
+import { UserTier } from '@/data/schema';
+import { isCicdViewAllowed } from '@/lib/quota-manager';
 
 interface CicdAutomationViewProps {
   projectName?: string;
+  userTier?: UserTier;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const CicdAutomationView: React.FC<CicdAutomationViewProps> = ({
-  projectName = 'Next.js 15 SaaS Starter'
+  projectName = 'Next.js 15 SaaS Starter',
+  userTier = 'Free',
+  onOpenCheckout
 }) => {
   const [failThreshold, setFailThreshold] = useState<'smart' | 'strict' | 'advisory'>('smart');
   const [copiedWorkflow, setCopiedWorkflow] = useState(false);
@@ -115,18 +121,53 @@ jobs:
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header Info */}
-      <div className="bg-[#141414] border border-emerald-500/20 rounded-xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* Tier paywall gate — Free users cannot access CI/CD */}
+      {!isCicdViewAllowed(userTier) && (
+        <div className="flex flex-col items-center justify-center gap-6 py-16 px-6 bg-[#141414] border border-white/10 rounded-2xl text-center">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+            <Lock size={30} className="text-zinc-500" />
+          </div>
+          <div className="max-w-md">
+            <h2 className="text-lg font-extrabold text-[#EDEDED] mb-2">CI/CD Integration is a Pro Feature</h2>
+            <p className="text-sm text-[#A1A1AA] leading-relaxed">
+              Automate your release gate with GitHub Actions, Policy-as-Code enforcement, and CLI integration.
+              Available on <span className="text-white font-semibold">Pro</span> and <span className="text-white font-semibold">Enterprise</span> plans.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+            <button
+              onClick={() => onOpenCheckout?.('Pro')}
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-black text-sm font-extrabold hover:bg-neutral-200 transition-colors"
+            >
+              <ArrowRight size={15} />
+              Upgrade to Pro
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-lg mt-2">
+            {['GitHub Actions Workflow', 'Policy-as-Code Config', 'CLI Integration', 'PR Gate Comments', 'SARIF Report Upload', 'Zero-Config Setup'].map((feat) => (
+              <div key={feat} className="flex items-center gap-2 p-3 rounded-xl bg-[#0A0A0A] border border-white/10 text-left">
+                <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
+                <span className="text-[11px] text-[#A1A1AA] font-mono">{feat}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Full CI/CD content — Pro+ only */}
+      {isCicdViewAllowed(userTier) && (
+      <>      {/* Header Info */}
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Terminal size={24} className="text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Terminal size={22} className="text-white" />
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] m-0">
                 Zelsis CI/CD &amp; CLI Automation Hub
               </h1>
-              <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-widest">
+              <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-widest">
                 GitHub Actions · Git Hooks · Policy-as-Code · Automated PR Bot
               </span>
             </div>
@@ -136,8 +177,8 @@ jobs:
           </p>
         </div>
 
-        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
-          <GitPullRequest size={16} />
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-200 text-xs font-mono font-bold">
+          <GitPullRequest size={16} className="text-zinc-400" />
           <span>CI/CD Gate: READY</span>
         </div>
       </div>
@@ -153,13 +194,13 @@ jobs:
             onClick={() => setFailThreshold('smart')}
             className={`p-4 rounded-xl border text-left transition-all ${
               failThreshold === 'smart'
-                ? 'bg-emerald-500/10 border-emerald-500/40 shadow-sm'
+                ? 'bg-white/[0.08] border-white/30 shadow-sm'
                 : 'bg-black/30 border-white/5 hover:border-white/20'
             }`}
           >
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-mono font-bold text-emerald-400">Smart Mode (Recommended)</span>
-              <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">High Velocity</span>
+              <span className="text-xs font-mono font-bold text-white">Smart Mode (Recommended)</span>
+              <span className="text-[10px] font-mono bg-white/10 text-zinc-300 px-2 py-0.5 rounded">High Velocity</span>
             </div>
             <p className="text-xs text-zinc-400 leading-relaxed m-0">
               Strictly blocks PR merge on <strong className="text-white">CRITICAL</strong> Security, Legal, or Database violations. Posts informational markdown checklists for VibePolish warnings without breaking builds.
@@ -215,9 +256,9 @@ jobs:
                 value={minScore}
                 aria-label="Minimum Required Score Threshold"
                 onChange={(e) => setMinScore(Number(e.target.value))}
-                className="w-32 accent-emerald-500 cursor-pointer focus-visible:ring-1 focus-visible:ring-emerald-500"
+                className="w-32 accent-white cursor-pointer focus-visible:ring-1 focus-visible:ring-white/20"
               />
-              <span className="font-mono font-bold text-emerald-400 text-sm">{minScore} / 100</span>
+              <span className="font-mono font-bold text-white text-sm">{minScore} / 100</span>
             </div>
           </div>
         )}
@@ -254,7 +295,7 @@ jobs:
         </div>
 
         <div className="bg-black/80 border border-white/5 rounded-xl p-4 overflow-x-auto font-mono text-xs">
-          <pre className="text-emerald-300/90 leading-relaxed m-0">{generateGithubWorkflow()}</pre>
+          <pre className="text-zinc-200 leading-relaxed m-0">{generateGithubWorkflow()}</pre>
         </div>
       </div>
 
@@ -279,7 +320,7 @@ jobs:
               Standardize governance across your engineering team by checking in your custom gate requirements.
             </p>
             <div className="bg-black/60 border border-white/5 rounded-xl p-3.5 overflow-x-auto font-mono text-xs mb-4">
-              <pre className="text-cyan-300/90 leading-relaxed m-0">{generateZelsisConfig()}</pre>
+              <pre className="text-zinc-200 leading-relaxed m-0">{generateZelsisConfig()}</pre>
             </div>
           </div>
 
@@ -296,7 +337,7 @@ jobs:
                       checked={enabledGates[k]}
                       aria-label={`Toggle ${k} gate`}
                       onChange={(e) => setEnabledGates({ ...enabledGates, [k]: e.target.checked })}
-                      className="rounded accent-emerald-500 cursor-pointer focus-visible:ring-1 focus-visible:ring-emerald-500"
+                      className="rounded accent-white cursor-pointer focus-visible:ring-1 focus-visible:ring-white/20"
                     />
                     <span className="capitalize">{k}</span>
                   </label>
@@ -320,8 +361,8 @@ jobs:
               <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block mb-2">
                 1. Run Pre-Flight Audit in Terminal
               </span>
-              <div className="flex items-center justify-between gap-2 font-mono text-xs text-emerald-400">
-                <code>npx zelsis audit --fail-on=critical</code>
+              <div className="flex items-center justify-between gap-2 font-mono text-xs text-zinc-300">
+                <code className="text-white">npx zelsis audit --fail-on=critical</code>
                 <button
                   onClick={() => copyToClipboard('npx zelsis audit --fail-on=critical', setCopiedCli)}
                   className="p-1 hover:text-white transition-colors"
@@ -348,6 +389,8 @@ jobs:
           </div>
         </div>
       </div>
-    </div>
+    </> /* end Pro+ content */
+    )}
+  </div>
   );
 };

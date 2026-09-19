@@ -112,7 +112,7 @@ export const ComparisonTable: React.FC = () => {
         },
         {
           name: 'Concurrent Analysis Workers',
-          description: 'Simultaneous scanning pipeline capability',
+          description: 'Simultaneous scanning pipelines',
           free: '1 Scan at a time (Shared Queue)',
           pro: '5 Concurrent Scans (Priority Pool)',
           enterprise: 'Unlimited Parallel Workers (Isolated Cluster)'
@@ -138,7 +138,7 @@ export const ComparisonTable: React.FC = () => {
         },
         {
           name: 'Repository Size Scalability',
-          description: 'Analysis capability for large multi-package and monorepo codebases',
+          description: 'Analysis support for large multi-package and monorepo codebases',
           free: 'Standard Buffer (Small Repos)',
           pro: 'Yielded Event Loop (1,000+ Files, No OOM)',
           enterprise: 'Distributed Multi-Process Monorepo Runner'
@@ -247,12 +247,12 @@ export const ComparisonTable: React.FC = () => {
   const renderCellContent = (val: string | boolean) => {
     if (typeof val === 'boolean') {
       return val ? (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-400">
-          <Check size={14} className="stroke-[3]" />
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/10 text-white">
+          <Check size={12} className="stroke-[2.5]" />
         </span>
       ) : (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/5 text-zinc-500">
-          <X size={14} className="stroke-[2.5]" />
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/5 text-zinc-500">
+          <X size={12} className="stroke-[2]" />
         </span>
       );
     }
@@ -280,7 +280,7 @@ export const ComparisonTable: React.FC = () => {
             <span>PLAN COMPARISON MATRIX</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            Transparent Capabilities. Zero Guesswork.
+            Transparent Tier Limits. Zero Guesswork.
           </h2>
           <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed">
             Understand exactly what you are paying for. Compare operational limits, rule depth, surgical diffs, and release gate enforcement across Free, Pro, and Enterprise tiers.
@@ -294,7 +294,7 @@ export const ComparisonTable: React.FC = () => {
               <thead>
                 <tr className="border-b border-white/15 bg-[#0E0E12]">
                   <th className="p-5 sm:p-6 text-xs font-mono uppercase tracking-wider text-zinc-400 w-[34%] align-bottom">
-                    <span className="text-white font-bold block text-sm">Criteria / Capability</span>
+                    <span className="text-white font-bold block text-sm">Feature / Requirement</span>
                     <span className="text-zinc-500 text-[11px] font-normal lowercase tracking-normal">feature breakdown &amp; boundaries</span>
                   </th>
 
@@ -316,9 +316,8 @@ export const ComparisonTable: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => router.push('/dashboard')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                           <span>Current Plan</span>
                         </button>
                       ) : isLoggedIn && (currentTier === 'Pro' || currentTier === 'Enterprise') ? (
@@ -338,14 +337,13 @@ export const ComparisonTable: React.FC = () => {
                   </th>
 
                   {/* Pro Plan Header */}
-                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-white w-[22%] align-bottom bg-emerald-500/[0.04] border-x border-emerald-500/30 relative">
-                    <div className="absolute -top-px left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
+                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-white w-[22%] align-bottom bg-white/[0.03] border-x border-white/20 relative">
+                    <div className="absolute -top-px left-0 right-0 h-0.5 bg-white/40" />
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-widest">Pro</span>
+                        <span className="text-xs font-extrabold text-white uppercase tracking-widest">Pro</span>
                         {isLoggedIn && currentTier === 'Pro' ? (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white px-2 py-0.5 rounded border border-white/20 flex items-center gap-1">
                             <span>Active Plan</span>
                           </span>
                         ) : isLoggedIn && currentTier === 'Enterprise' ? (
@@ -353,7 +351,7 @@ export const ComparisonTable: React.FC = () => {
                             Included
                           </span>
                         ) : (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300 px-2 py-0.5 rounded border border-white/20">
                             Recommended
                           </span>
                         )}
@@ -369,7 +367,7 @@ export const ComparisonTable: React.FC = () => {
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                            className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                           >
                             <span>Manage at Polar</span>
                             <ExternalLink size={12} />
@@ -402,8 +400,8 @@ export const ComparisonTable: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Enterprise</span>
                         {isLoggedIn && currentTier === 'Enterprise' ? (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white px-2 py-0.5 rounded border border-white/20 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
                             <span>Active Plan</span>
                           </span>
                         ) : isLoggedIn && currentTier === 'Pro' ? (
@@ -423,7 +421,7 @@ export const ComparisonTable: React.FC = () => {
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                            className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                           >
                             <span>Manage at Polar</span>
                             <ExternalLink size={12} />
@@ -492,7 +490,7 @@ export const ComparisonTable: React.FC = () => {
                             </td>
 
                             {/* Pro Value */}
-                            <td className="p-4 sm:p-5 bg-emerald-500/[0.02] border-x border-emerald-500/20 text-emerald-200">
+                            <td className="p-4 sm:p-5 bg-white/[0.02] border-x border-white/10 text-zinc-200">
                               {renderCellContent(item.pro)}
                             </td>
 
@@ -529,7 +527,7 @@ export const ComparisonTable: React.FC = () => {
                   href="https://polar.sh/purchases"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white/10 hover:bg-white/15 border border-white/20 text-white transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <span>Manage Enterprise Plan</span>
                   <ExternalLink size={13} />

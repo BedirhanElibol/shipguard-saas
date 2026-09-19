@@ -2,12 +2,16 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Server, Download, Copy, CheckCircle2, GitBranch, Terminal, Shield, FileCode, Check, LucideIcon } from 'lucide-react';
+import { X, Server, Download, Copy, CheckCircle2, GitBranch, Terminal, Shield, FileCode, Check, LucideIcon, Lock } from 'lucide-react';
+import { UserTier } from '@/data/schema';
+import { isCicdIntegrationAllowed } from '@/lib/quota-manager';
 
 interface DeploymentManifestModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectName: string;
+  userTier?: UserTier;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 type TabType = 'github' | 'gitlab' | 'husky' | 'docker' | 'k8s';
@@ -15,8 +19,11 @@ type TabType = 'github' | 'gitlab' | 'husky' | 'docker' | 'k8s';
 export const DeploymentManifestModal: React.FC<DeploymentManifestModalProps> = ({
   isOpen,
   onClose,
-  projectName
+  projectName,
+  userTier,
+  onOpenCheckout,
 }) => {
+  const isAllowed = isCicdIntegrationAllowed(userTier);
   const [activeTab, setActiveTab] = useState<TabType>('github');
   const [copiedType, setCopiedType] = useState<string | null>(null);
 
@@ -223,13 +230,13 @@ spec:
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 p-5 sm:p-6 bg-[#0A0A0A]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300">
                 <Server size={20} />
               </div>
               <div>
                 <h2 className="text-lg font-extrabold text-[#EDEDED] flex items-center gap-2">
                   <span>CI/CD &amp; Pipeline Integration Hub</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
                     Snyk-Grade CI/CD
                   </span>
                 </h2>
@@ -248,105 +255,141 @@ spec:
             </button>
           </div>
 
-          {/* Platform Tab Navigation */}
-          <div className="flex items-center gap-1.5 px-6 pt-4 border-b border-white/10 bg-[#0E0E0E] overflow-x-auto">
-            {TAB_ITEMS.length === 0 ? null : TAB_ITEMS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-mono rounded-t-lg transition-all border-b-2 cursor-pointer whitespace-nowrap ${
-                    isActive
-                      ? 'border-emerald-400 text-white bg-white/[0.04] font-bold'
-                      : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.02]'
-                  }`}
-                >
-                  <Icon size={14} className={isActive ? 'text-emerald-400' : 'text-zinc-500'} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Main Body */}
-          <div className="p-6 flex flex-col gap-4 overflow-y-auto flex-1">
-            {/* Quick CLI Callout */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 text-xs font-mono">
-              <div className="flex items-center gap-2 text-zinc-300">
-                <Terminal size={14} className="text-cyan-400 shrink-0" />
-                <span>Instant Terminal Command:</span>
-                <code className="text-emerald-400 font-bold bg-black/50 px-2 py-0.5 rounded border border-white/5">
-                  npx zelsis-gate --threshold 80
-                </code>
+          {!isAllowed ? (
+            <div className="flex flex-col items-center justify-center gap-6 py-12 px-6 bg-[#0A0A0A] border border-white/10 rounded-2xl text-center m-6">
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <Lock size={26} className="text-zinc-500" />
               </div>
-              <button
-                onClick={() => handleCopy('npx zelsis-gate --threshold 80', 'cli')}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-[11px] text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
-              >
-                {copiedType === 'cli' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                <span>{copiedType === 'cli' ? 'Copied' : 'Copy Command'}</span>
-              </button>
-            </div>
-
-            {/* Code Header Bar */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-zinc-400">Target File:</span>
-                <span className="text-xs font-mono font-bold text-white bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                  {currentTabItem.filename}
-                </span>
+              <div className="max-w-md">
+                <h3 className="text-base font-extrabold text-[#EDEDED] mb-2">
+                  CI/CD &amp; Pipeline Manifests is a Pro Feature
+                </h3>
+                <p className="text-xs text-[#A1A1AA] leading-relaxed">
+                  Export production-grade CI/CD release gate pipelines for GitHub Actions, GitLab CI, Husky pre-commit hooks, Docker Compose, and Kubernetes.
+                  Available on <span className="text-white font-semibold">Pro</span> and <span className="text-white font-semibold">Enterprise</span> plans.
+                </p>
               </div>
-
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full max-w-xs">
                 <button
-                  onClick={() => handleCopy(currentTabItem.content, currentTabItem.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono text-zinc-200 hover:text-white transition-colors border border-white/10 cursor-pointer"
+                  type="button"
+                  onClick={onClose}
+                  className="btn btn-secondary text-xs px-4 py-2.5 flex-1 min-h-[44px]"
                 >
-                  {copiedType === currentTabItem.id ? (
-                    <>
-                      <CheckCircle2 size={13} className="text-emerald-400" />
-                      <span>Copied to Clipboard</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={13} />
-                      <span>Copy Workflow</span>
-                    </>
-                  )}
+                  Cancel
                 </button>
                 <button
-                  onClick={() => handleDownload(currentTabItem.content, currentTabItem.filename)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono text-zinc-200 hover:text-white transition-colors border border-white/10 cursor-pointer"
+                  type="button"
+                  onClick={() => onOpenCheckout?.('Pro')}
+                  className="btn btn-primary text-xs px-5 py-2.5 font-bold rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm flex-1 min-h-[44px]"
                 >
-                  <Download size={13} />
-                  <span>Download</span>
+                  <Lock size={13} />
+                  <span>Upgrade to Pro</span>
                 </button>
               </div>
             </div>
+          ) : (
+            <>
+              {/* Platform Tab Navigation */}
+              <div className="flex items-center gap-1.5 px-6 pt-4 border-b border-white/10 bg-[#0E0E0E] overflow-x-auto">
+                {TAB_ITEMS.length === 0 ? null : TAB_ITEMS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as TabType)}
+                      className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-mono rounded-t-lg transition-all border-b-2 cursor-pointer whitespace-nowrap ${
+                        isActive
+                          ? 'border-white text-white bg-white/[0.06] font-bold'
+                          : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      <Icon size={14} className={isActive ? 'text-white' : 'text-zinc-500'} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-            {/* Code Viewer */}
-            <div className="relative rounded-xl border border-white/10 bg-[#0A0A0A] overflow-hidden">
-              <pre className="p-4 font-mono text-xs text-zinc-300 overflow-x-auto max-h-[380px] leading-relaxed">
-                {currentTabItem.content}
-              </pre>
-            </div>
-          </div>
+              {/* Main Body */}
+              <div className="p-6 flex flex-col gap-4 overflow-y-auto flex-1">
+                {/* Quick CLI Callout */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 text-xs font-mono">
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <Terminal size={14} className="text-zinc-400 shrink-0" />
+                    <span>Instant Terminal Command:</span>
+                    <code className="text-zinc-200 font-bold bg-black/50 px-2 py-0.5 rounded border border-white/10">
+                      npx zelsis-gate --threshold 80
+                    </code>
+                  </div>
+                  <button
+                    onClick={() => handleCopy('npx zelsis-gate --threshold 80', 'cli')}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-[11px] text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
+                  >
+                    {copiedType === 'cli' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                    <span>{copiedType === 'cli' ? 'Copied' : 'Copy Command'}</span>
+                  </button>
+                </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between p-4 px-6 border-t border-white/10 bg-[#0A0A0A]">
-            <div className="text-xs text-[#A1A1AA] flex items-center gap-2">
-              <Shield size={14} className="text-emerald-400" />
-              <span>Zero-Retention Architecture: Source code is analyzed in-memory and never written to disk.</span>
-            </div>
-            <button
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg bg-white text-black hover:bg-neutral-200 transition-all shadow-sm cursor-pointer"
-              onClick={onClose}
-            >
-              Done
-            </button>
-          </div>
+                {/* Code Header Bar */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-zinc-400">Target File:</span>
+                    <span className="text-xs font-mono font-bold text-white bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                      {currentTabItem.filename}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleCopy(currentTabItem.content, currentTabItem.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono text-zinc-200 hover:text-white transition-colors border border-white/10 cursor-pointer"
+                    >
+                      {copiedType === currentTabItem.id ? (
+                        <>
+                          <CheckCircle2 size={13} className="text-emerald-400" />
+                          <span>Copied to Clipboard</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={13} />
+                          <span>Copy Workflow</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDownload(currentTabItem.content, currentTabItem.filename)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono text-zinc-200 hover:text-white transition-colors border border-white/10 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Code Viewer */}
+                <div className="relative rounded-xl border border-white/10 bg-[#0A0A0A] overflow-hidden">
+                  <pre className="p-4 font-mono text-xs text-zinc-300 overflow-x-auto max-h-[380px] leading-relaxed">
+                    {currentTabItem.content}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between p-4 px-6 border-t border-white/10 bg-[#0A0A0A]">
+                <div className="text-xs text-[#A1A1AA] flex items-center gap-2">
+                  <Shield size={14} className="text-zinc-400" />
+                  <span>Zero-Retention Architecture: Source code is analyzed in-memory and never written to disk.</span>
+                </div>
+                <button
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg bg-white text-black hover:bg-neutral-200 transition-all shadow-sm cursor-pointer min-h-[44px]"
+                  onClick={onClose}
+                >
+                  Done
+                </button>
+              </div>
+            </>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

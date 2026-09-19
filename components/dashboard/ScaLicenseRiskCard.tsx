@@ -263,10 +263,10 @@ export const ScaLicenseRiskCard: React.FC = () => {
           <div className="text-[0.65rem] font-mono text-[#94A3B8] uppercase tracking-wider">
             PERMISSIVE (MIT/APACHE)
           </div>
-          <div className="text-2xl font-extrabold text-emerald-400 font-mono">
+          <div className="text-2xl font-extrabold text-white font-mono">
             {Math.round((permissiveCount / totalCount) * 100)}%
           </div>
-          <div className="text-[0.65rem] text-emerald-400/80">
+          <div className="text-[0.65rem] text-zinc-400">
             {permissiveCount} packages commercial safe
           </div>
         </div>
@@ -278,7 +278,7 @@ export const ScaLicenseRiskCard: React.FC = () => {
           <div className="text-2xl font-extrabold text-white font-mono">
             0%
           </div>
-          <div className="text-[0.65rem] text-emerald-400/80">
+          <div className="text-[0.65rem] text-zinc-400">
             Zero AGPL/GPL contagion
           </div>
         </div>
@@ -290,7 +290,7 @@ export const ScaLicenseRiskCard: React.FC = () => {
           <div className="text-2xl font-extrabold text-white font-mono">
             0
           </div>
-          <div className="text-[0.65rem] text-emerald-400/80">
+          <div className="text-[0.65rem] text-zinc-400">
             All security advisories clear
           </div>
         </div>
@@ -307,7 +307,7 @@ export const ScaLicenseRiskCard: React.FC = () => {
             placeholder="Search package or license (e.g. next, Apache, MIT)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder:text-[#52525B] focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none focus:border-white/30 font-mono"
+            className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder:text-[#52525B] focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:outline-none focus:border-white/30 font-mono"
           />
         </div>
 

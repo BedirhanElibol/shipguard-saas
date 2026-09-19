@@ -449,7 +449,11 @@ function DashboardContent() {
             )}
 
             {activeNav === 'cicd' && (
-              <CicdAutomationView projectName={selectedProject.name} />
+              <CicdAutomationView
+                projectName={selectedProject.name}
+                userTier={user?.tier}
+                onOpenCheckout={handleOpenCheckoutModal}
+              />
             )}
 
             {activeNav === 'remediation' && (
@@ -457,6 +461,8 @@ function DashboardContent() {
                 projects={projects}
                 onInspectFinding={(f) => setInspectingFinding(f)}
                 onToggleResolveFinding={handleToggleResolveFinding}
+                userTier={user?.tier}
+                onOpenCheckout={handleOpenCheckoutModal}
               />
             )}
 
@@ -479,6 +485,8 @@ function DashboardContent() {
             <ScanHistoryView
               project={selectedProject}
               onTriggerScan={handleTriggerScan}
+              userTier={user?.tier}
+              onOpenCheckout={handleOpenCheckoutModal}
             />
           )}
 

@@ -1,4 +1,4 @@
-﻿import { PlanUsageQuota, UserTier } from '@/data/schema';
+import { PlanUsageQuota, UserTier } from '@/data/schema';
 
 export const FREE_SCAN_LIMIT = 3;
 export const FREE_PROJECT_LIMIT = 1;
@@ -17,6 +17,8 @@ export interface TierFeatureConfig {
   customRules: boolean;
   ruleInventory: string;
   supportSla: string;
+  concurrentWorkers: number | 'Unlimited';
+  historyRetentionDays: number | 'Unlimited';
 }
 
 export const TIER_CONFIGS: Record<UserTier, TierFeatureConfig> = {
@@ -32,7 +34,9 @@ export const TIER_CONFIGS: Record<UserTier, TierFeatureConfig> = {
     cicdIntegration: false,
     customRules: false,
     ruleInventory: '20 Core OWASP Rules',
-    supportSla: 'Community Support'
+    supportSla: 'Community Support',
+    concurrentWorkers: 1,
+    historyRetentionDays: 7
   },
   Pro: {
     tier: 'Pro',
@@ -46,7 +50,9 @@ export const TIER_CONFIGS: Record<UserTier, TierFeatureConfig> = {
     cicdIntegration: true,
     customRules: false,
     ruleInventory: 'All 7,850+ Production Rules',
-    supportSla: '24-Hour Email Support'
+    supportSla: '24-Hour Email Support',
+    concurrentWorkers: 5,
+    historyRetentionDays: 90
   },
   Enterprise: {
     tier: 'Enterprise',
@@ -60,7 +66,9 @@ export const TIER_CONFIGS: Record<UserTier, TierFeatureConfig> = {
     cicdIntegration: true,
     customRules: true,
     ruleInventory: 'All Rules + Custom Policy Catalog',
-    supportSla: '1-Hour Priority SLA & Slack Channel'
+    supportSla: '1-Hour Priority SLA & Slack Channel',
+    concurrentWorkers: 'Unlimited',
+    historyRetentionDays: 'Unlimited'
   }
 };
 
@@ -215,4 +223,54 @@ export function isPrivateRepoAllowed(tier: UserTier = 'Free'): boolean {
 
 export function isPdfExportAllowed(tier: UserTier = 'Free'): boolean {
   return tier !== 'Free';
+}
+
+export function isCicdViewAllowed(tier: UserTier = 'Free'): boolean {
+  return tier !== 'Free';
+}
+
+export function isCicdIntegrationAllowed(tier: UserTier = 'Free'): boolean {
+  return TIER_CONFIGS[tier].cicdIntegration;
+}
+
+export function isBulkPatchAllowed(tier: UserTier = 'Free'): boolean {
+  return tier !== 'Free';
+}
+
+export function isCustomRulesAllowed(tier: UserTier = 'Free'): boolean {
+  return TIER_CONFIGS[tier].customRules;
+}
+
+export function getConcurrentWorkers(tier: UserTier = 'Free'): number | 'Unlimited' {
+  return TIER_CONFIGS[tier].concurrentWorkers;
+}
+
+/**
+ * Filters a list of scan history items by the tier's retention window.
+ * Returns { visible, locked } — visible records are within retention, locked are outside.
+ */
+export function filterHistoryByRetention<T extends { date: string }>(
+  records: T[],
+  tier: UserTier = 'Free'
+): { visible: T[]; locked: T[] } {
+  const retentionDays = TIER_CONFIGS[tier].historyRetentionDays;
+  if (retentionDays === 'Unlimited') {
+    return { visible: records, locked: [] };
+  }
+
+  const cutoffMs = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+  const visible: T[] = [];
+  const locked: T[] = [];
+
+  for (const record of records) {
+    const ts = new Date(record.date).getTime();
+    // If the date can't be parsed (e.g., "2024-05-12" format), fall through to visible
+    if (isNaN(ts) || ts >= cutoffMs) {
+      visible.push(record);
+    } else {
+      locked.push(record);
+    }
+  }
+
+  return { visible, locked };
 }

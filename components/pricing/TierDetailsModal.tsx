@@ -81,7 +81,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
             <div className="flex items-center gap-2 mb-1">
               <Shield size={18} className="text-white" />
               <h2 className="text-lg sm:text-xl font-extrabold text-white">
-                Tier Comparison &amp; Capability Matrix
+                Tier Comparison &amp; Feature Matrix
               </h2>
             </div>
             <p className="text-xs text-zinc-400">
@@ -113,24 +113,22 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
 
             {/* Pro Tier */}
             <div className={`p-4 rounded-xl flex flex-col justify-between gap-3 relative shadow-lg ${
-              currentTier === 'Pro' ? 'border-2 border-emerald-500/50 bg-emerald-500/5' : 'border border-blue-500/40 bg-blue-500/5'
+              currentTier === 'Pro' ? 'border-2 border-white/40 bg-white/[0.04]' : 'border border-white/10 bg-white/[0.02]'
             }`}>
               <div className="absolute -top-2.5 right-4 flex items-center gap-1">
                 {currentTier === 'Pro' ? (
-                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-white text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
                     <span className="w-1.5 h-1.5 rounded-full bg-black" />
                     Active Plan
                   </span>
                 ) : currentTier === 'Free' ? (
-                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500 text-white uppercase tracking-wider">
-                    Most Popular
+                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-white/20 text-white border border-white/30 uppercase tracking-wider">
+                    Recommended
                   </span>
                 ) : null}
               </div>
               <div>
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                  currentTier === 'Pro' ? 'text-emerald-400' : 'text-blue-400'
-                }`}>Pro Developer</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white">Pro Developer</span>
                 <div className="text-2xl font-extrabold text-white mt-1 tabular-nums">$19 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
                 <p className="text-[11px] text-zinc-300 mt-1">Unlimited scans, private repos, 1-click AI fixes &amp; PDF certificates.</p>
               </div>
@@ -139,7 +137,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
                   href="https://polar.sh/purchases"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+                  className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
                 >
                   <span>Manage at Polar</span>
                   <ExternalLink size={13} />
@@ -161,16 +159,16 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
 
             {/* Enterprise Tier */}
             <div className={`p-4 rounded-xl flex flex-col justify-between gap-3 relative shadow-lg ${
-              currentTier === 'Enterprise' ? 'border-2 border-emerald-500/50 bg-emerald-500/5' : 'border border-emerald-500/30 bg-emerald-500/5'
+              currentTier === 'Enterprise' ? 'border-2 border-white/40 bg-white/[0.04]' : 'border border-white/10 bg-white/[0.02]'
             }`}>
               {currentTier === 'Enterprise' && (
-                <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500 text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded text-[9px] font-bold bg-white text-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-black" />
                   Active Plan
                 </span>
               )}
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Enterprise Team</span>
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Enterprise Team</span>
                 <div className="text-2xl font-extrabold text-white mt-1 tabular-nums">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
                 <p className="text-[11px] text-zinc-400 mt-1">Custom company rules, multi-seat RBAC, and dedicated 1h SLA support.</p>
               </div>
@@ -179,7 +177,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
                   href="https://polar.sh/purchases"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
+                  className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center"
                 >
                   <span>Manage at Polar</span>
                   <ExternalLink size={13} />
@@ -187,7 +185,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
               ) : (
                 <button
                   onClick={() => { onClose(); onSelectPlan('Enterprise'); }}
-                  className="w-full py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  className="w-full py-2 px-3 rounded-lg bg-white text-black hover:bg-neutral-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
                   <span>Upgrade to Enterprise ($99)</span>
                   <ArrowRight size={13} />
@@ -216,8 +214,8 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
                       <div key={itemIdx} className="grid grid-cols-1 md:grid-cols-4 py-2 gap-1 items-center">
                         <span className="text-zinc-300 font-medium md:col-span-1">{item.label}</span>
                         <span className="text-zinc-400 text-[11px] md:col-span-1 md:text-center">{item.free}</span>
-                        <span className="text-blue-300 font-bold text-[11px] md:col-span-1 md:text-center">{item.pro}</span>
-                        <span className="text-emerald-300 font-bold text-[11px] md:col-span-1 md:text-center">{item.enterprise}</span>
+                        <span className="text-zinc-200 font-bold text-[11px] md:col-span-1 md:text-center">{item.pro}</span>
+                        <span className="text-white font-bold text-[11px] md:col-span-1 md:text-center">{item.enterprise}</span>
                       </div>
                     ))
                   )}

@@ -7,7 +7,7 @@ import { Project } from '@/data/schema';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { Settings, Key, Save, Trash2, X, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { CheckCircle2, ShieldCheck, ShieldAlert, AlertTriangle, AlertCircle } from 'lucide-react';
-import { Loader2, CreditCard, Zap, Check, Calendar, ExternalLink } from 'lucide-react';
+import { Loader2, CreditCard, ArrowRight, Check, Calendar, ExternalLink } from 'lucide-react';
 
 import { supabaseSignOut, getSupabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -388,12 +388,12 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
       {/* Membership & Subscription Management Card */}
       <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/20" />
 
         {/* Card Header */}
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-center">
               <CreditCard size={20} />
             </div>
             <div>
@@ -408,7 +408,6 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
           <div className="flex items-center gap-2">
             <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${validity.badgeColors.bg} ${validity.badgeColors.border} ${validity.badgeColors.text}`}>
-              <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot}`} />
               {validity.isActive ? 'Active' : 'Expired'}
             </span>
           </div>
@@ -448,7 +447,6 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${validity.badgeColors.dot}`} />
                       <span className="text-lg font-mono font-extrabold text-white">
                         {validity.countdownLabel}
                       </span>
@@ -457,7 +455,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       href="https://polar.sh/purchases"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center gap-1.5 transition-colors"
+                      className="text-xs text-zinc-300 hover:text-white font-medium inline-flex items-center gap-1.5 transition-colors"
                     >
                       <span>Manage at Polar</span>
                       <ExternalLink size={12} />
@@ -572,7 +570,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                       }}
                       className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
                     >
-                      <Zap size={14} className="fill-black" />
+                      <ArrowRight size={14} />
                       <span>Upgrade to Enterprise ($99/mo)</span>
                     </button>
                   </>
@@ -598,7 +596,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                     }}
                     className="btn btn-primary min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
                   >
-                    <Zap size={14} className="fill-black" />
+                    <ArrowRight size={14} />
                     <span>Upgrade to Pro ($19/mo)</span>
                   </button>
                 )}
@@ -618,7 +616,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 Profile Details &amp; Avatar
               </span>
               {profileSaved && (
-                <span className="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1">
+                <span className="text-xs font-mono font-bold text-white flex items-center gap-1">
                   <Check size={13} /> Saved
                 </span>
               )}
@@ -672,7 +670,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   {profileEmail || (isAuthenticated ? 'email@example.com' : 'Not signed in')}
                 </div>
                 <div className="mt-1">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/10 border border-white/20 text-white">
                     {user?.tier && user.tier !== 'Free' ? `${user.tier} Plan` : isAuthenticated ? 'Free Plan' : 'Guest Mode'}
                   </span>
                 </div>
@@ -697,7 +695,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
                   !isAuthenticated
                     ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
-                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500'
+                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20'
                 }`}
               />
             </div>
@@ -720,7 +718,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                 className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
                   !isAuthenticated
                     ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
-                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500'
+                    : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20'
                 }`}
               />
             </div>
@@ -744,7 +742,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                   className={`flex-1 border rounded-xl px-3.5 py-2 text-xs font-mono outline-none transition-colors ${
                     !isAuthenticated
                       ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed'
-                      : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500'
+                      : 'bg-[#141414] border-white/10 text-white focus:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20'
                   }`}
                 />
                 <button
@@ -813,7 +811,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
               placeholder="SG-PRO-2026-..."
               value={licenseInput}
               onChange={(e) => setLicenseInput(e.target.value)}
-              className="bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30 focus-visible:ring-1 focus-visible:ring-emerald-500 uppercase flex-1 md:w-60"
+              className="bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-white/30 focus-visible:ring-1 focus-visible:ring-white/20 uppercase flex-1 md:w-60"
             />
             <button
               type="button"
@@ -966,7 +964,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
               {purgeSuccess ? (
                 <div className="py-8 flex flex-col items-center justify-center text-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-white/5 text-white border border-emerald-500/40 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-white/5 text-white border border-white/20 flex items-center justify-center">
                     <CheckCircle2 size={36} />
                   </div>
                   <h3 className="text-xl font-extrabold text-white">

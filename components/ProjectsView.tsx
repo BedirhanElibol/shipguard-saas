@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Project } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
-import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Zap, Lock, X } from 'lucide-react';
+import { FolderGit2, Plus, ArrowRight, Play, ExternalLink, ShieldCheck, Trash2, Layers, Lock, X } from 'lucide-react';
 import { NewProjectModal } from '@/components/projects/NewProjectModal';
 import { UserProfile } from '@/components/auth/AuthModal';
 
@@ -81,9 +81,9 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       </div>
 
       {/* Quick Target Presets Bar */}
-      <div className="rounded-xl border border-white/10 bg-[#0E0E16]/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+      <div className="rounded-xl border border-white/10 bg-[#141414] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
         <div className="flex items-center gap-2 text-xs font-mono font-bold text-white tracking-wider uppercase">
-          <Zap size={14} />
+          <Layers size={14} />
           <span>Quick Target Presets:</span>
         </div>
 
@@ -340,7 +340,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 }}
                 className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-white text-black font-extrabold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 cursor-pointer font-mono"
               >
-                <Zap size={14} />
+                <ArrowRight size={14} />
                 <span>Upgrade to Pro ($19/mo)</span>
               </button>
               <button

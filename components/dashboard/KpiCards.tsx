@@ -47,7 +47,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
                 ? 'text-[#EF4444]'
                 : project.readinessScore < 85
                 ? 'text-[#F59E0B]'
-                : 'text-[#10B981]'
+                : 'text-white'
             }`}
           >
             <NumberFlow value={project.readinessScore} />
@@ -63,7 +63,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
                 ? 'bg-[#EF4444]'
                 : project.readinessScore < 85
                 ? 'bg-[#F59E0B]'
-                : 'bg-[#10B981]'
+                : 'bg-white'
             }`}
             style={{ width: `${project.readinessScore}%` }}
           />
@@ -71,7 +71,13 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
 
         <div className="text-[0.68rem] sm:text-[0.72rem] text-[#A1A1AA] mt-2 sm:mt-3 flex items-center justify-between font-mono">
           <span>Gate:</span>
-          <span className={`font-bold truncate ${project.gateStatus === 'FAILED' ? 'text-[#EF4444]' : 'text-[#10B981]'}`}>
+          <span className={`font-bold truncate ${
+            project.gateStatus === 'FAILED'
+              ? 'text-[#EF4444]'
+              : project.gateStatus === 'WARNING'
+              ? 'text-[#F59E0B]'
+              : 'text-zinc-300'
+          }`}>
             {project.gateStatus}
           </span>
         </div>
@@ -137,7 +143,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
           />
         </div>
 
-        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openUiCliches > 0 ? 'text-[#F59E0B]' : 'text-[#10B981]'}`}>
+        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openUiCliches > 0 ? 'text-[#F59E0B]' : 'text-zinc-400'}`}>
           <span className="truncate">{openUiCliches > 0 ? `${openUiCliches} UI Risks` : 'Cleared'}</span>
           <span className="text-[0.68rem] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
             Inspect &rarr;
@@ -171,7 +177,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
           />
         </div>
 
-        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openSlop > 0 ? 'text-[#F59E0B]' : 'text-[#10B981]'}`}>
+        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openSlop > 0 ? 'text-[#F59E0B]' : 'text-zinc-400'}`}>
           <span className="truncate">{openSlop > 0 ? `${openSlop} Slop Rules` : 'Cleared'}</span>
           <span className="text-[0.68rem] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
             Inspect &rarr;

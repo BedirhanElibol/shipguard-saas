@@ -38,7 +38,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
         {/* Tier Header Bar */}
         <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
           <div className="flex items-center gap-2">
-            <Shield size={14} className={isFree ? 'text-zinc-400' : isPro ? 'text-blue-400' : 'text-emerald-400'} />
+            <Shield size={14} className="text-zinc-300" />
             <span className="text-xs font-extrabold uppercase tracking-wider text-white">
               {tier} Plan
             </span>
@@ -47,9 +47,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
             className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase border ${
               isFree
                 ? 'bg-white/5 text-zinc-400 border-white/10'
-                : isPro
-                ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                : 'bg-white/10 text-white border-white/20'
             }`}
           >
             {isFree ? 'Starter' : isPro ? 'Verified Pro' : 'Dedicated'}
@@ -73,7 +71,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
                       ? 'bg-rose-500'
                       : scansUsed === 2
                       ? 'bg-amber-500'
-                      : 'bg-emerald-500'
+                      : 'bg-white'
                   }`}
                   style={{ width: `${scanPercentage}%` }}
                 />
@@ -145,15 +143,15 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-xs text-emerald-400 font-bold bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
-              <CheckCircle2 size={14} className="shrink-0" />
+            <div className="flex items-center gap-2 text-xs text-white font-bold bg-white/5 p-2.5 rounded-lg border border-white/10">
+              <CheckCircle2 size={14} className="shrink-0 text-zinc-400" />
               <span>Unlimited Production Clearance</span>
             </div>
 
             <div className="flex flex-col gap-2 text-[11px] text-zinc-400">
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span>Monthly Scans</span>
-                <span className="font-bold text-emerald-400">Unlimited</span>
+                <span className="font-bold text-white">Unlimited</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span>Connected Repositories</span>
@@ -161,11 +159,11 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
               </div>
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span>Private Codebase Audits</span>
-                <span className="font-bold text-emerald-400">Unlocked</span>
+                <span className="font-bold text-white">Unlocked</span>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>PDF Release Certificate</span>
-                <span className="font-bold text-emerald-400">Included</span>
+                <span className="font-bold text-white">Included</span>
               </div>
             </div>
 

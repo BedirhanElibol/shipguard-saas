@@ -35,7 +35,7 @@ export const ProductCapabilities: React.FC = () => {
   const capabilities: ProductCapability[] = [
     {
       id: 'rules',
-      badge: 'CAPABILITY 01 // RULE TAXONOMY',
+      badge: '01 // RULE TAXONOMY',
       title: 'Exhaustive Pre-Flight Release Rules',
       subtitle: 'Continuous verification across OWASP Top 10, database isolation, and cloud architecture.',
       description:
@@ -57,7 +57,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'findings',
-      badge: 'CAPABILITY 02 // SURGICAL AST TRIAGE',
+      badge: '02 // SURGICAL AST TRIAGE',
       title: 'Line-by-Line Vulnerability Triage & Context',
       subtitle: 'Pinpoint vulnerabilities down to the exact line number with 1-click AI remediation prompts.',
       description:
@@ -79,7 +79,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'sandbox',
-      badge: 'CAPABILITY 03 // ZERO-INSTALL REPL',
+      badge: '03 // ZERO-INSTALL REPL',
       title: 'Interactive In-Memory AST Sandbox',
       subtitle: 'Test production code snippets against clearance rules in live browser memory.',
       description:
@@ -101,7 +101,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'profiler',
-      badge: 'CAPABILITY 04 // WEB VITALS & INFRASTRUCTURE',
+      badge: '04 // WEB VITALS & INFRASTRUCTURE',
       title: 'Deep Bundle & Core Web Vitals Profiler',
       subtitle: 'Identify layout shifts, unoptimized asset weights, and container resource limits.',
       description:
@@ -132,31 +132,31 @@ export const ProductCapabilities: React.FC = () => {
       <div className="max-w-6xl mx-auto flex flex-col gap-20">
         {/* Section Title */}
         <div className="flex flex-col gap-4 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-emerald-400">
-            <span>ENTERPRISE CAPABILITIES</span>
+          <div className="inline-flex items-center justify-center text-xs font-mono uppercase tracking-widest text-zinc-400">
+            <span>CORE PLATFORM ENGINES</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            Production Readiness Across 4 Core Capabilities
+            Production Readiness Across 4 Core Pillars
           </h2>
           <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed font-sans">
             Engineered to replace fragmented linters, manual security spreadsheets, and bloated compliance suites with a unified developer platform.
           </p>
         </div>
 
-        {/* Sequential Alternating Showcase of All 4 Capabilities */}
+        {/* Sequential Alternating Showcase of All 4 Pillars */}
         <div className="flex flex-col gap-16">
           {capabilities.map((capability, idx) => {
             const isReversed = idx % 2 === 1;
             return (
               <div
                 key={capability.id}
-                className={`rounded-2xl border border-white/15 bg-[#121212] p-6 sm:p-10 shadow-2xl flex flex-col ${
+                className={`rounded-2xl border border-white/15 bg-[#121216] p-6 sm:p-10 shadow-2xl flex flex-col ${
                   isReversed ? 'lg:flex-row-reverse' : 'lg:flex-row'
                 } gap-10 items-center`}
               >
                 {/* Text & Architecture Pills Column (5 cols) */}
                 <div className="w-full lg:w-5/12 flex flex-col gap-6">
-                  <div className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-emerald-400 uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">
                     <span>{capability.badge}</span>
                   </div>
 
@@ -185,7 +185,7 @@ export const ProductCapabilities: React.FC = () => {
                   <ul className="flex flex-col gap-2.5">
                     {capability.bulletPoints.map((bp, bpIdx) => (
                       <li key={bpIdx} className="flex items-start gap-2.5 text-xs text-zinc-300">
-                        <span className="text-emerald-400/80 font-mono text-xs select-none shrink-0">—</span>
+                        <span className="text-zinc-500 font-mono text-xs select-none shrink-0">—</span>
                         <span>{bp}</span>
                       </li>
                     ))}
@@ -214,7 +214,7 @@ export const ProductCapabilities: React.FC = () => {
 
                     <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-center justify-between text-xs font-mono text-zinc-400">
                       <span className="text-[11px] text-zinc-300 font-semibold">{capability.alt}</span>
-                      <span className="text-[10px] text-emerald-400 font-bold">● {capability.tag}</span>
+                      <span className="text-[10px] text-zinc-300 font-bold">● {capability.tag}</span>
                     </div>
                   </div>
                 </div>

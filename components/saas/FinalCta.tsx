@@ -12,7 +12,7 @@ export const FinalCta: React.FC = () => {
       <div className="max-w-5xl mx-auto rounded-3xl border border-white/20 bg-gradient-to-b from-[#141414] to-[#0E0E10] p-8 sm:p-16 shadow-2xl relative z-10 flex flex-col items-center text-center">
         {/* Release Status Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-white/10 bg-white/[0.03] text-zinc-300 text-xs font-mono mb-6">
-          <ShieldCheck size={14} className="text-emerald-400" />
+          <ShieldCheck size={14} className="text-zinc-400" />
           <span className="uppercase tracking-wider font-semibold text-[11px]">Immediate Pre-Flight Deployment</span>
         </div>
 
@@ -46,11 +46,9 @@ export const FinalCta: React.FC = () => {
         </div>
 
         {/* Footnote */}
-        <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-xs font-mono text-zinc-500">
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-8 text-xs font-mono text-zinc-500">
           <span>Instant Self-Serve Setup</span>
-          <span className="text-zinc-700">•</span>
           <span>100% In-Memory Privacy</span>
-          <span className="text-zinc-700">•</span>
           <span>Comprehensive Rule Taxonomies</span>
         </div>
       </div>

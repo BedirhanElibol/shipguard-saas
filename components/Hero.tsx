@@ -263,7 +263,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
                   onChange={(e) => setInputCode(e.target.value)}
                   rows={Math.max(7, inputCode.split('\n').length)}
                   placeholder="Paste code snippet..."
-                  className="w-full bg-transparent font-mono text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 resize-none leading-relaxed border-0 focus:ring-0 p-0 selection:bg-emerald-500/30"
+                  className="w-full bg-transparent font-mono text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 resize-none leading-relaxed border-0 focus:ring-0 p-0 selection:bg-white/20"
                   spellCheck={false}
                 />
               </div>

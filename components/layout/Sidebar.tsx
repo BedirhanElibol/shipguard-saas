@@ -207,16 +207,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white truncate leading-tight group-hover:text-emerald-400 transition-colors">
+                <div className="text-xs font-bold text-white truncate leading-tight group-hover:text-zinc-200 transition-colors">
                   {user.name || 'User'}
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
                   <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
                     user.tier === 'Free'
-                      ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                      ? 'bg-white/10 border border-white/20 text-zinc-300'
                       : user.tier === 'Pro'
-                      ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
-                      : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                      ? 'bg-white/10 border border-white/20 text-white'
+                      : 'bg-white/15 border border-white/25 text-white'
                   }`}>
                     {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
                   </span>

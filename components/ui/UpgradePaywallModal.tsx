@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock, Zap, ShieldCheck, ExternalLink } from 'lucide-react';
+import { X, Lock, ArrowRight, ShieldCheck, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { UserTier } from '@/data/schema';
 
@@ -152,7 +152,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                       className="btn btn-primary w-full py-2.5 text-xs uppercase tracking-wider font-extrabold rounded-lg flex items-center justify-center gap-1.5 bg-white text-black hover:bg-neutral-200 transition-all shadow-sm font-mono cursor-pointer text-center"
                     >
                       <span>Pay with Polar ($19/mo)</span>
-                      <Zap size={13} />
+                      <ArrowRight size={13} />
                     </a>
                     <button
                       onClick={() => {

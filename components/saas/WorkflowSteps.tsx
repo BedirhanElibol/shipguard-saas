@@ -160,7 +160,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
               </div>
               <span className="text-[10px] text-zinc-500">BASH / JSON</span>
             </div>
-            <pre className="p-4 sm:p-6 text-[11px] sm:text-xs font-mono text-zinc-300 overflow-x-auto leading-relaxed whitespace-pre font-normal selection:bg-emerald-500/30">
+            <pre className="p-4 sm:p-6 text-[11px] sm:text-xs font-mono text-zinc-300 overflow-x-auto leading-relaxed whitespace-pre font-normal selection:bg-white/20">
               {steps[activeStep].codeSnippet}
             </pre>
           </div>

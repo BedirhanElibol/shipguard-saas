@@ -2,18 +2,23 @@
 
 import React, { useState } from 'react';
 import { Project, Finding } from '@/data/schema';
-import { CheckSquare, Copy, CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { UserTier } from '@/data/schema';
+import { CheckSquare, Copy, CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
 
 interface RemediationQueueViewProps {
   projects: Project[];
   onInspectFinding: (f: Finding) => void;
   onToggleResolveFinding: (id: string) => void;
+  userTier?: UserTier;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const RemediationQueueView: React.FC<RemediationQueueViewProps> = ({
   projects,
   onInspectFinding,
-  onToggleResolveFinding
+  onToggleResolveFinding,
+  userTier = 'Free',
+  onOpenCheckout
 }) => {
   const [copiedBatch, setCopiedBatch] = useState(false);
 
@@ -49,10 +54,27 @@ Remediation: ${f.remediationPrompt}`).join('\n\n')}`;
         </div>
 
         {openFindings.length > 0 && (
-          <button className="btn btn-primary" onClick={copyBatchPrompt}>
-            {copiedBatch ? <CheckCircle2 size={16} color="#FFF" /> : <Copy size={16} />}
-            <span>{copiedBatch ? 'Batch Prompts Copied!' : 'Export All Batch Fix Prompts'}</span>
-          </button>
+          userTier === 'Free' ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-zinc-400">
+                <Lock size={13} />
+                <span className="font-mono">Batch Export — Pro Only</span>
+              </div>
+              {onOpenCheckout && (
+                <button
+                  className="text-xs px-3 py-2 rounded-xl bg-white text-black font-bold hover:bg-neutral-200 transition-colors"
+                  onClick={() => onOpenCheckout('Pro')}
+                >
+                  Upgrade
+                </button>
+              )}
+            </div>
+          ) : (
+            <button className="btn btn-primary" onClick={copyBatchPrompt}>
+              {copiedBatch ? <CheckCircle2 size={16} color="#FFF" /> : <Copy size={16} />}
+              <span>{copiedBatch ? 'Batch Prompts Copied!' : 'Export All Batch Fix Prompts'}</span>
+            </button>
+          )
         )}
       </div>
 

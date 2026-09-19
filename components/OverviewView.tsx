@@ -196,9 +196,9 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         <div className="bg-[#141414] border border-white/10 rounded-xl" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>Overall Score</span>
-            <Activity size={18} color="#10B981" />
+            <Activity size={18} className="text-zinc-400" />
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: project.readinessScore < 50 ? '#EF4444' : project.readinessScore < 85 ? '#F59E0B' : '#10B981' }}>
+          <div style={{ fontSize: '2.2rem', fontWeight: 800, color: project.readinessScore < 50 ? '#EF4444' : project.readinessScore < 85 ? '#F59E0B' : '#EDEDED' }}>
             {project.readinessScore} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>/ 100</span>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#A1A1AA', marginTop: '6px' }}>
@@ -210,7 +210,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         <div
           role="button"
           tabIndex={0}
-          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-white/20 outline-none"
           style={{ padding: '20px', cursor: 'pointer' }}
           onClick={() => onNavigateTab('security')}
           onKeyDown={(e) => {
@@ -222,7 +222,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>Security Pre-Flight</span>
-            <ShieldCheck size={18} color="#10B981" />
+            <ShieldCheck size={18} className="text-zinc-400" />
           </div>
           <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#EDEDED' }}>
             {criticals.length + highs.length === 0 ? '100%' : `${criticals.length + highs.length} Open`} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>{criticals.length + highs.length === 0 ? 'Passed' : 'Issues'}</span>
@@ -236,7 +236,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         <div
           role="button"
           tabIndex={0}
-          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-white/20 outline-none"
           style={{ padding: '20px', cursor: 'pointer' }}
           onClick={() => onNavigateTab('vibepolish')}
           onKeyDown={(e) => {
@@ -248,12 +248,12 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>VibePolish UI</span>
-            <Palette size={18} color="#34D399" />
+            <Palette size={18} className="text-zinc-400" />
           </div>
           <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#F8FAFC' }}>
             {openUiCliches === 0 ? '100%' : `${openUiCliches} Open`} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>{openUiCliches === 0 ? 'Clean' : 'Findings'}</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: openUiCliches > 0 ? '#EF4444' : '#10B981', marginTop: '6px', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.75rem', color: openUiCliches > 0 ? '#EF4444' : '#A1A1AA', marginTop: '6px', fontWeight: 600 }}>
             {openUiCliches > 0 ? `${openUiCliches} UI Cliché Findings Open` : 'VibePolish UI Rules Cleared'}
           </div>
         </div>
@@ -262,7 +262,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         <div
           role="button"
           tabIndex={0}
-          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+          className="bg-[#141414] border border-white/10 rounded-xl focus-visible:ring-1 focus-visible:ring-white/20 outline-none"
           style={{ padding: '20px', cursor: 'pointer' }}
           onClick={() => onNavigateTab('aimaster')}
           onKeyDown={(e) => {
@@ -274,7 +274,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#A1A1AA' }}>AI Master Matrix</span>
-            <Layers size={18} color="#0EA5E9" />
+            <Layers size={18} className="text-zinc-400" />
           </div>
           <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#F8FAFC' }}>
             {200 - project.uiClicheCount} <span style={{ fontSize: '1rem', color: '#64748B', fontWeight: 600 }}>/ 200 Clean</span>

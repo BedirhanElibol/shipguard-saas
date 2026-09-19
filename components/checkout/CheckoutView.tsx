@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ZELSIS_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
 // EmptyState fallback: static pricing plan definitions never yield empty list
 import { generateLicenseKey, activateUserTier, verifyLicenseKey } from '@/lib/stripe-checkout';
-import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Zap, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2, RefreshCw } from 'lucide-react';
+import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2, Mail, User, Copy, Terminal, ShieldAlert, AlertCircle, ExternalLink, Calendar, Loader2, RefreshCw, ArrowRight } from 'lucide-react';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { formatRenewalDate } from '@/lib/subscription-utils';
 import { getAttributionData } from '@/lib/attribution';
@@ -296,7 +296,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       {/* Checkout Verification Status Banner */}
       {isVerifying && (
         <div className="p-5 rounded-xl bg-white/5 border border-white/20 flex items-center justify-center gap-3 shadow-lg">
-          <Loader2 size={18} className="animate-spin text-emerald-400" />
+          <Loader2 size={18} className="animate-spin text-white" />
           <span className="text-xs font-mono font-bold text-white">
             Verifying Polar 3D secure payment clearance...
           </span>
@@ -490,7 +490,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                   <div className="p-6 rounded-xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/20 flex flex-col gap-4 shadow-xl">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Zap size={18} className="text-white" />
+                        <CreditCard size={18} className="text-white" />
                         <span className="text-base font-extrabold text-white">Live Polar 3D Secure Checkout</span>
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white border border-white/20">
@@ -503,13 +503,13 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     </p>
 
                     {isAlreadySubscribedToSelectedPlan ? (
-                      <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-3">
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/15 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 size={18} className="text-emerald-400" />
                             <span className="text-sm font-extrabold text-white">Active Plan: {selectedPlan.name}</span>
                           </div>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
                             CURRENT TIER
                           </span>
                         </div>
@@ -532,7 +532,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                               onClick={() => setSelectedPlanId('vibecare')}
                               className="w-full sm:w-auto min-h-[40px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 text-black font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                             >
-                              <Zap size={14} className="fill-black" />
+                              <ArrowRight size={14} className="text-black" />
                               <span>Upgrade to Enterprise ($99/mo)</span>
                             </button>
                           )}

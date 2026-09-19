@@ -72,7 +72,7 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
             placeholder="Search 200 AI anti-patterns, clichés or rules..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
+            className="focus-visible:ring-1 focus-visible:ring-white/20 rounded"
             style={{ background: 'transparent', border: 'none', outline: 'none', color: '#F8FAFC', width: '100%', fontSize: '0.85rem' }}
           />
         </div>
@@ -83,7 +83,7 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
             aria-label="Filter AI anti-patterns by category"
             value={selectedCat}
             onChange={(e) => setSelectedCat(e.target.value)}
-            className="focus-visible:ring-1 focus-visible:ring-emerald-500 outline-none"
+            className="focus-visible:ring-1 focus-visible:ring-white/20 outline-none"
             style={{ background: 'var(--bg-surface)', color: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)', fontSize: '0.85rem', cursor: 'pointer' }}
           >
             {categories.map(cat => (

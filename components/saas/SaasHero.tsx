@@ -118,14 +118,14 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-xl bg-[#141414] border border-white/15 shadow-2xl focus-within:border-white/40 transition-all"
           >
             <div className="flex items-center gap-2.5 px-3 py-2 flex-1 min-w-0">
-              <Terminal size={18} className="text-emerald-400 shrink-0" />
+              <Terminal size={18} className="text-zinc-400 shrink-0" />
               <span className="text-xs font-mono text-zinc-500 hidden sm:inline">github.com/</span>
               <input
                 type="text"
                 value={repoInput}
                 onChange={(e) => setRepoInput(e.target.value)}
                 placeholder="owner/repository or public git URL"
-                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
+                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded px-1"
                 aria-label="GitHub Repository to Scan"
               />
             </div>
@@ -148,12 +148,12 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                 title={`Run instant audit on ${r.value}`}
                 className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
                   repoInput === r.value
-                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300 shadow-sm shadow-emerald-500/10'
-                    : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-emerald-300 hover:border-emerald-500/30'
+                    ? 'border-white/40 bg-white/10 text-white shadow-sm'
+                    : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/30'
                 }`}
               >
                 <span>{r.label}</span>
-                <ArrowRight size={10} className="text-zinc-500 group-hover:text-emerald-400" />
+                <ArrowRight size={10} className="text-zinc-500 group-hover:text-white" />
               </button>
             ))}
           </div>
@@ -162,12 +162,10 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="flex flex-wrap items-center justify-center gap-6 mt-4 mb-16 text-xs text-zinc-400 font-mono"
+          className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-4 mb-16 text-xs text-zinc-400 font-mono"
         >
           <span>Zero-Retention Privacy (Code Never Stored)</span>
-          <span className="hidden sm:inline text-zinc-700">•</span>
           <span>7,850+ Deep Web &amp; Cloud Rules</span>
-          <span className="hidden sm:inline text-zinc-700">•</span>
           <span>In-Memory Stream Evaluation</span>
         </motion.div>
 
@@ -185,7 +183,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
               <span className="w-3 h-3 rounded-full bg-amber-500/80" />
               <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
               <div className="ml-3 px-3 py-1 rounded-md bg-white/[0.04] border border-white/5 text-[11px] font-mono text-zinc-400 flex items-center gap-1.5">
-                <Lock size={11} className="text-emerald-400" />
+                <Lock size={11} className="text-zinc-400" />
                 <span>app.zelsis.com/dashboard/eval/express-prod-gate</span>
               </div>
             </div>
@@ -232,7 +230,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                   className="relative group/btn p-2 focus:outline-none cursor-pointer"
                   aria-label={hs.title}
                 >
-                  <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-black font-mono font-bold text-xs shadow-lg border border-white">
+                  <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-white text-black font-mono font-bold text-xs shadow-lg border border-white">
                     {hs.id}
                   </span>
                 </button>
@@ -247,7 +245,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                       transition={{ duration: 0.15 }}
                       className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-64 p-3 rounded-xl bg-[#141414] border border-white/20 shadow-2xl z-30 pointer-events-none"
                     >
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold block mb-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300 font-bold block mb-1">
                         Verified Area #{hs.id}
                       </span>
                       <h4 className="text-xs font-bold text-white mb-1">
@@ -270,8 +268,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
               <span>Memory Isolation: <strong className="text-zinc-200">Zero Retention</strong></span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-emerald-400">●</span>
-              <span>All Core Capabilities Calibrated for Deployment</span>
+              <span>All Verification Engines Calibrated for Deployment</span>
             </div>
           </div>
         </motion.div>
@@ -281,17 +278,12 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
             Calibrated for Enterprise Production Stacks
           </span>
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-mono text-zinc-400">
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-mono text-zinc-400">
             <span className="hover:text-white transition-colors">Next.js 15 (App Router)</span>
-            <span className="text-zinc-700">•</span>
             <span className="hover:text-white transition-colors">TypeScript 5.x</span>
-            <span className="text-zinc-700">•</span>
             <span className="hover:text-white transition-colors">Python / FastAPI</span>
-            <span className="text-zinc-700">•</span>
             <span className="hover:text-white transition-colors">Go Microservices</span>
-            <span className="text-zinc-700">•</span>
             <span className="hover:text-white transition-colors">Docker &amp; K8s</span>
-            <span className="text-zinc-700">•</span>
             <span className="hover:text-white transition-colors">Swift &amp; Kotlin (Mobile)</span>
           </div>
         </div>

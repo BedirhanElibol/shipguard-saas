@@ -111,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
                   className="relative text-xs font-semibold text-[#A1A1AA] hover:text-white tracking-wider transition-colors py-1 group"
                 >
                   {link.label}
-                  <span className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
+                  <span className="absolute bottom-0 left-0 w-full h-[1.5px] bg-amber-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-200" />
                 </a>
               ))
             )}
@@ -127,14 +127,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
                   title={currentUser.email}
                 >
                   <span className="max-w-[120px] truncate">{currentUser.name || currentUser.email.split('@')[0]}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white font-bold uppercase tracking-wider">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                    currentUser.tier === 'Enterprise'
+                      ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                      : currentUser.tier === 'Pro'
+                      ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                      : 'bg-white/10 text-white'
+                  }`}>
                     {currentUser.tier || 'Pro'}
                   </span>
                 </a>
 
                 <button
                   onClick={() => { window.location.href = '/dashboard'; }}
-                  className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 transition-all flex items-center gap-1 shadow-[0_0_15px_rgba(245,158,11,0.25)] cursor-pointer"
                 >
                   <span>Dashboard</span>
                   <ArrowUpRight size={13} />
@@ -151,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
 
                 <button
                   onClick={() => { window.location.href = '/dashboard'; }}
-                  className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-white text-black hover:bg-neutral-200 transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-md text-xs font-bold tracking-wider uppercase bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 transition-all flex items-center gap-1 shadow-[0_0_15px_rgba(245,158,11,0.25)] cursor-pointer"
                 >
                   <span>Scan Repo</span>
                   <ArrowUpRight size={13} />

@@ -108,11 +108,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => handleNavClick(item.id)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all w-full text-left ${
                 isActive
-                  ? 'bg-white/5 text-white border border-white/10 shadow-sm'
+                  ? 'bg-sky-500/[0.08] text-sky-200 border-l-2 border-l-sky-400 border-y border-r border-sky-500/20 shadow-[inset_0_0_12px_rgba(14,165,233,0.06)]'
                   : 'text-[#A1A1AA] hover:text-[#EDEDED] hover:bg-white/[0.04] border border-transparent'
               }`}
             >
-              <Icon size={16} />
+              <Icon size={16} className={isActive ? 'text-sky-400' : 'text-zinc-400'} />
               <span>{item.label}</span>
             </button>
           );
@@ -135,12 +135,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => handleNavClick(item.id)}
               className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all w-full ${
                 isActive
-                  ? 'bg-white/5 text-white border border-white/10 shadow-sm'
+                  ? 'bg-sky-500/[0.08] text-sky-200 border-l-2 border-l-sky-400 border-y border-r border-sky-500/20 shadow-[inset_0_0_12px_rgba(14,165,233,0.06)]'
                   : 'text-[#A1A1AA] hover:text-[#EDEDED] hover:bg-white/[0.04] border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon size={16} />
+                <Icon size={16} className={isActive ? 'text-sky-400' : 'text-zinc-400'} />
                 <span>{item.label}</span>
               </div>
             </button>
@@ -164,11 +164,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => handleNavClick(item.id)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all w-full text-left ${
                 isActive
-                  ? 'bg-white/5 text-white border border-white/10 shadow-sm'
+                  ? 'bg-sky-500/[0.08] text-sky-200 border-l-2 border-l-sky-400 border-y border-r border-sky-500/20 shadow-[inset_0_0_12px_rgba(14,165,233,0.06)]'
                   : 'text-[#A1A1AA] hover:text-[#EDEDED] hover:bg-white/[0.04] border border-transparent'
               }`}
             >
-              <Icon size={16} />
+              <Icon size={16} className={isActive ? 'text-sky-400' : 'text-zinc-400'} />
               <span>{item.label}</span>
             </button>
           );

@@ -87,8 +87,12 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
   return (
     <div
-      className={`bg-[#141414] border rounded-xl p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6 ${
-        project.gateStatus === 'FAILED' ? 'border-red-500/30' : 'border-white/10'
+      className={`bg-[#141416] border rounded-xl p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6 ${
+        project.gateStatus === 'FAILED'
+          ? 'border-red-500/30 shadow-[0_0_25px_rgba(239,68,68,0.06)]'
+          : project.gateStatus === 'WARNING'
+          ? 'border-amber-500/30 shadow-[0_0_25px_rgba(245,158,11,0.06)]'
+          : 'border-t border-t-amber-500/30 border-x border-b border-white/10 shadow-[0_0_25px_rgba(245,158,11,0.04)]'
       }`}
     >
       {/* Left: Clearance Status & Metric Scorecard */}
@@ -99,7 +103,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
               ? 'bg-red-500/10 border-red-500/30 text-red-500'
               : project.gateStatus === 'WARNING'
               ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-              : 'bg-white/5 border-white/20 text-white'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
           }`}
         >
           {project.gateStatus === 'FAILED' ? (
@@ -107,7 +111,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
           ) : project.gateStatus === 'WARNING' ? (
             <AlertTriangle size={24} className="sm:w-7 sm:h-7" />
           ) : (
-            <CheckCircle2 size={24} className="sm:w-7 sm:h-7 text-white" />
+            <CheckCircle2 size={24} className="sm:w-7 sm:h-7 text-emerald-400" />
           )}
         </div>
 
@@ -122,7 +126,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
                   ? 'bg-red-500/10 border border-red-500/30 text-red-400'
                   : project.gateStatus === 'WARNING'
                   ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
-                  : 'bg-white/10 border border-white/20 text-white'
+                  : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
               }`}
             >
               {project.gateStatus}
@@ -140,7 +144,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
                 href={safeTrim(project.repoUrl).startsWith('http') ? safeTrim(project.repoUrl) : `https://${safeTrim(project.repoUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] font-mono font-medium text-zinc-300 hover:text-white hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
+                className="text-[11px] font-mono font-medium text-sky-400 hover:text-sky-300 hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
                 title="Open target repository"
               >
                 <span className="truncate">{safeReplace(safeTrim(project.repoUrl), /^https?:\/\//, '')}</span>
@@ -162,7 +166,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
           <p className="text-[11px] sm:text-xs text-[#A1A1AA] mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono">
             <span>
-              Readiness Score: <strong className="text-white font-mono">{project.readinessScore}/100</strong>
+              Readiness Score: <strong className="text-amber-300 font-mono">{project.readinessScore}/100</strong>
             </span>
             <span className={criticals.length > 0 ? 'text-red-400 font-bold' : 'text-[#A1A1AA]'}>
               {criticals.length} Critical
@@ -182,7 +186,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
         {/* Primary Action: Re-Run Audit */}
         <button
           onClick={onTriggerScan}
-          className="btn btn-primary px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 flex-1 sm:flex-initial shadow-md transition-all active:scale-95 cursor-pointer"
+          className="btn btn-primary px-4 sm:px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 flex-1 sm:flex-initial shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all active:scale-95 cursor-pointer"
         >
           <Play size={13} fill="#0A0A0A" />
           <span>Re-Run Audit</span>
@@ -191,12 +195,12 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
         {/* Action: Setup CI/CD Gate */}
         <button
           onClick={() => onOpenModal('manifest')}
-          className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer shadow-sm"
+          className="btn btn-secondary px-3.5 py-2.5 text-xs font-mono rounded-lg flex items-center gap-2 border-white/10 bg-white/5 text-white hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-200 transition-all cursor-pointer shadow-sm"
           title="Configure automated GitHub Actions & CI/CD release gate"
         >
-          <GitBranch size={13} className="text-zinc-300" />
+          <GitBranch size={13} className="text-sky-400" />
           <span className="font-bold">Setup CI/CD Gate</span>
-          <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 border border-white/15 ml-0.5">
+          <span className="text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 ml-0.5">
             PR Bot
           </span>
         </button>

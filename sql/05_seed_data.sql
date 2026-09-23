@@ -18,6 +18,13 @@ CREATE TABLE IF NOT EXISTS public.security_rules_catalog (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+ALTER TABLE public.security_rules_catalog ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read-only for rules catalog" ON public.security_rules_catalog;
+CREATE POLICY "Public read-only for rules catalog" ON public.security_rules_catalog
+    FOR SELECT USING (true);
+
+
 -- Seed OWASP Rules Catalog
 INSERT INTO public.security_rules_catalog (id, code, title, category, owasp_tag, risk_level, description, verification_control, remediation_prompt)
 VALUES

@@ -18,14 +18,20 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
 
 -- 2. TRIGGER FUNCTION: NEW USER SIGNUP HANDLER
 CREATE OR REPLACE FUNCTION public.handle_new_user_signup()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
-    INSERT INTO public.profiles (id, email, full_name, avatar_url)
+    INSERT INTO public.profiles (id, email, full_name, avatar_url, tier, status)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1)),
-        NEW.raw_user_meta_data->>'avatar_url'
+        NEW.raw_user_meta_data->>'avatar_url',
+        'Free',
+        'active'
     )
     ON CONFLICT (id) DO NOTHING;
 
@@ -35,7 +41,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS trigger_on_auth_user_signup ON auth.users;
 CREATE TRIGGER trigger_on_auth_user_signup

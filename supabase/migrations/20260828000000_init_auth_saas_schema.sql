@@ -45,7 +45,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE pillar_type AS ENUM ('SECURITY', 'VIBEPOLISH', 'AICLICHE', 'AIMASTER', 'VIBECARE');
+    CREATE TYPE pillar_type AS ENUM ('SECURITY', 'VIBEPOLISH', 'AICLICHE', 'AIMASTER', 'VIBECARE', 'LEGAL_COMPLIANCE', 'INFRA_DATABASE');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -61,6 +61,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     role user_role DEFAULT 'user'::user_role NOT NULL,
     github_username TEXT,
     company_name TEXT,
+    tier TEXT DEFAULT 'Free' NOT NULL,
+    status TEXT DEFAULT 'active' NOT NULL,
+    grace_period_until TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -77,6 +80,8 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     scans_used_this_month INTEGER DEFAULT 0 NOT NULL,
     stripe_customer_id TEXT,
     stripe_subscription_id TEXT,
+    polar_subscription_id TEXT,
+    grace_period_until TIMESTAMPTZ,
     current_period_start TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     current_period_end TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days') NOT NULL,
     cancel_at_period_end BOOLEAN DEFAULT FALSE NOT NULL,
@@ -181,6 +186,22 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
 );
 
 -- ------------------------------------------------------------------------------
+-- 9.5. SECURITY RULES CATALOG TABLE
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.security_rules_catalog (
+    id INTEGER PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    owasp_tag TEXT NOT NULL,
+    risk_level finding_severity NOT NULL,
+    description TEXT NOT NULL,
+    verification_control TEXT NOT NULL,
+    remediation_prompt TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- ------------------------------------------------------------------------------
 -- 10. INDEXES FOR QUERY OPTIMIZATION
 -- ------------------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_projects_user_id ON public.projects(user_id);
@@ -201,14 +222,20 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
 
 -- Trigger Function: Create Profile & Subscription on New Auth Sign-Up
 CREATE OR REPLACE FUNCTION public.handle_new_user_signup()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
-    INSERT INTO public.profiles (id, email, full_name, avatar_url)
+    INSERT INTO public.profiles (id, email, full_name, avatar_url, tier, status)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1)),
-        NEW.raw_user_meta_data->>'avatar_url'
+        NEW.raw_user_meta_data->>'avatar_url',
+        'Free',
+        'active'
     )
     ON CONFLICT (id) DO NOTHING;
 
@@ -218,12 +245,38 @@ BEGIN
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS trigger_on_auth_user_signup ON auth.users;
 CREATE TRIGGER trigger_on_auth_user_signup
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_signup();
+
+-- Trigger Function: Protect Profile Tier & Role Modification (RLS Tier Protection)
+CREATE OR REPLACE FUNCTION public.check_profile_tier_modification()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    -- If tier or role is being changed
+    IF (NEW.tier IS DISTINCT FROM OLD.tier) OR (NEW.role IS DISTINCT FROM OLD.role) THEN
+        -- Only allow service_role (backend webhooks / admin API) to modify tier or role
+        IF (auth.jwt() ->> 'role') IS DISTINCT FROM 'service_role' THEN
+            -- Revert tier and role to old values silently
+            NEW.tier := OLD.tier;
+            NEW.role := OLD.role;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_protect_profile_tier ON public.profiles;
+CREATE TRIGGER tr_protect_profile_tier
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION public.check_profile_tier_modification();
 
 -- Trigger Function: Auto-Update Timestamp Column
 CREATE OR REPLACE FUNCTION public.update_timestamp_column()
@@ -256,13 +309,26 @@ ALTER TABLE public.scans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.findings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.security_rules_catalog ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
-CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON public.profiles 
+FOR UPDATE 
+USING (auth.uid() = id)
+WITH CHECK (
+    auth.uid() = id 
+    AND (
+        (auth.jwt() ->> 'role') = 'service_role' 
+        OR (
+            tier IS NOT DISTINCT FROM (SELECT p.tier FROM public.profiles p WHERE p.id = auth.uid()) 
+            AND role IS NOT DISTINCT FROM (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
+        )
+    )
+);
 
 -- Subscriptions Policies
 DROP POLICY IF EXISTS "Users can view their own subscription" ON public.subscriptions;
@@ -308,3 +374,13 @@ CREATE POLICY "Users can update findings for their own projects" ON public.findi
 -- API Keys Policies
 DROP POLICY IF EXISTS "Users can manage their own API keys" ON public.api_keys;
 CREATE POLICY "Users can manage their own API keys" ON public.api_keys FOR ALL USING (auth.uid() = user_id);
+
+-- Security Rules Catalog Policies (Public Read-Only)
+DROP POLICY IF EXISTS "Public read-only for rules catalog" ON public.security_rules_catalog;
+CREATE POLICY "Public read-only for rules catalog" ON public.security_rules_catalog
+    FOR SELECT USING (true);
+
+-- Additional Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
+

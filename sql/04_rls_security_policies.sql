@@ -17,7 +17,19 @@ DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
-CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON public.profiles 
+FOR UPDATE 
+USING (auth.uid() = id)
+WITH CHECK (
+    auth.uid() = id 
+    AND (
+        (auth.jwt() ->> 'role') = 'service_role' 
+        OR (
+            tier IS NOT DISTINCT FROM (SELECT p.tier FROM public.profiles p WHERE p.id = auth.uid()) 
+            AND role IS NOT DISTINCT FROM (SELECT p.role FROM public.profiles p WHERE p.id = auth.uid())
+        )
+    )
+);
 
 -- 3. SUBSCRIPTIONS POLICIES
 DROP POLICY IF EXISTS "Users can view their own subscription" ON public.subscriptions;

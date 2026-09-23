@@ -34,7 +34,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 *.log
-scratch/*.log
+gcm-diagnose.log
+scratch/
 
 # system & IDE
 .DS_Store
@@ -45,3 +46,4 @@ scratch/*.log
 # temporary extraction files
 .agent/extracted_*.txt
 patch-hostname.js
+

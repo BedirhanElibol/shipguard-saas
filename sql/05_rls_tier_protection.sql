@@ -7,7 +7,11 @@
 
 -- 1. Prevent standard authenticated users from changing their own tier or role
 CREATE OR REPLACE FUNCTION public.check_profile_tier_modification()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   -- If tier or role is being changed
   IF (NEW.tier IS DISTINCT FROM OLD.tier) OR (NEW.role IS DISTINCT FROM OLD.role) THEN
@@ -20,7 +24,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- 2. Attach trigger to profiles table
 DROP TRIGGER IF EXISTS tr_protect_profile_tier ON public.profiles;

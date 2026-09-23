@@ -65,9 +65,12 @@ export default function TermsPage() {
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">3. Subscriptions, Fees &amp; Taxes</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">3. Merchant of Record, Subscriptions &amp; Global Tax</h2>
             <p>
-              Access to premium rulesets, enterprise exports, and automated CI/CD gates requires an active subscription (Pro or Enterprise). Fees are billed in advance on a recurring monthly or annual basis via our merchant of record payment gateway (Polar / Stripe). Applicable taxes, VAT, or GST are determined based on your billing address and are processed in accordance with local regulations. Subscriptions are delivered immediately upon digital checkout.
+              Access to premium rulesets, enterprise exports, and automated CI/CD gates requires an active subscription (Pro or Enterprise). <strong>Polar Software Inc. serves as the official Merchant of Record (MoR) for all Zelsis software subscriptions, orders, and financial transactions.</strong>
+            </p>
+            <p>
+              As the Merchant of Record, Polar is responsible for digital order processing, customer billing inquiries, automated EU VAT / international sales tax calculation and remittance, and compliance with PCI-DSS Level 1 payment security standards. Subscriptions renew automatically until cancelled via the customer billing portal.
             </p>
           </section>
 

@@ -134,7 +134,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                 placeholder="https://hooks.slack.com/services/T00/B00/XXXX"
                 value={slackUrl}
                 onChange={(e) => setSlackUrl(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-[#EDEDED] placeholder-gray-600 focus:outline-none focus:border-white/30 font-mono"
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-[#EDEDED] placeholder-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/30 font-mono"
               />
             </div>
 
@@ -149,7 +149,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                 placeholder="https://discord.com/api/webhooks/123456/abcdef"
                 value={discordUrl}
                 onChange={(e) => setDiscordUrl(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-[#EDEDED] placeholder-gray-600 focus:outline-none focus:border-white/30 font-mono"
+                className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-[#EDEDED] placeholder-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/30 font-mono"
               />
             </div>
           </div>

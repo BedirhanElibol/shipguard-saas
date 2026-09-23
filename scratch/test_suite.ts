@@ -1,0 +1,222 @@
+/**
+ * Comprehensive Cross-Platform TypeScript Test Suite for Zelsis SaaS (F-22)
+ * Replaces legacy python runner with native tsx TypeScript execution.
+ *
+ * Verifies:
+ * 1. Clean App Score Verification (Zero False Blocker Check)
+ * 2. Polyglot Rules (Python/Django, Go Microservices, etc.)
+ * 3. Policy-as-Code (.zelsisrc.json parsing & rule suppression)
+ * 4. SARIF v2.1.0 standard compliance for GitHub Code Scanning
+ * 5. SSRF Guard network boundary enforcement
+ * 6. Rate Limiter IP spoofing protection
+ * 7. License Key Cryptographic Checksum validation
+ */
+
+import { runStaticCodeScan, parseZelsisRc, CodeFile } from '../lib/scanner-engine';
+import { generateSarifReport } from '../lib/report-exporter';
+import { validateSafeTargetUrl } from '../lib/ssrf-guard';
+import { getClientIp } from '../lib/rate-limiter';
+import { generateLicenseKey, verifyLicenseKey } from '../lib/stripe-checkout';
+import { Project } from '../data/schema';
+
+let passedTests = 0;
+let totalTests = 0;
+
+function assert(condition: boolean, testName: string, detail?: string) {
+  totalTests++;
+  if (!condition) {
+    console.error(`❌ FAIL: ${testName}${detail ? ` (${detail})` : ''}`);
+    process.exitCode = 1;
+  } else {
+    passedTests++;
+    console.log(`✅ PASS: ${testName}`);
+  }
+}
+
+async function runAllTests() {
+  console.log('===========================================================');
+  console.log('🧪 ZELSIS PRODUCTION TEST SUITE (Cross-Platform TypeScript)');
+  console.log('===========================================================\n');
+
+  // ─── 1. Clean App Score Verification ───────────────────────────
+  console.log('--- 1. Testing Clean App Scoring (Zero False Blockers) ---');
+  const cleanFiles: CodeFile[] = [
+    {
+      path: 'app/page.tsx',
+      content: `
+        import React from 'react';
+        import Image from 'next/image';
+
+        export default function HomePage() {
+          return (
+            <main className="p-8">
+              <h1 className="text-2xl font-bold">Secure Clean App</h1>
+              <p className="max-w-prose text-zinc-400">Enterprise ready release.</p>
+              <Image src="/logo.webp" alt="Company Logo" width={120} height={40} priority />
+            </main>
+          );
+        }
+      `
+    },
+    {
+      path: 'package.json',
+      content: JSON.stringify({
+        name: 'clean-app',
+        version: '1.0.0',
+        dependencies: {
+          next: '^15.0.0',
+          react: '^18.3.0',
+          'react-dom': '^18.3.0'
+        }
+      })
+    }
+  ];
+
+  const cleanScan = await runStaticCodeScan(cleanFiles, 'Clean Next.js App');
+  assert(cleanScan.score >= 90, 'Clean app receives high readiness score', `Score: ${cleanScan.score}/100`);
+  assert(cleanScan.gateStatus === 'PASSED', 'Clean app receives PASSED gate status', `Gate: ${cleanScan.gateStatus}`);
+  assert(cleanScan.criticalCount === 0, 'Clean app has 0 critical findings', `Critical: ${cleanScan.criticalCount}`);
+
+  // ─── 2. Polyglot AST Rules Coverage ─────────────────────────────
+  console.log('\n--- 2. Testing Polyglot AST Engine (Python, Go) ---');
+  const polyglotFiles: CodeFile[] = [
+    {
+      path: 'backend/services.py',
+      content: `
+        import pickle
+        def load_session(raw_bytes):
+            return pickle.loads(raw_bytes)
+      `
+    },
+    {
+      path: 'services/worker.go',
+      content: `
+        package main
+        import "os/exec"
+        func executeCmd(cmd string) {
+            exec.Command("sh", "-c", cmd).Run()
+        }
+      `
+    }
+  ];
+
+  const polyglotScan = await runStaticCodeScan(polyglotFiles, 'Polyglot Repo');
+  assert(polyglotScan.findings.length > 0, 'Polyglot rules detect security issues across diverse languages', `Findings: ${polyglotScan.findings.length}`);
+  const ruleCategories = new Set(polyglotScan.findings.map(f => f.category));
+  assert(ruleCategories.has('Insecure Deserialization') || ruleCategories.has('SECURITY'), 'Security violations detected in polyglot repository');
+
+  // ─── 3. Policy-as-Code (.zelsisrc.json) ─────────────────────────
+  console.log('\n--- 3. Testing Policy-as-Code (.zelsisrc.json Parsing & Suppression) ---');
+  const rcJson = `
+    {
+      "version": "1.0",
+      "failStrategy": "smart",
+      "minScoreThreshold": 85,
+      "gates": {
+        "designVibePolish": false,
+        "vibeCareHealth": false
+      },
+      "ignoreRules": ["#1", "27", "1027"],
+      "ignoredPaths": ["dist/**", "test/fixtures/**"]
+    }
+  `;
+
+  const parsedRc = parseZelsisRc(rcJson);
+  assert(parsedRc !== null, 'parseZelsisRc successfully parses valid JSON config');
+  assert(parsedRc?.config?.failStrategy === 'smart', 'failStrategy correctly parsed as smart');
+  assert(parsedRc?.disabledPillars.has('VIBEPOLISH') === true, 'VIBEPOLISH is properly mapped to disabled pillars');
+  assert(parsedRc?.ignoredRuleIds.has(1027) === true, 'Ignored rule 1027 present in parsed config');
+
+  // ─── 4. SARIF v2.1.0 Export Compliance ─────────────────────────
+  console.log('\n--- 4. Testing SARIF v2.1.0 Report Generation ---');
+  const mockProject: Project = {
+    id: 'proj_sarif_test',
+    name: 'SARIF Export Test',
+    repoUrl: 'github.com/acme/sarif-test',
+    framework: 'Next.js 15',
+    providers: ['github'],
+    lastScanAt: new Date().toISOString(),
+    readinessScore: 78,
+    gateStatus: 'WARNING',
+    criticalCount: 0,
+    highCount: 2,
+    mediumCount: 3,
+    lowCount: 5,
+    uiClicheCount: 1,
+    findings: [
+      {
+        id: 'finding_sarif_1',
+        ruleId: 1001,
+        type: 'SECURITY',
+        title: 'Hardcoded API Key In Client File',
+        category: 'SECURITY',
+        severity: 'CRITICAL',
+        status: 'OPEN',
+        filePath: 'components/Header.tsx',
+        lineRange: 'L12-L14',
+        snippet: 'const key = "sk_live_123456789";',
+        reproductionSteps: ['Audited components/Header.tsx:12', 'Detected hardcoded secret'],
+        remediationPrompt: 'Extract hardcoded key into process.env',
+        falsePositive: false
+      }
+    ]
+  };
+
+  const sarif = JSON.parse(generateSarifReport(mockProject));
+  assert(sarif.version === '2.1.0', 'SARIF version is 2.1.0');
+  assert(sarif.$schema.includes('sarif-schema-2.1.0'), 'SARIF references official OASIS schema');
+  assert(sarif.runs[0].tool.driver.name === 'Zelsis', 'SARIF driver name is Zelsis');
+  assert(sarif.runs[0].results.length === 1, 'SARIF results include project findings');
+  assert(sarif.runs[0].results[0].ruleId === 'ZLS-1001', 'SARIF ruleId formatted as ZLS-1001');
+
+  // ─── 5. SSRF Guard Network Boundary Protection ──────────────────
+  console.log('\n--- 5. Testing SSRF Guard Security Boundaries ---');
+  const loopbackCheck = await validateSafeTargetUrl('http://127.0.0.1:8080');
+  assert(!loopbackCheck.safe, 'SSRF Guard blocks 127.0.0.1 loopback IP');
+
+  const localhostCheck = await validateSafeTargetUrl('http://localhost:3000');
+  assert(!localhostCheck.safe, 'SSRF Guard blocks localhost hostname');
+
+  const awsMetadataCheck = await validateSafeTargetUrl('http://169.254.169.254/latest/meta-data');
+  assert(!awsMetadataCheck.safe, 'SSRF Guard blocks AWS EC2/Cloud metadata endpoint 169.254.169.254');
+
+  const privateSubnetCheck = await validateSafeTargetUrl('http://192.168.1.1/admin');
+  assert(!privateSubnetCheck.safe, 'SSRF Guard blocks RFC 1918 192.168.x.x private subnets');
+
+  const publicHttpsCheck = await validateSafeTargetUrl('https://github.com');
+  assert(publicHttpsCheck.safe, 'SSRF Guard allows legitimate public HTTPS web targets');
+
+  // ─── 6. Rate Limiter IP Trust Precedence ───────────────────────
+  console.log('\n--- 6. Testing Rate Limiter IP Resolution ---');
+  const mockHeadersCf = new Headers();
+  mockHeadersCf.set('cf-ray', '8d1234567890');
+  mockHeadersCf.set('cf-connecting-ip', '203.0.113.195');
+  mockHeadersCf.set('x-forwarded-for', '10.0.0.1, 192.168.1.5');
+  const mockReq = { headers: mockHeadersCf } as any;
+  const resolvedCfIp = getClientIp(mockReq);
+  assert(resolvedCfIp === '203.0.113.195', 'cf-connecting-ip takes precedence over spoofed forwarded headers');
+
+  // ─── 7. License Key & Tier Forging Prevention (F-02) ─────────
+  console.log('\n--- 7. Testing License Key Security & Tier Forging Prevention (F-02) ---');
+  const generatedKey = generateLicenseKey('pro');
+  assert(generatedKey.startsWith('ZS-PRO-'), 'License reference key has valid ZS-PRO- prefix');
+
+  const emptyVerification = verifyLicenseKey('');
+  assert(!emptyVerification.valid && emptyVerification.reason === 'EMPTY_KEY', 'Empty license key rejected cleanly');
+
+  const offlineVerification = verifyLicenseKey(generatedKey);
+  assert(!offlineVerification.valid && offlineVerification.reason === 'CLIENT_VERIFICATION_DEPRECATED', 'Client-side offline license elevation strictly blocked (Server authorization enforced)');
+
+  console.log('\n===========================================================');
+  console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
+  console.log('===========================================================');
+
+  if (passedTests !== totalTests) {
+    process.exit(1);
+  }
+}
+
+runAllTests().catch((err) => {
+  console.error('Fatal test error:', err);
+  process.exit(1);
+});

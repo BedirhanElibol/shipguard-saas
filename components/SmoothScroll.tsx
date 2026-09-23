@@ -6,10 +6,20 @@ export const SmoothScroll: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Respect OS prefers-reduced-motion accessibility preference (F-34)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
     let lenis: any;
     let animationId: number;
 
     import('lenis').then((LenisModule) => {
+      // Re-verify in case accessibility preference changed
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+
       const Lenis = LenisModule.default;
       lenis = new Lenis({
         duration: 1.2,

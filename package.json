@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "tsc --noEmit",
-    "test": "python scratch/test_v12_defects.py"
+    "test": "npx tsx scratch/test_suite.ts"
   },
   "dependencies": {
     "@number-flow/react": "^0.5.5",
@@ -34,6 +34,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
 }

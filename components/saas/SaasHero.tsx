@@ -227,7 +227,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                   onClick={() => setActiveHotspot(activeHotspot === hs.id ? null : hs.id)}
                   onMouseEnter={() => setActiveHotspot(hs.id)}
                   onMouseLeave={() => setActiveHotspot(null)}
-                  className="relative group/btn p-2 focus:outline-none cursor-pointer"
+                  className="relative group/btn p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-full cursor-pointer"
                   aria-label={hs.title}
                 >
                   <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-white text-black font-mono font-bold text-xs shadow-lg border border-white">

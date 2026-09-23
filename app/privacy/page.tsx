@@ -87,11 +87,49 @@ export default function PrivacyPolicyPage() {
             </ul>
           </section>
 
-          <section className="flex flex-col gap-2">
+          <section className="flex flex-col gap-3">
             <h2 className="text-base font-bold text-[#FFFFFF]">5. Subprocessors &amp; Cloud Infrastructure</h2>
             <p>
-              Our infrastructure is hosted with SOC 2 / ISO 27001 certified cloud service providers: Supabase (managed Postgres on AWS) and Vercel Inc. (global edge network). Data transfers between services are encrypted using TLS 1.3 in transit and AES-256 at rest.
+              To deliver high-availability, zero-latency release gates, Zelsis engages vetted third-party subprocessors. Each subprocessor operates under a Data Processing Addendum (DPA) incorporating European Commission Standard Contractual Clauses (SCCs):
             </p>
+            <div className="overflow-x-auto border border-[#262626] rounded-xl">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-[#141414] border-b border-[#262626] text-[#EDEDED]">
+                  <tr>
+                    <th className="p-2.5 font-bold">Subprocessor</th>
+                    <th className="p-2.5 font-bold">Role / Purpose</th>
+                    <th className="p-2.5 font-bold">Location</th>
+                    <th className="p-2.5 font-bold">Security Standard</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#262626] text-[#A1A1AA]">
+                  <tr>
+                    <td className="p-2.5 text-white font-bold">Supabase Inc.</td>
+                    <td className="p-2.5">Managed PostgreSQL database, Auth &amp; Telemetry persistence</td>
+                    <td className="p-2.5">USA (AWS us-east-1)</td>
+                    <td className="p-2.5 text-emerald-400">SOC 2 Type II, AES-256</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 text-white font-bold">Vercel Inc.</td>
+                    <td className="p-2.5">Global edge hosting, Serverless API execution &amp; CDN</td>
+                    <td className="p-2.5">USA / Global Anycast Edge</td>
+                    <td className="p-2.5 text-emerald-400">SOC 2 Type II, ISO 27001</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 text-white font-bold">Polar Software Inc.</td>
+                    <td className="p-2.5">Merchant of Record, Global tax remittance &amp; billing checkout</td>
+                    <td className="p-2.5">USA / EU</td>
+                    <td className="p-2.5 text-emerald-400">PCI-DSS Level 1, DPA</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 text-white font-bold">GitHub Inc. (Microsoft)</td>
+                    <td className="p-2.5">OAuth login provider &amp; source code repository sync API</td>
+                    <td className="p-2.5">USA</td>
+                    <td className="p-2.5 text-emerald-400">SOC 2 Type II, TLS 1.3</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="flex flex-col gap-2">

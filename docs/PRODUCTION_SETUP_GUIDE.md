@@ -8,7 +8,7 @@ This guide details the exact, step-by-step configuration required across **Supab
 
 ### Step A: Apply Schema Patch
 1. Navigate to your Supabase SQL Editor:  
-   👉 **[Supabase SQL Editor (afzpaydfkmycrwuxmzkk)](https://supabase.com/dashboard/project/afzpaydfkmycrwuxmzkk/sql/new)**
+   👉 **[Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql/new)** (Select your project)
 2. Copy and paste the contents of `sql/06_production_patch.sql`:
    ```sql
    ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tier TEXT DEFAULT 'Free';
@@ -25,8 +25,8 @@ This guide details the exact, step-by-step configuration required across **Supab
 3. Click **Run** (green button).
 
 ### Step B: Configure OAuth Redirect URLs
-1. Navigate to **Authentication -> URL Configuration**:  
-   👉 **[Supabase URL Configuration](https://supabase.com/dashboard/project/afzpaydfkmycrwuxmzkk/auth/url-configuration)**
+1. Navigate to **Authentication -> URL Configuration** in your Supabase project:  
+   👉 **Supabase Dashboard -> Authentication -> URL Configuration**
 2. Set **Site URL** to:
    ```text
    https://shipguard-saas.vercel.app
@@ -40,8 +40,8 @@ This guide details the exact, step-by-step configuration required across **Supab
 4. Click **Save**.
 
 ### Step C: Copy Service Role Secret
-1. Navigate to **Project Settings -> API**:  
-   👉 **[Supabase API Settings](https://supabase.com/dashboard/project/afzpaydfkmycrwuxmzkk/settings/api)**
+1. Navigate to **Project Settings -> API** in your Supabase project:  
+   👉 **Supabase Dashboard -> Project Settings -> API**
 2. Under **Project API keys**, find `service_role` (Secret).
 3. Click **Reveal** and copy the key (starts with `eyJhbGci...`). You will paste this into Vercel.
 
@@ -89,7 +89,7 @@ This guide details the exact, step-by-step configuration required across **Supab
 | Variable Name | Value | Purpose |
 | :--- | :--- | :--- |
 | `NEXT_PUBLIC_APP_URL` | `https://shipguard-saas.vercel.app` | Canonical app URL |
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://afzpaydfkmycrwuxmzkk.supabase.co` | Supabase endpoint |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<your-project-id>.supabase.co` | Supabase endpoint |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI...` | Supabase Anon Key |
 | `SUPABASE_SERVICE_ROLE_KEY` | *(Copied from Supabase Step 1C)* | Server-side user & sub management |
 | `POLAR_WEBHOOK_SECRET` | *(Copied from Polar Step 2A)* | HMAC signature verification |

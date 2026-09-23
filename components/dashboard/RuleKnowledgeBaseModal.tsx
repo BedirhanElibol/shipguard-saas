@@ -271,7 +271,7 @@ export const RuleKnowledgeBaseModal: React.FC<RuleKnowledgeBaseModalProps> = ({
 
           {/* Search & Category Filter */}
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex items-center gap-2 bg-[#0A0A0A] px-3.5 py-2 rounded-xl border border-white/10 flex-1 w-full focus-within:border-white/30">
+            <div className="flex items-center gap-2 bg-[#0A0A0A] px-3.5 py-2 rounded-xl border border-white/10 flex-1 w-full focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/20">
               <Search size={14} className="text-[#94A3B8]" />
               <input
                 aria-label="Search rule knowledge base"

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { runStaticCodeScan } from '@/lib/scanner-engine';
+import { runStaticCodeScan, CodeFile } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
 import { fetchWebsiteAuditData, isValidWebUrl } from '@/lib/website-scanner';
-import { WORKSPACE_SOURCE_FILES } from '@/data/workspaceFiles';
 import { dispatchWebhookAlerts } from '@/lib/notifications';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GateCheckRequestSchema, validateRequestBody } from '@/lib/validations/api-schemas';
@@ -222,10 +221,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let filesToScan: typeof WORKSPACE_SOURCE_FILES = [];
+    let filesToScan: CodeFile[] = [];
     let targetName = rawRepoUrl;
 
     if (rawRepoUrl.toLowerCase() === 'local') {
+      const { WORKSPACE_SOURCE_FILES } = await import('@/data/workspaceFiles');
       filesToScan = WORKSPACE_SOURCE_FILES;
       targetName = 'Zelsis Local Workspace';
     } else if (isWebTarget) {

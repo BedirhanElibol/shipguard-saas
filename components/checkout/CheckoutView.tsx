@@ -429,7 +429,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         required
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 pl-9"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20 pl-9"
                       />
                       <User size={14} className="absolute left-3 top-3 text-[#64748B]" />
                     </div>
@@ -447,7 +447,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 pl-9"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20 pl-9"
                       />
                       <Mail size={14} className="absolute left-3 top-3 text-[#64748B]" />
                     </div>
@@ -466,7 +466,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         placeholder="Your Company Name"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20 pl-9"
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20 pl-9"
                       />
                       <Building2 size={14} className="absolute left-3 top-3 text-[#64748B]" />
                     </div>
@@ -482,7 +482,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       placeholder="US987654321 or EU123456"
                       value={vatNumber}
                       onChange={(e) => setVatNumber(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus:border-white/20"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-[#0A0A0A] border border-white/10 text-xs text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20"
                     />
                   </div>
                 </div>

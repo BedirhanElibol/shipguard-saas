@@ -39,7 +39,7 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
               value={logSearchQuery}
               onChange={(e) => setLogSearchQuery(e.target.value)}
               placeholder="Filter logs (e.g. SEC, WARN)..."
-              className="w-full pl-7 pr-3 py-1 bg-[#141414] border border-white/10 rounded-md text-[0.7rem] text-[#EDEDED] outline-none focus:border-white/20 font-mono"
+              className="w-full pl-7 pr-3 py-1 bg-[#141414] border border-white/10 rounded-md text-[0.7rem] text-[#EDEDED] outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20 font-mono"
             />
           </div>
 

@@ -338,7 +338,7 @@ export function processUserData(payload: any) {
               if (emptyWarning) setEmptyWarning(null);
             }}
             placeholder="Paste JavaScript, TypeScript, SQL, or Python code..."
-            className="w-full p-4 bg-transparent font-mono text-xs text-[#FAFAFA] outline-none focus:outline-none resize-none leading-relaxed"
+            className="w-full p-4 bg-transparent font-mono text-xs text-[#FAFAFA] outline-none focus-visible:ring-1 focus-visible:ring-white/20 resize-none leading-relaxed rounded"
           />
         </div>
       </div>

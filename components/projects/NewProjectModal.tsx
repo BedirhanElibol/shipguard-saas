@@ -95,7 +95,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A0E1A] border border-white/10 text-xs text-white outline-none focus:border-white/30 font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A0E1A] border border-white/10 text-xs text-white outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/30 font-mono"
             />
           </div>
 
@@ -110,7 +110,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               required
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A0E1A] border border-white/10 text-xs text-white outline-none focus:border-white/30 font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A0E1A] border border-white/10 text-xs text-white outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/30 font-mono"
             />
           </div>
 
@@ -122,7 +122,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
               id="framework-select"
               value={framework}
               onChange={(e) => setFramework(e.target.value as any)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A0E1A] border border-white/10 text-xs text-white outline-none cursor-pointer font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#0A0E1A] border border-white/10 text-xs text-white outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/30 cursor-pointer font-mono"
             >
               <option value="Next.js 15">Next.js 15 (App Router)</option>
               <option value="Vite + React">Vite + React (SPA)</option>

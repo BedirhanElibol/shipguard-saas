@@ -843,7 +843,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             type="text"
             value={repoUrl}
             onChange={(e) => setRepoUrl(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono focus:outline-none focus:border-white/20"
+            className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20"
           />
         </div>
 
@@ -852,14 +852,14 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             <Key size={14} className="text-white" />
             <span>GitHub Personal Access Token (PAT) (Optional for Private Repos):</span>
           </label>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/20">
             <input
               aria-label="GitHub Personal Access Token"
               type={showPatToken ? 'text' : 'password'}
               placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
               value={patToken}
               onChange={(e) => setPatToken(e.target.value)}
-              className="w-full bg-transparent py-1.5 text-xs text-[#EDEDED] font-mono focus:outline-none"
+              className="w-full bg-transparent py-1.5 text-xs text-[#EDEDED] font-mono outline-none focus:outline-none"
             />
             <button
               type="button"
@@ -1042,7 +1042,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
                         value={confirmationInput}
                         onChange={(e) => setConfirmationInput(e.target.value)}
                         placeholder="Type DELETE to confirm"
-                        className="w-full bg-[#0A0A0A] border border-white/15 focus:border-red-500 rounded-xl px-4 py-2.5 text-xs text-white font-mono outline-none"
+                        className="w-full bg-[#0A0A0A] border border-white/15 focus:border-red-500 rounded-xl px-4 py-2.5 text-xs text-white font-mono outline-none focus-visible:ring-1 focus-visible:ring-red-500"
                       />
                     </div>
 

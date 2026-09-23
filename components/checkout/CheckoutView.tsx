@@ -9,6 +9,7 @@ import { ShieldCheck, CreditCard, Lock, CheckCircle2, ArrowLeft, Star, Building2
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { formatRenewalDate } from '@/lib/subscription-utils';
 import { getAttributionData } from '@/lib/attribution';
+import { getSupabase } from '@/lib/supabase';
 
 function resolvePlanAlias(planId?: string): string {
   if (!planId) return 'zelsis-core';
@@ -160,17 +161,24 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
       setIsVerifying(true);
       setVerificationError(null);
 
-      fetch('/api/v1/verify-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          checkoutId,
-          email: currentUser?.email || email || undefined,
-          planId: selectedPlanId,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
+      const verifyCheckoutAsync = async () => {
+        try {
+          const supabase = getSupabase();
+          const sessionRes = await supabase?.auth.getSession();
+          const token = sessionRes?.data?.session?.access_token;
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          const res = await fetch('/api/v1/verify-checkout', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              checkoutId,
+              email: currentUser?.email || email || undefined,
+              planId: selectedPlanId,
+            }),
+          });
+          const data = await res.json();
           if (!isMounted) return;
           if (data.verified) {
             const verifiedTier: 'Pro' | 'Enterprise' = data.tier === 'Enterprise' ? 'Enterprise' : 'Pro';
@@ -186,17 +194,18 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
             }
             setIsSubmitted(true);
           } else {
-            setVerificationError(data.message || 'Polar checkout verification is pending or unconfirmed.');
+            setVerificationError(data.message || data.error || 'Polar checkout verification is pending or unconfirmed.');
           }
-        })
-        .catch((err) => {
+        } catch (err) {
           if (!isMounted) return;
           console.warn('[CheckoutView] Verification request failed:', err);
           setVerificationError('Unable to connect to checkout verification service.');
-        })
-        .finally(() => {
+        } finally {
           if (isMounted) setIsVerifying(false);
-        });
+        }
+      };
+
+      verifyCheckoutAsync();
 
       return () => {
         isMounted = false;

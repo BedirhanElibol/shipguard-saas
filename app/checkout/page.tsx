@@ -182,8 +182,11 @@ function CheckoutPageContent() {
             localStorage.setItem('zelsis_user', JSON.stringify(finalUser));
             localStorage.setItem('shipguard_user', JSON.stringify(finalUser));
             if (typeof document !== 'undefined') {
-              document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(finalUser))}; path=/; max-age=2592000; SameSite=Lax`;
-              document.cookie = `shipguard_user=${encodeURIComponent(JSON.stringify(finalUser))}; path=/; max-age=2592000; SameSite=Lax`;
+              const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+              const secureAttr = isHttps ? '; Secure' : '';
+              // F-32 Remediation: Eliminate non-HttpOnly PII cookie to prevent client-side data exposure
+              document.cookie = `zelsis_user=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
+              document.cookie = `shipguard_user=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
             }
           } catch (e) {
             console.warn('[CheckoutPage] Failed to save user to storage:', e);

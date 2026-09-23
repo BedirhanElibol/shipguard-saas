@@ -78,7 +78,8 @@ export async function syncProjectToSupabase(
     const payload: Record<string, any> = {
       name: project.name,
       repo_url: project.repoUrl,
-      github_token: (project as any).githubToken || null,
+      // F-08 Remediation: Never store user PATs or GitHub credentials in cloud database
+      github_token: null,
       preview_url: project.previewUrl || null,
       framework: project.framework,
       providers: project.providers,

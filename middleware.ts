@@ -88,12 +88,6 @@ export function middleware(req: NextRequest) {
       return applySecurityHeaders(response);
     }
 
-    // Stripe webhooks are posted directly from Stripe servers without browser Origin
-    if (pathname.startsWith('/api/v1/stripe-webhook')) {
-      const response = NextResponse.next({ request: { headers: requestHeaders } });
-      return applySecurityHeaders(response);
-    }
-
     // Polar webhooks are posted directly from Polar servers without browser Origin
     if (pathname.startsWith('/api/v1/polar-webhook')) {
       const response = NextResponse.next({ request: { headers: requestHeaders } });
@@ -105,7 +99,7 @@ export function middleware(req: NextRequest) {
       const isAllowed = !origin || ALLOWED_ORIGINS.has(origin);
       const preflightHeaders = new Headers({
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, stripe-signature',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, polar-webhook-signature',
         'Access-Control-Max-Age': '86400'
       });
 

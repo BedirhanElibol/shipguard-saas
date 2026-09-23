@@ -1,11 +1,13 @@
 import { createClient, SupabaseClient, Session } from '@supabase/supabase-js';
 import { UserProfile } from '@/components/auth/AuthModal';
+import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
-const DEFAULT_SUPABASE_URL = 'https://afzpaydfkmycrwuxmzkk.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmenBheWRma215Y3J3dXhtemtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MTc5NzEsImV4cCI6MjEwMzQ5Mzk3MX0.MNtKjLI3mNmGIRmcirzwnGknw0VJy58A2noAnEZZKZA';
+export { isPlatformAdminEmail };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+// F-15 Remediation: Eliminate hardcoded production Supabase fallback credentials.
+// All environments must explicitly declare their own credentials via environment variables.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -13,7 +15,8 @@ export const isSupabaseConfigured = (): boolean => {
   return Boolean(
     supabaseUrl &&
     supabaseAnonKey &&
-    !supabaseUrl.includes('sb-project.supabase.co')
+    !supabaseUrl.includes('sb-project.supabase.co') &&
+    !supabaseUrl.includes('placeholder')
   );
 };
 
@@ -147,8 +150,8 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   const userEmailNorm = (supabaseUser?.email || '').toLowerCase().trim();
   const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || (userEmailNorm ? userEmailNorm.split('@')[0] : 'User');
   const avatar = (metadata.avatar_url as string) || (metadata.picture as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
-  // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
-  const isPlatformAdmin = userEmailNorm === 'bedirelibol7@gmail.com';
+  // Founder & Platform Administrator Detection (Configured via ADMIN_EMAILS / NEXT_PUBLIC_ADMIN_EMAILS)
+  const isPlatformAdmin = isPlatformAdminEmail(userEmailNorm);
 
   let tier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
   let expiresAt: string | undefined = undefined;

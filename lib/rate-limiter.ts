@@ -46,26 +46,41 @@ function cleanupExpiredEntries(windowMs: number) {
   }
 }
 
+const IPV4_REGEX = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+const IPV6_REGEX = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
+
+function isValidIp(ip: string): boolean {
+  return IPV4_REGEX.test(ip) || IPV6_REGEX.test(ip);
+}
+
 /**
  * Extracts client IP securely from trusted reverse proxy headers or fallback.
- * Prevents IP spoofing attacks by rejecting untrusted x-client-ip in production.
+ * Prevents IP spoofing (F-19):
+ * 1. Only trusts cf-connecting-ip if cf-ray is present (verifying genuine Cloudflare hop).
+ * 2. Uses x-real-ip from upstream trusted reverse proxy.
+ * 3. Parses valid IP from x-forwarded-for, strictly validating IPv4/IPv6 syntax.
  */
 export function getClientIp(req: NextRequest): string {
-  const cfConnectingIp = req.headers.get('cf-connecting-ip');
-  if (cfConnectingIp) return cfConnectingIp.trim();
+  // Only trust cf-connecting-ip if genuine Cloudflare edge headers (cf-ray) are present
+  const cfRay = req.headers.get('cf-ray');
+  const cfConnectingIp = req.headers.get('cf-connecting-ip')?.trim();
+  if (cfRay && cfConnectingIp && isValidIp(cfConnectingIp)) {
+    return cfConnectingIp;
+  }
 
-  const xRealIp = req.headers.get('x-real-ip');
-  if (xRealIp) return xRealIp.trim();
+  const xRealIp = req.headers.get('x-real-ip')?.trim();
+  if (xRealIp && isValidIp(xRealIp)) {
+    return xRealIp;
+  }
 
   const xForwardedFor = req.headers.get('x-forwarded-for');
   if (xForwardedFor) {
-    const firstIp = xForwardedFor.split(',')[0].trim();
-    if (firstIp) return firstIp;
-  }
-
-  if (process.env.NODE_ENV !== 'production') {
-    const xClientIp = req.headers.get('x-client-ip');
-    if (xClientIp) return xClientIp.trim();
+    const candidateIps = xForwardedFor.split(',').map((s) => s.trim());
+    for (const ip of candidateIps) {
+      if (isValidIp(ip)) {
+        return ip;
+      }
+    }
   }
 
   return '127.0.0.1';

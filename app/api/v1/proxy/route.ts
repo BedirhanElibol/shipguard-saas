@@ -23,7 +23,27 @@ export async function GET(req: NextRequest) {
     return createRateLimitResponse(rateLimit);
   }
 
-  // 2. Server-side Zod Query Validation
+  // 2. Caller Authorization Defense (F-19: Prevent open proxy abuse)
+  const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
+  const apiKeyHeader = req.headers.get('x-api-key')?.trim();
+  const secFetchSite = req.headers.get('sec-fetch-site');
+  const origin = req.headers.get('origin');
+  const host = req.headers.get('host');
+
+  const isSameOrigin = secFetchSite === 'same-origin' || (origin && host && origin.includes(host));
+  const hasValidAuth = Boolean(authHeader || apiKeyHeader || isSameOrigin);
+
+  if (!hasValidAuth && process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      {
+        error: 'Unauthorized',
+        message: 'Authentication required. Provide an Authorization Bearer token or API key to utilize the proxy audit service.'
+      },
+      { status: 401 }
+    );
+  }
+
+  // 3. Server-side Zod Query Validation
   const validation = validateQueryParams(ProxyQuerySchema, req.nextUrl.searchParams);
   if (!validation.success) {
     return validation.response;

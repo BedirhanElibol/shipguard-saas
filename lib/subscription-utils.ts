@@ -20,6 +20,23 @@ export interface SubscriptionValidityInfo {
   };
 }
 
+/**
+ * F-15 Remediation: Dynamically resolves platform administrator emails from environment variables.
+ * Prevents hardcoding personal email addresses in source code bundles.
+ */
+export function isPlatformAdminEmail(email?: string | null): boolean {
+  if (!email || typeof email !== 'string') return false;
+  const emailNorm = email.toLowerCase().trim();
+  const configured = (
+    process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
+    process.env.ADMIN_EMAILS ||
+    process.env.FOUNDER_EMAIL ||
+    ''
+  ).split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+
+  return configured.includes(emailNorm);
+}
+
 const EMERALD_COLORS = {
   bg: 'bg-emerald-500/10',
   border: 'border-emerald-500/30',
@@ -145,9 +162,9 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
   }
 
   const emailNorm = (user.email || '').toLowerCase().trim();
-  const isFounder = emailNorm === 'bedirelibol7@gmail.com';
+  const isFounder = isPlatformAdminEmail(emailNorm);
 
-  // Strict founder isolation: only platform founder can have Enterprise or 2099 expiry
+  // Strict founder isolation: only platform administrator can have Enterprise or 2099 expiry
   if (!isFounder && (user.tier === 'Enterprise' || user.expiresAt?.includes('2099'))) {
     return {
       tier: 'Free',
@@ -217,7 +234,7 @@ export function getSubscriptionValidity(user: UserProfile | null | undefined): S
   let countdownLabel: string;
   let compactLabel: string;
 
-  // Extreme future dates or lifetime access (strictly restricted to platform founder bedirelibol7@gmail.com)
+  // Extreme future dates or lifetime access (strictly restricted to platform administrators)
   if (isFounder && (daysRemaining > 730 || (user.expiresAt && user.expiresAt.includes('2099')))) {
     countdownLabel = 'Lifetime Access';
     compactLabel = 'Lifetime';

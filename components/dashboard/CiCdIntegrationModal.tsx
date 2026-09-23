@@ -62,7 +62,7 @@ jobs:
         run: |
           RESPONSE=$(curl -s -X POST "${appUrl}/api/v1/gate-check" \\
             -H "Content-Type: application/json" \\
-            -d '{"repoUrl": "${targetRepo}", "githubToken": "\${{ secrets.GITHUB_TOKEN }}"}')
+            -d '{"repoUrl": "${targetRepo}"}')
           
           echo "GATE_STATUS=$(echo $RESPONSE | jq -r .gateStatus)" >> $GITHUB_ENV
           echo "SCORE=$(echo $RESPONSE | jq -r .readinessScore)" >> $GITHUB_ENV

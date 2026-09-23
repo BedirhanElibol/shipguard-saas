@@ -36,15 +36,25 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 }) => {
   const router = useRouter();
   const [repoUrl, setRepoUrl] = useState(project.repoUrl);
-  const [patToken, setPatToken] = useState((project as any).githubToken || '');
+  const [patToken, setPatToken] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('zelsis_github_token') || '';
+    }
+    return '';
+  });
   const [showPatToken, setShowPatToken] = useState(false);
   const [saved, setSaved] = useState(false);
 
   // Synchronize form fields when selected project changes
   useEffect(() => {
     setRepoUrl(project.repoUrl || '');
-    setPatToken((project as any).githubToken || '');
-  }, [project.id, project.repoUrl, (project as any).githubToken]);
+    if (typeof window !== 'undefined') {
+      const sessionToken = sessionStorage.getItem('zelsis_github_token');
+      if (sessionToken) {
+        setPatToken(sessionToken);
+      }
+    }
+  }, [project.id, project.repoUrl]);
 
   // User Profile & Membership State
   const isAuthenticated = Boolean(user && user.isLoggedIn);
@@ -265,10 +275,19 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    if (typeof window !== 'undefined') {
+      if (patToken.trim()) {
+        sessionStorage.setItem('zelsis_github_token', patToken.trim());
+      } else {
+        sessionStorage.removeItem('zelsis_github_token');
+        localStorage.removeItem('zelsis_github_token');
+        localStorage.removeItem('github_token');
+      }
+    }
     if (onSaveSettings) {
+      // F-08 Remediation: Never persist plaintext PAT in project database or project records
       onSaveSettings({
         repoUrl,
-        githubToken: patToken || undefined,
       });
     }
     setSaved(true);

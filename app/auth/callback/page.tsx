@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getSupabase, mapSupabaseUserToProfile, syncUserProfileToSupabase } from '@/lib/supabase';
+import { getSupabase, mapSupabaseUserToProfile, syncUserProfileToSupabase, isPlatformAdminEmail } from '@/lib/supabase';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
 import { Shield, Loader2, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -58,8 +58,8 @@ function CallbackHandler() {
 
     const mergeWithExistingSession = (rawProfile: any) => {
       const userEmail = (rawProfile.email || '').toLowerCase().trim();
-      // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
-      const isPlatformAdmin = userEmail === 'bedirelibol7@gmail.com';
+      // Founder & Platform Administrator Detection (Configured via ADMIN_EMAILS)
+      const isPlatformAdmin = isPlatformAdminEmail(userEmail);
 
       // Check if browser has stale cache from another account or tainted founder records
       const savedLocalUserStr = localStorage.getItem('zelsis_user');

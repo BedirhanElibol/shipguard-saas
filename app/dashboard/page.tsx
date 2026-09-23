@@ -9,7 +9,6 @@ import { DashboardView } from '@/components/dashboard/DashboardView';
 import { ScanRunnerView } from '@/components/ScanRunnerView';
 import { RemediationDrawer } from '@/components/findings/RemediationDrawer';
 import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
-import { StripeCheckoutModal } from '@/components/checkout/StripeCheckoutModal';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
@@ -187,7 +186,8 @@ function DashboardContent() {
       setAuthInitialMode('signup');
       setIsAuthModalOpen(true);
     } else {
-      setIsCheckoutOpen(true);
+      const plan = (requestedPlan || (user?.tier === 'Pro' ? 'Enterprise' : 'Pro')).toLowerCase();
+      router.push(`/checkout?plan=${plan}`);
     }
   };
 
@@ -622,22 +622,6 @@ function DashboardContent() {
           }
         }}
         initialMode={authInitialMode}
-      />
-
-      {/* Stripe Subscription Upgrade Modal */}
-      <StripeCheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        user={user}
-        initialPlan={checkoutInitialPlan}
-        onOpenAuth={(mode) => {
-          setIsCheckoutOpen(false);
-          setAuthInitialMode(mode || 'signup');
-          setIsAuthModalOpen(true);
-        }}
-        onUpgradeSuccess={(newTier) => {
-          handleUpdateUserProfile({ tier: newTier });
-        }}
       />
     </AppShell>
   );

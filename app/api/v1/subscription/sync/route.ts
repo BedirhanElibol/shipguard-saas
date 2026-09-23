@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { createClient } from '@supabase/supabase-js';
+import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
 // Verified subscriber registry & platform administrator list
-const DEFAULT_FOUNDER_EMAILS = [
-  'bedirelibol7@gmail.com',
-];
-
 const VERIFIED_SUBSCRIBER_EMAILS = new Set(
   (process.env.VERIFIED_SUBSCRIBERS || process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
-    .concat(DEFAULT_FOUNDER_EMAILS)
     .filter(Boolean)
 );
 
@@ -35,10 +31,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmenBheWRma215Y3J3dXhtemtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MTc5NzEsImV4cCI6MjEwMzQ5Mzk3MX0.MNtKjLI3mNmGIRmcirzwnGknw0VJy58A2noAnEZZKZA';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const polarAccessToken = process.env.POLAR_ACCESS_TOKEN;
+
+  if (!supabaseUrl || !anonKey) {
+    logger.error('[Subscription Sync] Supabase configuration missing');
+    return NextResponse.json(
+      { error: 'Authentication service configuration missing' },
+      { status: 500 }
+    );
+  }
 
   const authClient = createClient(supabaseUrl, anonKey);
   const { data: authData, error: authError } = await authClient.auth.getUser(token);
@@ -256,16 +260,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 3. Founder and Verified Subscriber Registry Resolution
+  // 3. Platform Administrator and Verified Subscriber Registry Resolution
   const userMetadata = authData.user.user_metadata || {};
-  const isFounder = email === 'bedirelibol7@gmail.com';
+  const isFounder = isPlatformAdminEmail(email);
 
   if (!isActive && isFounder) {
     verifiedTier = 'Enterprise';
     isActive = true;
     subStatus = 'active';
     expiresAt = '2099-12-31T23:59:59.999Z';
-    logger.info(`[Subscription Sync] Confirmed founder clearance: ${verifiedTier} for ${email}`);
+    logger.info(`[Subscription Sync] Confirmed administrator clearance: ${verifiedTier} for ${email}`);
   } else if (!isActive && VERIFIED_SUBSCRIBER_EMAILS.has(email)) {
     verifiedTier = isFounder ? 'Enterprise' : 'Pro';
     isActive = true;

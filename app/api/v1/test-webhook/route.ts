@@ -58,7 +58,28 @@ export async function POST(req: NextRequest) {
       return createRateLimitResponse(rateLimit);
     }
 
-    // 2. Parse request body
+    // 2. Caller Authorization Defense (F-19: Prevent anonymous webhook flooding)
+    const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
+    const apiKeyHeader = req.headers.get('x-api-key')?.trim();
+    const secFetchSite = req.headers.get('sec-fetch-site');
+    const origin = req.headers.get('origin');
+    const host = req.headers.get('host');
+
+    const isSameOrigin = secFetchSite === 'same-origin' || (origin && host && origin.includes(host));
+    const hasValidAuth = Boolean(authHeader || apiKeyHeader || isSameOrigin);
+
+    if (!hasValidAuth && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unauthorized',
+          message: 'Authentication required to test webhook dispatch endpoints.'
+        },
+        { status: 401 }
+      );
+    }
+
+    // 3. Parse request body
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== 'object') {
       return NextResponse.json(

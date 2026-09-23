@@ -3,7 +3,7 @@ import { Project, Finding, PlanUsageQuota, UserTier } from '@/data/schema';
 import { MOCK_PROJECTS } from '@/data/mockData';
 import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engine';
 import { UserProfile } from '@/components/auth/AuthModal';
-import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile, syncUserProfileToSupabase } from '@/lib/supabase';
+import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile, syncUserProfileToSupabase, isPlatformAdminEmail } from '@/lib/supabase';
 import { purgeZelsisStorage, safeSetStorageItem } from '@/lib/storage';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { verifyLicenseKey, generateLicenseKey } from '@/lib/stripe-checkout';
@@ -406,8 +406,8 @@ export function useDashboardState() {
             const parsedUser = JSON.parse(savedUserStr);
             if (parsedUser && typeof parsedUser === 'object' && parsedUser.isLoggedIn) {
               const email = (parsedUser.email || '').toLowerCase().trim();
-              // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
-              const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
+              // Platform Administrator Detection (Configured via ADMIN_EMAILS)
+              const isPlatformAdmin = isPlatformAdminEmail(email);
 
               let resolvedTier: 'Free' | 'Pro' | 'Enterprise' = 'Free';
               let expiresAt: string | undefined = undefined;
@@ -506,7 +506,7 @@ export function useDashboardState() {
                           prev.tier !== 'Free' &&
                           (!prev.expiresAt || new Date(prev.expiresAt).getTime() > Date.now())
                         );
-                        const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
+                        const isPlatformAdmin = isPlatformAdminEmail(email);
                         const currentLicenseKey = localStorage.getItem('zelsis_license_key');
                         const hasValidLic = Boolean(
                           currentLicenseKey && verifyLicenseKey(currentLicenseKey, email).valid
@@ -679,8 +679,8 @@ export function useDashboardState() {
         const { user: supabaseUser, session } = await supabaseGetSession();
         if (supabaseUser) {
           const email = (supabaseUser.email || '').toLowerCase().trim();
-          // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
-          const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
+          // Platform Administrator Detection (Configured via ADMIN_EMAILS)
+          const isPlatformAdmin = isPlatformAdminEmail(email);
 
           // Strict account isolation: Check if local storage belongs to a different email
           const savedUserStr = localStorage.getItem('zelsis_user');
@@ -808,8 +808,8 @@ export function useDashboardState() {
           if (session && session.user) {
             const profile = mapSupabaseUserToProfile(session.user);
             const email = (profile.email || session.user.email || '').toLowerCase().trim();
-            // Founder & Platform Administrator Detection (Strictly restricted to bedirelibol7@gmail.com)
-            const isPlatformAdmin = email === 'bedirelibol7@gmail.com';
+            // Platform Administrator Detection (Configured via ADMIN_EMAILS)
+            const isPlatformAdmin = isPlatformAdminEmail(email);
 
             // Strict account isolation: Check if local storage belongs to a different email or contains tainted metadata
             const savedUserStr = localStorage.getItem('zelsis_user');

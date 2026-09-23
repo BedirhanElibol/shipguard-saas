@@ -16,12 +16,16 @@ export async function DELETE(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   const token = authHeader?.replace('Bearer ', '') || null;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   try {
-    if (!token || !anonKey) {
+    if (!supabaseUrl || !anonKey) {
+      return NextResponse.json({ error: 'Database service configuration missing' }, { status: 500 });
+    }
+
+    if (!token) {
       return NextResponse.json({ error: 'Authentication token required for account deletion' }, { status: 401 });
     }
 

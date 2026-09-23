@@ -141,7 +141,9 @@ export async function activateUserTier(
     if (typeof document !== 'undefined') {
       const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
       const secureAttr = isHttps ? '; Secure' : '';
-      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax${secureAttr}`;
+      // F-32 Remediation: Eliminate non-HttpOnly PII cookie to prevent client-side data exposure
+      document.cookie = `zelsis_user=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
+      document.cookie = `shipguard_user=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
     }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));

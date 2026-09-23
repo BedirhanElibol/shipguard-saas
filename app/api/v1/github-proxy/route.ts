@@ -216,7 +216,27 @@ export async function GET(req: NextRequest) {
     return createRateLimitResponse(rateLimit);
   }
 
-  // 2. Prohibit credential transmission via URL query string (CWE-598)
+  // 2. Caller Authorization Defense (F-09: Prevent arbitrary third-party proxy abuse)
+  const authHeaderRaw = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
+  const apiKeyHeader = req.headers.get('x-api-key')?.trim();
+  const secFetchSite = req.headers.get('sec-fetch-site');
+  const origin = req.headers.get('origin');
+  const host = req.headers.get('host');
+
+  const isSameOrigin = secFetchSite === 'same-origin' || (origin && host && origin.includes(host));
+  const hasValidAuth = Boolean(authHeaderRaw || apiKeyHeader || isSameOrigin);
+
+  if (!hasValidAuth && process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      {
+        error: 'Unauthorized',
+        message: 'Authentication required. Provide an Authorization Bearer token or API key to access github-proxy.'
+      },
+      { status: 401 }
+    );
+  }
+
+  // 3. Prohibit credential transmission via URL query string (CWE-598)
   if (req.nextUrl.searchParams.has('token')) {
     return NextResponse.json(
       {
@@ -227,7 +247,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 3. Strict Zod Query Parameter Validation
+  // 4. Strict Zod Query Parameter Validation
   const validation = validateQueryParams(GithubProxyQuerySchema, req.nextUrl.searchParams);
   if (!validation.success) {
     return validation.response;
@@ -351,6 +371,23 @@ export async function GET(req: NextRequest) {
     }
 
     const repoData = await repoRes.json();
+
+    // F-09 Remediation: Strict Token Pool Isolation.
+    // If the repository is private and no user-supplied token was provided, reject immediately.
+    // The server's token pool is strictly for public repository read rate-limit headroom.
+    if (repoData.private && !userToken) {
+      logger.warn(`[GitHub Proxy Security] Blocked attempt to access private repo ${owner}/${repo} via server token pool without user token`);
+      return NextResponse.json({
+        name: repoData.name || repo,
+        fullName: repoData.full_name || `${owner}/${repo}`,
+        description: 'Private repository access restricted. Provide your own GitHub PAT token to access private repositories.',
+        message: 'Private repository access restricted. Provide your own GitHub PAT token to access private repositories.',
+        error: 'PRIVATE_OR_UNAUTHENTICATED',
+        isPrivate: true,
+        files: []
+      }, { status: 401 });
+    }
+
     const detectedBranch = typeof repoData.default_branch === 'string' && repoData.default_branch
       ? repoData.default_branch
       : 'main';

@@ -889,5 +889,444 @@ export function evaluateSecurityRules(
     }
   }
 
+
+  // ==============================================================================
+  // FAZ 3 (F-25 & F-37 Remediation): Core OWASP & Next.js/Express Vulnerability Gate
+  // Rules SEC-32 to SEC-45 covering eval, command injection, SSRF, path traversal,
+  // weak hashes, Math.random, insecure cookies, open redirect, $where, secrets in config.
+  // ==============================================================================
+
+  // Rule 32 / SEC-32: Dynamic Code Execution / Remote Code Execution (eval, Function)
+  if (isCodeFile && (cleanContent.includes('eval(') || cleanContent.includes('new Function('))) {
+    const evalRegex = /\beval\s*\([^)]+\)|\bnew\s+Function\s*\([^)]+\)/;
+    if (evalRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && evalRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 32,
+        type: 'SECURITY',
+        title: 'Dynamic Code Execution (eval / Function Remote Code Execution)',
+        severity: 'CRITICAL',
+        category: 'Remote Code Execution',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'eval(userInput);',
+        reproductionSteps: [
+          `Scanned executable JavaScript at ${file.path}:${lineNum}.`,
+          'Detected dynamic code evaluation using eval() or Function constructor on untrusted inputs, allowing arbitrary server-side code execution.'
+        ],
+        remediationPrompt: `Eliminate eval() and dynamic Function invocation in ${file.path}:${lineNum}. Use structured JSON parsing or safe domain-specific interpreters.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-32 Dynamic Code Execution detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 33 / SEC-33: Command Injection via Unsanitized Child Process Execution
+  if (isCodeFile && (cleanContent.includes('child_process') || cleanContent.includes('execSync(') || cleanContent.includes('exec('))) {
+    const cmdInjRegex = /(?:child_process\.(?:exec|execSync|spawn|spawnSync)|\bexec\s*\(|\bexecSync\s*\()\s*\([^)]*(?:`[^`]*\$\{[^}]+\}[^`]*`|['"][^'"]*['"]\s*\+|\b(?:req\.|params\.|query\.|body\.|userInput|cmd|command))/;
+    if (cmdInjRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && cmdInjRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 33,
+        type: 'SECURITY',
+        title: 'Command Injection via Unsanitized Child Process Execution',
+        severity: 'CRITICAL',
+        category: 'Operating System Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'exec(`ping ${ip}`);',
+        reproductionSteps: [
+          `Scanned child process execution at ${file.path}:${lineNum}.`,
+          'Detected string concatenation or template interpolation inside system command execution, enabling OS command injection.'
+        ],
+        remediationPrompt: `Use child_process.execFile or spawn with an explicit arguments array instead of shell execution in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Backend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-33 Command Injection risk detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 34 / SEC-34: Server-Side Request Forgery (SSRF) via Unvalidated HTTP Request
+  if (isCodeFile && (cleanContent.includes('fetch(') || cleanContent.includes('axios.') || cleanContent.includes('http.get('))) {
+    const ssrfRegex = /(?:fetch|axios\.(?:get|post|request)|http\.get|https\.get)\s*\(\s*(?:req\.(?:query|body|params)\.[a-zA-Z0-9_]+|userInput|targetUrl|url)\b/;
+    if (ssrfRegex.test(cleanContent) && !cleanContent.includes('validateSafeTargetUrl') && !cleanContent.includes('isAllowedWebhookUrl')) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && ssrfRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 34,
+        type: 'SECURITY',
+        title: 'Server-Side Request Forgery (SSRF) via Unvalidated Target URL',
+        severity: 'CRITICAL',
+        category: 'Network & Network Requests',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'await fetch(req.query.url);',
+        reproductionSteps: [
+          `Scanned outgoing network request at ${file.path}:${lineNum}.`,
+          'Detected direct fetch/axios request utilizing user-supplied URL parameter without IP/domain allowlist or SSRF validation.'
+        ],
+        remediationPrompt: `Validate target URL with SSRF guards (block 127.0.0.1, 10.0.0.0/8, 169.254.169.254) before initiating requests in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-34 SSRF vulnerability detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 35 / SEC-35: Path Traversal Vulnerability via User-Controlled File Path
+  if (isCodeFile && (cleanContent.includes('fs.') || cleanContent.includes('readFile') || cleanContent.includes('createReadStream'))) {
+    const pathTraversalRegex = /(?:fs\.(?:readFile|readFileSync|createReadStream|writeFile|writeFileSync|unlink))\s*\([^;\n]*(?:req\.(?:query|params|body)|path\.join\([^;\n]*(?:req\.|params\.|query\.))/;
+    if (pathTraversalRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && pathTraversalRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 35,
+        type: 'SECURITY',
+        title: 'Path Traversal Vulnerability via User-Controlled File Path',
+        severity: 'HIGH',
+        category: 'File System Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'fs.readFile(path.join(dir, req.params.file));',
+        reproductionSteps: [
+          `Scanned file system operation at ${file.path}:${lineNum}.`,
+          'Detected file reading or writing path derived from user input without sanitization against directory traversal sequences (../).'
+        ],
+        remediationPrompt: `Sanitize path with path.normalize and assert that resolved path starts within expected root directory in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Backend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 HIGH: SEC-35 Path Traversal risk detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 36 / SEC-36: Public Exposure of Backend Secrets via NEXT_PUBLIC_ Variables
+  const nextPublicSecretRegex = /NEXT_PUBLIC_[A-Z0-9_]*(?:SERVICE_ROLE|SECRET|PRIVATE|ADMIN_KEY|STRIPE_SECRET|DATABASE_URL|DB_PASS)/i;
+  if (nextPublicSecretRegex.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('#') && nextPublicSecretRegex.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 36,
+      type: 'SECURITY',
+      title: 'Public Exposure of Backend Secret via NEXT_PUBLIC_ Environment Variable',
+      severity: 'CRITICAL',
+      category: 'Secret Isolation',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: snippet || lines[matchLineIdx] || 'NEXT_PUBLIC_SERVICE_ROLE_KEY=...',
+      reproductionSteps: [
+        `Scanned environment variable declarations at ${file.path}:${lineNum}.`,
+        'Detected high-privilege server secret prefixed with NEXT_PUBLIC_, which compiles directly into publicly accessible client JavaScript bundles.'
+      ],
+      remediationPrompt: `Remove NEXT_PUBLIC_ prefix from backend secrets in ${file.path}:${lineNum}. Access service-role keys exclusively on server-side runtimes.`,
+      status: 'OPEN',
+      owner: 'Security Lead',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🛑 CRITICAL: SEC-36 Client secret leakage via NEXT_PUBLIC_ in ${file.path}:${lineNum}`);
+  }
+
+  // Rule 37 / SEC-37: Broken Cryptographic Hash Function (MD5 / SHA-1)
+  if (isCodeFile && cleanContent.includes('createHash')) {
+    const weakHashRegex = /createHash\s*\(\s*['"](?:md5|sha1)['"]\s*\)|crypto\.createHash\(['"](?:md5|sha1)['"]\)/i;
+    if (weakHashRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && weakHashRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 37,
+        type: 'SECURITY',
+        title: 'Use of Broken Cryptographic Hash Function (MD5 / SHA-1)',
+        severity: 'HIGH',
+        category: 'Cryptography',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || "crypto.createHash('md5')",
+        reproductionSteps: [
+          `Scanned cryptographic operations at ${file.path}:${lineNum}.`,
+          'Detected broken MD5/SHA-1 hashing algorithm susceptible to collision and length extension attacks.'
+        ],
+        remediationPrompt: `Upgrade hashing algorithms to SHA-256 (crypto.createHash('sha256')) or Argon2/bcrypt for passwords in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 HIGH: SEC-37 Broken cryptographic hash (MD5/SHA1) detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 38 / SEC-38: Insecure Cryptographic Pseudo-Random Generation (Math.random)
+  if (isCodeFile && cleanContent.includes('Math.random()')) {
+    const mathRandomRegex = /(?:token|secret|password|session|nonce|key|auth|salt)\s*[=:]\s*[^;\n]*Math\.random\s*\(\)|Math\.random\s*\(\)\.toString\s*\(\s*(?:36|16)\s*\)/i;
+    if (mathRandomRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && mathRandomRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 38,
+        type: 'SECURITY',
+        title: 'Insecure Pseudo-Random Number Generator Used in Security Context (Math.random)',
+        severity: 'HIGH',
+        category: 'Cryptography',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'const token = Math.random().toString(36);',
+        reproductionSteps: [
+          `Scanned token/secret generation at ${file.path}:${lineNum}.`,
+          'Detected Math.random() used to create tokens or security credentials. Math.random is predictable and not cryptographically secure.'
+        ],
+        remediationPrompt: `Use crypto.randomUUID() or crypto.randomBytes() for secure tokens in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Backend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 HIGH: SEC-38 Insecure Math.random in security context detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 39 / SEC-39: Insecure Unverified JWT Decoding (Missing Signature Verification)
+  if (isCodeFile && cleanContent.includes('jwt.decode(')) {
+    const jwtDecodeRegex = /\bjwt\.decode\s*\([^)]+\)/;
+    if (jwtDecodeRegex.test(cleanContent) && !cleanContent.includes('jwt.verify(')) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && jwtDecodeRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 39,
+        type: 'SECURITY',
+        title: 'Unverified JWT Token Decoding without Cryptographic Signature Verification',
+        severity: 'HIGH',
+        category: 'Authentication',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'const user = jwt.decode(token);',
+        reproductionSteps: [
+          `Scanned authentication verification at ${file.path}:${lineNum}.`,
+          'Detected jwt.decode() used without jwt.verify(), allowing attackers to forge arbitrary claims with self-signed tokens.'
+        ],
+        remediationPrompt: `Always verify signatures with jwt.verify(token, secret, { algorithms: ['HS256'] }) in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 HIGH: SEC-39 Unverified JWT decode detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 40 / SEC-40: Insecure Cookie Flags (Missing HttpOnly / Missing Secure Flag)
+  if (isCodeFile && (cleanContent.includes('cookie(') || cleanContent.includes('cookies().set') || cleanContent.includes('response.cookies.set'))) {
+    const insecureCookieRegex = /(?:res\.cookie|cookies\(\)\.set|response\.cookies\.set)\s*\([^)]*\{\s*[^}]*(?:httpOnly\s*:\s*false|secure\s*:\s*false)/i;
+    if (insecureCookieRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && insecureCookieRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 40,
+        type: 'SECURITY',
+        title: 'Insecure Session Cookie Configuration (Missing HttpOnly or Secure Flag)',
+        severity: 'HIGH',
+        category: 'Session Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || "res.cookie('session', sid, { httpOnly: false });",
+        reproductionSteps: [
+          `Scanned HTTP cookie configuration at ${file.path}:${lineNum}.`,
+          'Detected session cookie explicitly setting httpOnly: false or secure: false, exposing authentication sessions to XSS theft and MITM interception.'
+        ],
+        remediationPrompt: `Set httpOnly: true, secure: true, and sameSite: 'lax' for all authentication cookies in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Backend Team',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 HIGH: SEC-40 Insecure cookie flags detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 41 / SEC-41: Open Redirection Vulnerability via Untrusted URL Target
+  if (isCodeFile && cleanContent.includes('redirect(')) {
+    const openRedirectRegex = /(?:res\.redirect|redirect|NextResponse\.redirect)\s*\(\s*(?:req\.(?:query|body|params)\.[a-zA-Z0-9_]+|searchParams\.get\(['"](?:url|next|redirect|target)['"]\))/i;
+    if (openRedirectRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && openRedirectRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 41,
+        type: 'SECURITY',
+        title: 'Unvalidated Open Redirection Vulnerability (Open Redirect)',
+        severity: 'MEDIUM',
+        category: 'Input Validation',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'res.redirect(req.query.next);',
+        reproductionSteps: [
+          `Scanned HTTP redirection at ${file.path}:${lineNum}.`,
+          'Detected HTTP redirect directly derived from query parameter without origin validation, enabling phishing redirects.'
+        ],
+        remediationPrompt: `Validate redirection URLs against a strict whitelist of relative paths (/dashboard) or known trusted domains in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ⚠️ MEDIUM: SEC-41 Open redirect vulnerability detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 42 / SEC-42: NoSQL Injection via $where Expression Evaluation
+  if (isCodeFile && cleanContent.includes('$where')) {
+    const nosqlWhereRegex = /\$where\s*:\s*(?:['"`][^'"`]*\$\{[^}]+\}['"`]|req\.|function\s*\(|['"][^'"]*\+)/i;
+    if (nosqlWhereRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && nosqlWhereRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 42,
+        type: 'SECURITY',
+        title: 'NoSQL Injection via Arbitrary JavaScript $where Evaluation',
+        severity: 'CRITICAL',
+        category: 'Database Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || "$where: 'this.name == ' + req.body.name",
+        reproductionSteps: [
+          `Scanned database query at ${file.path}:${lineNum}.`,
+          'Detected MongoDB $where clause evaluating user-controlled JavaScript expression on the database server.'
+        ],
+        remediationPrompt: `Replace dynamic $where clauses with parameterized MongoDB query operators ($eq, $in) in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Database Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-42 NoSQL $where injection detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 43 / SEC-43: Hardcoded Application Credential / Crypto Secret in Configuration
+  const staticSecretRegex = /(?:cookieSecret|sessionSecret|cryptoKey|databasePassword)\s*:\s*['"][a-zA-Z0-9_\-\.\$\!\#\%]{6,}['"]/i;
+  if (isCodeFile && staticSecretRegex.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && staticSecretRegex.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const rawLine = lines[matchLineIdx] || '';
+    const maskedSnippet = rawLine.replace(/:\s*['"]([^'"]+)['"]/i, (m, val) => `: '${val.slice(0, 3)}****${val.slice(-2)}'`);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 43,
+      type: 'SECURITY',
+      title: 'Hardcoded Session or Crypto Secret Key in Application Configuration',
+      severity: 'HIGH',
+      category: 'Secret Isolation',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet: maskedSnippet || lines[matchLineIdx] || "cookieSecret: '****'",
+      reproductionSteps: [
+        `Scanned application configuration file at ${file.path}:${lineNum}.`,
+        'Detected hardcoded cryptographic secret or session encryption key string in source code.'
+      ],
+      remediationPrompt: `Extract configuration secrets in ${file.path}:${lineNum} to server-only environment variables (process.env.SESSION_SECRET).`,
+      status: 'OPEN',
+      owner: 'Security Lead',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🛑 HIGH: SEC-43 Hardcoded config secret detected in ${file.path}:${lineNum}`);
+  }
+
+  // Rule 44 / SEC-44: Insecure Reflected / Wildcard CORS with Credentials Allowed
+  if (isCodeFile && (cleanContent.includes('cors(') || cleanContent.includes('Access-Control-Allow-Credentials'))) {
+    const corsCredsRegex = /(?:origin:\s*(?:true|['"]\*['"])|Access-Control-Allow-Origin[^;]+(?:\*|true))\s*[^;\}]*(?:credentials:\s*true|Access-Control-Allow-Credentials:\s*true)/i;
+    if (corsCredsRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && corsCredsRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 44,
+        type: 'SECURITY',
+        title: 'Insecure CORS Configuration (Wildcard Origin with Allowed Credentials)',
+        severity: 'HIGH',
+        category: 'Network & CORS',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'cors({ origin: true, credentials: true });',
+        reproductionSteps: [
+          `Scanned CORS header configuration at ${file.path}:${lineNum}.`,
+          'Detected origin: true or wildcard origin combined with credentials: true, allowing external sites to read sensitive authenticated responses.'
+        ],
+        remediationPrompt: `Restrict CORS origin to an explicit allowlist of authorized production origins in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 HIGH: SEC-44 Insecure CORS credentials configuration detected in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Rule 45 / SEC-45: Permissive Database Row Level Security (RLS) Bypass Policy
+  if (cleanContent.includes('CREATE POLICY') && (cleanContent.includes('USING (true)') || cleanContent.includes('WITH CHECK (true)'))) {
+    const rlsBypassRegex = /CREATE\s+POLICY\s+[^;]+(?:USING\s*\(\s*true\s*\)|WITH\s+CHECK\s*\(\s*true\s*\))/i;
+    if (rlsBypassRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('--') && rlsBypassRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 45,
+        type: 'SECURITY',
+        title: 'Permissive Database Row Level Security (RLS) Bypass Policy',
+        severity: 'CRITICAL',
+        category: 'Database Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'CREATE POLICY bypass ON table FOR ALL USING (true);',
+        reproductionSteps: [
+          `Scanned database migration or schema SQL at ${file.path}:${lineNum}.`,
+          'Detected permissive RLS policy allowing universal access to table records.'
+        ],
+        remediationPrompt: `Scope RLS policy with explicit user ownership checks: auth.uid() = user_id in ${file.path}:${lineNum}.`,
+        status: 'OPEN',
+        owner: 'Database Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🛑 CRITICAL: SEC-45 Permissive RLS policy bypass detected in ${file.path}:${lineNum}`);
+    }
+  }
+
   return { findings, logs };
 }
+

@@ -131,8 +131,15 @@ export interface ScanResult {
 export function stripComments(content: string): string {
   if (!content) return '';
   return content
-    .replace(/\/\*[\s\S]*?\*\//g, '')  // Multi-line JS/TS comments
-    .replace(/<!--[\s\S]*?-->/g, '')   // HTML comments
+    .replace(/\/\*[\s\S]*?\*\//g, (match) => {
+      // F-12 Remediation: Preserve newlines so AST/regex line numbers do not drift
+      const lineBreaks = match.split('\n').length - 1;
+      return '\n'.repeat(lineBreaks);
+    })
+    .replace(/<!--[\s\S]*?-->/g, (match) => {
+      const lineBreaks = match.split('\n').length - 1;
+      return '\n'.repeat(lineBreaks);
+    })
     .replace(/(?<!:)\/\/.*$/gm, '');   // Single-line JS/TS comments (preserves http:// and https:// URLs)
 }
 
@@ -1196,6 +1203,15 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
       lowerPath.startsWith('out/') || lowerPath.includes('/out/') ||
       lowerPath.startsWith('.next/') || lowerPath.includes('/.next/') ||
       lowerPath.includes('node_modules/') ||
+      // F-39 Remediation: Skip minified bundles and third-party vendored assets to avoid noise
+      lowerPath.endsWith('.min.js') ||
+      lowerPath.endsWith('.min.css') ||
+      lowerPath.endsWith('.bundle.js') ||
+      lowerPath.endsWith('.map') ||
+      lowerPath.includes('vendor/') ||
+      lowerPath.includes('third_party/') ||
+      lowerPath.includes('public/vendor/') ||
+      lowerPath.includes('assets/vendor/') ||
       lowerPath.includes('data/catalogs/') ||
       lowerPath.includes('data/workspacefiles.ts') ||
       lowerPath.endsWith('.png') ||
@@ -1331,33 +1347,37 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
     logs.push(`[${new Date().toLocaleTimeString()}]   ├─ [DESIGN] Design token audit: Auditing UI/UX Design System & Micro-Interaction Rules...`);
     logs.push(`[${new Date().toLocaleTimeString()}]   └─ [PATTERNS] Anti-pattern audit: Checking AI Web Design Anti-Patterns & Component Trees...`);
 
-    // Rule 1: Exposed Stripe/OpenAI API Keys
-    if (cleanContent.includes('sk_live_') || cleanContent.includes('sk-proj-') || /api[_-]?key\s*=\s*["']sk-[a-zA-Z0-9_-]{20,}/i.test(cleanContent)) {
-      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && (l.includes('sk_live_') || l.includes('sk-proj-') || /sk-[a-zA-Z0-9_-]{20,}/i.test(l)));
-      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-      const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
+    // Rule 1: Exposed Stripe/OpenAI API Keys (F-16: Scans comments, F-17: Masks secrets in snippet)
+    const secretPattern = /sk_live_[a-zA-Z0-9]{20,}|sk-proj-[a-zA-Z0-9_-]{20,}|api[_-]?key\s*=\s*["']sk-[a-zA-Z0-9_-]{20,}["']/i;
+    if (secretPattern.test(rawContent)) {
+      const matchLineIdx = lines.findIndex(l => secretPattern.test(l) && !/placeholder|EXAMPLE|dummy|test_key/i.test(l));
+      if (matchLineIdx !== -1) {
+        const lineNum = matchLineIdx + 1;
+        const rawLine = lines[matchLineIdx] || '';
+        const maskedSnippet = rawLine.replace(/sk-[a-zA-Z0-9_-]{16,}|sk_live_[a-zA-Z0-9]{16,}/gi, (m) => m.slice(0, 4) + '****' + m.slice(-2));
 
-      addFinding({
-        id: `real-find-${Date.now()}-${findingCounter++}`,
-        ruleId: 1,
-        type: 'SECURITY',
-        title: 'Exposed Hardcoded API Key / Secret Token',
-        severity: 'CRITICAL',
-        category: 'Secret Isolation',
-        filePath: file.path,
-        lineRange: `L${lineNum}`,
-        snippet: snippet || file.content.slice(0, 150),
-        reproductionSteps: [
-          `Scanned file string content at ${file.path}:${lineNum}.`,
-          'Detected live secret key prefix (sk_live_ / sk-proj-).'
-        ],
-        remediationPrompt: `Extract exposed API secret keys from ${file.path} into server-only environment variables and reference process.env.`,
-        status: 'OPEN',
-        owner: 'Security Lead',
-        falsePositive: false
-      });
+        addFinding({
+          id: `real-find-${Date.now()}-${findingCounter++}`,
+          ruleId: 1,
+          type: 'SECURITY',
+          title: 'Exposed Hardcoded API Key / Secret Token',
+          severity: 'CRITICAL',
+          category: 'Secret Isolation',
+          filePath: file.path,
+          lineRange: `L${lineNum}`,
+          snippet: maskedSnippet || '[REDACTED_SECRET]',
+          reproductionSteps: [
+            `Scanned file string content at ${file.path}:${lineNum}.`,
+            'Detected live secret key prefix (sk_live_ / sk-proj-).'
+          ],
+          remediationPrompt: `Extract exposed API secret keys from ${file.path} into server-only environment variables and reference process.env.`,
+          status: 'OPEN',
+          owner: 'Security Lead',
+          falsePositive: false
+        });
 
-      logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] SEC-01 Secret Exposure detected in ${file.path}:${lineNum}`);
+        logs.push(`[${new Date().toLocaleTimeString()}] [CRITICAL] SEC-01 Secret Exposure detected in ${file.path}:${lineNum}`);
+      }
     }
 
     // Rule 3: Supabase Permissive Row Level Security (RLS)
@@ -2457,8 +2477,9 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
     logs.push(...interactResult.logs);
 
     // 2. Enterprise Secret Signatures (SEC-SECRET-01 to 100, Rule IDs 5001-5100)
+    // F-16 Remediation: Scan unstripped content including comments to eliminate blind spots
     const secretCounter = { count: findingCounter };
-    const secretResult = evaluateSecretRules(file, lines, cleanContent, secretCounter);
+    const secretResult = evaluateSecretRules(file, lines, rawContent, secretCounter);
     findingCounter = secretCounter.count;
     for (const item of secretResult.findings) {
       if (!ignoredRuleIds.has(item.ruleId)) {

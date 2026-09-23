@@ -72,6 +72,8 @@ function DashboardContent() {
     handleSelectProject,
     handleDeleteProject,
     handleToggleResolveFinding,
+    handleMarkFalsePositive,
+    handleIgnoreRule,
     handleSignOut,
     handleUpdateUserProfile,
   } = useDashboardState();
@@ -451,6 +453,7 @@ function DashboardContent() {
             {activeNav === 'cicd' && (
               <CicdAutomationView
                 projectName={selectedProject.name}
+                project={selectedProject}
                 userTier={user?.tier}
                 onOpenCheckout={handleOpenCheckoutModal}
               />
@@ -548,6 +551,8 @@ function DashboardContent() {
         finding={inspectingFinding}
         onClose={() => setInspectingFinding(null)}
         onToggleResolve={handleToggleResolveFinding}
+        onMarkFalsePositive={handleMarkFalsePositive}
+        onIgnoreRule={handleIgnoreRule}
         user={user}
         quota={quota}
         onRecordAiPrompt={recordAiPromptUsage}

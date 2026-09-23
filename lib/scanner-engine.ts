@@ -1160,6 +1160,65 @@ export function parseZelsisIgnore(ignoreContent: string): { ignoredRuleIds: Set<
 
 export const parseShipguardIgnore = parseZelsisIgnore;
 
+export interface ZelsisRcConfig {
+  projectName?: string;
+  minScoreThreshold?: number;
+  failStrategy?: 'smart' | 'strict' | 'advisory';
+  gates?: {
+    security?: boolean;
+    legalCompliance?: boolean;
+    infraDatabase?: boolean;
+    designVibePolish?: boolean;
+    vibeCareHealth?: boolean;
+  };
+  ignoreRules?: string[];
+  ignoredPaths?: string[];
+}
+
+/**
+ * F-43 Remediation: Parses Policy-as-Code .zelsisrc.json or .zelsisrc file
+ * Standardizes security governance, failStrategy, and gate thresholds across CI/CD and dashboard.
+ */
+export function parseZelsisRc(rcContent: string): {
+  config: ZelsisRcConfig | null;
+  ignoredRuleIds: Set<number>;
+  ignoredPaths: string[];
+  disabledPillars: Set<string>;
+} {
+  const ignoredRuleIds = new Set<number>();
+  const ignoredPaths: string[] = [];
+  const disabledPillars = new Set<string>();
+
+  if (!rcContent || typeof rcContent !== 'string') {
+    return { config: null, ignoredRuleIds, ignoredPaths, disabledPillars };
+  }
+
+  try {
+    const rc: ZelsisRcConfig = JSON.parse(rcContent);
+    if (Array.isArray(rc.ignoreRules)) {
+      for (const ruleStr of rc.ignoreRules) {
+        const parsed = parseZelsisIgnore(String(ruleStr));
+        parsed.ignoredRuleIds.forEach((id) => ignoredRuleIds.add(id));
+      }
+    }
+    if (Array.isArray(rc.ignoredPaths)) {
+      for (const pathStr of rc.ignoredPaths) {
+        ignoredPaths.push(String(pathStr).toLowerCase());
+      }
+    }
+    if (rc.gates) {
+      if (rc.gates.security === false) disabledPillars.add('SECURITY');
+      if (rc.gates.legalCompliance === false) disabledPillars.add('LEGAL_COMPLIANCE');
+      if (rc.gates.infraDatabase === false) disabledPillars.add('INFRA_DATABASE');
+      if (rc.gates.designVibePolish === false) disabledPillars.add('VIBEPOLISH');
+      if (rc.gates.vibeCareHealth === false) disabledPillars.add('VIBECARE');
+    }
+    return { config: rc, ignoredRuleIds, ignoredPaths, disabledPillars };
+  } catch {
+    return { config: null, ignoredRuleIds, ignoredPaths, disabledPillars };
+  }
+}
+
 /**
  * Cooperative scheduling utility for streaming AST analysis.
  * Yields control back to the browser or Node.js event loop to prevent main thread freeze
@@ -1185,11 +1244,20 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
   const ignoreFile = files.find(f => (f?.path || '').endsWith('.zelsisignore') || (f?.path || '').endsWith('.shipguardignore'));
   const { ignoredRuleIds, ignoredPaths } = parseZelsisIgnore(ignoreFile?.content || '');
 
+  // F-43 Remediation: Parse Policy-as-Code .zelsisrc.json if present
+  const rcFile = files.find(f => (f?.path || '').endsWith('.zelsisrc.json') || (f?.path || '').endsWith('.zelsisrc'));
+  const { config: rcConfig, ignoredRuleIds: rcRuleIds, ignoredPaths: rcPaths, disabledPillars } = parseZelsisRc(rcFile?.content || '');
+  rcRuleIds.forEach(id => ignoredRuleIds.add(id));
+  rcPaths.forEach(p => ignoredPaths.push(p));
+
   logs.push(`[${new Date().toLocaleTimeString()}] [INFO] Initializing Zelsis High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
   logs.push(`[${new Date().toLocaleTimeString()}] [TARGET] Repository: ${repoName}`);
 
+  if (rcConfig) {
+    logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] Policy-as-Code active: Loaded ${rcFile?.path || '.zelsisrc.json'} (Strategy: ${rcConfig.failStrategy || 'smart'}, MinScore: ${rcConfig.minScoreThreshold ?? 85}).`);
+  }
   if (ignoredRuleIds.size > 0 || ignoredPaths.length > 0) {
-    logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] .zelsisignore active: Suppressing ${ignoredRuleIds.size} rules & ${ignoredPaths.length} path patterns.`);
+    logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] Exclusion filter active: Suppressing ${ignoredRuleIds.size} rules & ${ignoredPaths.length} path patterns.`);
   }
 
   const validFiles = files.filter((f) => {
@@ -1300,6 +1368,9 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
 
     // Helper to add finding unless suppressed or false-positive inside rule definition files
     const addFinding = (f: Finding) => {
+      if (disabledPillars.has(f.type)) {
+        return;
+      }
       if (
         ignoredRuleIds.has(f.ruleId) ||
         (f.ruleId >= 1000 && ignoredRuleIds.has(f.ruleId - 1000)) ||
@@ -3639,7 +3710,21 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
   const uiClicheCount = openFindings.filter(f => f.type === 'VIBEPOLISH').length;
 
   const score = calculateReadinessScore(findings);
-  const gateStatus = calculateGateStatus(findings);
+  let gateStatus = calculateGateStatus(findings);
+
+  // Policy-as-Code strategy enforcement (F-43)
+  if (rcConfig) {
+    if (rcConfig.failStrategy === 'advisory') {
+      gateStatus = 'PASSED';
+      logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] Policy-as-Code: Advisory mode active — Release gate set to PASSED.`);
+    } else if (rcConfig.failStrategy === 'strict') {
+      const minThreshold = typeof rcConfig.minScoreThreshold === 'number' ? rcConfig.minScoreThreshold : 85;
+      if (score < minThreshold) {
+        gateStatus = 'FAILED';
+        logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] Policy-as-Code: Strict mode active — Score ${score} is below required ${minThreshold} threshold. Release gate BLOCKED.`);
+      }
+    }
+  }
 
   logs.push(`[${new Date().toLocaleTimeString()}] [COMPLETE] Scan complete: Readiness Score = ${score}/100 | Gate Status = ${gateStatus}`);
 

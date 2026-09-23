@@ -536,3 +536,98 @@ export function exportProjectPdfReport(project: Project): void {
     }
   }, 500);
 }
+
+/**
+ * F-43 Remediation: Generates an official OASIS SARIF v2.1.0 JSON report.
+ * Fully compatible with GitHub Code Scanning, SonarQube, and CI/CD security pipelines.
+ */
+export function generateSarifReport(project: Project): string {
+  const rulesMap = new Map<string, any>();
+  const results = (project.findings || []).map((f) => {
+    const ruleKey = `ZLS-${f.ruleId}`;
+    if (!rulesMap.has(ruleKey)) {
+      rulesMap.set(ruleKey, {
+        id: ruleKey,
+        name: (f.category || 'SecurityFinding').replace(/[^a-zA-Z0-9]/g, ''),
+        shortDescription: {
+          text: f.title || 'Security violation detected'
+        },
+        fullDescription: {
+          text: `${f.title}: ${f.remediationPrompt}`
+        },
+        defaultConfiguration: {
+          level: f.severity === 'CRITICAL' || f.severity === 'HIGH' ? 'error' : f.severity === 'MEDIUM' ? 'warning' : 'note'
+        },
+        properties: {
+          tags: [f.type, f.category],
+          precision: 'high'
+        }
+      });
+    }
+
+    const match = (f.lineRange || '').match(/\d+/);
+    const startLine = match ? parseInt(match[0], 10) : 1;
+
+    return {
+      ruleId: ruleKey,
+      level: f.severity === 'CRITICAL' || f.severity === 'HIGH' ? 'error' : f.severity === 'MEDIUM' ? 'warning' : 'note',
+      message: {
+        text: `${f.title}\n\nRemediation:\n${f.remediationPrompt}`
+      },
+      locations: [
+        {
+          physicalLocation: {
+            artifactLocation: {
+              uri: f.filePath,
+              uriBaseId: '%SRCROOT%'
+            },
+            region: {
+              startLine: Math.max(1, startLine),
+              snippet: {
+                text: f.snippet || ''
+              }
+            }
+          }
+        }
+      ]
+    };
+  });
+
+  const sarif = {
+    $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+    version: '2.1.0',
+    runs: [
+      {
+        tool: {
+          driver: {
+            name: 'Zelsis',
+            version: '3.5.0',
+            informationUri: 'https://zelsis.com',
+            rules: Array.from(rulesMap.values())
+          }
+        },
+        results
+      }
+    ]
+  };
+
+  return JSON.stringify(sarif, null, 2);
+}
+
+/**
+ * Downloads the SARIF report directly as a .sarif file for GitHub Code Scanning / CI/CD pipelines
+ */
+export function exportProjectSarifReport(project: Project): void {
+  if (typeof window === 'undefined') return;
+  const sarifJson = generateSarifReport(project);
+  const blob = new Blob([sarifJson], { type: 'application/json;charset=utf-8' });
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  const safeName = (project.name || 'audit-report').toLowerCase().replace(/[^a-z0-9]/g, '-');
+  a.download = `${safeName}-report.sarif`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}

@@ -1,18 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Terminal, GitPullRequest, ShieldCheck, Copy, CheckCircle2, Download, Settings2, Sliders, CheckSquare, AlertTriangle, Lock, ArrowRight } from 'lucide-react';
-import { UserTier } from '@/data/schema';
+import { Terminal, GitPullRequest, ShieldCheck, Copy, CheckCircle2, Download, Settings2, Sliders, CheckSquare, AlertTriangle, Lock, ArrowRight, FileCode } from 'lucide-react';
+import { Project, UserTier } from '@/data/schema';
 import { isCicdViewAllowed } from '@/lib/quota-manager';
+import { exportProjectSarifReport } from '@/lib/report-exporter';
 
 interface CicdAutomationViewProps {
   projectName?: string;
+  project?: Project;
   userTier?: UserTier;
   onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
 }
 
 export const CicdAutomationView: React.FC<CicdAutomationViewProps> = ({
   projectName = 'Next.js 15 SaaS Starter',
+  project,
   userTier = 'Free',
   onOpenCheckout
 }) => {
@@ -71,7 +74,8 @@ jobs:
           npx zelsis audit ${failFlag} \\
             --project="${projectName}" \\
             --post-pr-comment=true \\
-            --output-report=zelsis-report.json
+            --output-report=zelsis-report.json \\
+            --output-sarif=zelsis-report.sarif
 
       - name: Upload Gate Audit Artifact
         if: always()
@@ -79,6 +83,12 @@ jobs:
         with:
           name: zelsis-release-scorecard
           path: zelsis-report.json
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: zelsis-report.sarif
 `;
   };
 
@@ -291,6 +301,16 @@ jobs:
               <Download size={13} />
               <span>Download</span>
             </button>
+            {project && (
+              <button
+                onClick={() => exportProjectSarifReport(project)}
+                className="btn btn-secondary btn-sm flex items-center gap-1.5"
+                title="Download standard OASIS SARIF v2.1.0 for GitHub Code Scanning"
+              >
+                <FileCode size={13} className="text-cyan-400" />
+                <span>Export SARIF</span>
+              </button>
+            )}
           </div>
         </div>
 

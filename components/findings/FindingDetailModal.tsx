@@ -13,6 +13,8 @@ export interface FindingDetailModalProps {
   finding: Finding | null;
   onClose: () => void;
   onToggleResolve?: (id: string) => void;
+  onMarkFalsePositive?: (id: string) => void;
+  onIgnoreRule?: (ruleId: number) => void;
   user?: UserProfile | null;
   quota?: PlanUsageQuota;
   onRecordAiPrompt?: () => void;
@@ -36,6 +38,8 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
   finding,
   onClose,
   onToggleResolve,
+  onMarkFalsePositive,
+  onIgnoreRule,
   user,
   quota,
   onRecordAiPrompt,
@@ -145,6 +149,21 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {onMarkFalsePositive && (
+                <button
+                  type="button"
+                  onClick={() => onMarkFalsePositive(finding.id)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                    finding.falsePositive
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                      : 'bg-white/5 text-zinc-300 border border-white/10 hover:bg-white/10 hover:text-white'
+                  }`}
+                  title="Triage finding as False Positive (Accepted Risk)"
+                >
+                  <ShieldCheck size={13} className={finding.falsePositive ? 'text-amber-400' : 'text-zinc-400'} />
+                  <span>{finding.falsePositive ? 'False Positive (Muted)' : 'False Positive'}</span>
+                </button>
+              )}
               {onToggleResolve && (
                 <button
                   type="button"
@@ -506,6 +525,16 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5">
+              {onIgnoreRule && (
+                <button
+                  type="button"
+                  onClick={() => onIgnoreRule(finding.ruleId)}
+                  className="px-3 py-2 rounded-lg text-xs font-bold font-mono text-zinc-400 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                  title={`Mute rule #${finding.ruleId} across project`}
+                >
+                  Mute Rule #{finding.ruleId}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onClose}

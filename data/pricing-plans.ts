@@ -21,11 +21,11 @@ export const ZELSIS_PRICING_PLANS: PricingPlanItem[] = [
     priceMonthly: 19,
     priceAnnual: 15,
     isPopular: true,
-    description: 'Comprehensive Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Auto-Remediations.',
+    description: 'Comprehensive Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Remediation Prompts.',
     features: [
       'Full Pre-flight Security Audit Taxonomy',
       'Real-time CI/CD GitHub & Vercel Release Gate',
-      'One-click Claude & Cursor Auto-Fix Prompts',
+      'One-click Claude & Cursor Fix Prompts',
       'Unlimited connected AI applications',
       'Priority 24/7 SLA Guarantee',
     ],

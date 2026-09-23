@@ -123,7 +123,7 @@ export const UpgradePaywallModal: React.FC<UpgradePaywallModalProps> = ({
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-white/40">·</span>
-                    <span>Claude Auto-Fix PR</span>
+                    <span>1-Click AI Fix Prompts</span>
                   </li>
                 </ul>
               </div>

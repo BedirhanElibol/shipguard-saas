@@ -9,6 +9,8 @@ export interface RemediationDrawerProps {
   finding: Finding | null;
   onClose: () => void;
   onToggleResolve: (id: string) => void;
+  onMarkFalsePositive?: (id: string) => void;
+  onIgnoreRule?: (ruleId: number) => void;
   user?: UserProfile | null;
   quota?: PlanUsageQuota;
   onRecordAiPrompt?: () => void;
@@ -19,6 +21,8 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
   finding,
   onClose,
   onToggleResolve,
+  onMarkFalsePositive,
+  onIgnoreRule,
   user,
   quota,
   onRecordAiPrompt,
@@ -30,6 +34,8 @@ export const RemediationDrawer: React.FC<RemediationDrawerProps> = ({
       finding={finding}
       onClose={onClose}
       onToggleResolve={onToggleResolve}
+      onMarkFalsePositive={onMarkFalsePositive}
+      onIgnoreRule={onIgnoreRule}
       user={user}
       quota={quota}
       onRecordAiPrompt={onRecordAiPrompt}

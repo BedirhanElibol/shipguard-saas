@@ -1106,6 +1106,121 @@ export function useDashboardState() {
     });
   };
 
+  /**
+   * F-43 Remediation: Triage finding as False Positive.
+   * Updates finding.falsePositive flag, sets status to ACCEPTED_RISK, and recalculates release readiness.
+   */
+  const handleMarkFalsePositive = (findingId: string) => {
+    setProjects((prevProjects) => {
+      let newlyUpdatedSelectedProj: Project | null = null;
+      const updatedList = prevProjects.map((proj) => {
+        const hasFinding = (proj.findings ?? []).some((f) => f.id === findingId);
+        if (!hasFinding) return proj;
+
+        const updatedFindings = (proj.findings ?? []).map((f) => {
+          if (f.id === findingId) {
+            const isCurrentlyFp = Boolean(f.falsePositive);
+            return {
+              ...f,
+              falsePositive: !isCurrentlyFp,
+              status: (!isCurrentlyFp ? 'ACCEPTED_RISK' : 'OPEN') as Finding['status']
+            };
+          }
+          return f;
+        });
+
+        const openCritical = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'CRITICAL').length;
+        const openHigh = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'HIGH').length;
+        const openMedium = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'MEDIUM').length;
+        const openLow = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'LOW').length;
+        const openUiCliches = updatedFindings.filter((f) => f.status === 'OPEN' && f.type === 'VIBEPOLISH').length;
+
+        const nextGate: Project['gateStatus'] = calculateGateStatus(updatedFindings);
+        const nextScore = calculateReadinessScore(updatedFindings);
+
+        const updatedProj: Project = {
+          ...proj,
+          findings: updatedFindings,
+          gateStatus: nextGate,
+          readinessScore: nextScore,
+          criticalCount: openCritical,
+          highCount: openHigh,
+          mediumCount: openMedium,
+          lowCount: openLow,
+          uiClicheCount: openUiCliches,
+        };
+
+        if (proj.id === selectedProject.id) {
+          newlyUpdatedSelectedProj = updatedProj;
+        }
+
+        return updatedProj;
+      });
+
+      if (newlyUpdatedSelectedProj) {
+        setSelectedProject(newlyUpdatedSelectedProj);
+      }
+      persistProjectsList(updatedList);
+      return updatedList;
+    });
+  };
+
+  /**
+   * F-43 Remediation: Ignore entire rule across the project.
+   */
+  const handleIgnoreRule = (ruleId: number) => {
+    setProjects((prevProjects) => {
+      let newlyUpdatedSelectedProj: Project | null = null;
+      const updatedList = prevProjects.map((proj) => {
+        const hasRule = (proj.findings ?? []).some((f) => f.ruleId === ruleId);
+        if (!hasRule) return proj;
+
+        const updatedFindings = (proj.findings ?? []).map((f) => {
+          if (f.ruleId === ruleId) {
+            return {
+              ...f,
+              status: 'ACCEPTED_RISK' as Finding['status']
+            };
+          }
+          return f;
+        });
+
+        const openCritical = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'CRITICAL').length;
+        const openHigh = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'HIGH').length;
+        const openMedium = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'MEDIUM').length;
+        const openLow = updatedFindings.filter((f) => f.status === 'OPEN' && f.severity === 'LOW').length;
+        const openUiCliches = updatedFindings.filter((f) => f.status === 'OPEN' && f.type === 'VIBEPOLISH').length;
+
+        const nextGate: Project['gateStatus'] = calculateGateStatus(updatedFindings);
+        const nextScore = calculateReadinessScore(updatedFindings);
+
+        const updatedProj: Project = {
+          ...proj,
+          findings: updatedFindings,
+          gateStatus: nextGate,
+          readinessScore: nextScore,
+          criticalCount: openCritical,
+          highCount: openHigh,
+          mediumCount: openMedium,
+          lowCount: openLow,
+          uiClicheCount: openUiCliches,
+        };
+
+        if (proj.id === selectedProject.id) {
+          newlyUpdatedSelectedProj = updatedProj;
+        }
+
+        return updatedProj;
+      });
+
+      if (newlyUpdatedSelectedProj) {
+        setSelectedProject(newlyUpdatedSelectedProj);
+      }
+      persistProjectsList(updatedList);
+      return updatedList;
+    });
+  };
+
   const handleAuthSubmit = async (mode: 'signin' | 'signup', email: string, pass: string, name?: string) => {
     if (mode === 'signup') {
       const res = await supabaseSignUp(email, pass, name || '');
@@ -1342,6 +1457,8 @@ export function useDashboardState() {
     handleSelectProject,
     handleDeleteProject,
     handleToggleResolveFinding,
+    handleMarkFalsePositive,
+    handleIgnoreRule,
     handleAuthSubmit,
     handleSignOut,
     handleUpdateUserProfile,

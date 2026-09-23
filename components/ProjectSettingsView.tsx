@@ -172,7 +172,7 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
     if (!trimmedKey) {
       setLicenseFeedback({
         status: 'error',
-        message: 'Verification failed [EMPTY_KEY]: License key is empty. Please enter a valid license key.'
+        message: 'License key or subscription reference is empty. Please enter your reference.'
       });
       setTimeout(() => {
         setLicenseFeedback({ status: 'idle', message: '' });
@@ -180,30 +180,18 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
       return;
     }
 
-    const result = verifyLicenseKey(trimmedKey, user?.email || profileEmail);
-    if (result.valid && (result.tier === 'Pro' || result.tier === 'Enterprise')) {
-      activateUserTier(result.tier, trimmedKey);
+    // F-02: Offline client-side key forgery is disabled.
+    // Trigger server-side subscription verification with Polar.
+    if (isAuthenticated) {
       setLicenseFeedback({
-        status: 'success',
-        message: `Success! Activated ${result.tier} plan until ${result.expiresAt}. All premium security checks are now unlocked.`
+        status: 'idle',
+        message: 'Synchronizing subscription with Polar server...'
       });
-      if (onUpdateUser && user) {
-        onUpdateUser({
-          ...user,
-          tier: result.tier,
-          expiresAt: result.expiresAt,
-          status: 'active',
-          lastVerifiedAt: Date.now(),
-        });
-      }
+      handleSyncSubscription();
     } else {
-      const reasonCode = result.reason || 'INVALID_KEY';
-      const diagnosticMsg = result.errorMessage
-        ? `Verification failed [${reasonCode}]: ${result.errorMessage}`
-        : `Verification failed: ${reasonCode}`;
       setLicenseFeedback({
         status: 'error',
-        message: diagnosticMsg
+        message: 'Please sign in to verify and link your Polar subscription.'
       });
       setTimeout(() => {
         setLicenseFeedback({ status: 'idle', message: '' });

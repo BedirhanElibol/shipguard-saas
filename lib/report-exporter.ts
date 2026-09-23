@@ -1,4 +1,5 @@
 import { Project } from '@/data/schema';
+import { escapeHtml } from '@/lib/sanitize';
 
 /**
  * Generates an executive Markdown briefing suitable for copying to Slack, Jira, or email.
@@ -81,7 +82,7 @@ export function generateExecutiveReportHtml(project: Project): string {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Zelsis Executive Audit Report — ${project.name ?? 'Project'}</title>
+  <title>Zelsis Executive Audit Report — ${escapeHtml(project.name ?? 'Project')}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -384,10 +385,10 @@ export function generateExecutiveReportHtml(project: Project): string {
         </div>
       </div>
       <div class="meta-box">
-        <div><strong>Certificate ID:</strong> <span class="mono">${certId}</span></div>
-        <div><strong>Audit Date:</strong> ${project.lastScanAt || new Date().toISOString().slice(0, 10)}</div>
-        <div><strong>Repository:</strong> <span class="mono">${project.repoUrl ?? 'Repository'}</span></div>
-        <div><strong>Framework:</strong> ${project.framework ?? 'Web Application'}</div>
+        <div><strong>Certificate ID:</strong> <span class="mono">${escapeHtml(certId)}</span></div>
+        <div><strong>Audit Date:</strong> ${escapeHtml(project.lastScanAt || new Date().toISOString().slice(0, 10))}</div>
+        <div><strong>Repository:</strong> <span class="mono">${escapeHtml(project.repoUrl ?? 'Repository')}</span></div>
+        <div><strong>Framework:</strong> ${escapeHtml(project.framework ?? 'Web Application')}</div>
       </div>
     </div>
 
@@ -454,15 +455,15 @@ export function generateExecutiveReportHtml(project: Project): string {
                   (f) => `
           <tr>
             <td>
-              <span class="badge badge-${(f.severity || 'info').toLowerCase()}">${f.severity || 'INFO'}</span>
+              <span class="badge badge-${escapeHtml((f.severity || 'info').toLowerCase())}">${escapeHtml(f.severity || 'INFO')}</span>
             </td>
-            <td class="mono" style="font-weight: 700; font-size: 7.5pt;">#${f.ruleId}</td>
+            <td class="mono" style="font-weight: 700; font-size: 7.5pt;">#${escapeHtml(f.ruleId)}</td>
             <td>
-              <strong style="color: #09090b;">${f.title}</strong>
-              <div class="mono" style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${f.filePath}:${f.lineRange}</div>
+              <strong style="color: #09090b;">${escapeHtml(f.title)}</strong>
+              <div class="mono" style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${escapeHtml(f.filePath)}:${escapeHtml(f.lineRange)}</div>
             </td>
             <td style="color: #334155; font-size: 8pt;">
-              ${(f.remediationPrompt ?? 'Remediation guidance').length > 130 ? (f.remediationPrompt ?? 'Remediation guidance').slice(0, 130) + '...' : (f.remediationPrompt ?? 'Remediation guidance')}
+              ${escapeHtml((f.remediationPrompt ?? 'Remediation guidance').length > 130 ? (f.remediationPrompt ?? 'Remediation guidance').slice(0, 130) + '...' : (f.remediationPrompt ?? 'Remediation guidance'))}
             </td>
           </tr>`
                 )
@@ -482,7 +483,7 @@ export function generateExecutiveReportHtml(project: Project): string {
         </div>
         <div>
           <strong style="display: block; color: #09090b; margin-bottom: 2px;">Framework Gate</strong>
-          <span style="color: #09090b; font-weight: 600;">${project.framework ?? 'Web Application'}</span>
+          <span style="color: #09090b; font-weight: 600;">${escapeHtml(project.framework ?? 'Web Application')}</span>
           <div style="font-size: 7.5pt; color: #64748b;">AST security rules applied</div>
         </div>
         <div>
@@ -497,7 +498,7 @@ export function generateExecutiveReportHtml(project: Project): string {
     <div class="footer">
       <div class="signature-box">
         <div><strong>Cryptographic Verification Hash:</strong></div>
-        <div class="mono" style="font-size: 7pt; color: #475569;">SHA256: ${shaSignature}</div>
+        <div class="mono" style="font-size: 7pt; color: #475569;">SHA256: ${escapeHtml(shaSignature)}</div>
         <div style="margin-top: 4px; font-size: 7.5pt;">Certified by Zelsis Automated Deployment Gate. Issued under strict software release invariants.</div>
       </div>
       <div style="text-align: right; font-weight: 700; color: #09090b;">
@@ -511,25 +512,27 @@ export function generateExecutiveReportHtml(project: Project): string {
 }
 
 /**
- * Opens a clean printable window and triggers native print/save-to-PDF dialog.
+ * Opens a clean printable window via Blob URL and triggers native print/save-to-PDF dialog.
  */
 export function exportProjectPdfReport(project: Project): void {
   if (typeof window === 'undefined') return;
 
   const reportHtml = generateExecutiveReportHtml(project);
-  const printWindow = window.open('', '_blank', 'width=900,height=1000');
+  const blob = new Blob([reportHtml], { type: 'text/html;charset=utf-8' });
+  const blobUrl = URL.createObjectURL(blob);
+  const printWindow = window.open(blobUrl, '_blank', 'width=900,height=1000');
 
   if (!printWindow) {
     alert('Popup window was blocked by browser. Please allow popups for Zelsis to export the PDF report.');
     return;
   }
 
-  printWindow.document.open();
-  printWindow.document.write(reportHtml);
-  printWindow.document.close();
-
   printWindow.focus();
   setTimeout(() => {
-    printWindow.print();
-  }, 400);
+    try {
+      printWindow.print();
+    } catch {
+      // Print dialog handled by user
+    }
+  }, 500);
 }

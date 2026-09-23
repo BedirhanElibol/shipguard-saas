@@ -212,14 +212,12 @@ export async function syncUserProfileToSupabase(user: Partial<UserProfile>): Pro
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) return false;
   try {
+    // F-02 Remediation: Strictly prevent client-side escalation of tier, expiresAt, or subscription status.
+    // Client is only permitted to update profile display properties (full_name).
+    // Paid tiers and subscriptions are managed exclusively by server webhooks and admin APIs.
     const { error } = await supabase.auth.updateUser({
       data: {
         ...(user.name ? { full_name: user.name } : {}),
-        ...(user.tier ? { tier: user.tier } : {}),
-        ...(user.expiresAt ? { expiresAt: user.expiresAt } : {}),
-        ...(user.status ? { subscriptionStatus: user.status } : {}),
-        ...(user.gracePeriodUntil ? { gracePeriodUntil: user.gracePeriodUntil } : {}),
-        ...(user.billingCycle ? { billingCycle: user.billingCycle } : {}),
       }
     });
     if (error) {

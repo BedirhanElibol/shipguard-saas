@@ -1,13 +1,9 @@
 import { ZELSIS_PRICING_PLANS, SHIPGUARD_PRICING_PLANS, PricingPlanItem } from '@/data/pricing-plans';
-import { syncUserProfileToSupabase } from '@/lib/supabase';
 
 export type LicenseErrorReason =
   | 'EMPTY_KEY'
-  | 'INVALID_SEGMENTS'
-  | 'EXPIRED_EXPIRATION'
-  | 'CHECKSUM_MISMATCH'
-  | 'RESTRICTED_MASTER_KEY'
-  | 'EMAIL_BINDING_REQUIRED'
+  | 'CLIENT_VERIFICATION_DEPRECATED'
+  | 'SERVER_SYNC_REQUIRED'
   | string;
 
 export interface LicenseVerificationResult {
@@ -22,116 +18,55 @@ export interface LicenseVerificationResult {
 }
 
 /**
- * Computes a deterministic 4-character checksum derived from email + planId + '2026'.
- * Uses a robust 32-bit FNV-1a hash algorithm formatted as uppercase hexadecimal.
+ * Generates a cosmetic reference identifier for user orders and receipts.
+ * NOTE: As per F-02 security remediation, reference keys are display-only
+ * and cannot be used to forge or authorize paid tiers on the client.
  */
-export function computeLicenseChecksum(email: string, planId: string): string {
-  const normalizedEmail = (email || 'USER').trim().toLowerCase();
-  const normalizedPlan = (planId || 'zelsis-core').trim().toLowerCase();
-  const seed = `${normalizedEmail}:${normalizedPlan}:2026`;
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < seed.length; i++) {
-    hash ^= seed.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return (hash >>> 0).toString(16).toUpperCase().padStart(8, '0').slice(0, 4);
-}
-
-export function generateLicenseKey(planId: string, email: string): string {
-  const cleanEmailHash = (email || 'USER').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().padEnd(4, 'X').slice(0, 4);
-  const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase().padEnd(4, '0');
-  const checksum = computeLicenseChecksum(email, planId);
-  
+export function generateLicenseKey(planId: string, email?: string): string {
   const prefix = planId === 'vibecare' || planId === 'zelsis-suite' ? 'ZS-SUITE' : 'ZS-PRO';
-  return `${prefix}-2026-${cleanEmailHash}-${randomHex}-${checksum}`;
+  const randSegment = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const dateSegment = new Date().getFullYear().toString();
+  return `${prefix}-${dateSegment}-REF-${randSegment}`;
 }
 
+/**
+ * F-02 Remediation: Client-side offline license validation using FNV-1a checksums
+ * and hardcoded master keys has been completely removed.
+ * All paid tiers (Pro, Enterprise) must be verified through Polar webhooks
+ * and server-side subscription synchronization.
+ */
 export function verifyLicenseKey(licenseKey: string, userEmail?: string): LicenseVerificationResult {
-  const invalidResult = (reasonCode: LicenseErrorReason, message: string): LicenseVerificationResult => ({
+  if (!licenseKey || typeof licenseKey !== 'string' || !licenseKey.trim()) {
+    return {
+      valid: false,
+      tier: 'Free',
+      planId: 'none',
+      planName: 'Empty Key',
+      expiresAt: 'N/A',
+      maxApplications: 1,
+      reason: 'EMPTY_KEY',
+      errorMessage: 'License key is empty. Please enter a valid subscription reference.',
+    };
+  }
+
+  // Client-side offline tier elevation is strictly disabled.
+  return {
     valid: false,
     tier: 'Free',
     planId: 'none',
-    planName: message,
+    planName: 'Server Verification Required',
     expiresAt: 'N/A',
     maxApplications: 1,
-    reason: reasonCode,
-    errorMessage: message,
-  });
-
-  if (!licenseKey || typeof licenseKey !== 'string' || !licenseKey.trim()) {
-    return invalidResult('EMPTY_KEY', 'License key is empty. Please enter a valid license key.');
-  }
-
-  const cleanKey = licenseKey.trim().toUpperCase();
-
-  const normalizedUserEmail = (userEmail || '').trim().toLowerCase();
-
-  // Master Founder & Architectural Lifetime Licenses (Strictly restricted to bedirelibol7@gmail.com)
-  const isMasterKey =
-    cleanKey === 'ZS-PRO-MASTER-2026' ||
-    cleanKey === 'ZS-ENTERPRISE-MASTER-2026' ||
-    cleanKey === 'ZS-SUITE-2026-ADMIN-MASTER-0000' ||
-    cleanKey.includes('FOUNDER') ||
-    cleanKey.includes('MASTER');
-
-  if (isMasterKey) {
-    if (normalizedUserEmail === 'bedirelibol7@gmail.com') {
-      const isEnterprise = cleanKey.includes('ENTERPRISE') || cleanKey.includes('SUITE') || cleanKey.includes('FOUNDER');
-      return {
-        valid: true,
-        tier: isEnterprise ? 'Enterprise' : 'Pro',
-        planId: isEnterprise ? 'vibecare' : 'zelsis-core',
-        planName: isEnterprise ? 'Zelsis Enterprise (Lifetime Founder Clearance)' : 'Zelsis Pro (Master Clearance)',
-        expiresAt: '2099-12-31T23:59:59.999Z',
-        maxApplications: isEnterprise ? 999 : 99,
-      };
-    }
-    return invalidResult('RESTRICTED_MASTER_KEY', 'Master clearance restricted to platform founder');
-  }
-  
-  // Validate key format: must be PREFIX-YEAR-XXXX-YYYY-ZZZZ
-  const validKeyPattern = /^(ZS|SG)-(SUITE|PRO|CORE|VIBE)-(\d{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/;
-  const match = cleanKey.match(validKeyPattern);
-  if (!match) {
-    return invalidResult('INVALID_SEGMENTS', 'Invalid license key segments or format. Expected PREFIX-YEAR-XXXX-YYYY-ZZZZ.');
-  }
-
-  const [, org, planCode, year, segEmail, segRand, checksum] = match;
-
-  // Validate license year
-  if (year !== '2026') {
-    return invalidResult('EXPIRED_EXPIRATION', 'License key has expired or specifies an invalid expiration year.');
-  }
-
-  const isEnterprise = planCode === 'SUITE' || planCode === 'VIBE';
-  const tier: 'Pro' | 'Enterprise' = isEnterprise ? 'Enterprise' : 'Pro';
-  const planId = isEnterprise ? 'vibecare' : 'zelsis-core';
-
-  // Strict Account Isolation: Verify checksum against the exact authenticated user email
-  if (!normalizedUserEmail) {
-    return invalidResult('EMAIL_BINDING_REQUIRED', 'Email binding required for license validation. Please sign in with account email.');
-  }
-
-  const expectedChecksum = computeLicenseChecksum(normalizedUserEmail, planId);
-  if (expectedChecksum !== checksum) {
-    return invalidResult('CHECKSUM_MISMATCH', 'License checksum mismatch. Key does not match the authenticated account email.');
-  }
-
-  const planObj = (ZELSIS_PRICING_PLANS || SHIPGUARD_PRICING_PLANS).find((p) => p.id === planId);
-
-  const expiresDate = new Date();
-  expiresDate.setFullYear(expiresDate.getFullYear() + 1);
-
-  return {
-    valid: true,
-    tier,
-    planId,
-    planName: planObj?.name || (tier === 'Enterprise' ? 'Zelsis Enterprise' : 'Zelsis Pro'),
-    expiresAt: expiresDate.toISOString(),
-    maxApplications: isEnterprise ? 999 : 99,
+    reason: 'CLIENT_VERIFICATION_DEPRECATED',
+    errorMessage: 'Offline client-side license verification is disabled for security. Active subscriptions are synchronized securely via Polar and your account session.',
   };
 }
 
+/**
+ * Optimistic client-side UI state updater following verified checkout.
+ * NOTE: Does NOT write client-controlled tier to Supabase Auth metadata (F-02 / F-13).
+ * Supabase subscriptions and profiles are updated exclusively by server-side endpoints.
+ */
 export async function activateUserTier(
   tier: 'Pro' | 'Enterprise',
   licenseKey?: string,
@@ -197,31 +132,26 @@ export async function activateUserTier(
     }
 
     const planId = tier === 'Enterprise' ? 'vibecare' : 'zelsis-core';
-    const effectiveKey = licenseKey && verifyLicenseKey(licenseKey, userObj.email).valid
-      ? licenseKey
-      : generateLicenseKey(planId, userObj.email || 'customer@zelsis.dev');
+    const effectiveKey = licenseKey || generateLicenseKey(planId, userObj.email);
 
     localStorage.setItem('zelsis_license_key', effectiveKey);
     localStorage.setItem('shipguard_license_key', effectiveKey);
 
     localStorage.setItem('zelsis_user', JSON.stringify(userObj));
     if (typeof document !== 'undefined') {
-      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const secureAttr = isHttps ? '; Secure' : '';
+      document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(userObj))}; path=/; max-age=2592000; SameSite=Lax${secureAttr}`;
     }
-    window.dispatchEvent(new Event('storage'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+    }
 
-    // Synchronize directly with Supabase Auth user metadata so session refreshes never revert to Free
-    await syncUserProfileToSupabase({
-      tier,
-      expiresAt: userObj.expiresAt,
-      status: 'active',
-    }).catch((syncErr) => {
-      console.warn('[Zelsis Activation] Supabase auth metadata sync notice:', syncErr);
-    });
-
+    // F-02: Do NOT call syncUserProfileToSupabase({ tier }) from client.
+    // Server-side Polar webhook and verify-checkout API handle database persistence.
     return true;
   } catch (err) {
-    console.error('[Zelsis Activation] Failed to activate tier:', err);
+    console.error('[Zelsis Activation] Failed to activate tier locally:', err);
     return false;
   }
 }

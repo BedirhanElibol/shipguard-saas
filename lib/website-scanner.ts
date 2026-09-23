@@ -76,12 +76,38 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
     }
 
     try {
-      const res = await fetch(formattedUrl, {
+      let currentUrl = formattedUrl;
+      let redirectCount = 0;
+      let res = await fetch(currentUrl, {
         headers: {
           'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5'
         },
+        redirect: 'manual',
         signal: signal || AbortSignal.timeout(8000)
       });
+
+      // Securely follow redirects, validating each hop against SSRF filters
+      while ([301, 302, 303, 307, 308].includes(res.status) && redirectCount < 5) {
+        const location = res.headers.get('location');
+        if (!location) break;
+        const nextUrl = new URL(location, currentUrl).toString();
+        if (typeof window === 'undefined') {
+          const redirectSsrfCheck = await validateSafeTargetUrl(nextUrl);
+          if (!redirectSsrfCheck.safe) {
+            console.warn(`[SSRF Guard Blocked Redirect] ${nextUrl} rejected: ${redirectSsrfCheck.reason}`);
+            return null;
+          }
+        }
+        currentUrl = nextUrl;
+        redirectCount++;
+        res = await fetch(currentUrl, {
+          headers: {
+            'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5'
+          },
+          redirect: 'manual',
+          signal: signal || AbortSignal.timeout(8000)
+        });
+      }
 
       statusCode = res.status;
       res.headers.forEach((val, key) => {
@@ -208,11 +234,21 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
     }
   ];
 
-  // Concurrent Subpages Content Ingestion via Promise.allSettled
+  // Concurrent Subpages Content Ingestion via Promise.allSettled with SSRF protection
   const subpagePromises = subpagesToCrawl.map(async (subUrl) => {
+    if (typeof window === 'undefined') {
+      const ssrfCheck = await validateSafeTargetUrl(subUrl);
+      if (!ssrfCheck.safe) {
+        console.warn(`[SSRF Guard Blocked Subpage] ${subUrl} rejected: ${ssrfCheck.reason}`);
+        return null;
+      }
+    }
     const pathName = new URL(subUrl).pathname.replace(/[^a-zA-Z0-9_-]/g, '_');
     try {
-      const subRes = await fetch(subUrl, { signal: signal || AbortSignal.timeout(5000) });
+      const subRes = await fetch(subUrl, { 
+        headers: { 'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5' },
+        signal: signal || AbortSignal.timeout(5000) 
+      });
       if (subRes.ok) {
         const subHtml = await subRes.text();
         return {
@@ -233,7 +269,7 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
     }
   }
 
-  // Extract & Fetch Top Client Script Bundles concurrently for Secret Leak Audit
+  // Extract & Fetch Top Client Script Bundles concurrently with SSRF validation
   const scriptMatches = Array.from(htmlText.matchAll(/<script[^>]+src=["']([^"']+)["']/g));
   const scriptSrcs = scriptMatches.map((m) => m[1]).slice(0, 6);
 
@@ -249,8 +285,19 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
       scriptUrl = `${origin}/${src}`;
     }
 
+    if (typeof window === 'undefined') {
+      const ssrfCheck = await validateSafeTargetUrl(scriptUrl);
+      if (!ssrfCheck.safe) {
+        console.warn(`[SSRF Guard Blocked Script Bundle] ${scriptUrl} rejected: ${ssrfCheck.reason}`);
+        return null;
+      }
+    }
+
     try {
-      const scriptRes = await fetch(scriptUrl, { signal: signal || AbortSignal.timeout(5000) });
+      const scriptRes = await fetch(scriptUrl, { 
+        headers: { 'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5' },
+        signal: signal || AbortSignal.timeout(5000) 
+      });
       if (scriptRes.ok) {
         const scriptText = await scriptRes.text();
         return {

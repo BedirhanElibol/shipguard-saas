@@ -591,7 +591,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       </div>
                       <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400">
                         <RefreshCw size={12} className="text-zinc-400 shrink-0" />
-                        <span>Instant License Key Delivery • Cancel Anytime in 1-Click</span>
+                        <span>Instant License Key Delivery / Cancel Anytime in 1-Click</span>
                       </div>
                       <div className="pt-1 border-t border-white/5 text-[10px] font-mono text-zinc-500 flex items-center justify-between">
                         <span>Read our <a href="/refund" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white underline">Refund Policy</a></span>

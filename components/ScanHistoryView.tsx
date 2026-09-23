@@ -126,7 +126,7 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
                     </div>
                     <div className="text-[0.68rem] text-white font-mono mt-0.5 flex items-center gap-1.5">
                       <Clock size={12} />
-                      <span>Duration: {scan.duration} • Trigger: {scan.triggeredBy}</span>
+                      <span>Duration: {scan.duration} / Trigger: {scan.triggeredBy}</span>
                     </div>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
                       Score: <span className="text-white">{scan.score}/100</span>
                     </div>
                     <div className="text-[0.68rem] text-[#A1A1AA]">
-                      {scan.criticalCount} Critical • {scan.highCount} High
+                      {scan.criticalCount} Critical / {scan.highCount} High
                     </div>
                   </div>
 

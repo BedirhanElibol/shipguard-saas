@@ -214,7 +214,7 @@ export const ProductCapabilities: React.FC = () => {
 
                     <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-center justify-between text-xs font-mono text-zinc-400">
                       <span className="text-[11px] text-zinc-300 font-semibold">{capability.alt}</span>
-                      <span className="text-[10px] text-zinc-300 font-bold">● {capability.tag}</span>
+                      <span className="text-[10px] text-zinc-300 font-bold">{capability.tag}</span>
                     </div>
                   </div>
                 </div>

@@ -101,7 +101,7 @@ Remediation: ${f.remediationPrompt}`).join('\n\n')}`;
                       {item.title}
                     </div>
                     <div style={{ fontSize: '0.78rem', color: '#A1A1AA', marginTop: '4px' }}>
-                      <strong style={{ color: '#34D399' }}>{item.projectName}</strong> • <code style={{ color: '#A1A1AA' }}>{item.filePath} ({item.lineRange})</code>
+                      <strong style={{ color: '#34D399' }}>{item.projectName}</strong> / <code style={{ color: '#A1A1AA' }}>{item.filePath} ({item.lineRange})</code>
                     </div>
                   </div>
                 </div>

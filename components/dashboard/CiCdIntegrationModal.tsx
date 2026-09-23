@@ -264,7 +264,7 @@ jobs:
                       <span>Zelsis Release Gate: APPROVED</span>
                     </div>
                     <div className="text-[11px] text-zinc-400">
-                      Readiness Score: <strong className="text-white">96/100</strong> • 0 Critical Blockers • Zero AGPL Copyleft Risks
+                      Readiness Score: <strong className="text-white">96/100</strong> / 0 Critical Blockers / Zero AGPL Copyleft Risks
                     </div>
                     <div className="text-[10px] text-blue-400 underline pt-1 cursor-pointer">
                       View Full Certified Telemetry &amp; Remediation Diff →

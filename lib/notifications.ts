@@ -60,7 +60,7 @@ export async function dispatchWebhookAlerts(
             elements: [
               {
                 type: 'mrkdwn',
-                text: `Target: <${targetUrl}|${targetUrl}> • Audited at ${new Date().toLocaleString()}`
+                text: `Target: <${targetUrl}|${targetUrl}> / Audited at ${new Date().toLocaleString()}`
               }
             ]
           }
@@ -97,7 +97,7 @@ export async function dispatchWebhookAlerts(
               { name: 'High Risk Vulnerabilities', value: `${result.highCount}`, inline: true }
             ],
             footer: {
-              text: `Target Endpoint: ${targetUrl} • Zelsis 3.0 AI Gate`
+              text: `Target Endpoint: ${targetUrl} / Zelsis 3.0 AI Gate`
             },
             timestamp: new Date().toISOString()
           }

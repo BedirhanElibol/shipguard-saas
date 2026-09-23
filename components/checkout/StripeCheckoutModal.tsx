@@ -389,11 +389,11 @@ export const StripeCheckoutModal: React.FC<StripeCheckoutModalProps> = ({
                 <div className="flex flex-col items-center gap-1 text-[0.65rem] text-[#64748B] mt-2 font-mono">
                   <div className="flex items-center gap-1.5 text-zinc-300">
                     <ShieldCheck size={12} className="text-emerald-400" />
-                    <span className="font-semibold text-white">Backed by 14-Day Money-Back Guarantee • Cancel Anytime</span>
+                    <span className="font-semibold text-white">Backed by 14-Day Money-Back Guarantee / Cancel Anytime</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-400">
                     <span>256-Bit SSL Encrypted Stripe Payment</span>
-                    <span>•</span>
+                    <span>/</span>
                     <a href="/refund" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white underline">Refund Policy</a>
                   </div>
                 </div>

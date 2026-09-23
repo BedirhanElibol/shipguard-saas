@@ -359,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({
                             <span className="truncate">
                               {validity.isExpired
                                 ? `Expired ${validity.formattedRenewalDate}`
-                                : `Renews ${validity.formattedRenewalDate} • Monthly Cycle`}
+                                : `Renews ${validity.formattedRenewalDate} / Monthly Cycle`}
                             </span>
                           </div>
                           <a

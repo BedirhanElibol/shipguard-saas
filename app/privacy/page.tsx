@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
             >
               Cookie Policy
             </Link>
-            <span className="text-[#333]">•</span>
+            <span className="text-[#333]">/</span>
             <Link
               href="/terms"
               className="text-xs font-mono text-emerald-400 hover:underline"

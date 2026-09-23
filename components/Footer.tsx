@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
               <span>contact@zelsis.com</span>
               <ArrowUpRight size={12} />
             </span>
-            <span>Support: Mon-Sun • Typical response within 24h</span>
+            <span>Support: Mon-Sun / Typical response within 24h</span>
             <span className="text-[11px] text-zinc-500">Istanbul &amp; Global Edge Infrastructure</span>
           </div>
         </div>

@@ -27,7 +27,7 @@ export default function RefundPage() {
             >
               Terms of Service
             </Link>
-            <span className="text-[#333]">•</span>
+            <span className="text-[#333]">/</span>
             <Link
               href="/privacy"
               className="text-xs font-mono text-emerald-400 hover:underline"

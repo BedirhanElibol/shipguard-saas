@@ -45,7 +45,7 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
 
           {scanResult && (
             <span className="text-[0.7rem] text-white font-bold hidden lg:inline font-mono">
-              {queuedFilesCount} Files • {scanResult.findings.length} Findings
+              {queuedFilesCount} Files / {scanResult.findings.length} Findings
             </span>
           )}
 

@@ -6,7 +6,7 @@ import { UserProfile } from '@/components/auth/AuthModal';
 import { runStaticCodeScan, ScanResult, CodeFile } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
-import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock } from 'lucide-react';
+import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock, Key } from 'lucide-react';
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { PrivateRepoTokenModal } from '@/components/dashboard/PrivateRepoTokenModal';
@@ -181,9 +181,6 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         if (serverAuth.scanId) {
           scanIdRef.current = serverAuth.scanId;
         }
-      } else if (onConsumeScanQuota && !hasConsumedQuotaRef.current) {
-        hasConsumedQuotaRef.current = true;
-        onConsumeScanQuota();
       }
 
       const isLocalOrSelfAudit =
@@ -241,10 +238,6 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         if (webData && webData.files && webData.files.length > 0) {
           filesToScan = webData.files;
           setQueuedFilesCount(webData.files.length);
-          if (!hasConsumedQuotaRef.current) {
-            hasConsumedQuotaRef.current = true;
-            onConsumeScanQuota?.();
-          }
           const isHealthy = webData.statusCode >= 200 && webData.statusCode < 400;
           if (!isCancelled) {
             setLogs((prev) => [
@@ -416,10 +409,6 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           filesToScan = liveData.files;
           setQueuedFilesCount(liveData.files.length);
           setProgress(25);
-          if (!hasConsumedQuotaRef.current) {
-            hasConsumedQuotaRef.current = true;
-            onConsumeScanQuota?.();
-          }
           if (!isCancelled) {
             setLogs((prev) => [
               ...prev,
@@ -429,7 +418,15 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
           }
         } else {
           if (!isCancelled) {
-            if (liveData?.isEmpty || (liveData && Array.isArray(liveData.files) && liveData.files.length === 0)) {
+            if (liveData?.error === 'RATE_LIMIT_EXCEEDED') {
+              setScanFailureReason('GitHub anonymous API rate limit (60 req/hr) reached on server IP. Add a free GitHub Personal Access Token (PAT) to unlock 5,000 requests/hour.');
+              setLogs((prev) => [
+                ...prev,
+                `[${new Date().toLocaleTimeString()}] [LIMIT] ⚠️ RATE LIMIT EXCEEDED: GitHub anonymous API rate limit (60 req/hr) reached on server IP.`,
+                `[${new Date().toLocaleTimeString()}] [ACTION] Adding a free GitHub Personal Access Token (PAT) unlocks 5,000 req/hr immediately without upgrading.`
+              ]);
+              setIsPrivateTokenModalOpen(true);
+            } else if (liveData?.isEmpty || (liveData && Array.isArray(liveData.files) && liveData.files.length === 0)) {
               setScanFailureReason('Repository is empty. No scannable source code files were found.');
               setLogs((prev) => [
                 ...prev,
@@ -468,6 +465,11 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       if (isCancelled || controller.signal.aborted) return;
 
       setScanResult(result);
+      // Consume scan quota only when scan actually produces valid results (F-40)
+      if (result && onConsumeScanQuota && !hasConsumedQuotaRef.current) {
+        hasConsumedQuotaRef.current = true;
+        onConsumeScanQuota();
+      }
 
       let currentIdx = 0;
       const realLogs = result.logs;
@@ -654,34 +656,76 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             { label: 'Generating remediation report',      range: [90, 100] },
           ];
           const activeStageIdx = isFinished
-            ? 4
+            ? (scanResult ? 4 : stages.findIndex(({ range }) => progress >= range[0] && progress <= range[1]))
             : stages.findIndex(({ range }) => progress >= range[0] && progress <= range[1]);
+          const isFailedOrAborted = isFinished && !scanResult;
+
           return (
             <div className="flex flex-col gap-1 bg-[#0A0A0A] rounded-xl border border-white/10 overflow-hidden">
               {stages.map((stage, idx) => {
-                const isDone    = isFinished ? true : idx < activeStageIdx;
-                const isActive  = !isFinished && idx === activeStageIdx;
+                let statusIcon: React.ReactNode;
+                let statusLabel: string;
+                let statusColor: string;
+                let textColor: string;
+
+                if (isFailedOrAborted) {
+                  if (idx < activeStageIdx) {
+                    statusIcon = <span className="text-emerald-400 font-bold shrink-0">✓</span>;
+                    statusLabel = 'Done';
+                    statusColor = 'text-emerald-400';
+                    textColor = 'text-zinc-400';
+                  } else if (idx === activeStageIdx || (activeStageIdx === -1 && idx === 0)) {
+                    statusIcon = <span className="text-red-400 font-bold shrink-0 font-mono">✕</span>;
+                    statusLabel = 'Aborted';
+                    statusColor = 'text-red-400 font-bold';
+                    textColor = 'text-red-300 font-medium';
+                  } else {
+                    statusIcon = <span className="text-zinc-600 font-bold shrink-0 font-mono">—</span>;
+                    statusLabel = 'Skipped';
+                    statusColor = 'text-zinc-600';
+                    textColor = 'text-zinc-600';
+                  }
+                } else if (isFinished && scanResult) {
+                  statusIcon = <span className="text-emerald-400 font-bold shrink-0">✓</span>;
+                  statusLabel = 'Done';
+                  statusColor = 'text-emerald-400';
+                  textColor = 'text-zinc-400';
+                } else {
+                  const isDone = idx < activeStageIdx;
+                  const isActive = idx === activeStageIdx;
+                  if (isDone) {
+                    statusIcon = <span className="text-emerald-400 font-bold shrink-0">✓</span>;
+                    statusLabel = 'Done';
+                    statusColor = 'text-emerald-400';
+                    textColor = 'text-zinc-400';
+                  } else if (isActive) {
+                    statusIcon = <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0 inline-block" />;
+                    statusLabel = `${progress}%`;
+                    statusColor = 'text-blue-400';
+                    textColor = 'text-white font-bold';
+                  } else {
+                    statusIcon = <span className="w-2 h-2 rounded-full bg-white/20 shrink-0 inline-block" />;
+                    statusLabel = 'Wait';
+                    statusColor = 'text-zinc-700';
+                    textColor = 'text-zinc-600';
+                  }
+                }
+
                 return (
                   <div
                     key={stage.label}
                     className={`flex items-center justify-between px-4 py-2.5 text-xs font-mono border-b border-white/5 last:border-b-0 transition-colors ${
-                      isActive ? 'bg-white/[0.04]' : ''
+                      !isFinished && idx === activeStageIdx ? 'bg-white/[0.04]' : ''
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      {isDone ? (
-                        <span className="text-emerald-400 font-bold shrink-0">✓</span>
-                      ) : isActive ? (
-                        <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shrink-0 inline-block" />
-                      ) : (
-                        <span className="w-2 h-2 rounded-full bg-white/20 shrink-0 inline-block" />
-                      )}
-                      <span className={`truncate ${isDone ? 'text-zinc-400' : isActive ? 'text-white font-bold' : 'text-zinc-600'}`}>
+                      {statusIcon}
+                      <span className={`truncate ${textColor}`}>
                         Stage {idx + 1}: {stage.label}
                       </span>
                     </div>
-                    <span className={`text-[10px] shrink-0 ml-4 ${isDone ? 'text-emerald-400' : isActive ? 'text-blue-400' : 'text-zinc-700'}`}>
-                      {isDone ? 'Done' : isActive ? `${progress}%` : 'Wait'}
+                    <span className={`text-[10px] shrink-0 ml-4 ${statusColor}`}>
+                      {statusLabel}
                     </span>
                   </div>
                 );
@@ -689,7 +733,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
               {/* Thin progress line at bottom */}
               <div className="w-full h-[2px] bg-white/5">
                 <div
-                  className="h-full bg-blue-500/60 transition-all duration-150"
+                  className={`h-full transition-all duration-150 ${isFailedOrAborted ? 'bg-red-500/60' : 'bg-blue-500/60'}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -770,7 +814,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                {(scanFailureReason?.includes('Pro') || scanFailureReason?.includes('Limit') || scanFailureReason?.includes('Upgrade')) && (
+                {(!scanFailureReason?.includes('rate limit') &&
+                  !scanFailureReason?.includes('GitHub anonymous') &&
+                  (scanFailureReason?.includes('Pro feature') || scanFailureReason?.includes('Monthly Free Scan Limit') || scanFailureReason?.includes('Upgrade to Zelsis Pro'))) && (
                   <button
                     onClick={() => onOpenCheckout?.('Pro')}
                     className="btn btn-primary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black transition-all font-mono cursor-pointer"
@@ -782,14 +828,13 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
 
                 {(scanFailureReason?.includes('Private') || scanFailureReason?.includes('token') || scanFailureReason?.includes('Token') || scanFailureReason?.includes('PAT') || scanFailureReason?.includes('rate limit')) &&
                   !scanFailureReason?.includes('not found') &&
-                  !scanFailureReason?.includes('404') &&
-                  !scanFailureReason?.includes('Pro feature') && (
+                  !scanFailureReason?.includes('404') && (
                   <button
                     onClick={() => setIsPrivateTokenModalOpen(true)}
                     className="btn btn-primary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all font-mono cursor-pointer"
                   >
-                    <Lock size={14} />
-                    <span>Enter GitHub Token</span>
+                    <Key size={14} />
+                    <span>{scanFailureReason?.includes('rate limit') ? 'Add Free GitHub Token (5,000 req/hr)' : 'Enter GitHub Token'}</span>
                   </button>
                 )}
 

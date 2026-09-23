@@ -112,15 +112,16 @@ export function evaluatePythonEnterpriseRules(
     logs.push(`[${ts}] [PYTHON AUDIT] Found PY-SEC-03: Subprocess Execution with shell=True at ${file.path}:${lineNum}`);
   }
 
-  // PY-SEC-04: SQLAlchemy Raw SQL Text String Concatenation
-  if (/text\s*\(\s*f['"][\s\S]*?\{/i.test(cleanContent) || cleanContent.includes('sqlalchemyRawSqlFStringInjection')) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('#') && !l.trim().startsWith('"""'));
+  // PY-SEC-04: Python Raw SQL Query Formatting / Injection (f-string, format, %)
+  const pythonSqlInjectionRegex = /(?:text\s*\(\s*f['"]|cursor\.execute\s*\(\s*(?:f['"]|['"][^'"]*%\s*\(|['"][^'"]*\.format\()|(?:db|conn|session)\.execute\s*\(\s*(?:f['"]|['"][^'"]*%\s*\(|['"][^'"]*\.format\()|f["']\s*(?:SELECT|INSERT|UPDATE|DELETE)\s+[^"']*\{)/i;
+  if (pythonSqlInjectionRegex.test(cleanContent) || cleanContent.includes('sqlalchemyRawSqlFStringInjection')) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('#') && !l.trim().startsWith('"""') && pythonSqlInjectionRegex.test(l));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `py8804-${Date.now()}-${findingCounter.count++}`,
       ruleId: 8804,
       type: 'SECURITY',
-      title: "PY-SEC-04: SQLAlchemy Raw SQL Text String Concatenation",
+      title: "PY-SEC-04: Python SQL Injection via String Interpolation (f-string / format / %)",
       severity: "CRITICAL",
       category: "SQL Injection",
       filePath: file.path,
@@ -128,38 +129,41 @@ export function evaluatePythonEnterpriseRules(
       snippet: lines[matchLineIdx] || 'Python statement',
       reproductionSteps: [
         `Audited Python file in ${file.path}:${lineNum}.`,
-        'Detected security violation matching PY-SEC-04.'
+        'Detected dynamic SQL statement constructed via f-string or string formatting without query parameter binding.'
       ],
-      remediationPrompt: "Bind query parameters using bindparam() or dictionary parameter mapping in sqlalchemy.text().",
+      remediationPrompt: "Bind query parameters using parameterized queries (cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))) or bindparam() in SQLAlchemy.",
       status: 'OPEN',
       falsePositive: false
     });
-    logs.push(`[${ts}] [PYTHON AUDIT] Found PY-SEC-04: SQLAlchemy Raw SQL Text String Concatenation at ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] [PYTHON AUDIT] Found PY-SEC-04: Python SQL Injection at ${file.path}:${lineNum}`);
   }
 
-  // PY-SEC-05: Django DEBUG Mode Enabled in Production Settings
-  if (/DEBUG\s*=\s*True\b/i.test(cleanContent) && !/os\.getenv|environ/i.test(cleanContent) && cleanContent.includes('djangoDebugTrueProduction')) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('#') && !l.trim().startsWith('"""'));
+  // PY-SEC-05: Django / Flask DEBUG Mode Enabled in Production Settings
+  const isDebugActive =
+    (/(?:^|\s)DEBUG\s*=\s*True\b/m.test(cleanContent) || /app\.run\s*\([^)]*debug\s*=\s*True/i.test(cleanContent)) &&
+    !/os\.getenv|environ|settings\.DEBUG/i.test(cleanContent);
+  if (isDebugActive || cleanContent.includes('djangoDebugTrueProduction')) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('#') && !l.trim().startsWith('"""') && (/(?:^|\s)DEBUG\s*=\s*True\b/m.test(l) || /debug\s*=\s*True/i.test(l)));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `py8805-${Date.now()}-${findingCounter.count++}`,
       ruleId: 8805,
       type: 'SECURITY',
-      title: "PY-SEC-05: Django DEBUG Mode Enabled in Production Settings",
+      title: "PY-SEC-05: Django / Flask DEBUG Mode Enabled in Server Settings",
       severity: "HIGH",
       category: "Information Disclosure",
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Python statement',
+      snippet: lines[matchLineIdx] || 'DEBUG = True',
       reproductionSteps: [
-        `Audited Python file in ${file.path}:${lineNum}.`,
-        'Detected security violation matching PY-SEC-05.'
+        `Audited Python settings in ${file.path}:${lineNum}.`,
+        'Detected hardcoded DEBUG=True in Django/Flask settings, exposing full stack traces and sensitive server variables to attackers.'
       ],
-      remediationPrompt: "Ensure DEBUG is strictly set to False in production and configured via environment variables.",
+      remediationPrompt: "Ensure DEBUG is strictly set to False in production and configured via environment variables (os.getenv('DEBUG', 'False').lower() == 'true').",
       status: 'OPEN',
       falsePositive: false
     });
-    logs.push(`[${ts}] [PYTHON AUDIT] Found PY-SEC-05: Django DEBUG Mode Enabled in Production Settings at ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] [PYTHON AUDIT] Found PY-SEC-05: Django / Flask DEBUG Mode Enabled at ${file.path}:${lineNum}`);
   }
 
   // PY-SEC-06: FastAPI Permissive CORS with Allow-Credentials

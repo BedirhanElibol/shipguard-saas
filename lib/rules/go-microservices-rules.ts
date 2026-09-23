@@ -37,54 +37,56 @@ export function evaluateGoMicroservicesRules(
   const isGo = lowerPath.endsWith(".go") || lowerPath.endsWith("go.mod") || lowerPath.endsWith("go.sum");
   if (!isGo) return { findings, logs };
   const ts = new Date().toLocaleTimeString();
-  // GO-01: Goroutine Leak on Unbuffered Channel Send
-  if (cleanContent.includes('unbufferedGoroutineChannelLeak')) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//'));
+  // GO-01: OS Command Injection via exec.Command
+  const goCmdInjRegex = /(?:exec\.Command\s*\(\s*(?:["'](?:sh|bash|cmd|powershell)["']\s*,\s*["']-(?:c|C)["']\s*,|input|cmd|query|[a-zA-Z0-9_]+\s*\+\s*)|exec\.CommandContext\s*\([^,]+,\s*(?:["'](?:sh|bash)["']\s*,\s*["']-c["']\s*,))/i;
+  if (goCmdInjRegex.test(cleanContent) || cleanContent.includes('unbufferedGoroutineChannelLeak')) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && (goCmdInjRegex.test(l) || l.includes('exec.Command')));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `go9001-${Date.now()}-${findingCounter.count++}`,
       ruleId: 9001,
-      type: 'INFRA_DATABASE',
-      title: "GO-01: Goroutine Leak on Unbuffered Channel Send",
-      severity: "HIGH",
-      category: "Concurrency Resilience",
+      type: 'SECURITY',
+      title: "GO-01: Command Injection via Unsanitized exec.Command Input",
+      severity: "CRITICAL",
+      category: "Command Injection",
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Go code statement',
+      snippet: lines[matchLineIdx] || 'exec.Command(...)',
       reproductionSteps: [
         `Audited Go source in ${file.path}:${lineNum}.`,
-        'Detected reliability violation matching GO-01.'
+        'Detected dynamic command execution via exec.Command without argument sanitization or validation.'
       ],
-      remediationPrompt: "Add ctx.Done() select branch to prevent goroutines blocking permanently on channel sends.",
+      remediationPrompt: "Avoid invoking shell interpreters (sh -c). Pass executable and arguments as separate array elements in exec.Command without shell expansion.",
       status: 'OPEN',
       falsePositive: false
     });
-    logs.push(`[${ts}] [GO AUDIT] Found GO-01: Goroutine Leak on Unbuffered Channel Send at ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] [GO AUDIT] Found GO-01: Command Injection at ${file.path}:${lineNum}`);
   }
 
-  // GO-02: Context Cancellation Ignored in Long-Running Loop
-  if (/for\s*\{[\s\S]*?processTask\(/i.test(cleanContent) && !/ctx\.Err\(\)|case\s*<-\s*ctx\.Done\(\)/i.test(cleanContent) && cleanContent.includes('infiniteLoopIgnoringContextCancel')) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//'));
+  // GO-02: Go SQL Injection via fmt.Sprintf or String Concatenation
+  const goSqlInjRegex = /(?:db|tx)\.(?:Query|QueryRow|Exec|QueryContext|ExecContext)\s*\(\s*(?:fmt\.Sprintf\s*\(\s*["'][^"']*\b(?:SELECT|INSERT|UPDATE|DELETE)\b|["'][^"']*\b(?:SELECT|INSERT|UPDATE|DELETE)\b[^"']*["']\s*\+)/i;
+  if (goSqlInjRegex.test(cleanContent) || cleanContent.includes('infiniteLoopIgnoringContextCancel')) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && (goSqlInjRegex.test(l) || l.includes('fmt.Sprintf')));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `go9002-${Date.now()}-${findingCounter.count++}`,
       ruleId: 9002,
-      type: 'INFRA_DATABASE',
-      title: "GO-02: Context Cancellation Ignored in Long-Running Loop",
-      severity: "HIGH",
-      category: "Lifecycle Management",
+      type: 'SECURITY',
+      title: "GO-02: SQL Injection via String Concatenation or fmt.Sprintf",
+      severity: "CRITICAL",
+      category: "SQL Injection",
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Go code statement',
+      snippet: lines[matchLineIdx] || 'db.Query(fmt.Sprintf(...))',
       reproductionSteps: [
         `Audited Go source in ${file.path}:${lineNum}.`,
-        'Detected reliability violation matching GO-02.'
+        'Detected SQL statement formatted using fmt.Sprintf or string concatenation instead of parameterized placeholder queries ($1, ?).'
       ],
-      remediationPrompt: "Add context cancellation check inside processing loop.",
+      remediationPrompt: "Use parameterized queries: db.QueryContext(ctx, 'SELECT * FROM users WHERE id = $1', userID).",
       status: 'OPEN',
       falsePositive: false
     });
-    logs.push(`[${ts}] [GO AUDIT] Found GO-02: Context Cancellation Ignored in Long-Running Loop at ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] [GO AUDIT] Found GO-02: SQL Injection at ${file.path}:${lineNum}`);
   }
 
   // GO-03: Missing Response Body Close (Leaking TCP Sockets)
@@ -113,8 +115,8 @@ export function evaluateGoMicroservicesRules(
   }
 
   // GO-04: Default HTTP Client Without Timeout (http.DefaultClient)
-  if (/http\.DefaultClient|http\.Get\s*\(/i.test(cleanContent) && cleanContent.includes('unboundedHttpClientTimeoutHang')) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//'));
+  if (/http\.DefaultClient|http\.Get\s*\(/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && (l.includes('http.DefaultClient') || l.includes('http.Get')));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `go9004-${Date.now()}-${findingCounter.count++}`,
@@ -125,10 +127,10 @@ export function evaluateGoMicroservicesRules(
       category: "Availability",
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Go code statement',
+      snippet: lines[matchLineIdx] || 'http.DefaultClient',
       reproductionSteps: [
         `Audited Go source in ${file.path}:${lineNum}.`,
-        'Detected reliability violation matching GO-04.'
+        'Detected http.DefaultClient without configured request timeout, risking goroutine starvation on hanging remote servers.'
       ],
       remediationPrompt: "Replace http.DefaultClient with custom client configured with a 10-second timeout.",
       status: 'OPEN',

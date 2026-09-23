@@ -108,24 +108,28 @@ export function evaluateFrontendRules(
   // =========================================================================
   const isJsxTsx = file.path.endsWith('.tsx') || file.path.endsWith('.jsx');
   const isHtml = file.path.endsWith('.html');
+  const rawImgMatches = cleanContent.match(/<\s*img\b[^>]*>/gi) || [];
+  // Exclude SVG vector icons/logos since Next.js Image optimization is for raster formats (F-38)
+  const nonSvgImgMatches = rawImgMatches.filter(tag => !/\.svg|\/svg|svg\+/i.test(tag));
   const hasUnsizedHtmlImg = isHtml && /<\s*img\b(?![^>]*\b(?:width|height|loading)\b)[^>]*>/i.test(cleanContent);
-  const hasRawImg = isJsxTsx ? /<\s*img\b/i.test(cleanContent) : hasUnsizedHtmlImg;
+  const hasRawRasterImg = isJsxTsx ? nonSvgImgMatches.length > 0 : hasUnsizedHtmlImg;
   const hasHeavyBase64 = (isJsxTsx || isHtml) && (/data:image\/[a-zA-Z0-9+.-]+;base64,[a-zA-Z0-9+/=]{1000,}/i.test(cleanContent) || /data:image\/[^"'\s`]{1000,}/i.test(cleanContent));
 
-  if (!lowerPath.endsWith('.css') && (hasRawImg || hasHeavyBase64)) {
+  if (!lowerPath.endsWith('.css') && (hasRawRasterImg || hasHeavyBase64)) {
     let matchLineIdx = -1;
     if (hasHeavyBase64) {
       matchLineIdx = lines.findIndex(l => l.includes('data:image/') && l.length > 500);
     }
-    if (matchLineIdx === -1 && hasRawImg) {
-      matchLineIdx = lines.findIndex(l => /<\s*img\b/i.test(l));
+    if (matchLineIdx === -1 && hasRawRasterImg) {
+      matchLineIdx = lines.findIndex(l => /<\s*img\b/i.test(l) && !/\.svg|\/svg|svg\+/i.test(l));
     }
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     const snippet = lines.slice(Math.max(0, lineNum - 2), Math.min(lines.length, lineNum + 2)).join('\n');
 
-    const severity = isJsxTsx ? 'HIGH' : (hasHeavyBase64 ? 'MEDIUM' : 'LOW');
+    // UI and styling suggestions are LOW / MEDIUM severity, never HIGH release gate blockers (F-38)
+    const severity = hasHeavyBase64 ? 'MEDIUM' : 'LOW';
     const title = isJsxTsx
-      ? 'Unoptimized Raw <img> Tag or Heavy Inline Data URI (Layout Shift / LCP Risk)'
+      ? 'Unoptimized Raster <img> Tag or Heavy Inline Data URI (Performance Optimization)'
       : hasHeavyBase64
       ? 'Heavy Inline Base64 Image Data URI in HTML Template'
       : 'HTML <img> Tag Missing Explicit Dimensions or Lazy Loading (Layout Shift Risk)';
@@ -133,11 +137,11 @@ export function evaluateFrontendRules(
     const reproductionSteps = isJsxTsx
       ? [
           `Scanned frontend JSX rendering at ${file.path}:${lineNum}.`,
-          hasHeavyBase64 && hasRawImg
-            ? 'Detected both unoptimized raw <img> tag and massive inline Base64 data URI (>1000 chars) degrading page load performance and Core Web Vitals.'
+          hasHeavyBase64 && hasRawRasterImg
+            ? 'Detected both unoptimized raw raster <img> tag and massive inline Base64 data URI (>1000 chars) degrading page load performance.'
             : hasHeavyBase64
             ? 'Detected massive inline Base64 image data URI (>1000 characters) embedded in JSX, causing severe bundle bloat and blocking DOM parsing.'
-            : 'Detected unoptimized raw HTML <img> tag in Next.js component instead of next/image <Image>, risking Cumulative Layout Shift (CLS) and missing WebP/AVIF compression.'
+            : 'Detected unoptimized raw HTML raster <img> tag in Next.js component instead of next/image <Image> for WebP/AVIF compression.'
         ]
       : [
           `Scanned HTML template at ${file.path}:${lineNum}.`,
@@ -147,8 +151,8 @@ export function evaluateFrontendRules(
         ];
 
     const remediationPrompt = isJsxTsx
-      ? `Replace raw <img> tags in ${file.path} with Next.js 'next/image' <Image> component with explicit width, height, and priority attributes. Move inline base64 data URIs to static assets in /public to avoid bundle bloat and Cumulative Layout Shift (CLS).`
-      : `Add explicit 'width', 'height', and 'loading="lazy"' attributes to <img> tags in ${file.path} to prevent Cumulative Layout Shift (CLS) and optimize page load speed.`;
+      ? `Consider replacing raster <img> tags in ${file.path} with Next.js 'next/image' <Image> component with explicit width, height, and priority attributes where appropriate.`
+      : `Add explicit 'width', 'height', and 'loading="lazy"' attributes to <img> tags in ${file.path} to optimize page load speed.`;
 
     findings.push({
       id: `frontend-${Date.now()}-${findingCounter.count++}`,
@@ -198,14 +202,14 @@ export function evaluateFrontendRules(
     if (!hasMetadataExport) {
       hasMissingSocialMeta = true;
     } else {
-      const hasOpenGraph = cleanContent.includes('openGraph') || cleanContent.includes('og:image');
-      const hasTwitter = cleanContent.includes('twitter') || cleanContent.includes('twitter:card');
-      if (!hasOpenGraph || !hasTwitter) {
+      // Don't flag if openGraph or og:image is already configured (F-38 false positive fix)
+      const hasOpenGraph = cleanContent.includes('openGraph') || cleanContent.includes('og:');
+      const hasTitle = cleanContent.includes('title');
+      if (!hasOpenGraph && !hasTitle) {
         hasMissingSocialMeta = true;
       }
     }
   } else if (hasMetadataExport) {
-    // Only flag if page explicitly defines metadata but has empty or broken metadata
     const hasTitle = cleanContent.includes('title:') || cleanContent.includes('title :');
     if (!hasTitle) {
       hasMissingSocialMeta = true;
@@ -236,8 +240,8 @@ export function evaluateFrontendRules(
       id: `frontend-${Date.now()}-${findingCounter.count++}`,
       ruleId: 1028,
       type: 'VIBEPOLISH',
-      title: 'Missing Social OpenGraph / Twitter Card Metadata or Duplicate H1 Heading',
-      severity: 'MEDIUM',
+      title: hasDuplicateH1 ? 'Duplicate <h1> Elements Violating Semantic Hierarchy' : 'Incomplete Social OpenGraph Metadata Export',
+      severity: hasDuplicateH1 ? 'MEDIUM' : 'LOW',
       category: 'SEO & Social Meta',
       filePath: file.path,
       lineRange: `L${lineNum}`,
@@ -245,17 +249,17 @@ export function evaluateFrontendRules(
       reproductionSteps: [
         `Scanned page template and metadata in ${file.path}:${lineNum}.`,
         hasDuplicateH1 && hasMissingSocialMeta
-          ? 'Detected both duplicate <h1> elements violating semantic hierarchy and missing OpenGraph / Twitter Card metadata export.'
+          ? 'Detected both duplicate <h1> elements violating semantic hierarchy and incomplete OpenGraph metadata.'
           : hasDuplicateH1
-          ? 'Detected multiple <h1> heading elements in a single component template, violating semantic HTML5 outline and harming SEO rank.'
-          : 'Detected missing OpenGraph (openGraph / og:image) or Twitter Card (twitter / twitter:card) metadata export in Next.js page or layout.'
+          ? 'Detected multiple <h1> heading elements in a single component template, violating semantic HTML5 outline.'
+          : 'Detected missing OpenGraph or title metadata export in Next.js page or layout.'
       ],
-      remediationPrompt: `Export complete Next.js Metadata in ${file.path} including openGraph (title, description, images) and twitter card properties. Ensure only a single semantic <h1> tag exists per page for clear heading hierarchy.`,
+      remediationPrompt: `Export complete Next.js Metadata in ${file.path} including openGraph and title properties. Ensure only a single semantic <h1> tag exists per page for clear heading hierarchy.`,
       status: 'OPEN',
       owner: 'Marketing Tech / SEO Lead',
       falsePositive: false
     });
-    logs.push(`[${ts}] 🔍 MEDIUM: UI-SEO-01 Missing Social OpenGraph / Duplicate H1 in ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] 🔍 ${hasDuplicateH1 ? 'MEDIUM' : 'LOW'}: UI-SEO-01 ${hasDuplicateH1 ? 'Duplicate H1' : 'Incomplete OpenGraph'} in ${file.path}:${lineNum}`);
   }
 
   // =========================================================================

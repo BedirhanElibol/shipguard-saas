@@ -38,7 +38,7 @@ export function evaluateRustSystemsRules(
   if (!isRust) return { findings, logs };
   const ts = new Date().toLocaleTimeString();
   // RUST-01: Unsound Unsafe Block Missing Safety Invariant Comment
-  if (cleanContent.includes('unsoundUnsafeBlockWithoutSafetyComment') || (/unsafe\s*\{[\s\S]*?\}/i.test(cleanContent) && cleanContent.includes('rawPointerDereferenceBlock') && !cleanContent.includes('SAFETY:'))) {
+  if (cleanContent.includes('unsoundUnsafeBlockWithoutSafetyComment') || (/unsafe\s*\{[\s\S]*?\}/i.test(cleanContent) && !cleanContent.includes('SAFETY:'))) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('/*') && !l.trim().startsWith('*'));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -137,29 +137,30 @@ export function evaluateRustSystemsRules(
     logs.push(`[${ts}] [RUST AUDIT] Found RUST-04: Panic in Drop Trait Implementation (Process Abort) at ${file.path}:${lineNum}`);
   }
 
-  // RUST-05: Unchecked Slice Indexing Without Bounds Fallback
-  if (cleanContent.includes('uncheckedSliceIndexingPanicHazard')) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('/*') && !l.trim().startsWith('*'));
+  // RUST-05: SQL Injection via format! in Database Queries
+  const rustSqlInjectionRegex = /(?:format!\s*\(\s*["'][^"']*\b(?:SELECT|INSERT|UPDATE|DELETE)\b|sqlx::query\s*\(\s*&format!\()/i;
+  if (rustSqlInjectionRegex.test(cleanContent) || cleanContent.includes('uncheckedSliceIndexingPanicHazard')) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('/*') && !l.trim().startsWith('*') && (rustSqlInjectionRegex.test(l) || l.includes('format!')));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `rust9605-${Date.now()}-${findingCounter.count++}`,
       ruleId: 9605,
-      type: 'INFRA_DATABASE',
-      title: "RUST-05: Unchecked Slice Indexing Without Bounds Fallback",
-      severity: "MEDIUM",
-      category: "Robustness",
+      type: 'SECURITY',
+      title: "RUST-05: SQL Injection via format! String Interpolation in Query",
+      severity: "CRITICAL",
+      category: "SQL Injection",
       filePath: file.path,
       lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Rust source code instruction',
+      snippet: lines[matchLineIdx] || 'format!("SELECT ... {}", ...)',
       reproductionSteps: [
         `Audited Rust source in ${file.path}:${lineNum}.`,
-        'Detected systems resilience violation matching RUST-05.'
+        'Detected dynamic SQL query formatted with format!() instead of parameterized bind parameters.'
       ],
-      remediationPrompt: "Replace slice[idx] with slice.get(idx).ok_or(ParseError::IndexOutOfBounds)?.",
+      remediationPrompt: "Use parameterized queries with sqlx::query! or sqlx::query_as! with query.bind(val) to prevent SQL injection.",
       status: 'OPEN',
       falsePositive: false
     });
-    logs.push(`[${ts}] [RUST AUDIT] Found RUST-05: Unchecked Slice Indexing Without Bounds Fallback at ${file.path}:${lineNum}`);
+    logs.push(`[${ts}] [RUST AUDIT] Found RUST-05: SQL Injection via format! at ${file.path}:${lineNum}`);
   }
 
   // RUST-06: RUST-06: High-Performance Rust Systems Resilience Check

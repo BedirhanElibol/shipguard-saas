@@ -230,13 +230,18 @@ export function evaluateComplianceRules(
   // COMPL-04 (Rule ID 2004): Consent Disclosure on User Input & Lead Forms
   // ---------------------------------------------------------------------------
   const isFormFile =
-    /(?:form|newsletter|waitlist|subscribe|contact|lead)/i.test(lowerPath) ||
+    /(?:form|newsletter|waitlist|subscribe|contact|lead|signup|register)/i.test(lowerPath) ||
     /<form\b[^>]*>/i.test(cleanContent);
+
+  // Login/Sign-in forms do not require consent checkboxes since consent was granted at signup (F-38)
+  const isLoginForm =
+    /(?:login|sign-in|signin|session|authenticate)/i.test(lowerPath) ||
+    (/(?:sign\s*in|log\s*in)/i.test(cleanContent) && !/(?:sign\s*up|register|create\s*account|new\s*account|subscribe|waitlist|newsletter)/i.test(cleanContent));
 
   const hasEmailInput = /<input[^>]+(?:type|name)\s*=\s*["'](?:email|tel)["']/i.test(cleanContent);
   const hasConsentNotice = /(?:privacy\s*policy|terms\s*of\s*service|terms\s*&\s*conditions|agree\s*to\s*(?:our|the)|consent|gdpr|data\s*processing)/i.test(cleanContent);
 
-  if (isFormFile && hasEmailInput && !hasConsentNotice) {
+  if (isFormFile && !isLoginForm && hasEmailInput && !hasConsentNotice) {
     const matchLineIdx = lines.findIndex(l => {
       const trimmed = l.trim();
       if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) return false;

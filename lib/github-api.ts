@@ -35,7 +35,7 @@ export interface GithubRepoInfo {
 }
 
 const GITHUB_RATE_LIMIT_MESSAGE =
-  'GitHub API rate limit reached (60 req/hr). Add a GitHub Personal Access Token (PAT) in Settings to unlock 5,000 req/hr.';
+  'GitHub API rate limit reached (60 req/hr on shared server IP). Add a GitHub Personal Access Token (PAT) for free in Settings to unlock 5,000 req/hr without upgrading.';
 
 /**
  * Checks whether a GitHub API response indicates a primary or secondary rate limit.

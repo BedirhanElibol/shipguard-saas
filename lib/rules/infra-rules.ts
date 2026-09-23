@@ -660,5 +660,158 @@ export function evaluateInfraRules(
     logs.push(`[${ts}] ☁️ [INFRA-17] CRITICAL: Docker socket mount in ${file.path}:${lineNum}`);
   }
 
+  // =========================================================================
+  // RULE 3018 (INFRA-18): Firebase Permissive Security Rules (allow read, write: if true;)
+  // =========================================================================
+  const isFirebaseRules =
+    lowerPath.endsWith('.rules') ||
+    lowerPath.includes('firestore') ||
+    lowerPath.includes('storage.rules') ||
+    lowerPath.includes('firebase.json') ||
+    cleanContent.includes('service cloud.firestore') ||
+    cleanContent.includes('rules_version');
+
+  const firebaseOpenPermsRegex = /allow\s+(?:read\s*,\s*write|write\s*,\s*read|read|write)\s*:\s*if\s+true\s*;/i;
+  if (isFirebaseRules && firebaseOpenPermsRegex.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => firebaseOpenPermsRegex.test(l));
+    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+    const snippet = extractSnippet(lines, lineNum);
+
+    findings.push({
+      id: `real-find-${Date.now()}-${findingCounter.count++}`,
+      ruleId: 3018,
+      type: 'SECURITY',
+      title: 'Firebase Security Rules: Permissive Unauthenticated Read/Write Access (allow read, write: if true)',
+      severity: 'CRITICAL',
+      category: 'Access Control',
+      filePath: file.path,
+      lineRange: `L${lineNum}`,
+      snippet,
+      reproductionSteps: [
+        `Scanned Firebase security rules at ${file.path}:${lineNum}.`,
+        'Detected completely unauthenticated public access clause ("allow read, write: if true;"), exposing sensitive database or storage bucket to public read and write.'
+      ],
+      remediationPrompt: `Enforce authenticated user checks in ${file.path}:${lineNum}: "allow read, write: if request.auth != null && request.auth.uid == userId;". Never ship "if true;" to production.`,
+      status: 'OPEN',
+      owner: 'Security Lead',
+      falsePositive: false
+    });
+    logs.push(`[${ts}] 🔒 [INFRA-18] CRITICAL: Firebase open read/write rule in ${file.path}:${lineNum}`);
+  }
+
+  // =========================================================================
+  // RULE 3019 (INFRA-19): Docker Compose Database Port Exposed on Host & Default Insecure Passwords
+  // =========================================================================
+  if (isComposeFile) {
+    const exposedDbPortRegex = /(?:^|\s)["']?(?:5432:5432|3306:3306|27017:27017|6379:6379|9200:9200)["']?/m;
+    const defaultPasswordRegex = /(?:POSTGRES_PASSWORD|MYSQL_ROOT_PASSWORD|MYSQL_PASSWORD|MONGO_INITDB_ROOT_PASSWORD)\s*[:=]\s*["']?(?:postgres|root|password|admin|123456|secret)["']?/i;
+
+    if (exposedDbPortRegex.test(cleanContent) || defaultPasswordRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => exposedDbPortRegex.test(l) || defaultPasswordRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      const hasExposedPort = exposedDbPortRegex.test(cleanContent);
+      const title = hasExposedPort
+        ? 'Docker Compose Database Port Exposed Directly on Host (0.0.0.0 Exposure Risk)'
+        : 'Docker Compose Container Configured with Insecure Default Hardcoded Database Password';
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 3019,
+        type: 'INFRA_DATABASE',
+        title,
+        severity: 'HIGH',
+        category: 'Container Security',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned Docker Compose manifest at ${file.path}:${lineNum}.`,
+          hasExposedPort
+            ? 'Detected raw database port mapping without loopback binding (e.g. 5432:5432), exposing the database to the public network.'
+            : 'Detected default predictable database password in compose configuration (e.g. POSTGRES_PASSWORD=postgres or root).'
+        ],
+        remediationPrompt: hasExposedPort
+          ? `Bind database ports strictly to localhost ("127.0.0.1:5432:5432") or remove port mapping so services communicate only over the internal Docker network.`
+          : `Replace hardcoded default passwords with strong secrets loaded from environment variables (\${POSTGRES_PASSWORD}) or Docker secrets.`,
+        status: 'OPEN',
+        owner: 'DevOps & SRE',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] ☁️ [INFRA-19] HIGH: Docker compose database exposure in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // RULE 3020 (INFRA-20): MongoDB Injection via $where JavaScript or Unsanitized Query Object
+  // =========================================================================
+  const isJsTsPy = lowerPath.endsWith('.js') || lowerPath.endsWith('.ts') || lowerPath.endsWith('.mjs') || lowerPath.endsWith('.py');
+  if (isJsTsPy) {
+    const mongoWhereRegex = /\$where\s*:/i;
+    const mongoRawQueryRegex = /(?:collection|db\.[a-zA-Z0-9_]+)\.(?:find|findOne|update|delete|count)\s*\(\s*(?:req\.body|req\.query|params)\b/i;
+
+    if (mongoWhereRegex.test(cleanContent) || mongoRawQueryRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => mongoWhereRegex.test(l) || mongoRawQueryRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 3020,
+        type: 'SECURITY',
+        title: 'MongoDB NoSQL Injection via $where JavaScript Evaluation or Raw Request Query Object',
+        severity: 'CRITICAL',
+        category: 'NoSQL Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Audited database query logic at ${file.path}:${lineNum}.`,
+          'Detected MongoDB query utilizing $where JavaScript evaluation or passing unsanitized HTTP request objects (req.body/req.query) directly into query filters.'
+        ],
+        remediationPrompt: `Avoid using $where JavaScript execution in MongoDB queries. Sanitize query filters with mongo-sanitize or validate request parameters using strict Zod schemas before querying.`,
+        status: 'OPEN',
+        owner: 'Backend Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [INFRA-20] CRITICAL: MongoDB NoSQL injection in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // RULE 3021 (INFRA-21): Node.js Database SQL Query String Concatenation (SQLi)
+  // =========================================================================
+  const isJsTs = lowerPath.endsWith('.js') || lowerPath.endsWith('.ts') || lowerPath.endsWith('.mjs');
+  if (isJsTs && !lowerPath.includes('test') && !lowerPath.includes('spec')) {
+    const rawSqlConcatRegex = /(?:connection|pool|db|client)\.query\s*\(\s*(?:["'][^"']*\b(?:SELECT|INSERT|UPDATE|DELETE)\b[^"']*["']\s*\+|\`[^`]*\b(?:SELECT|INSERT|UPDATE|DELETE)\b[^`]*\$\{)/i;
+    if (rawSqlConcatRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => rawSqlConcatRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `real-find-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 3021,
+        type: 'SECURITY',
+        title: 'SQL Injection: String Concatenation in Node.js Database Client Query',
+        severity: 'CRITICAL',
+        category: 'SQL Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet,
+        reproductionSteps: [
+          `Scanned database query execution at ${file.path}:${lineNum}.`,
+          'Detected SQL statement constructed via dynamic string concatenation or template literals rather than parameterized queries ($1, ?).'
+        ],
+        remediationPrompt: `Use parameterized queries: pool.query('SELECT * FROM users WHERE id = $1', [userId]) or use an ORM with automatic query parameter escaping.`,
+        status: 'OPEN',
+        owner: 'Backend Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [INFRA-21] CRITICAL: Node.js SQL injection in ${file.path}:${lineNum}`);
+    }
+  }
+
   return { findings, logs };
 }

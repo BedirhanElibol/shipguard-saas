@@ -337,13 +337,12 @@ export const ComparisonTable: React.FC = () => {
                   </th>
 
                   {/* Pro Plan Header */}
-                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-white w-[22%] align-bottom bg-white/[0.03] border-x border-amber-500/20 relative">
-                    <div className="absolute -top-px left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]" />
+                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-white w-[22%] align-bottom bg-white/[0.03] border-x border-white/20 relative">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-amber-400 uppercase tracking-widest">Pro</span>
+                        <span className="text-xs font-extrabold text-white uppercase tracking-widest">Pro</span>
                         {isLoggedIn && currentTier === 'Pro' ? (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1">
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white px-2 py-0.5 rounded border border-white/20 flex items-center gap-1">
                             <span>Active Plan</span>
                           </span>
                         ) : isLoggedIn && currentTier === 'Enterprise' ? (
@@ -351,7 +350,7 @@ export const ComparisonTable: React.FC = () => {
                             Included
                           </span>
                         ) : (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300 px-2 py-0.5 rounded border border-white/20">
                             Recommended
                           </span>
                         )}
@@ -367,7 +366,7 @@ export const ComparisonTable: React.FC = () => {
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                            className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                           >
                             <span>Manage at Polar</span>
                             <ExternalLink size={12} />
@@ -385,7 +384,7 @@ export const ComparisonTable: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSelectPlan('Pro')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 text-xs font-extrabold font-mono transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(245,158,11,0.25)] cursor-pointer"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white hover:bg-zinc-200 text-black text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                         >
                           <span>Upgrade to Pro ($19)</span>
                           <ArrowRight size={13} />
@@ -395,17 +394,16 @@ export const ComparisonTable: React.FC = () => {
                   </th>
 
                   {/* Enterprise Plan Header */}
-                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-zinc-300 w-[22%] align-bottom border-l border-white/10 relative">
-                    <div className="absolute -top-px left-0 right-0 h-0.5 bg-gradient-to-r from-sky-500 via-sky-400 to-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.3)]" />
+                  <th className="p-5 sm:p-6 text-xs font-mono tracking-wider text-zinc-300 w-[22%] align-bottom border-l border-white/10">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-sky-400 uppercase tracking-widest">Enterprise</span>
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Enterprise</span>
                         {isLoggedIn && currentTier === 'Enterprise' ? (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-sky-500/15 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30 flex items-center gap-1">
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-white px-2 py-0.5 rounded border border-white/20 flex items-center gap-1">
                             <span>Active Plan</span>
                           </span>
                         ) : isLoggedIn && currentTier === 'Pro' ? (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-sky-500/15 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30">
+                          <span className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300 px-2 py-0.5 rounded border border-white/20">
                             Upgrade
                           </span>
                         ) : null}
@@ -421,7 +419,7 @@ export const ComparisonTable: React.FC = () => {
                             href="https://polar.sh/purchases"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                            className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                           >
                             <span>Manage at Polar</span>
                             <ExternalLink size={12} />
@@ -432,7 +430,7 @@ export const ComparisonTable: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSelectPlan('Enterprise')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-200 hover:text-white text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-extrabold font-mono transition-colors flex items-center justify-center gap-1.5 shadow cursor-pointer"
                         >
                           <span>Upgrade to Enterprise ($99)</span>
                           <ArrowRight size={13} />
@@ -441,7 +439,7 @@ export const ComparisonTable: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSelectPlan('Enterprise')}
-                          className="mt-2 w-full py-2 px-3 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-200 hover:text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="mt-2 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <span>Deploy Enterprise ($99)</span>
                           <ArrowRight size={13} />

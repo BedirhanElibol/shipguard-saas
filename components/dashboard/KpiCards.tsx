@@ -32,12 +32,12 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {/* Scorecard 1: Overall Readiness Score */}
-      <div className="bg-[#141416] border-t border-t-amber-500/40 border-x border-b border-white/10 rounded-xl p-3.5 sm:p-5 flex flex-col justify-between relative overflow-hidden group shadow-[0_0_20px_rgba(245,158,11,0.03)]">
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-3.5 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <span className="text-[0.62rem] sm:text-[0.68rem] font-mono font-semibold text-[#A1A1AA] tracking-wider uppercase truncate">
             OVERALL READINESS
           </span>
-          <Activity size={14} className="text-amber-400 shrink-0" />
+          <Activity size={14} className="text-white/80 shrink-0" />
         </div>
 
         <div className="flex items-baseline gap-1.5 sm:gap-2">
@@ -47,7 +47,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
                 ? 'text-[#EF4444]'
                 : project.readinessScore < 85
                 ? 'text-[#F59E0B]'
-                : 'text-amber-300'
+                : 'text-white'
             }`}
           >
             <NumberFlow value={project.readinessScore} />
@@ -63,7 +63,7 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
                 ? 'bg-[#EF4444]'
                 : project.readinessScore < 85
                 ? 'bg-[#F59E0B]'
-                : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                : 'bg-white'
             }`}
             style={{ width: `${project.readinessScore}%` }}
           />
@@ -86,13 +86,13 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
       {/* Scorecard 2: Security Pre-Flight */}
       <div
         onClick={() => onNavigatePillar('security')}
-        className="bg-[#141416] border-t border-t-rose-500/40 border-x border-b border-white/10 rounded-xl hover:border-rose-500/40 p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group shadow-[0_0_20px_rgba(244,63,94,0.02)]"
+        className="bg-[#141414] border border-white/10 rounded-xl hover:border-white/20 p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group"
       >
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <span className="text-[0.62rem] sm:text-[0.68rem] font-mono font-semibold text-[#A1A1AA] tracking-wider uppercase truncate">
             SECURITY CLEARANCE
           </span>
-          <ShieldCheck size={14} className="text-rose-400 group-hover:scale-105 transition-transform shrink-0" />
+          <ShieldCheck size={14} className="text-white/80 group-hover:scale-105 transition-transform shrink-0" />
         </div>
 
         <div className="flex items-baseline gap-1.5 sm:gap-2">
@@ -104,14 +104,14 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
 
         <div className="w-full h-1 bg-white/[0.06] rounded-full mt-2 sm:mt-3 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-rose-600 to-amber-500 shadow-[0_0_8px_rgba(244,63,94,0.3)] transition-all duration-700 rounded-full"
+            className="h-full bg-white transition-all duration-700 rounded-full"
             style={{ width: `${Math.max(0, Math.round(((23 - Math.min(23, criticals + highs)) / 23) * 100))}%` }}
           />
         </div>
 
         <div className="text-[0.68rem] sm:text-[0.72rem] text-[#EF4444] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono">
           <span className="truncate">{criticals + highs} Open Risks</span>
-          <span className="text-[0.68rem] text-rose-300 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+          <span className="text-[0.68rem] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
             Inspect &rarr;
           </span>
         </div>
@@ -120,17 +120,17 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
       {/* Scorecard 3: Design & UX Polish */}
       <div
         onClick={() => onNavigatePillar('vibepolish')}
-        className="bg-[#141416] border-t border-t-sky-500/40 border-x border-b border-white/10 rounded-xl hover:border-sky-500/40 p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group shadow-[0_0_20px_rgba(56,189,248,0.02)]"
+        className="bg-[#141414] border border-white/10 rounded-xl hover:border-white/20 p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group"
       >
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <span className="text-[0.62rem] sm:text-[0.68rem] font-mono font-semibold text-[#A1A1AA] tracking-wider uppercase truncate">
             DESIGN &amp; UX POLISH
           </span>
-          <Palette size={14} className="text-sky-400 group-hover:scale-105 transition-transform shrink-0" />
+          <Palette size={14} className="text-white/80 group-hover:scale-105 transition-transform shrink-0" />
         </div>
 
         <div className="flex items-baseline gap-1.5 sm:gap-2">
-          <span className="text-2xl sm:text-3xl font-extrabold text-sky-200 font-mono">
+          <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
             <NumberFlow value={uiPercent} />
           </span>
           <span className="text-[10px] sm:text-xs font-mono text-[#A1A1AA]">%</span>
@@ -138,14 +138,14 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
 
         <div className="w-full h-1 bg-white/[0.06] rounded-full mt-2 sm:mt-3 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-sky-600 to-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.3)] transition-all duration-700 rounded-full"
+            className="h-full bg-white transition-all duration-700 rounded-full"
             style={{ width: `${uiPercent}%` }}
           />
         </div>
 
-        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openUiCliches > 0 ? 'text-[#F59E0B]' : 'text-emerald-400'}`}>
-          <span className="truncate">{openUiCliches > 0 ? `${openUiCliches} UI Risks` : 'Cleared (Passed)'}</span>
-          <span className="text-[0.68rem] text-sky-300 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openUiCliches > 0 ? 'text-[#F59E0B]' : 'text-zinc-400'}`}>
+          <span className="truncate">{openUiCliches > 0 ? `${openUiCliches} UI Risks` : 'Cleared'}</span>
+          <span className="text-[0.68rem] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
             Inspect &rarr;
           </span>
         </div>
@@ -154,17 +154,17 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
       {/* Scorecard 4: Master Quality Matrix */}
       <div
         onClick={() => onNavigatePillar('aimaster')}
-        className="bg-[#141416] border-t border-t-blue-500/40 border-x border-b border-white/10 rounded-xl hover:border-blue-500/40 p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group shadow-[0_0_20px_rgba(59,130,246,0.02)]"
+        className="bg-[#141414] border border-white/10 rounded-xl hover:border-white/20 p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group"
       >
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <span className="text-[0.62rem] sm:text-[0.68rem] font-mono font-semibold text-[#A1A1AA] tracking-wider uppercase truncate">
             QUALITY MATRIX
           </span>
-          <Layers size={14} className="text-blue-400 group-hover:scale-105 transition-transform shrink-0" />
+          <Layers size={14} className="text-white/80 group-hover:scale-105 transition-transform shrink-0" />
         </div>
 
         <div className="flex items-baseline gap-1.5 sm:gap-2">
-          <span className="text-2xl sm:text-3xl font-extrabold text-blue-200 font-mono">
+          <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
             <NumberFlow value={slopPercent} />
           </span>
           <span className="text-[10px] sm:text-xs font-mono text-[#A1A1AA]">%</span>
@@ -172,14 +172,14 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
 
         <div className="w-full h-1 bg-white/[0.06] rounded-full mt-2 sm:mt-3 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 shadow-[0_0_8px_rgba(59,130,246,0.3)] transition-all duration-700 rounded-full"
+            className="h-full bg-white transition-all duration-700 rounded-full"
             style={{ width: `${slopPercent}%` }}
           />
         </div>
 
-        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openSlop > 0 ? 'text-[#F59E0B]' : 'text-emerald-400'}`}>
-          <span className="truncate">{openSlop > 0 ? `${openSlop} Slop Rules` : 'Cleared (Passed)'}</span>
-          <span className="text-[0.68rem] text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+        <div className={`text-[0.68rem] sm:text-[0.72rem] font-bold mt-2 sm:mt-3 flex items-center justify-between font-mono ${openSlop > 0 ? 'text-[#F59E0B]' : 'text-zinc-400'}`}>
+          <span className="truncate">{openSlop > 0 ? `${openSlop} Slop Rules` : 'Cleared'}</span>
+          <span className="text-[0.68rem] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
             Inspect &rarr;
           </span>
         </div>

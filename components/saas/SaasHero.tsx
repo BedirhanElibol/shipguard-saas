@@ -86,11 +86,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
   ];
 
   return (
-    <section className="relative min-h-[90vh] flex flex-col justify-start pt-28 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10 overflow-hidden">
-      {/* Obsidian Amber & Cyber Blue Ambient Atmospheres */}
-      <div className="absolute top-28 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-amber-500/[0.07] blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute top-72 right-1/4 w-[400px] h-[280px] bg-sky-500/[0.05] blur-[130px] rounded-full pointer-events-none" />
-
+    <section className="relative min-h-[90vh] flex flex-col justify-start pt-28 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10">
       <div className="relative z-10 max-w-6xl mx-auto w-full flex flex-col items-center text-center">
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
@@ -99,7 +95,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#EDEDED] tracking-tight leading-[1.06] max-w-5xl mb-6"
         >
           The Pre-Flight Release Gate for <br className="hidden sm:inline" />
-          <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent">Modern Web &amp; Cloud Applications.</span>
+          <span className="text-white">Modern Web &amp; Cloud Applications.</span>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 12 }}
@@ -119,24 +115,24 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
         >
           <form 
             onSubmit={handleStartScan}
-            className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-xl bg-[#141416]/95 border border-white/15 shadow-[0_0_35px_rgba(245,158,11,0.06)] focus-within:border-amber-500/50 backdrop-blur-xl transition-all"
+            className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-xl bg-[#141414] border border-white/15 shadow-2xl focus-within:border-white/40 transition-all"
           >
             <div className="flex items-center gap-2.5 px-3 py-2 flex-1 min-w-0">
-              <Terminal size={18} className="text-amber-400 shrink-0" />
+              <Terminal size={18} className="text-zinc-400 shrink-0" />
               <span className="text-xs font-mono text-zinc-500 hidden sm:inline">github.com/</span>
               <input
                 type="text"
                 value={repoInput}
                 onChange={(e) => setRepoInput(e.target.value)}
                 placeholder="owner/repository or public git URL"
-                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/30 rounded px-1"
+                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded px-1"
                 aria-label="GitHub Repository to Scan"
               />
             </div>
             <button
               type="submit"
               disabled={isScanning}
-              className="px-6 py-3 rounded-lg text-xs font-bold font-mono uppercase tracking-wider bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 transition-all flex items-center justify-center gap-2 shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-6 py-3 rounded-lg text-xs font-bold font-mono uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <span>Scan Repository</span>
               <ArrowRight size={14} />
@@ -152,8 +148,8 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                 title={`Run instant audit on ${r.value}`}
                 className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
                   repoInput === r.value
-                    ? 'border-amber-500/50 bg-amber-500/15 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
-                    : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-sky-300 hover:border-sky-500/40 hover:bg-sky-500/5'
+                    ? 'border-white/40 bg-white/10 text-white shadow-sm'
+                    : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/30'
                 }`}
               >
                 <span>{r.label}</span>
@@ -166,11 +162,11 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-4 mb-16 text-xs text-zinc-300 font-mono"
+          className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-4 mb-16 text-xs text-zinc-400 font-mono"
         >
-          <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/10 text-zinc-300">Zero-Retention Privacy (Code Never Stored)</span>
-          <span className="px-3 py-1 rounded-full bg-sky-500/[0.06] border border-sky-500/20 text-sky-300">7,850+ Deep Web &amp; Cloud Rules</span>
-          <span className="px-3 py-1 rounded-full bg-amber-500/[0.06] border border-amber-500/20 text-amber-300">In-Memory Stream Evaluation</span>
+          <span>Zero-Retention Privacy (Code Never Stored)</span>
+          <span>7,850+ Deep Web &amp; Cloud Rules</span>
+          <span>In-Memory Stream Evaluation</span>
         </motion.div>
 
         {/* Hero Showcase Centerpiece: Real Application State (dashboard_overview.png) */}
@@ -178,7 +174,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="w-full max-w-5xl relative rounded-2xl border-t border-t-amber-500/40 border-x border-b border-white/15 bg-[#121214] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.9),0_0_50px_rgba(245,158,11,0.06)] overflow-hidden text-left"
+          className="w-full max-w-5xl relative rounded-2xl border border-white/15 bg-[#121212] shadow-2xl overflow-hidden text-left"
         >
           {/* Browser Window Chrome Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-[#0E0E10] border-b border-white/10">
@@ -193,7 +189,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-white/10 text-zinc-200 border border-white/15">
                 <span>Clearance: Passed (94/100)</span>
               </span>
               <button
@@ -201,7 +197,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                   if (onOpenDashboard) onOpenDashboard();
                   else router.push('/dashboard');
                 }}
-                className="text-xs font-mono text-zinc-300 hover:text-amber-300 flex items-center gap-1 transition-colors cursor-pointer"
+                className="text-xs font-mono text-zinc-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <span>Open Dashboard</span>
                 <ExternalLink size={12} />

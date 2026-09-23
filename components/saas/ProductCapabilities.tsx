@@ -35,7 +35,7 @@ export const ProductCapabilities: React.FC = () => {
   const capabilities: ProductCapability[] = [
     {
       id: 'rules',
-      badge: '01 // RULE TAXONOMY',
+      badge: 'RULE TAXONOMY',
       title: 'Exhaustive Pre-Flight Release Rules',
       subtitle: 'Continuous verification across OWASP Top 10, database isolation, and cloud architecture.',
       description:
@@ -57,7 +57,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'findings',
-      badge: '02 // SURGICAL AST TRIAGE',
+      badge: 'SURGICAL AST TRIAGE',
       title: 'Line-by-Line Vulnerability Triage & Context',
       subtitle: 'Pinpoint vulnerabilities down to the exact line number with 1-click AI remediation prompts.',
       description:
@@ -79,7 +79,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'sandbox',
-      badge: '03 // ZERO-INSTALL REPL',
+      badge: 'ZERO-INSTALL REPL',
       title: 'Interactive In-Memory AST Sandbox',
       subtitle: 'Test production code snippets against clearance rules in live browser memory.',
       description:
@@ -101,7 +101,7 @@ export const ProductCapabilities: React.FC = () => {
     },
     {
       id: 'profiler',
-      badge: '04 // WEB VITALS & INFRASTRUCTURE',
+      badge: 'WEB VITALS & INFRASTRUCTURE',
       title: 'Deep Bundle & Core Web Vitals Profiler',
       subtitle: 'Identify layout shifts, unoptimized asset weights, and container resource limits.',
       description:
@@ -156,10 +156,6 @@ export const ProductCapabilities: React.FC = () => {
               >
                 {/* Text & Architecture Pills Column (5 cols) */}
                 <div className="w-full lg:w-5/12 flex flex-col gap-6">
-                  <div className="inline-flex items-center gap-2 text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">
-                    <span>{capability.badge}</span>
-                  </div>
-
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
                     {capability.title}
                   </h3>

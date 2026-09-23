@@ -160,13 +160,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'SECURITY' ? 'ALL' : 'SECURITY')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'SECURITY'
-              ? 'bg-rose-500/10 border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.1)]'
-              : 'bg-[#141416] border-white/10 hover:border-rose-500/30 hover:bg-white/[0.02]'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-rose-400" />
+              <ShieldCheck size={14} className="text-zinc-400" />
               <span>Security &amp; OWASP</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -175,7 +175,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
               {findings.filter(f => f.type === 'SECURITY').length}
             </span>
-            <span className="text-[10px] text-rose-400 font-mono font-bold">
+            <span className="text-[10px] text-zinc-400 font-mono">
               {findings.filter(f => f.type === 'SECURITY' && f.severity === 'CRITICAL').length} Critical
             </span>
           </div>
@@ -190,13 +190,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'INFRA_DATABASE' ? 'ALL' : 'INFRA_DATABASE')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'INFRA_DATABASE'
-              ? 'bg-sky-500/10 border-sky-500/40 shadow-[0_0_15px_rgba(56,189,248,0.1)]'
-              : 'bg-[#141416] border-white/10 hover:border-sky-500/30 hover:bg-white/[0.02]'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-              <Database size={14} className="text-sky-400" />
+              <Database size={14} className="text-zinc-400" />
               <span>Database &amp; Storage</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -205,7 +205,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
               {findings.filter(f => f.type === 'INFRA_DATABASE' || safeLower(f.category).includes('sql') || safeLower(f.category).includes('rls') || safeLower(f.category).includes('database')).length}
             </span>
-            <span className="text-[10px] text-sky-400 font-mono font-bold">
+            <span className="text-[10px] text-zinc-400 font-mono">
               Postgres &amp; SQL
             </span>
           </div>
@@ -220,13 +220,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'LEGAL_COMPLIANCE' ? 'ALL' : 'LEGAL_COMPLIANCE')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'LEGAL_COMPLIANCE'
-              ? 'bg-amber-500/10 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-              : 'bg-[#141416] border-white/10 hover:border-amber-500/30 hover:bg-white/[0.02]'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-              <Server size={14} className="text-amber-400" />
+              <Server size={14} className="text-zinc-400" />
               <span>Legal &amp; Privacy</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -235,7 +235,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
               {findings.filter(f => f.type === 'LEGAL_COMPLIANCE').length}
             </span>
-            <span className="text-[10px] text-amber-400 font-mono font-bold">
+            <span className="text-[10px] text-zinc-400 font-mono">
               GDPR &amp; CCPA
             </span>
           </div>
@@ -250,13 +250,13 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           onClick={() => setPillarFilter(pillarFilter === 'VIBEPOLISH' ? 'ALL' : 'VIBEPOLISH')}
           className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
             pillarFilter === 'VIBEPOLISH'
-              ? 'bg-teal-500/10 border-teal-500/40 shadow-[0_0_15px_rgba(20,184,166,0.1)]'
-              : 'bg-[#141416] border-white/10 hover:border-teal-500/30 hover:bg-white/[0.02]'
+              ? 'bg-white/[0.08] border-white/30 shadow-sm'
+              : 'bg-[#0E0E10] border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-              <Sliders size={14} className="text-teal-400" />
+              <Sliders size={14} className="text-zinc-400" />
               <span>UX &amp; VibePolish</span>
             </span>
             <span className="text-[10px] font-mono text-zinc-500 uppercase">Pillar</span>
@@ -265,7 +265,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
             <span className="text-xl sm:text-2xl font-extrabold font-mono text-white">
               {findings.filter(f => f.type === 'VIBEPOLISH').length}
             </span>
-            <span className="text-[10px] text-teal-400 font-mono font-bold">
+            <span className="text-[10px] text-zinc-400 font-mono">
               WCAG 2.2
             </span>
           </div>
@@ -416,14 +416,14 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
               onClick={() => setPillarFilter(tab.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? 'bg-sky-500/15 text-sky-200 border border-sky-500/40 shadow-[0_0_12px_rgba(56,189,248,0.2)] font-extrabold'
+                  ? 'bg-white text-black font-extrabold shadow-sm'
                   : 'bg-white/5 text-[#A1A1AA] hover:text-white hover:bg-white/10 border border-white/5'
               }`}
             >
               <span>{tab.label}</span>
               <span
                 className={`px-1.5 py-0.5 rounded text-[10px] ${
-                  isActive ? 'bg-sky-500/25 text-sky-300 font-bold' : 'bg-white/10 text-[#EDEDED]'
+                  isActive ? 'bg-black/15 text-black font-bold' : 'bg-white/10 text-[#EDEDED]'
                 }`}
               >
                 {count}

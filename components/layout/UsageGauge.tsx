@@ -47,9 +47,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
             className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase border ${
               isFree
                 ? 'bg-white/5 text-zinc-400 border-white/10'
-                : isPro
-                ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                : 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                : 'bg-white/10 text-white border-white/20'
             }`}
           >
             {isFree ? 'Starter' : isPro ? 'Verified Pro' : 'Dedicated'}
@@ -62,7 +60,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
             <div className="flex flex-col gap-1.5 bg-[#0A0A0E] p-2.5 rounded-lg border border-white/10">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-zinc-400 font-medium">Monthly Audits</span>
-                <span className={`font-bold tabular-nums ${scansUsed >= 3 ? 'text-rose-400' : 'text-amber-300'}`}>
+                <span className={`font-bold tabular-nums ${scansUsed >= 3 ? 'text-rose-400' : 'text-white'}`}>
                   {scansUsed} / 3 Used
                 </span>
               </div>
@@ -73,7 +71,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
                       ? 'bg-rose-500'
                       : scansUsed === 2
                       ? 'bg-amber-500'
-                      : 'bg-gradient-to-r from-sky-500 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                      : 'bg-white'
                   }`}
                   style={{ width: `${scanPercentage}%` }}
                 />
@@ -127,7 +125,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
             <button
               type="button"
               onClick={() => onOpenCheckout?.('Pro')}
-              className="w-full py-2.5 px-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 transition-all font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.25)] mt-1"
+              className="w-full py-2.5 px-3 rounded-lg bg-white text-black hover:bg-neutral-200 transition-all font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md mt-1"
             >
               <span>Upgrade to Pro ($19/mo)</span>
               <ArrowUpRight size={13} />
@@ -145,27 +143,27 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-xs text-amber-200 font-bold bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
-              <CheckCircle2 size={14} className="shrink-0 text-amber-400" />
+            <div className="flex items-center gap-2 text-xs text-white font-bold bg-white/5 p-2.5 rounded-lg border border-white/10">
+              <CheckCircle2 size={14} className="shrink-0 text-zinc-400" />
               <span>Unlimited Production Clearance</span>
             </div>
 
             <div className="flex flex-col gap-2 text-[11px] text-zinc-400">
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span>Monthly Scans</span>
-                <span className="font-bold text-amber-300">Unlimited</span>
+                <span className="font-bold text-white">Unlimited</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span>Connected Repositories</span>
-                <span className="font-bold text-amber-300">Unlimited</span>
+                <span className="font-bold text-white">Unlimited</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-white/5">
                 <span>Private Codebase Audits</span>
-                <span className="font-bold text-amber-300">Unlocked</span>
+                <span className="font-bold text-white">Unlocked</span>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>PDF Release Certificate</span>
-                <span className="font-bold text-amber-300">Included</span>
+                <span className="font-bold text-white">Included</span>
               </div>
             </div>
 
@@ -173,7 +171,7 @@ export const UsageGauge: React.FC<UsageGaugeProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenCheckout?.('Enterprise')}
-                className="w-full mt-1 py-2 px-2.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[10px] font-bold text-sky-200 hover:text-white flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                className="w-full mt-1 py-2 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold text-zinc-300 hover:text-white flex items-center justify-center gap-1 transition-colors cursor-pointer"
               >
                 <span>Need SLA? View Enterprise ($99/mo)</span>
                 <ArrowUpRight size={11} />

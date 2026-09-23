@@ -84,7 +84,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
             <span>OPERATIONAL ARCHITECTURE</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#EDEDED] tracking-tight">
-            How Zelsis Protects Production in 3 Steps
+            How Zelsis Protects Production
           </h2>
           <p className="text-base sm:text-lg text-[#A1A1AA] leading-relaxed">
             Eliminate human oversight. Our deterministic pipeline delivers comprehensive release gate verification in the time it takes to review a single pull request line.
@@ -95,7 +95,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {steps.map((step, idx) => (
             <button
-              key={step.number}
+              key={step.badge}
               onClick={() => setActiveStep(idx)}
               className={`p-6 rounded-xl text-left border transition-all flex flex-col justify-between gap-4 cursor-pointer ${
                 activeStep === idx
@@ -104,10 +104,11 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
               }`}
             >
               <div className="flex items-center justify-between w-full">
-                <span className={`text-2xl font-mono font-extrabold ${activeStep === idx ? 'text-white' : 'text-zinc-600'}`}>
-                  {step.number}
-                </span>
-                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-white/[0.04] text-zinc-400 border border-white/5">
+                <span className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${
+                  activeStep === idx 
+                    ? 'bg-white/10 text-white border-white/20 font-bold' 
+                    : 'bg-white/[0.04] text-zinc-400 border-white/5'
+                }`}>
                   {step.badge}
                 </span>
               </div>
@@ -128,7 +129,7 @@ $ zelsis evaluate --repo github.com/enterprise/payment-gateway
           {/* Left Column: Technical Context & Highlights (6 cols) */}
           <div className="lg:col-span-6 flex flex-col gap-6">
             <div className="text-xs font-mono uppercase tracking-wider text-zinc-400">
-              <span>STEP {steps[activeStep].number} DEEP DIVE</span>
+              <span>{steps[activeStep].badge}</span>
             </div>
 
             <h3 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">

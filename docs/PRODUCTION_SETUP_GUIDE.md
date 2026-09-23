@@ -51,7 +51,7 @@ This guide details the exact, step-by-step configuration required across **Supab
 
 ### Step A: Add Webhook Endpoint
 1. Navigate to your Polar Developer Settings:  
-   👉 **[Polar Webhooks Settings](https://polar.sh/dashboard/bedirhan-elibol/settings)**
+   👉 **[Polar Webhooks Settings](https://polar.sh/dashboard/_/settings)** (Developers -> Webhooks)
 2. Click **Add Endpoint**.
 3. Set **Endpoint URL** to:
    ```text

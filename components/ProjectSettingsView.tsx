@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '@/data/schema';
 import { UserProfile } from '@/components/auth/AuthModal';
-import { Settings, Key, Save, Trash2, X, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Settings, Key, Save, Trash2, X, Lock, User, Eye, EyeOff, Building2, Users, Globe, Sliders } from 'lucide-react';
 import { CheckCircle2, ShieldCheck, ShieldAlert, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Loader2, CreditCard, ArrowRight, Check, Calendar, ExternalLink } from 'lucide-react';
 
@@ -252,6 +252,35 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
     }
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 2500);
+  };
+
+  // Multi-Org & Enterprise Team State (F-47)
+  const [orgName, setOrgName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('zelsis_org_name') || (user?.tier === 'Enterprise' ? 'Acme Global SecOps' : 'Personal Team');
+    }
+    return 'Personal Team';
+  });
+  const [orgDomain, setOrgDomain] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('zelsis_org_domain') || 'acme.corp, secops.io';
+    }
+    return 'acme.corp, secops.io';
+  });
+  const [orgMinScore, setOrgMinScore] = useState(85);
+  const [enforceOrgGate, setEnforceOrgGate] = useState(true);
+  const [orgSaved, setOrgSaved] = useState(false);
+
+  const handleSaveOrgSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('zelsis_org_name', orgName);
+      localStorage.setItem('zelsis_org_domain', orgDomain);
+      localStorage.setItem('zelsis_org_min_score', String(orgMinScore));
+      localStorage.setItem('zelsis_org_enforce_gate', String(enforceOrgGate));
+    }
+    setOrgSaved(true);
+    setTimeout(() => setOrgSaved(false), 2500);
   };
 
   // Danger Zone / GDPR Erasure State
@@ -829,6 +858,122 @@ export const ProjectSettingsView: React.FC<ProjectSettingsViewProps> = ({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Enterprise Organization & Team Seats (F-47 Multi-Org Release Gate) */}
+      <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/20" />
+
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-center">
+              <Building2 size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-extrabold text-white">
+                  Organization &amp; Team Workspace
+                </h2>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-white/10 border border-white/20 text-zinc-200 px-2 py-0.5 rounded-full">
+                  F-47 Enterprise
+                </span>
+              </div>
+              <p className="text-xs text-[#A1A1AA] mt-0.5">
+                Configure tenant boundaries, corporate SSO domains, and organization-wide release gate policies.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold border border-white/15 bg-white/5 text-zinc-300 flex items-center gap-1.5">
+              <Users size={12} className="text-zinc-400" />
+              <span>12 / 25 Seats Active</span>
+            </span>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveOrgSettings} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-mono font-bold text-[#EDEDED] flex items-center gap-2">
+              <Building2 size={13} className="text-zinc-400" />
+              <span>Workspace / Organization Name:</span>
+            </label>
+            <input
+              aria-label="Workspace Organization Name"
+              type="text"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+              placeholder="Acme Corporation"
+              className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-mono font-bold text-[#EDEDED] flex items-center gap-2">
+              <Globe size={13} className="text-zinc-400" />
+              <span>SSO Allowed Email Domains:</span>
+            </label>
+            <input
+              aria-label="SSO Allowed Email Domains"
+              type="text"
+              value={orgDomain}
+              onChange={(e) => setOrgDomain(e.target.value)}
+              placeholder="acme.com, security.acme.com"
+              className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono outline-none focus-visible:ring-1 focus-visible:ring-white/20 focus:border-white/20"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-mono font-bold text-[#EDEDED] flex items-center gap-2">
+              <Sliders size={13} className="text-zinc-400" />
+              <span>Org-Wide Minimum Gate Score:</span>
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                aria-label="Org-Wide Minimum Gate Score"
+                type="range"
+                min="70"
+                max="100"
+                step="5"
+                value={orgMinScore}
+                onChange={(e) => setOrgMinScore(Number(e.target.value))}
+                className="flex-1 accent-white cursor-pointer"
+              />
+              <span className="text-xs font-mono font-extrabold text-white bg-white/10 px-2.5 py-1 rounded-lg border border-white/15 tabular-nums">
+                {orgMinScore}/100
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-end gap-2">
+            <label className="text-xs font-mono font-bold text-[#EDEDED] flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={enforceOrgGate}
+                onChange={(e) => setEnforceOrgGate(e.target.checked)}
+                className="rounded border-white/20 bg-[#0A0A0A] text-white focus:ring-0 focus-visible:ring-1 focus-visible:ring-white/20"
+              />
+              <span>Enforce Organization Security Policies across all repositories</span>
+            </label>
+            <p className="text-[11px] text-zinc-500 font-mono">
+              Blocks deployment if any sub-project fails SCA license hygiene or critical CVE gates.
+            </p>
+          </div>
+
+          <div className="md:col-span-2 flex items-center justify-between pt-4 border-t border-white/10 flex-wrap gap-3">
+            <span className="text-xs text-zinc-400 font-mono">
+              {orgSaved ? 'Organization settings saved successfully.' : 'Applies to all connected repos & team members.'}
+            </span>
+            <button
+              type="submit"
+              disabled={orgSaved}
+              className="min-h-[44px] px-5 py-2 text-xs font-bold font-mono uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-md disabled:opacity-50 cursor-pointer"
+            >
+              {orgSaved ? <CheckCircle2 size={14} /> : <Save size={14} />}
+              <span>{orgSaved ? 'Saved!' : 'Save Org Policy'}</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Settings Form */}

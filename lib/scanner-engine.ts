@@ -106,6 +106,7 @@ import { evaluateServerlessVectorCacheRules } from './rules/serverless-vector-ca
 import { evaluateScaDependencyRules } from './rules/sca-dependency-rules';
 import { evaluateStrixPentestRules } from './rules/strix-pentest-rules';
 import { evaluateNoAiSlopRules } from './rules/no-ai-slop-rules';
+import { evaluateLlmCostGovernanceRules } from './rules/llm-cost-governance-rules';
 
 export interface CodeFile {
   path: string;
@@ -3678,6 +3679,17 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
       }
     }
     logs.push(...slopResult.logs);
+
+    // Wave 35: FinOps, LLM Cost Governance & Denial-of-Wallet Gate (LLM-COST-01 to LLM-COST-06, Rule IDs 8071-8076)
+    const llmCostCounter = { count: findingCounter };
+    const llmCostResult = evaluateLlmCostGovernanceRules(file, lines, cleanContent, llmCostCounter);
+    findingCounter = llmCostCounter.count;
+    for (const item of llmCostResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...llmCostResult.logs);
 
     const fileFindingsCount = findings.length - startFindingsCount;
     if (fileFindingsCount === 0) {

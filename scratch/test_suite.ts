@@ -17,7 +17,7 @@ import { generateSarifReport } from '../lib/report-exporter';
 import { validateSafeTargetUrl } from '../lib/ssrf-guard';
 import { getClientIp } from '../lib/rate-limiter';
 import { generateLicenseKey, verifyLicenseKey } from '../lib/stripe-checkout';
-import { Project } from '../data/schema';
+import { Project, OrganizationSchema } from '../data/schema';
 
 let passedTests = 0;
 let totalTests = 0;
@@ -206,6 +206,85 @@ async function runAllTests() {
 
   const offlineVerification = verifyLicenseKey(generatedKey);
   assert(!offlineVerification.valid && offlineVerification.reason === 'CLIENT_VERIFICATION_DEPRECATED', 'Client-side offline license elevation strictly blocked (Server authorization enforced)');
+
+  // ─── 8. FinOps & LLM Cost Governance Engine (F-47) ────────────
+  console.log('\n--- 8. Testing FinOps & LLM Cost Governance Engine (F-47) ---');
+  const aiCostFiles: CodeFile[] = [
+    {
+      path: 'app/api/chat/route.ts',
+      content: `
+        import { openai } from '@/lib/openai';
+        export async function POST(req: Request) {
+          const res = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [{ role: 'user', content: 'hello' }]
+          });
+          return Response.json(res);
+        }
+      `
+    },
+    {
+      path: 'services/indexer.ts',
+      content: `
+        async function indexDocs(chunks: string[]) {
+          const results = [];
+          for (const chunk of chunks) {
+            const emb = await openai.embeddings.create({ input: chunk, model: 'text-embedding-3-small' });
+            results.push(emb);
+          }
+          return results;
+        }
+      `
+    }
+  ];
+  const aiCostScan = await runStaticCodeScan(aiCostFiles, 'AI Cost Test Project');
+  const unboundedTokenFinding = aiCostScan.findings.find(f => f.ruleId === 8071);
+  assert(Boolean(unboundedTokenFinding), 'LLM-COST-01 flags unbounded chat completions without max_tokens');
+
+  const uncachedEmbeddingFinding = aiCostScan.findings.find(f => f.ruleId === 8073);
+  assert(Boolean(uncachedEmbeddingFinding), 'LLM-COST-03 flags vector embedding loops without caching');
+
+  // ─── 9. Python SCA CVE Drifts (F-47) ──────────────────────────
+  console.log('\n--- 9. Testing Python SCA Dependency Drifts (F-47) ---');
+  const pythonScaFiles: CodeFile[] = [
+    {
+      path: 'requirements.txt',
+      content: [
+        'jinja2==3.0.0',
+        'pyyaml==5.3.1',
+        'urllib3==1.26.15'
+      ].join('\n')
+    }
+  ];
+  const pythonScaScan = await runStaticCodeScan(pythonScaFiles, 'Python SCA Test Project');
+  const jinjaFinding = pythonScaScan.findings.find(f => f.ruleId === 7004 && f.snippet.includes('jinja2'));
+  assert(Boolean(jinjaFinding), 'SCA flags vulnerable Jinja2 (< 3.1.4, CVE-2024-34064)');
+
+  const pyyamlFinding = pythonScaScan.findings.find(f => f.ruleId === 7004 && f.snippet.includes('pyyaml'));
+  assert(Boolean(pyyamlFinding), 'SCA flags vulnerable PyYAML (< 5.4, CVE-2020-14343)');
+
+  const urllib3Finding = pythonScaScan.findings.find(f => f.ruleId === 7004 && f.snippet.includes('urllib3'));
+  assert(Boolean(urllib3Finding), 'SCA flags vulnerable Urllib3 (< 2.0.7, CVE-2023-45803)');
+
+  // ─── 10. Multi-Org Schema & Policy Enforcement (F-47) ─────────
+  console.log('\n--- 10. Testing Multi-Org Data Model & Security Policies (F-47) ---');
+  const validOrg = OrganizationSchema.parse({
+    id: 'org-acme-prod',
+    name: 'Acme Corporation',
+    slug: 'acme-corp',
+    ownerId: 'usr-admin-1',
+    planTier: 'Enterprise',
+    membersCount: 15,
+    allowedDomains: ['acme.com', 'corp.acme.com'],
+    securityPolicy: {
+      enforceOrgPolicy: true,
+      defaultMinScore: 90,
+      requireScaPassing: true,
+      blockOnCritical: true
+    }
+  });
+  assert(validOrg.planTier === 'Enterprise', 'OrganizationSchema correctly parses Enterprise tenant');
+  assert(validOrg.securityPolicy.defaultMinScore === 90, 'OrganizationSchema validates security policy enforcement');
 
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);

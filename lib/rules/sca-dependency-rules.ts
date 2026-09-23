@@ -269,6 +269,18 @@ const NPM_CVE_REGISTRY: Record<string, CveDefinition> = {
       const v = parseSemVer(ver);
       return v !== null && isLessThan(v, [6, 3, 0]);
     }
+  },
+  "express-fileupload": {
+    cveId: "CVE-2020-7699",
+    cvss: 9.8,
+    severity: "CRITICAL",
+    title: "Express-Fileupload Prototype Pollution to Remote Code Execution",
+    description: "express-fileupload prior to 1.4.0 allows remote code execution via prototype pollution in parseNested parameter parsing.",
+    safeVersion: "^1.4.0",
+    isVulnerable: (ver) => {
+      const v = parseSemVer(ver);
+      return v !== null && isLessThan(v, [1, 4, 0]);
+    }
   }
 };
 
@@ -318,8 +330,9 @@ export function evaluateScaDependencyRules(
   const isPackageJson = lowerPath.endsWith("package.json");
   const isPackageLock = lowerPath.endsWith("package-lock.json");
   const isRequirementsTxt = lowerPath.endsWith("requirements.txt");
+  const isPyprojectToml = lowerPath.endsWith("pyproject.toml");
 
-  if (!isPackageJson && !isPackageLock && !isRequirementsTxt) {
+  if (!isPackageJson && !isPackageLock && !isRequirementsTxt && !isPyprojectToml) {
     return { findings, logs };
   }
 
@@ -448,26 +461,86 @@ export function evaluateScaDependencyRules(
   }
 
   // ==========================================
-  // 2. Audit Python requirements.txt
+  // 2. Audit Python Manifests (requirements.txt & pyproject.toml)
   // ==========================================
-  if (isRequirementsTxt) {
-    const pythonCves: Record<string, { cve: string; safe: string; maxBadMajor: number; maxBadMinor: number; title: string }> = {
-      urllib3: { cve: "CVE-2023-45803", safe: ">=2.0.7", maxBadMajor: 2, maxBadMinor: 0, title: "Urllib3 Request Body Leak on Cross-Origin Redirect" },
-      flask: { cve: "CVE-2023-30861", safe: ">=2.2.5", maxBadMajor: 2, maxBadMinor: 2, title: "Flask Cookie Session Context Leakage" },
-      django: { cve: "CVE-2024-27351", safe: ">=4.2.11", maxBadMajor: 4, maxBadMinor: 2, title: "Django ReDoS in RegularExpressionValidator" },
-      requests: { cve: "CVE-2023-32681", safe: ">=2.31.0", maxBadMajor: 2, maxBadMinor: 30, title: "Requests Proxy-Authorization Header Leak" }
+  if (isRequirementsTxt || isPyprojectToml) {
+    const pythonCves: Record<
+      string,
+      {
+        cve: string;
+        safe: string;
+        title: string;
+        isVulnerable: (maj: number, min: number, patch: number) => boolean;
+      }
+    > = {
+      urllib3: {
+        cve: "CVE-2023-45803",
+        safe: ">=2.0.7",
+        title: "Urllib3 Request Body Leak on Cross-Origin Redirect",
+        isVulnerable: (maj, min, patch) => maj < 2 || (maj === 2 && min === 0 && patch < 7)
+      },
+      flask: {
+        cve: "CVE-2023-30861",
+        safe: ">=2.2.5",
+        title: "Flask Cookie Session Context Leakage",
+        isVulnerable: (maj, min, patch) => maj < 2 || (maj === 2 && min < 2) || (maj === 2 && min === 2 && patch < 5)
+      },
+      django: {
+        cve: "CVE-2024-27351",
+        safe: ">=4.2.11",
+        title: "Django ReDoS in RegularExpressionValidator",
+        isVulnerable: (maj, min, patch) => maj < 4 || (maj === 4 && min < 2) || (maj === 4 && min === 2 && patch < 11)
+      },
+      requests: {
+        cve: "CVE-2023-32681",
+        safe: ">=2.31.0",
+        title: "Requests Proxy-Authorization Header Leak",
+        isVulnerable: (maj, min) => maj < 2 || (maj === 2 && min < 31)
+      },
+      jinja2: {
+        cve: "CVE-2024-34064",
+        safe: ">=3.1.4",
+        title: "Jinja2 HTML Attribute Injection & Sandbox Bypass",
+        isVulnerable: (maj, min, patch) => maj < 3 || (maj === 3 && min < 1) || (maj === 3 && min === 1 && patch < 4)
+      },
+      pyyaml: {
+        cve: "CVE-2020-14343",
+        safe: ">=5.4",
+        title: "PyYAML Arbitrary Code Execution in FullLoader",
+        isVulnerable: (maj, min) => maj < 5 || (maj === 5 && min < 4)
+      },
+      cryptography: {
+        cve: "CVE-2023-49083",
+        safe: ">=41.0.6",
+        title: "Cryptography NULL Pointer Dereference in PKCS7 Parsing",
+        isVulnerable: (maj, min, patch) => maj < 41 || (maj === 41 && min === 0 && patch < 6)
+      },
+      werkzeug: {
+        cve: "CVE-2024-34069",
+        safe: ">=3.0.3",
+        title: "Werkzeug Infinite Loop / DoS in Multipart Parsing",
+        isVulnerable: (maj, min, patch) => maj < 3 || (maj === 3 && min === 0 && patch < 3)
+      },
+      certifi: {
+        cve: "CVE-2023-37920",
+        safe: ">=2023.7.22",
+        title: "Certifi Untrusted E-Tugra Root CA Certificates",
+        isVulnerable: (maj, min, patch) => maj < 2023 || (maj === 2023 && min < 7) || (maj === 2023 && min === 7 && patch < 22)
+      }
     };
 
     lines.forEach((line, idx) => {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) return;
       for (const [pkg, info] of Object.entries(pythonCves)) {
-        if (trimmed.toLowerCase().startsWith(pkg)) {
-          const match = trimmed.match(/==\s*([0-9]+)\.([0-9]+)/);
+        const pkgRegex = new RegExp(`(?:^|["'\\s])${pkg}(?:$|["'\\s=<>~^])`, "i");
+        if (pkgRegex.test(trimmed) || trimmed.toLowerCase().startsWith(pkg)) {
+          const match = trimmed.match(/(?:==|<=|~=|=|\^|>=|["'])\s*([0-9]+)\.([0-9]+)(?:\.([0-9]+))?/);
           if (match) {
             const major = parseInt(match[1], 10);
             const minor = parseInt(match[2], 10);
-            if (major < info.maxBadMajor || (major === info.maxBadMajor && minor < info.maxBadMinor)) {
+            const patch = match[3] ? parseInt(match[3], 10) : 0;
+            if (info.isVulnerable(major, minor, patch)) {
               findings.push({
                 id: `sca-py-${Date.now()}-${findingCounter.count++}`,
                 ruleId: 7004,
@@ -479,14 +552,15 @@ export function evaluateScaDependencyRules(
                 lineRange: `L${idx + 1}`,
                 snippet: trimmed,
                 reproductionSteps: [
-                  `Audited Python requirements manifest at ${file.path}:${idx + 1}.`,
+                  `Audited Python dependency manifest at ${file.path}:${idx + 1}.`,
                   `Detected vulnerable package '${pkg}' with version specifier '${trimmed}'.`
                 ],
-                remediationPrompt: `Pin ${pkg} to safe version '${pkg}${info.safe}' in requirements.txt.`,
+                remediationPrompt: `Pin ${pkg} to safe version '${pkg}${info.safe}' in ${isRequirementsTxt ? "requirements.txt" : "pyproject.toml"}.`,
                 status: "OPEN",
                 owner: "Backend Security Lead",
                 falsePositive: false
               });
+              logs.push(`[${new Date().toLocaleTimeString()}] [SCA PYTHON] Flagged ${info.cve} (${pkg}) in ${file.path}:${idx + 1}`);
             }
           }
         }

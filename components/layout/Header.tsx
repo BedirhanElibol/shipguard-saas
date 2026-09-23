@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Project, PlanUsageQuota, UserTier } from '@/data/schema';
-import { Play, ArrowLeft, ArrowRight, FolderGit2, LogOut, User, ChevronDown, Settings, Menu, Calendar, ExternalLink, Terminal, Shield } from 'lucide-react';
+import { Play, ArrowLeft, ArrowRight, FolderGit2, LogOut, User, ChevronDown, Settings, Menu, Calendar, ExternalLink, Terminal, Shield, Building2 } from 'lucide-react';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
@@ -47,6 +47,12 @@ export const Header: React.FC<HeaderProps> = ({
   const [activeTargetUrl, setActiveTargetUrl] = useState<string>(selectedProject.repoUrl);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [activeOrg, setActiveOrg] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('zelsis_active_org') || 'personal';
+    }
+    return 'personal';
+  });
   const userMenuRef = useRef<HTMLDivElement>(null);
   const validity = getSubscriptionValidity(user);
 
@@ -172,8 +178,28 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Project Selector Dropdown */}
+          {/* Project & Organization Selectors */}
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            {/* Organization Switcher (F-47 Multi-Org Release Gate) */}
+            <div className="hidden xl:flex items-center gap-1 px-2 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-[11px] font-mono text-zinc-300 shrink-0">
+              <Building2 size={13} className="text-zinc-400 shrink-0" />
+              <select
+                aria-label="Select Active Organization"
+                value={activeOrg}
+                onChange={(e) => {
+                  setActiveOrg(e.target.value);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('zelsis_active_org', e.target.value);
+                  }
+                }}
+                className="bg-transparent text-white font-mono text-[11px] font-bold outline-none cursor-pointer focus-visible:ring-1 focus-visible:ring-white/20"
+              >
+                <option value="personal" className="bg-[#141414] text-white">Personal Workspace</option>
+                <option value="acme-corp" className="bg-[#141414] text-white">Acme Corp [Enterprise]</option>
+                <option value="acme-security" className="bg-[#141414] text-white">Acme Security Team</option>
+              </select>
+            </div>
+
             <select
               aria-label="Select Active Project"
               value={selectedProject.id}

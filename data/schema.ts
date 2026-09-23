@@ -54,6 +54,7 @@ export const ProjectSchema = z.object({
   uiClicheCount: z.number(),
   findings: z.array(FindingSchema),
   scanHistory: z.array(z.any()).optional(),
+  organizationId: z.string().optional(),
 });
 
 export const SecurityRuleSchema = z.object({
@@ -127,4 +128,27 @@ export interface PlanUsageQuota {
   aiPromptsLimit: number;
   billingCycleReset: string;
 }
+
+export const OrganizationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  ownerId: z.string(),
+  planTier: z.enum(['Free', 'Pro', 'Enterprise']),
+  membersCount: z.number().default(1),
+  allowedDomains: z.array(z.string()).default([]),
+  securityPolicy: z.object({
+    enforceOrgPolicy: z.boolean().default(true),
+    defaultMinScore: z.number().default(85),
+    requireScaPassing: z.boolean().default(true),
+    blockOnCritical: z.boolean().default(true),
+  }).default({
+    enforceOrgPolicy: true,
+    defaultMinScore: 85,
+    requireScaPassing: true,
+    blockOnCritical: true,
+  }),
+});
+
+export type Organization = z.infer<typeof OrganizationSchema>;
 

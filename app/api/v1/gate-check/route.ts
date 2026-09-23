@@ -11,6 +11,9 @@ import { logger } from '@/lib/logger';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
 
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 function isAllowedWebhookUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
@@ -119,14 +122,38 @@ export async function POST(req: NextRequest) {
         const hash = crypto.createHash('sha256').update(apiKeyHeader).digest('hex');
         const { data: keyRow } = await adminClient
           .from('api_keys')
-          .select('user_id')
+          .select('id, user_id, expires_at')
           .eq('key_hash', hash)
           .maybeSingle();
-        if (keyRow?.user_id) {
+
+        if (keyRow) {
+          // F-30: Enforce API Key expiration check
+          if (keyRow.expires_at && new Date(keyRow.expires_at).getTime() < Date.now()) {
+            return NextResponse.json(
+              {
+                status: 'ERROR',
+                gateStatus: 'FAILED',
+                error: 'Unauthorized: The provided API key has expired. Please generate a new key in Project Settings.',
+                timestamp: new Date().toISOString()
+              },
+              { status: 401 }
+            );
+          }
+
           authenticatedUserId = keyRow.user_id;
+
+          // F-30: Update last_used_at telemetry
+          adminClient
+            .from('api_keys')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('id', keyRow.id)
+            .then(
+              () => {},
+              (err) => logger.warn('[Gate Check] Notice updating last_used_at:', err)
+            );
         }
-      } catch {
-        // Non-blocking API key parse
+      } catch (keyErr) {
+        logger.warn('[Gate Check] API Key validation error:', keyErr);
       }
     }
 
@@ -156,10 +183,12 @@ export async function POST(req: NextRequest) {
             );
           }
 
+          // F-31: Optimistic concurrency control prevents race condition during simultaneous scan requests
           await adminClient
             .from('subscriptions')
             .update({ scans_used_this_month: scansUsed + 1, updated_at: new Date().toISOString() })
-            .eq('user_id', authenticatedUserId);
+            .eq('user_id', authenticatedUserId)
+            .lte('scans_used_this_month', scansUsed);
         }
       } catch (subErr) {
         logger.warn('[Gate Check] Quota check notice:', subErr);

@@ -59,7 +59,7 @@ function applySecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   res.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com; img-src 'self' data: https:; font-src 'self' data: https://api.fontshare.com https://cdn.fontshare.com; connect-src 'self' https://*.supabase.co https://api.polar.sh https://api.github.com https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://api.fontshare.com https://cdn.fontshare.com https://fonts.gstatic.com https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://api.polar.sh https://api.github.com https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
   return res;
 }
@@ -96,7 +96,11 @@ export function middleware(req: NextRequest) {
 
     // Handle OPTIONS preflight requests
     if (req.method === 'OPTIONS') {
-      const isAllowed = !origin || ALLOWED_ORIGINS.has(origin);
+      const isAllowed = origin ? ALLOWED_ORIGINS.has(origin) : false;
+      if (origin && !isAllowed) {
+        return new NextResponse(null, { status: 403 });
+      }
+
       const preflightHeaders = new Headers({
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, polar-webhook-signature',

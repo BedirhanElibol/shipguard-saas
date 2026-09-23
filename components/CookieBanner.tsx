@@ -47,7 +47,7 @@ export const CookieBanner: React.FC = () => {
           </div>
           <button
             onClick={handleDecline}
-            className="text-[#94A3B8] hover:text-[#FAFAFA] transition-colors p-1"
+            className="text-[#94A3B8] hover:text-[#FAFAFA] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/20"
             aria-label="Close cookie consent banner"
           >
             <X size={14} />

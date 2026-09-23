@@ -61,6 +61,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(initialSuccess);
   const [activeLicenseKey, setActiveLicenseKey] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cleanupAuthQueryParam = () => {
     if (typeof window !== 'undefined') {
@@ -264,24 +265,42 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
     }
   };
 
+  const handleProceedToPolar = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isSubmitting) {
+      e.preventDefault();
+      return;
+    }
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 4000);
+  };
+
   const handleSimulateSandbox = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!isAuthenticated) {
       handleOpenAuthModal('signup');
       return;
     }
-    const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
-    const userEmail = email || currentUser?.email || 'developer@company.com';
-    const key = generateLicenseKey(selectedPlanId, userEmail);
-    setActiveLicenseKey(key);
-    activateUserTier(tier, key, {
-      name: fullName || currentUser?.name,
-      email: userEmail,
-    });
-    if (onUpgradeSuccess) {
-      onUpgradeSuccess(tier);
+    setIsSubmitting(true);
+    try {
+      const trimmedEmail = (email || currentUser?.email || 'developer@company.com').trim();
+      const trimmedName = (fullName || currentUser?.name || 'Developer').trim();
+      const tier = selectedPlanId === 'vibecare' ? 'Enterprise' : 'Pro';
+      const key = generateLicenseKey(selectedPlanId, trimmedEmail);
+      setActiveLicenseKey(key);
+      activateUserTier(tier, key, {
+        name: trimmedName,
+        email: trimmedEmail,
+      });
+      if (onUpgradeSuccess) {
+        onUpgradeSuccess(tier);
+      }
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitted(true);
   };
 
   return (
@@ -552,10 +571,23 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                         href={getPolarCheckoutUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn btn-primary min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center cursor-pointer"
+                        onClick={handleProceedToPolar}
+                        aria-busy={isSubmitting}
+                        className={`btn btn-primary min-h-[44px] py-4 px-4 text-xs font-extrabold uppercase tracking-wider w-full rounded-xl flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all shadow-xl font-mono text-center ${
+                          isSubmitting ? 'opacity-60 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+                        }`}
                       >
-                        <Lock size={14} />
-                        <span>{isProSubscriber && isSelectedPlanEnterprise ? 'Upgrade to Enterprise' : 'Pay Securely with Polar'} (${selectedPlan.priceMonthly.toFixed(2)}/mo)</span>
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin text-black" />
+                            <span>Connecting to Secure Polar Gateway...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Lock size={14} />
+                            <span>{isProSubscriber && isSelectedPlanEnterprise ? 'Upgrade to Enterprise' : 'Pay Securely with Polar'} (${selectedPlan.priceMonthly.toFixed(2)}/mo)</span>
+                          </>
+                        )}
                       </a>
                     ) : (
                       <div className="flex flex-col gap-2">
@@ -624,20 +656,28 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                       <button
                         type="button"
                         onClick={handleSimulateSandbox}
-                        disabled={!isAuthenticated || isAlreadySubscribedToSelectedPlan}
+                        disabled={isSubmitting || !isAuthenticated || isAlreadySubscribedToSelectedPlan}
+                        aria-busy={isSubmitting}
                         className={`min-h-[44px] py-3 text-xs font-bold uppercase tracking-wider w-full rounded-lg flex items-center justify-center gap-2 border transition-all font-mono ${
-                          !isAuthenticated || isAlreadySubscribedToSelectedPlan
+                          isSubmitting || !isAuthenticated || isAlreadySubscribedToSelectedPlan
                             ? 'border-white/10 bg-white/5 text-[#71717A] cursor-not-allowed opacity-60'
                             : 'btn btn-secondary border-white/20 hover:bg-white/10 text-white cursor-pointer'
                         }`}
                       >
-                        <span>
-                          {!isAuthenticated
-                            ? 'Sign In Required for Instant Upgrade'
-                            : isAlreadySubscribedToSelectedPlan
-                            ? `Already Active: ${selectedPlan.name}`
-                            : `Simulate Instant Upgrade (${selectedPlan.name})`}
-                        </span>
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin text-white" />
+                            <span>Provisioning License...</span>
+                          </>
+                        ) : (
+                          <span>
+                            {!isAuthenticated
+                              ? 'Sign In Required for Instant Upgrade'
+                              : isAlreadySubscribedToSelectedPlan
+                              ? `Already Active: ${selectedPlan.name}`
+                              : `Simulate Instant Upgrade (${selectedPlan.name})`}
+                          </span>
+                        )}
                       </button>
                     </div>
                   )}

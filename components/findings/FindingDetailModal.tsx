@@ -181,7 +181,7 @@ export const FindingDetailModal: React.FC<FindingDetailModalProps> = ({
                 type="button"
                 onClick={onClose}
                 aria-label="Close drawer"
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/20"
               >
                 <X size={16} />
               </button>

@@ -95,7 +95,7 @@ export const PrivateRepoTokenModal: React.FC<PrivateRepoTokenModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Close private repository token modal"
-            className="absolute top-4 right-4 p-2 text-[#A1A1AA] hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className="absolute top-4 right-4 min-w-[44px] min-h-[44px] flex items-center justify-center text-[#A1A1AA] hover:text-white rounded-lg hover:bg-white/5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/20"
           >
             <X size={18} />
           </button>

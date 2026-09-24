@@ -5,6 +5,7 @@ import { calculateReadinessScore, calculateGateStatus } from '@/lib/scanner-engi
 import { UserProfile } from '@/components/auth/AuthModal';
 import { supabaseSignIn, supabaseSignUp, supabaseResetPassword, supabaseSignOut, supabaseGetSession, getSupabase, mapSupabaseUserToProfile, syncUserProfileToSupabase, isPlatformAdminEmail } from '@/lib/supabase';
 import { purgeZelsisStorage, safeSetStorageItem } from '@/lib/storage';
+import { getActiveUserAuth } from '@/lib/supabase-client';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { verifyLicenseKey, generateLicenseKey } from '@/lib/stripe-checkout';
 import { useSearchParams } from 'next/navigation';
@@ -66,7 +67,6 @@ export function useDashboardState() {
 
     async function fetchAuthoritativeQuota() {
       try {
-        const { getActiveUserAuth } = await import('@/lib/supabase-client');
         const { accessToken } = await getActiveUserAuth();
         const headers: Record<string, string> = {};
         if (accessToken) {
@@ -124,7 +124,6 @@ export function useDashboardState() {
     }
 
     try {
-      const { getActiveUserAuth } = await import('@/lib/supabase-client');
       const { accessToken } = await getActiveUserAuth();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
@@ -192,7 +191,6 @@ export function useDashboardState() {
     scanDurationMs: number;
   }) => {
     try {
-      const { getActiveUserAuth } = await import('@/lib/supabase-client');
       const { accessToken } = await getActiveUserAuth();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'

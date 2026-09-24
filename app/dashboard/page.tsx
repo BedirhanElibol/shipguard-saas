@@ -446,48 +446,60 @@ function DashboardContent() {
             )}
 
             {activeNav === 'security' && (
-              <SecurityAuditView
-                findings={safeSelectedProject.findings ?? []}
-                onInspectFinding={(f) => setInspectingFinding(f)}
-              />
+              <ComponentErrorBoundary componentName="SecurityAuditView" resetKeys={[safeSelectedProject?.id]}>
+                <SecurityAuditView
+                  findings={safeSelectedProject.findings ?? []}
+                  onInspectFinding={(f) => setInspectingFinding(f)}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'compliance' && (
-              <ComplianceAuditView
-                findings={safeSelectedProject.findings ?? []}
-                onInspectFinding={(f) => setInspectingFinding(f)}
-              />
+              <ComponentErrorBoundary componentName="ComplianceAuditView" resetKeys={[safeSelectedProject?.id]}>
+                <ComplianceAuditView
+                  findings={safeSelectedProject.findings ?? []}
+                  onInspectFinding={(f) => setInspectingFinding(f)}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'infra' && (
-              <InfraAuditView
-                findings={safeSelectedProject.findings ?? []}
-                onInspectFinding={(f) => setInspectingFinding(f)}
-              />
+              <ComponentErrorBoundary componentName="InfraAuditView" resetKeys={[safeSelectedProject?.id]}>
+                <InfraAuditView
+                  findings={safeSelectedProject.findings ?? []}
+                  onInspectFinding={(f) => setInspectingFinding(f)}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'vibepolish' && (
-              <VibePolishView
-                rules={VIBEPOLISH_30_CATALOG}
-                title="Design & UX Polish Matrix"
-                description="Automated design system audit evaluating visual hierarchy, responsive layout shifts, micro-interactions, color contrasts, and accessibility standards."
-              />
+              <ComponentErrorBoundary componentName="VibePolishView">
+                <VibePolishView
+                  rules={VIBEPOLISH_30_CATALOG}
+                  title="Design & UX Polish Matrix"
+                  description="Automated design system audit evaluating visual hierarchy, responsive layout shifts, micro-interactions, color contrasts, and accessibility standards."
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'aicliche' && (
-              <VibePolishView
-                rules={AI_CLICHE_25_CATALOG}
-                title="AI Anti-Pattern & Cliché Detector"
-                description="Deep pattern analysis scanning for AI-generated design anti-patterns, generic layout locks, non-standard component trees, and trust-eroding visual tropes."
-              />
+              <ComponentErrorBoundary componentName="AiClicheView">
+                <VibePolishView
+                  rules={AI_CLICHE_25_CATALOG}
+                  title="AI Anti-Pattern & Cliché Detector"
+                  description="Deep pattern analysis scanning for AI-generated design anti-patterns, generic layout locks, non-standard component trees, and trust-eroding visual tropes."
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'aimaster' && (
-              <VibePolishView
-                rules={UI_RULES_CATALOG}
-                title="Master Quality & Resilience Matrix"
-                description="Full-stack architecture audit covering OWASP top vulnerabilities, RAG retrieval leakage, agent execution boundaries, token cost governance, and production SLA metrics."
-              />
+              <ComponentErrorBoundary componentName="AiMasterView">
+                <VibePolishView
+                  rules={UI_RULES_CATALOG}
+                  title="Master Quality & Resilience Matrix"
+                  description="Full-stack architecture audit covering OWASP top vulnerabilities, RAG retrieval leakage, agent execution boundaries, token cost governance, and production SLA metrics."
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'vibecare' && (
@@ -501,97 +513,109 @@ function DashboardContent() {
             )}
 
             {activeNav === 'cicd' && (
-              <CicdAutomationView
-                projectName={safeSelectedProject.name}
-                project={safeSelectedProject}
-                userTier={user?.tier}
-                onOpenCheckout={handleOpenCheckoutModal}
-              />
+              <ComponentErrorBoundary componentName="CicdAutomationView" resetKeys={[safeSelectedProject?.id]}>
+                <CicdAutomationView
+                  projectName={safeSelectedProject.name}
+                  project={safeSelectedProject}
+                  userTier={user?.tier}
+                  onOpenCheckout={handleOpenCheckoutModal}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'remediation' && (
-              <RemediationQueueView
-                projects={projects}
-                onInspectFinding={(f) => setInspectingFinding(f)}
-                onToggleResolveFinding={handleToggleResolveFinding}
-                userTier={user?.tier}
-                onOpenCheckout={handleOpenCheckoutModal}
-              />
+              <ComponentErrorBoundary componentName="RemediationQueueView">
+                <RemediationQueueView
+                  projects={projects}
+                  onInspectFinding={(f) => setInspectingFinding(f)}
+                  onToggleResolveFinding={handleToggleResolveFinding}
+                  userTier={user?.tier}
+                  onOpenCheckout={handleOpenCheckoutModal}
+                />
+              </ComponentErrorBoundary>
             )}
 
             {activeNav === 'projects' && (
-              <ProjectsView
-                projects={projects}
-                onSelectProject={(p) => {
-                  handleSelectProject(p);
-                  setActiveNav('dashboard');
-                }}
-                onAddNewProject={handleAddNewProject}
-                onDeleteProject={handleDeleteProject}
-                onTriggerScan={handleTriggerScan}
-                user={user}
-                onOpenCheckout={() => handleOpenCheckoutModal()}
-              />
+              <ComponentErrorBoundary componentName="ProjectsView">
+                <ProjectsView
+                  projects={projects}
+                  onSelectProject={(p) => {
+                    handleSelectProject(p);
+                    setActiveNav('dashboard');
+                  }}
+                  onAddNewProject={handleAddNewProject}
+                  onDeleteProject={handleDeleteProject}
+                  onTriggerScan={handleTriggerScan}
+                  user={user}
+                  onOpenCheckout={() => handleOpenCheckoutModal()}
+                />
+              </ComponentErrorBoundary>
             )}
 
-          {activeNav === 'scans' && (
-            <ScanHistoryView
-              project={safeSelectedProject}
-              onTriggerScan={handleTriggerScan}
-              userTier={user?.tier}
-              onOpenCheckout={handleOpenCheckoutModal}
-            />
-          )}
+            {activeNav === 'scans' && (
+              <ComponentErrorBoundary componentName="ScanHistoryView" resetKeys={[safeSelectedProject?.id]}>
+                <ScanHistoryView
+                  project={safeSelectedProject}
+                  onTriggerScan={handleTriggerScan}
+                  userTier={user?.tier}
+                  onOpenCheckout={handleOpenCheckoutModal}
+                />
+              </ComponentErrorBoundary>
+            )}
 
-          {activeNav === 'checkout' && (
-            <CheckoutView
-              initialPlanId={user?.tier === 'Pro' ? 'vibecare' : 'zelsis-core'}
-              initialBilling="monthly"
-              onBackToPricing={() => setActiveNav('dashboard')}
-              user={user}
-              onOpenAuth={(mode) => {
-                setAuthInitialMode(mode || 'signup');
-                setIsAuthModalOpen(true);
-              }}
-              onUpgradeSuccess={(newTier) => {
-                handleUpdateUserProfile({ tier: newTier });
-              }}
-            />
-          )}
+            {activeNav === 'checkout' && (
+              <ComponentErrorBoundary componentName="CheckoutView">
+                <CheckoutView
+                  initialPlanId={user?.tier === 'Pro' ? 'vibecare' : 'zelsis-core'}
+                  initialBilling="monthly"
+                  onBackToPricing={() => setActiveNav('dashboard')}
+                  user={user}
+                  onOpenAuth={(mode) => {
+                    setAuthInitialMode(mode || 'signup');
+                    setIsAuthModalOpen(true);
+                  }}
+                  onUpgradeSuccess={(newTier) => {
+                    handleUpdateUserProfile({ tier: newTier });
+                  }}
+                />
+              </ComponentErrorBoundary>
+            )}
 
-          {activeNav === 'settings' && (
-            <ProjectSettingsView
-              project={safeSelectedProject}
-              user={user}
-              onOpenAuth={(mode) => {
-                setAuthInitialMode(mode || 'signin');
-                setIsAuthModalOpen(true);
-              }}
-              onUpdateUser={(updatedUser) => {
-                if (user && user.isLoggedIn) {
-                  handleUpdateUserProfile(updatedUser);
-                }
-              }}
-              onOpenCheckout={handleOpenCheckoutModal}
-              onSaveSettings={(updatedFields: Partial<Project>) => {
-                const updatedProject = { ...selectedProject, ...updatedFields };
-                setSelectedProject(updatedProject);
-                setProjects((prev) => {
-                  const updatedList = prev.map((p) =>
-                    p.id === selectedProject.id ? updatedProject : p
-                  );
-                  persistProjectsList(updatedList);
-                  return updatedList;
-                });
-              }}
-              onDeleteAccount={() => {
-                setUser(null);
-                setProjects([MOCK_PROJECTS[0]]);
-                setSelectedProject(MOCK_PROJECTS[0]);
-                router.push('/');
-              }}
-            />
-          )}
+            {activeNav === 'settings' && (
+              <ComponentErrorBoundary componentName="ProjectSettingsView" resetKeys={[safeSelectedProject?.id]}>
+                <ProjectSettingsView
+                  project={safeSelectedProject}
+                  user={user}
+                  onOpenAuth={(mode) => {
+                    setAuthInitialMode(mode || 'signin');
+                    setIsAuthModalOpen(true);
+                  }}
+                  onUpdateUser={(updatedUser) => {
+                    if (user && user.isLoggedIn) {
+                      handleUpdateUserProfile(updatedUser);
+                    }
+                  }}
+                  onOpenCheckout={handleOpenCheckoutModal}
+                  onSaveSettings={(updatedFields: Partial<Project>) => {
+                    const updatedProject = { ...selectedProject, ...updatedFields };
+                    setSelectedProject(updatedProject);
+                    setProjects((prev) => {
+                      const updatedList = prev.map((p) =>
+                        p.id === selectedProject.id ? updatedProject : p
+                      );
+                      persistProjectsList(updatedList);
+                      return updatedList;
+                    });
+                  }}
+                  onDeleteAccount={() => {
+                    setUser(null);
+                    setProjects([MOCK_PROJECTS[0]]);
+                    setSelectedProject(MOCK_PROJECTS[0]);
+                    router.push('/');
+                  }}
+                />
+              </ComponentErrorBoundary>
+            )}
         </>
       )}
       </div>

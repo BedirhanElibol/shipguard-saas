@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Link from 'next/link';
-import { AlertTriangle, RefreshCw, Home, ArrowLeft, RotateCcw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
+import { isChunkLoadError, handleChunkLoadRecovery, clearChunkReloadCooldown } from '@/lib/chunk-reload';
 
 interface ErrorBoundaryProps {
   error: Error & { digest?: string };
@@ -10,7 +10,7 @@ interface ErrorBoundaryProps {
 }
 
 export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
-  const isChunkError = error?.name === 'ChunkLoadError' || (error?.message && error.message.includes('Loading chunk'));
+  const isChunkError = isChunkLoadError(error);
 
   useEffect(() => {
     // Log exception for debugging and telemetry
@@ -18,18 +18,18 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
 
     // Auto-recover from chunk load errors caused by new deployments
     if (isChunkError && typeof window !== 'undefined') {
-      const reloadKey = 'zelsis_chunk_reload';
-      if (!sessionStorage.getItem(reloadKey)) {
-        sessionStorage.setItem(reloadKey, 'true');
-        window.location.reload();
+      const dispatched = handleChunkLoadRecovery();
+      if (dispatched) {
+        // Reload is executing
+        return;
       }
     }
   }, [error, isChunkError]);
 
   const handleRetry = () => {
     if (isChunkError && typeof window !== 'undefined') {
-      sessionStorage.removeItem('zelsis_chunk_reload');
-      window.location.reload();
+      clearChunkReloadCooldown();
+      handleChunkLoadRecovery(true);
     } else {
       reset();
     }
@@ -55,6 +55,56 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
       window.location.href = '/dashboard';
     }
   };
+
+  // Dedicated elegant UI for new deployment chunk transitions
+  if (isChunkError) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-[#F5F3EF] flex items-center justify-center p-4 sm:p-6 select-text">
+        <div className="w-full max-w-lg bg-[#141414] border border-emerald-500/30 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl relative">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center justify-center shrink-0">
+              <Sparkles size={24} />
+            </div>
+            <div>
+              <div className="text-[0.68rem] font-mono font-bold uppercase tracking-widest text-emerald-400">
+                Release Gate Live Update
+              </div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#F5F3EF] mt-0.5">
+                New Version Available
+              </h1>
+            </div>
+          </div>
+
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-4 font-mono text-xs text-zinc-300 leading-relaxed">
+            <p className="font-semibold text-white mb-1">
+              A new production release of Zelsis was deployed.
+            </p>
+            <p className="text-[0.72rem] text-zinc-400 mt-1">
+              Your audit findings, project configurations, and credentials are completely intact. Please reload to apply the latest build.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 border-t border-white/10">
+            <button
+              onClick={handleRetry}
+              className="btn btn-primary py-2.5 px-4 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer bg-emerald-500 hover:bg-emerald-400 text-black border-emerald-400"
+            >
+              <RefreshCw size={14} />
+              <span>Reload & Apply Updates</span>
+            </button>
+
+            <a
+              href="/dashboard"
+              className="btn btn-secondary py-2.5 px-4 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 text-[#A1A1AA] hover:text-white"
+            >
+              <Home size={14} />
+              <span>Dashboard</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-[#F5F3EF] flex items-center justify-center p-4 sm:p-6 select-text">

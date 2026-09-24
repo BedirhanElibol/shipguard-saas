@@ -1,53 +1,16 @@
 'use client';
 
 import React from 'react';
-import dynamic from 'next/dynamic';
 import { Project, UserTier } from '@/data/schema';
-
-const AuditCompareModal = dynamic(
-  () => import('./AuditCompareModal').then((mod) => mod.AuditCompareModal),
-  { ssr: false }
-);
-
-const NotificationSettingsModal = dynamic(
-  () => import('./NotificationSettingsModal').then((mod) => mod.NotificationSettingsModal),
-  { ssr: false }
-);
-
-const RuleConfiguratorModal = dynamic(
-  () => import('./RuleConfiguratorModal').then((mod) => mod.RuleConfiguratorModal),
-  { ssr: false }
-);
-
-const ExecutiveBriefingModal = dynamic(
-  () => import('./ExecutiveBriefingModal').then((mod) => mod.ExecutiveBriefingModal),
-  { ssr: false }
-);
-
-const RuleKnowledgeBaseModal = dynamic(
-  () => import('./RuleKnowledgeBaseModal').then((mod) => mod.RuleKnowledgeBaseModal),
-  { ssr: false }
-);
-
-const DeploymentManifestModal = dynamic(
-  () => import('./DeploymentManifestModal').then((mod) => mod.DeploymentManifestModal),
-  { ssr: false }
-);
-
-const PenTestPayloadGenerator = dynamic(
-  () => import('./PenTestPayloadGenerator').then((mod) => mod.PenTestPayloadGenerator),
-  { ssr: false }
-);
-
-const BadgeGeneratorModal = dynamic(
-  () => import('./BadgeGeneratorModal').then((mod) => mod.BadgeGeneratorModal),
-  { ssr: false }
-);
-
-const CiCdIntegrationModal = dynamic(
-  () => import('./CiCdIntegrationModal').then((mod) => mod.CiCdIntegrationModal),
-  { ssr: false }
-);
+import { AuditCompareModal } from './AuditCompareModal';
+import { NotificationSettingsModal } from './NotificationSettingsModal';
+import { RuleConfiguratorModal } from './RuleConfiguratorModal';
+import { ExecutiveBriefingModal } from './ExecutiveBriefingModal';
+import { RuleKnowledgeBaseModal } from './RuleKnowledgeBaseModal';
+import { DeploymentManifestModal } from './DeploymentManifestModal';
+import { PenTestPayloadGenerator } from './PenTestPayloadGenerator';
+import { BadgeGeneratorModal } from './BadgeGeneratorModal';
+import { CiCdIntegrationModal } from './CiCdIntegrationModal';
 
 export type ActiveModalType =
   | 'compare'

@@ -305,6 +305,26 @@ function DashboardContent() {
     );
   }
 
+  const safeSelectedProject: Project = React.useMemo(() => {
+    const candidate = (selectedProject && typeof selectedProject === 'object' && !('nativeEvent' in selectedProject) && (selectedProject as any).id)
+      ? selectedProject
+      : (projects.find((p) => p && typeof p === 'object' && !('nativeEvent' in p) && (p as any).id) || MOCK_PROJECTS[0]);
+    return {
+      ...candidate,
+      name: candidate.name || 'Target Repository',
+      framework: candidate.framework || 'Next.js 15',
+      lastScanAt: candidate.lastScanAt || 'Never audited',
+      readinessScore: typeof candidate.readinessScore === 'number' ? candidate.readinessScore : 100,
+      gateStatus: candidate.gateStatus || 'PASSED',
+      findings: Array.isArray(candidate.findings) ? candidate.findings : [],
+      criticalCount: typeof candidate.criticalCount === 'number' ? candidate.criticalCount : 0,
+      highCount: typeof candidate.highCount === 'number' ? candidate.highCount : 0,
+      mediumCount: typeof candidate.mediumCount === 'number' ? candidate.mediumCount : 0,
+      lowCount: typeof candidate.lowCount === 'number' ? candidate.lowCount : 0,
+      uiClicheCount: typeof candidate.uiClicheCount === 'number' ? candidate.uiClicheCount : 0,
+    };
+  }, [selectedProject, projects]);
+
   return (
     <AppShell
       projects={projects}
@@ -326,7 +346,7 @@ function DashboardContent() {
           }
         }
       }}
-      selectedProject={selectedProject}
+      selectedProject={safeSelectedProject}
       onSelectProject={handleSelectProject}
       onTriggerScan={handleTriggerScan}
       onNavigateLanding={() => router.push('/')}
@@ -406,9 +426,9 @@ function DashboardContent() {
         ) : (
           <>
             {activeNav === 'dashboard' && (
-              <ComponentErrorBoundary componentName="DashboardView" resetKeys={[selectedProject?.id, selectedProject?.lastScanAt]}>
+              <ComponentErrorBoundary componentName="DashboardView" resetKeys={[safeSelectedProject?.id, safeSelectedProject?.lastScanAt]}>
                 <DashboardView
-                  project={selectedProject}
+                  project={safeSelectedProject}
                   onTriggerScan={handleTriggerScan}
                   onInspectFinding={(f) => setInspectingFinding(f)}
                   onNavigatePillar={(p) => setActiveNav(p)}
@@ -427,21 +447,21 @@ function DashboardContent() {
 
             {activeNav === 'security' && (
               <SecurityAuditView
-                findings={selectedProject.findings ?? []}
+                findings={safeSelectedProject.findings ?? []}
                 onInspectFinding={(f) => setInspectingFinding(f)}
               />
             )}
 
             {activeNav === 'compliance' && (
               <ComplianceAuditView
-                findings={selectedProject.findings ?? []}
+                findings={safeSelectedProject.findings ?? []}
                 onInspectFinding={(f) => setInspectingFinding(f)}
               />
             )}
 
             {activeNav === 'infra' && (
               <InfraAuditView
-                findings={selectedProject.findings ?? []}
+                findings={safeSelectedProject.findings ?? []}
                 onInspectFinding={(f) => setInspectingFinding(f)}
               />
             )}
@@ -471,9 +491,9 @@ function DashboardContent() {
             )}
 
             {activeNav === 'vibecare' && (
-              <ComponentErrorBoundary componentName="VibeCareView" resetKeys={[selectedProject?.id]}>
+              <ComponentErrorBoundary componentName="VibeCareView" resetKeys={[safeSelectedProject?.id]}>
                 <VibeCareView
-                  project={selectedProject}
+                  project={safeSelectedProject}
                   user={user}
                   onOpenCheckout={() => handleOpenCheckoutModal('Enterprise')}
                 />
@@ -482,8 +502,8 @@ function DashboardContent() {
 
             {activeNav === 'cicd' && (
               <CicdAutomationView
-                projectName={selectedProject.name}
-                project={selectedProject}
+                projectName={safeSelectedProject.name}
+                project={safeSelectedProject}
                 userTier={user?.tier}
                 onOpenCheckout={handleOpenCheckoutModal}
               />
@@ -516,7 +536,7 @@ function DashboardContent() {
 
           {activeNav === 'scans' && (
             <ScanHistoryView
-              project={selectedProject}
+              project={safeSelectedProject}
               onTriggerScan={handleTriggerScan}
               userTier={user?.tier}
               onOpenCheckout={handleOpenCheckoutModal}
@@ -541,7 +561,7 @@ function DashboardContent() {
 
           {activeNav === 'settings' && (
             <ProjectSettingsView
-              project={selectedProject}
+              project={safeSelectedProject}
               user={user}
               onOpenAuth={(mode) => {
                 setAuthInitialMode(mode || 'signin');

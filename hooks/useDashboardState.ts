@@ -255,7 +255,7 @@ export function useDashboardState() {
   useEffect(() => {
     const loadProjectsFromStorage = () => {
       try {
-        const CURRENT_DATA_VERSION = 'v11_clean_single_starter';
+        const CURRENT_DATA_VERSION = 'v12_resilient_sanitized_starter';
         const savedVersion = localStorage.getItem('zelsis_data_version') || localStorage.getItem('shipguard_data_version');
         const allowedLocal = canAccessLocalAudit();
 
@@ -387,7 +387,7 @@ export function useDashboardState() {
 
         // Sanitize projects to auto-heal any corrupt or undefined repoUrl from legacy storage
         currentProjects = currentProjects.map((p) => {
-          if (!p || typeof p !== 'object') return MOCK_PROJECTS[0];
+          if (!p || typeof p !== 'object' || ('nativeEvent' in p)) return MOCK_PROJECTS[0];
           let cleanRepoUrl = typeof p.repoUrl === 'string' ? p.repoUrl.trim() : '';
           if (!cleanRepoUrl || cleanRepoUrl === 'undefined' || cleanRepoUrl === 'null') {
             cleanRepoUrl = MOCK_PROJECTS[0].repoUrl;
@@ -397,8 +397,20 @@ export function useDashboardState() {
             : (cleanRepoUrl ? cleanRepoUrl.split('/').pop() || 'Target Repository' : MOCK_PROJECTS[0].name);
           return {
             ...p,
+            id: p.id || `proj-${Date.now()}`,
             name: cleanName,
-            repoUrl: cleanRepoUrl
+            repoUrl: cleanRepoUrl,
+            framework: p.framework || 'Next.js 15',
+            providers: Array.isArray(p.providers) ? p.providers : ['GitHub Action', 'Vercel'],
+            lastScanAt: p.lastScanAt || 'Never audited',
+            readinessScore: typeof p.readinessScore === 'number' ? p.readinessScore : 100,
+            gateStatus: p.gateStatus || 'PASSED',
+            criticalCount: typeof p.criticalCount === 'number' ? p.criticalCount : 0,
+            highCount: typeof p.highCount === 'number' ? p.highCount : 0,
+            mediumCount: typeof p.mediumCount === 'number' ? p.mediumCount : 0,
+            lowCount: typeof p.lowCount === 'number' ? p.lowCount : 0,
+            uiClicheCount: typeof p.uiClicheCount === 'number' ? p.uiClicheCount : 0,
+            findings: Array.isArray(p.findings) ? p.findings : [],
           };
         });
 
@@ -434,8 +446,20 @@ export function useDashboardState() {
             : MOCK_PROJECTS[0].name;
           chosenProject = {
             ...chosenProject,
+            id: chosenProject.id || `proj-${Date.now()}`,
             name: cleanName,
-            repoUrl: cleanRepoUrl
+            repoUrl: cleanRepoUrl,
+            framework: chosenProject.framework || 'Next.js 15',
+            providers: Array.isArray(chosenProject.providers) ? chosenProject.providers : ['GitHub Action', 'Vercel'],
+            lastScanAt: chosenProject.lastScanAt || 'Never audited',
+            readinessScore: typeof chosenProject.readinessScore === 'number' ? chosenProject.readinessScore : 100,
+            gateStatus: chosenProject.gateStatus || 'PASSED',
+            criticalCount: typeof chosenProject.criticalCount === 'number' ? chosenProject.criticalCount : 0,
+            highCount: typeof chosenProject.highCount === 'number' ? chosenProject.highCount : 0,
+            mediumCount: typeof chosenProject.mediumCount === 'number' ? chosenProject.mediumCount : 0,
+            lowCount: typeof chosenProject.lowCount === 'number' ? chosenProject.lowCount : 0,
+            uiClicheCount: typeof chosenProject.uiClicheCount === 'number' ? chosenProject.uiClicheCount : 0,
+            findings: Array.isArray(chosenProject.findings) ? chosenProject.findings : [],
           };
         }
 
@@ -1067,7 +1091,7 @@ export function useDashboardState() {
   };
 
   const handleSelectProject = (p?: Project | null) => {
-    if (!p) {
+    if (!p || typeof p !== 'object' || ('nativeEvent' in p) || !('id' in p) || !(p as any).id) {
       setSelectedProject(MOCK_PROJECTS[0]);
       safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
       return;
@@ -1077,8 +1101,32 @@ export function useDashboardState() {
       safeSetStorageItem('zelsis_selected_project_id', MOCK_PROJECTS[0].id);
       return;
     }
-    setSelectedProject(p);
-    safeSetStorageItem('zelsis_selected_project_id', p.id);
+    const cleanRepoUrl = typeof p.repoUrl === 'string' && p.repoUrl.trim() && p.repoUrl !== 'undefined'
+      ? p.repoUrl.trim()
+      : MOCK_PROJECTS[0].repoUrl;
+    const cleanName = typeof p.name === 'string' && p.name.trim() && p.name !== 'undefined'
+      ? p.name.trim()
+      : (cleanRepoUrl ? cleanRepoUrl.split('/').pop() || 'Target Repository' : MOCK_PROJECTS[0].name);
+
+    const safeP: Project = {
+      ...p,
+      id: p.id || `proj-${Date.now()}`,
+      name: cleanName,
+      repoUrl: cleanRepoUrl,
+      framework: p.framework || 'Next.js 15',
+      providers: Array.isArray(p.providers) ? p.providers : ['GitHub Action', 'Vercel'],
+      lastScanAt: p.lastScanAt || 'Never audited',
+      readinessScore: typeof p.readinessScore === 'number' ? p.readinessScore : 100,
+      gateStatus: p.gateStatus || 'PASSED',
+      criticalCount: typeof p.criticalCount === 'number' ? p.criticalCount : 0,
+      highCount: typeof p.highCount === 'number' ? p.highCount : 0,
+      mediumCount: typeof p.mediumCount === 'number' ? p.mediumCount : 0,
+      lowCount: typeof p.lowCount === 'number' ? p.lowCount : 0,
+      uiClicheCount: typeof p.uiClicheCount === 'number' ? p.uiClicheCount : 0,
+      findings: Array.isArray(p.findings) ? p.findings : [],
+    };
+    setSelectedProject(safeP);
+    safeSetStorageItem('zelsis_selected_project_id', safeP.id);
   };
 
   const handleDeleteProject = (projectId: string) => {

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Project, Finding, UserTier } from '@/data/schema';
+import { MOCK_PROJECTS } from '@/data/mockData';
 import { KpiCards } from './KpiCards';
 import { SeverityChart } from './SeverityChart';
 import { FindingsTable } from '../findings/FindingsTable';
@@ -57,9 +58,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     hideToast,
   } = useClipboardToast();
 
+  const safeProject: Project = useMemo(() => {
+    const p = (project && typeof project === 'object' && !('nativeEvent' in project) && (project as any).id)
+      ? project
+      : MOCK_PROJECTS[0];
+    return {
+      ...p,
+      name: p.name || 'Target Repository',
+      framework: p.framework || 'Next.js 15',
+      lastScanAt: p.lastScanAt || 'Never audited',
+      readinessScore: typeof p.readinessScore === 'number' ? p.readinessScore : 100,
+      gateStatus: p.gateStatus || 'PASSED',
+      findings: Array.isArray(p.findings) ? p.findings : [],
+      criticalCount: typeof p.criticalCount === 'number' ? p.criticalCount : 0,
+      highCount: typeof p.highCount === 'number' ? p.highCount : 0,
+      mediumCount: typeof p.mediumCount === 'number' ? p.mediumCount : 0,
+      lowCount: typeof p.lowCount === 'number' ? p.lowCount : 0,
+      uiClicheCount: typeof p.uiClicheCount === 'number' ? p.uiClicheCount : 0,
+    };
+  }, [project]);
+
   // Confetti feedback on clearance PASSED
   useEffect(() => {
-    if (project.gateStatus === 'PASSED') {
+    if (safeProject.gateStatus === 'PASSED') {
       try {
         confetti({
           particleCount: 50,
@@ -70,7 +91,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         console.warn('[Confetti] Clearance celebration passed');
       }
     }
-  }, [project.gateStatus]);
+  }, [safeProject.gateStatus]);
 
   // Cmd+K / Ctrl+K keyboard shortcut listener for Knowledge Base
   useEffect(() => {
@@ -85,22 +106,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, []);
 
   const openFindings = useMemo(
-    () => project.findings.filter((f) => f.status === 'OPEN'),
-    [project.findings]
+    () => (safeProject.findings || []).filter((f) => f && f.status === 'OPEN'),
+    [safeProject.findings]
   );
 
   const criticals = useMemo(
-    () => openFindings.filter((f) => f.severity === 'CRITICAL'),
+    () => openFindings.filter((f) => f && f.severity === 'CRITICAL'),
     [openFindings]
   );
 
   const highs = useMemo(
-    () => openFindings.filter((f) => f.severity === 'HIGH'),
+    () => openFindings.filter((f) => f && f.severity === 'HIGH'),
     [openFindings]
   );
 
   const uiCliches = useMemo(
-    () => openFindings.filter((f) => f.type === 'VIBEPOLISH'),
+    () => openFindings.filter((f) => f && f.type === 'VIBEPOLISH'),
     [openFindings]
   );
 
@@ -108,7 +129,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     if (openFindings.length === 0) return;
 
     const prompt = `Act as Senior Lead Security Architect and Principal UI Designer.
-Audit target project "${project.name}" (${project.framework}).
+Audit target project "${safeProject.name}" (${safeProject.framework}).
 Resolve all ${openFindings.length} open vulnerabilities:
 
 ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath})\nRemediation: ${f.remediationPrompt}`).join('\n\n')}
@@ -131,9 +152,9 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
       )}
 
       {/* Top Gate Status Banner */}
-      <ComponentErrorBoundary componentName="GateStatusBanner" resetKeys={[project?.id, project?.gateStatus]}>
+      <ComponentErrorBoundary componentName="GateStatusBanner" resetKeys={[safeProject?.id, safeProject?.gateStatus]}>
         <GateStatusBanner
-          project={project}
+          project={safeProject}
           criticals={criticals}
           highs={highs}
           uiCliches={uiCliches}
@@ -180,19 +201,19 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
         </div>
 
         <div className="flex items-center gap-4 text-xs text-[#A1A1AA] font-mono">
-          <span>Framework: <strong className="text-white font-medium">{project.framework}</strong></span>
-          <span>Last Scan: <strong className="text-white font-medium">{project.lastScanAt}</strong></span>
+          <span>Framework: <strong className="text-white font-medium">{safeProject.framework}</strong></span>
+          <span>Last Scan: <strong className="text-white font-medium">{safeProject.lastScanAt}</strong></span>
         </div>
       </div>
 
       {/* Tab 1: Primary Audit & Findings View */}
       {activeTab === 'findings' && (
         <div className="flex flex-col gap-6">
-          <KpiCards project={project} onNavigatePillar={onNavigatePillar} />
-          <SeverityChart project={project} />
-          <ComponentErrorBoundary componentName="FindingsTable" resetKeys={[project?.id, project?.findings?.length]}>
+          <KpiCards project={safeProject} onNavigatePillar={onNavigatePillar} />
+          <SeverityChart project={safeProject} />
+          <ComponentErrorBoundary componentName="FindingsTable" resetKeys={[safeProject?.id, safeProject?.findings?.length]}>
             <FindingsTable
-              findings={project.findings}
+              findings={safeProject.findings}
               onInspectFinding={onInspectFinding}
               onTriggerScan={onTriggerScan}
               onLoadDemoFindings={onLoadDemoFindings}
@@ -217,18 +238,18 @@ Enforce strict OWASP Top 10 compliance, eliminate AI design clichés, and provid
       {activeTab === 'diagnostics' && (
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BundleCostAnalyzer filesCount={project.findings.length + 15} />
-            <ComponentErrorBoundary componentName="ScaLicenseRiskCard" resetKeys={[project?.id]}>
+            <BundleCostAnalyzer filesCount={(safeProject.findings?.length || 0) + 15} />
+            <ComponentErrorBoundary componentName="ScaLicenseRiskCard" resetKeys={[safeProject?.id]}>
               <ScaLicenseRiskCard />
             </ComponentErrorBoundary>
           </div>
-          <QuickChartWidget project={project} />
+          <QuickChartWidget project={safeProject} />
         </div>
       )}
 
       {/* Extracted Dashboard Modals */}
       <DashboardModals
-        project={project}
+        project={safeProject}
         activeModal={activeModal}
         onClose={() => setActiveModal(null)}
         userTier={user?.tier as UserTier | undefined}

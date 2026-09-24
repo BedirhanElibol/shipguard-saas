@@ -12,10 +12,11 @@ interface QuickChartWidgetProps {
 export const QuickChartWidget: React.FC<QuickChartWidgetProps> = ({ project }) => {
   const [copied, setCopied] = useState(false);
 
-  const openFindings = project.findings.filter((f) => f.status === 'OPEN');
-  const critical = openFindings.filter((f) => f.severity === 'CRITICAL').length;
-  const high = openFindings.filter((f) => f.severity === 'HIGH').length;
-  const medium = openFindings.filter((f) => f.severity === 'MEDIUM').length;
+  const safeFindings = Array.isArray(project?.findings) ? project.findings : [];
+  const openFindings = safeFindings.filter((f) => f && f.status === 'OPEN');
+  const critical = openFindings.filter((f) => f && f.severity === 'CRITICAL').length;
+  const high = openFindings.filter((f) => f && f.severity === 'HIGH').length;
+  const medium = openFindings.filter((f) => f && f.severity === 'MEDIUM').length;
 
   const chartConfig = {
     type: 'doughnut',

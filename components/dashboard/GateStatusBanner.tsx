@@ -85,12 +85,36 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
     };
   }, []);
 
+  const safeProject: Project = (project && typeof project === 'object' && !('nativeEvent' in project) && (project as any).id)
+    ? project
+    : {
+        id: 'proj-fallback',
+        name: 'Target Repository',
+        repoUrl: 'https://github.com/example/repo',
+        framework: 'Next.js 15',
+        providers: ['GitHub Action', 'Vercel'],
+        lastScanAt: 'Never audited',
+        readinessScore: 100,
+        gateStatus: 'PASSED',
+        criticalCount: 0,
+        highCount: 0,
+        mediumCount: 0,
+        lowCount: 0,
+        uiClicheCount: 0,
+        findings: []
+      };
+
+  const gateStatus = safeProject.gateStatus || 'PASSED';
+  const readinessScore = typeof safeProject.readinessScore === 'number' ? safeProject.readinessScore : 100;
+  const name = safeProject.name || 'Target Repository';
+  const repoUrl = safeProject.repoUrl || '';
+
   return (
     <div
       className={`bg-[#141414] border rounded-xl p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-6 ${
-        project.gateStatus === 'FAILED'
+        gateStatus === 'FAILED'
           ? 'border-red-500/30'
-          : project.gateStatus === 'WARNING'
+          : gateStatus === 'WARNING'
           ? 'border-amber-500/30'
           : 'border-white/10'
       }`}
@@ -99,16 +123,16 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
       <div className="flex items-start sm:items-center gap-3.5 sm:gap-5 min-w-0">
         <div
           className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center border font-bold shrink-0 ${
-            project.gateStatus === 'FAILED'
+            gateStatus === 'FAILED'
               ? 'bg-red-500/10 border-red-500/30 text-red-500'
-              : project.gateStatus === 'WARNING'
+              : gateStatus === 'WARNING'
               ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
               : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
           }`}
         >
-          {project.gateStatus === 'FAILED' ? (
+          {gateStatus === 'FAILED' ? (
             <AlertTriangle size={24} className="sm:w-7 sm:h-7" />
-          ) : project.gateStatus === 'WARNING' ? (
+          ) : gateStatus === 'WARNING' ? (
             <AlertTriangle size={24} className="sm:w-7 sm:h-7" />
           ) : (
             <CheckCircle2 size={24} className="sm:w-7 sm:h-7 text-emerald-400" />
@@ -122,32 +146,32 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
             </span>
             <span
               className={`px-2 py-0.5 rounded text-[10px] font-mono font-extrabold ${
-                project.gateStatus === 'FAILED'
+                gateStatus === 'FAILED'
                   ? 'bg-red-500/10 border border-red-500/30 text-red-400'
-                  : project.gateStatus === 'WARNING'
+                  : gateStatus === 'WARNING'
                   ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
                   : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
               }`}
             >
-              {project.gateStatus}
+              {gateStatus}
             </span>
           </div>
 
           <h1 className="text-lg sm:text-2xl font-extrabold text-[#EDEDED] mt-1 truncate">
-            {project.name}
+            {name}
           </h1>
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[11px] font-mono text-[#A1A1AA]">Audited Target:</span>
-            {safeTrim(project?.repoUrl) ? (
+            {safeTrim(repoUrl) ? (
               <a
-                href={safeTrim(project.repoUrl).startsWith('http') ? safeTrim(project.repoUrl) : `https://${safeTrim(project.repoUrl)}`}
+                href={safeTrim(repoUrl).startsWith('http') ? safeTrim(repoUrl) : `https://${safeTrim(repoUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[11px] font-mono font-medium text-zinc-300 hover:text-white hover:underline flex items-center gap-1 transition-colors max-w-xs sm:max-w-md truncate"
                 title="Open target repository"
               >
-                <span className="truncate">{safeReplace(safeTrim(project.repoUrl), /^https?:\/\//, '')}</span>
+                <span className="truncate">{safeReplace(safeTrim(repoUrl), /^https?:\/\//, '')}</span>
                 <ExternalLink size={11} className="shrink-0" />
               </a>
             ) : (
@@ -166,7 +190,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
           <p className="text-[11px] sm:text-xs text-[#A1A1AA] mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono">
             <span>
-              Readiness Score: <strong className="text-white font-mono">{project.readinessScore}/100</strong>
+              Readiness Score: <strong className="text-white font-mono">{readinessScore}/100</strong>
             </span>
             <span className={criticals.length > 0 ? 'text-red-400 font-bold' : 'text-[#A1A1AA]'}>
               {criticals.length} Critical
@@ -229,7 +253,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
                     onOpenCheckout?.('Pro');
                     return;
                   }
-                  generateAuditPdfReport(project);
+                  generateAuditPdfReport(safeProject);
                   setIsExportMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -252,7 +276,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  exportFindingsToCsv(project.findings, project.name);
+                  exportFindingsToCsv(safeProject.findings, safeProject.name);
                   setIsExportMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer"
@@ -266,7 +290,7 @@ export const GateStatusBanner: React.FC<GateStatusBannerProps> = ({
 
               <button
                 onClick={() => {
-                  exportScorecardToJson(project);
+                  exportScorecardToJson(safeProject);
                   setIsExportMenuOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-white hover:bg-white/10 flex items-center gap-2.5 transition-colors cursor-pointer border-t border-white/5 pt-1.5"

@@ -67,12 +67,18 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
     showToast('AI prompt copied to clipboard', '[COPIED]');
   };
 
-  const isScaFinding = (f: Finding) =>
-    f.category?.includes('Software Composition Analysis') ||
-    f.category?.includes('Open Source License') ||
-    (f.ruleId >= 7000 && f.ruleId <= 7050);
+  const safeFindings = Array.isArray(findings) ? findings : [];
 
-  const scaFindingsCount = findings.filter(isScaFinding).length;
+  const isScaFinding = (f: Finding) =>
+    Boolean(
+      f && (
+        f.category?.includes('Software Composition Analysis') ||
+        f.category?.includes('Open Source License') ||
+        (f.ruleId >= 7000 && f.ruleId <= 7050)
+      )
+    );
+
+  const scaFindingsCount = safeFindings.filter(isScaFinding).length;
 
   const PILLAR_TABS = [
     { id: 'ALL', label: 'All Findings' },
@@ -131,7 +137,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
     return matches ? [...new Set(matches.map((m) => m.toUpperCase()))] : [];
   };
 
-  const filtered = findings.filter((f) => {
+  const filtered = safeFindings.filter((f) => {
+    if (!f) return false;
     const safeSearch = safeLower(safeTrim(searchTerm));
     const titleStr = safeLower(f.title);
     const pathStr = safeLower(f.filePath);

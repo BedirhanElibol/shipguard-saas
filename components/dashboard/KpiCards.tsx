@@ -11,23 +11,25 @@ interface KpiCardsProps {
 }
 
 export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar }) => {
-  const openFindings = project.findings.filter((f) => f.status === 'OPEN');
-  const criticals = openFindings.filter((f) => f.severity === 'CRITICAL').length;
-  const highs = openFindings.filter((f) => f.severity === 'HIGH').length;
+  const safeFindings = Array.isArray(project?.findings) ? project.findings : [];
+  const openFindings = safeFindings.filter((f) => f && f.status === 'OPEN');
+  const criticals = openFindings.filter((f) => f && f.severity === 'CRITICAL').length;
+  const highs = openFindings.filter((f) => f && f.severity === 'HIGH').length;
 
   const openUiCliches = openFindings.filter(
-    (f) => f.type === 'VIBEPOLISH' || f.category?.includes('UI') || f.category?.includes('Visual')
+    (f) => f && (f.type === 'VIBEPOLISH' || f.category?.includes('UI') || f.category?.includes('Visual'))
   ).length;
   const totalUiBaseline = Math.max(30, openUiCliches);
   const clearedUiRules = Math.max(0, totalUiBaseline - openUiCliches);
   const uiPercent = Math.round((clearedUiRules / totalUiBaseline) * 100);
 
   const openSlop = openFindings.filter(
-    (f) => f.category?.includes('Architecture') || f.category?.includes('Slop') || f.category?.includes('Code')
+    (f) => f && (f.category?.includes('Architecture') || f.category?.includes('Slop') || f.category?.includes('Code'))
   ).length;
   const totalSlopBaseline = Math.max(200, openSlop);
   const clearedSlopRules = Math.max(0, totalSlopBaseline - openSlop);
   const slopPercent = Math.round((clearedSlopRules / totalSlopBaseline) * 100);
+  const readiness = typeof project?.readinessScore === 'number' ? project.readinessScore : 100;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -43,14 +45,14 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
         <div className="flex items-baseline gap-1.5 sm:gap-2">
           <span
             className={`text-2xl sm:text-3xl font-extrabold tracking-tight font-mono ${
-              project.readinessScore < 50
+              readiness < 50
                 ? 'text-[#EF4444]'
-                : project.readinessScore < 85
+                : readiness < 85
                 ? 'text-[#F59E0B]'
                 : 'text-white'
             }`}
           >
-            <NumberFlow value={project.readinessScore} />
+            <NumberFlow value={readiness} />
           </span>
           <span className="text-[10px] sm:text-xs font-mono text-[#A1A1AA]">/ 100</span>
         </div>
@@ -59,13 +61,13 @@ export const KpiCards: React.FC<KpiCardsProps> = ({ project, onNavigatePillar })
         <div className="w-full h-1 bg-white/[0.06] rounded-full mt-2 sm:mt-3 overflow-hidden">
           <div
             className={`h-full transition-all duration-700 rounded-full ${
-              project.readinessScore < 50
+              readiness < 50
                 ? 'bg-[#EF4444]'
-                : project.readinessScore < 85
+                : readiness < 85
                 ? 'bg-[#F59E0B]'
                 : 'bg-white'
             }`}
-            style={{ width: `${project.readinessScore}%` }}
+            style={{ width: `${Math.min(100, Math.max(0, readiness))}%` }}
           />
         </div>
 

@@ -8,11 +8,12 @@ interface SeverityChartProps {
 }
 
 export const SeverityChart: React.FC<SeverityChartProps> = ({ project }) => {
-  const openFindings = project.findings.filter(f => f.status === 'OPEN');
-  const critical = openFindings.filter(f => f.severity === 'CRITICAL').length;
-  const high = openFindings.filter(f => f.severity === 'HIGH').length;
-  const medium = openFindings.filter(f => f.severity === 'MEDIUM').length;
-  const low = openFindings.filter(f => f.severity === 'LOW').length;
+  const safeFindings = Array.isArray(project?.findings) ? project.findings : [];
+  const openFindings = safeFindings.filter(f => f && f.status === 'OPEN');
+  const critical = openFindings.filter(f => f && f.severity === 'CRITICAL').length;
+  const high = openFindings.filter(f => f && f.severity === 'HIGH').length;
+  const medium = openFindings.filter(f => f && f.severity === 'MEDIUM').length;
+  const low = openFindings.filter(f => f && f.severity === 'LOW').length;
   const totalFindings = critical + high + medium + low;
   const passed = Math.max(0, Math.max(20, totalFindings + 5) - totalFindings);
 
@@ -23,6 +24,7 @@ export const SeverityChart: React.FC<SeverityChartProps> = ({ project }) => {
   const pctMedium = (medium / total) * 100;
   const pctLow = (low / total) * 100;
   const pctPassed = (passed / total) * 100;
+  const readiness = typeof project?.readinessScore === 'number' ? project.readinessScore : 100;
 
   return (
     <div className="bg-[#141414] border border-white/10 rounded-xl p-6 flex flex-col gap-4">
@@ -37,7 +39,7 @@ export const SeverityChart: React.FC<SeverityChartProps> = ({ project }) => {
         </div>
 
         <div className="text-xs font-mono text-white font-bold">
-          READINESS: {project.readinessScore}%
+          READINESS: {readiness}%
         </div>
       </div>
 

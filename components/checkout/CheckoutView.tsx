@@ -26,6 +26,7 @@ interface CheckoutViewProps {
   initialBilling?: 'annual' | 'monthly';
   initialSuccess?: boolean;
   checkoutId?: string | null;
+  reason?: string | null;
   onBackToPricing?: () => void;
   user?: UserProfile | null;
   onOpenAuth?: (mode?: 'signin' | 'signup') => void;
@@ -37,6 +38,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
   initialBilling = 'monthly',
   initialSuccess = false,
   checkoutId = null,
+  reason = null,
   onBackToPricing,
   user,
   onOpenAuth,
@@ -321,6 +323,31 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
           <span>256-Bit SSL Encrypted B2B Checkout</span>
         </div>
       </div>
+
+      {/* Quota Exceeded Context Banner */}
+      {reason === 'quota_exceeded' && (
+        <div className="p-5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <div className="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">
+                Monthly Free Scan Limit Reached (3/3)
+              </div>
+              <p className="text-xs text-[#EDEDED] mt-0.5 leading-relaxed">
+                You have reached your 3 free scans for this month. Upgrade to Zelsis Pro to audit unlimited repositories, or return to your dashboard to reset demo quota.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="btn btn-secondary px-4 py-2 text-xs font-mono font-bold rounded-lg border border-white/20 hover:bg-white/10 text-white shrink-0 transition-colors cursor-pointer"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      )}
 
       {/* Checkout Verification Status Banner */}
       {isVerifying && (

@@ -12,7 +12,8 @@ import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
-import { checkScanQuota } from '@/lib/quota-manager';
+import { checkScanQuota, resetUserQuota } from '@/lib/quota-manager';
+import { QuotaLimitModal } from '@/components/dashboard/QuotaLimitModal';
 
 // Next.js Dynamic Code Splitting for heavy dashboard views
 const SecurityAuditView = dynamic(() => import('@/components/SecurityAuditView').then(m => m.SecurityAuditView), { ssr: false });
@@ -80,14 +81,20 @@ function DashboardContent() {
 
   const [checkoutInitialPlan, setCheckoutInitialPlan] = useState<'Pro' | 'Enterprise'>('Pro');
   const [scanProjectOverride, setScanProjectOverride] = useState<Project | null>(null);
+  const [isQuotaModalOpen, setIsQuotaModalOpen] = useState<boolean>(false);
   const hasProcessedRepoRef = React.useRef(false);
+
+  const handleResetQuota = () => {
+    const refreshed = resetUserQuota((user?.tier as UserTier) || 'Free');
+    setQuota(refreshed);
+  };
 
   const handleTriggerScan = (projectOverride?: Project) => {
     const userTier = (user?.tier as UserTier) || 'Free';
     if (quota) {
       const scanCheck = checkScanQuota(quota, userTier);
       if (!scanCheck.allowed) {
-        handleOpenCheckoutModal('Pro');
+        setIsQuotaModalOpen(true);
         return;
       }
     }
@@ -329,6 +336,7 @@ function DashboardContent() {
               onConsumeScanQuota={recordScanUsage}
               onRequestScanAuthorization={requestScanAuthorization}
               onCompleteScanTelemetry={completeScanTelemetry}
+              onResetQuota={handleResetQuota}
               onCompleteScan={(result) => {
                 const currentTarget = scanProjectOverride || selectedProject;
                 if (result) {
@@ -627,6 +635,15 @@ function DashboardContent() {
           }
         }}
         initialMode={authInitialMode}
+      />
+
+      {/* Quota Limit Modal with Honest Guidance and Demo Reset */}
+      <QuotaLimitModal
+        isOpen={isQuotaModalOpen}
+        onClose={() => setIsQuotaModalOpen(false)}
+        scansUsed={quota?.scansUsed || 3}
+        scansLimit={quota?.scansLimit || 3}
+        onResetQuota={handleResetQuota}
       />
     </AppShell>
   );

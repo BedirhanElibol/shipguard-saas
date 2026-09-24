@@ -165,6 +165,12 @@ export function consumeScanQuota(quota: PlanUsageQuota, tier: UserTier = 'Free')
   return updated;
 }
 
+export function resetUserQuota(tier: UserTier = 'Free'): PlanUsageQuota {
+  const initial = getInitialQuota(tier);
+  saveUserQuota(initial);
+  return initial;
+}
+
 export function checkAiPromptQuota(quota: PlanUsageQuota, tier: UserTier = 'Free'): {
   allowed: boolean;
   remaining: number;

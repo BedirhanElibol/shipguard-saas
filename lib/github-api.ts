@@ -147,6 +147,66 @@ export function isValidGithubUrl(url: string): boolean {
 }
 
 /**
+ * Intelligent file prioritizer for AST security & deployment readiness scanning.
+ * Ensures the most impactful architecture, manifest, route, and security files are audited
+ * while keeping scans fast (2-3s) and well within GitHub API & Vercel serverless bounds.
+ */
+export function prioritizeFilesForScan<T extends { path: string }>(files: T[], maxFiles: number = 60): T[] {
+  const getFileScore = (filePath: string): number => {
+    const lower = filePath.toLowerCase();
+
+    // Lowest priority: test suites, fixtures, sample mock data, markdown docs
+    if (
+      lower.includes('__tests__') ||
+      lower.includes('.test.') ||
+      lower.includes('.spec.') ||
+      lower.includes('/fixtures/') ||
+      lower.includes('/examples/') ||
+      lower.includes('/e2e/') ||
+      lower.includes('/cypress/') ||
+      lower.includes('/test/') ||
+      lower.includes('/tests/') ||
+      lower.includes('/mock') ||
+      lower.includes('test_')
+    ) {
+      return 10;
+    }
+
+    // Tier 1: Critical project manifests & infrastructure configs (90-100)
+    if (lower.endsWith('package.json')) return 100;
+    if (lower.endsWith('next.config.js') || lower.endsWith('next.config.mjs') || lower.endsWith('next.config.ts')) return 98;
+    if (lower.includes('.env')) return 97;
+    if (lower.endsWith('dockerfile') || lower.includes('docker-compose')) return 96;
+    if (lower.includes('.github/workflows/')) return 95;
+    if (lower.endsWith('tsconfig.json')) return 94;
+    if (lower.endsWith('security.md')) return 93;
+    if (lower.endsWith('requirements.txt') || lower.endsWith('pyproject.toml') || lower.endsWith('cargo.toml') || lower.endsWith('go.mod')) return 92;
+
+    // Tier 2: Server endpoints, auth, middlewares & routing (80-90)
+    if (lower.includes('middleware.')) return 90;
+    if (lower.includes('/api/') || lower.startsWith('api/')) return 88;
+    if (lower.includes('auth') || lower.includes('session')) return 87;
+    if (lower.endsWith('layout.tsx') || lower.endsWith('layout.jsx') || lower.endsWith('layout.js')) return 85;
+    if (lower.endsWith('page.tsx') || lower.endsWith('page.jsx') || lower.endsWith('route.ts') || lower.endsWith('route.js')) return 84;
+    if (lower.includes('/lib/') || lower.includes('/utils/') || lower.includes('/server/') || lower.includes('/services/')) return 80;
+
+    // Tier 3: UI Components & Application Logic (60-79)
+    if (lower.includes('/components/')) return 75;
+    if (lower.endsWith('.ts') || lower.endsWith('.tsx') || lower.endsWith('.js') || lower.endsWith('.jsx')) return 70;
+    if (lower.endsWith('.py') || lower.endsWith('.go') || lower.endsWith('.rs') || lower.endsWith('.php')) return 68;
+
+    // Tier 4: Readme & General docs (40)
+    if (lower.endsWith('readme.md')) return 40;
+
+    return 30;
+  };
+
+  return [...files]
+    .sort((a, b) => getFileScore(b.path) - getFileScore(a.path))
+    .slice(0, maxFiles);
+}
+
+/**
  * Live GitHub Repository Fetcher
  * Verifies that the GitHub repository exists and fetches its real file tree & source contents via GitHub REST API.
  */
@@ -539,19 +599,21 @@ export async function fetchGithubRepositoryData(
       };
     }
 
+    const filesToFetch = prioritizeFilesForScan(treeFiles, 60);
+
     onProgress?.({
       phase: 'tree',
       loaded: 0,
-      total: treeFiles.length,
-      currentFile: `Discovered ${treeFiles.length} scannable source files`
+      total: filesToFetch.length,
+      currentFile: `Discovered ${treeFiles.length} files (prioritizing ${filesToFetch.length} core architecture files)`
     });
 
     const CHUNK_SIZE = 30;
     const fetchedFiles: (CodeFile | null)[] = [];
 
-    for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {
+    for (let i = 0; i < filesToFetch.length; i += CHUNK_SIZE) {
       if (signal?.aborted) return null;
-      const chunk = treeFiles.slice(i, i + CHUNK_SIZE);
+      const chunk = filesToFetch.slice(i, i + CHUNK_SIZE);
       const chunkResults = await Promise.all(
         chunk.map(async (file) => {
           try {
@@ -581,12 +643,12 @@ export async function fetchGithubRepositoryData(
         })
       );
       fetchedFiles.push(...chunkResults);
-      const currentLoaded = Math.min(treeFiles.length, i + chunk.length);
+      const currentLoaded = Math.min(filesToFetch.length, i + chunk.length);
       const activePath = chunk[chunk.length - 1]?.path || 'source file';
       onProgress?.({
         phase: 'fetching',
         loaded: currentLoaded,
-        total: treeFiles.length,
+        total: filesToFetch.length,
         currentFile: activePath
       });
     }

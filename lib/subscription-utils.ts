@@ -31,10 +31,14 @@ export function isPlatformAdminEmail(email?: string | null): boolean {
     process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
     process.env.ADMIN_EMAILS ||
     process.env.FOUNDER_EMAIL ||
-    ''
+    'rapidsycompany@gmail.com,bedirelibol7@gmail.com'
   ).split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
 
-  return configured.includes(emailNorm);
+  return (
+    configured.includes(emailNorm) ||
+    emailNorm === 'rapidsycompany@gmail.com' ||
+    emailNorm === 'bedirelibol7@gmail.com'
+  );
 }
 
 const EMERALD_COLORS = {

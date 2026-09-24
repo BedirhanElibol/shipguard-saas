@@ -26,6 +26,7 @@ function CheckoutPageContent() {
   const billing = (searchParams.get('billing') || 'monthly') as 'annual' | 'monthly';
   const isSuccess = searchParams.get('success') === 'true';
   const checkoutId = searchParams.get('checkout_id') || searchParams.get('checkoutId') || null;
+  const reason = searchParams.get('reason');
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -121,6 +122,7 @@ function CheckoutPageContent() {
         initialBilling={billing}
         initialSuccess={isSuccess}
         checkoutId={checkoutId}
+        reason={reason}
         onBackToPricing={() => router.push('/#pricing')}
         user={user}
         onOpenAuth={(mode) => {

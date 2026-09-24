@@ -11,16 +11,17 @@ interface EnterpriseOrgCardProps {
 export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) => {
   const [orgName, setOrgName] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('zelsis_org_name') || (user?.tier === 'Enterprise' ? 'Acme Global SecOps' : 'Personal Team');
+      return localStorage.getItem('zelsis_org_name') || (user?.name ? `${user.name.split(' ')[0]}'s Security Workspace` : 'Primary Workspace');
     }
-    return 'Personal Team';
+    return 'Primary Workspace';
   });
 
   const [orgDomain, setOrgDomain] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('zelsis_org_domain') || 'acme.corp, secops.io';
+      const emailDomain = user?.email?.includes('@') ? user.email.split('@')[1] : 'company.com';
+      return localStorage.getItem('zelsis_org_domain') || `${emailDomain}, secops.${emailDomain}`;
     }
-    return 'acme.corp, secops.io';
+    return 'company.com';
   });
 
   const [orgMinScore, setOrgMinScore] = useState(85);
@@ -83,7 +84,7 @@ export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) =>
             type="text"
             value={orgName}
             onChange={(e) => setOrgName(e.target.value)}
-            placeholder="Acme Corporation"
+            placeholder="Security Engineering Workspace"
             className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none focus:border-white/20"
           />
         </div>
@@ -99,7 +100,7 @@ export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) =>
             type="text"
             value={orgDomain}
             onChange={(e) => setOrgDomain(e.target.value)}
-            placeholder="acme.com, security.acme.com"
+            placeholder="company.com, secops.company.com"
             className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-[#EDEDED] font-mono focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none focus:border-white/20"
           />
         </div>

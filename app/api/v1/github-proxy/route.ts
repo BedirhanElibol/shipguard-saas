@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseGithubUrl } from '@/lib/github-api';
+import { parseGithubUrl, prioritizeFilesForScan } from '@/lib/github-api';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GithubProxyQuerySchema, validateQueryParams } from '@/lib/validations/api-schemas';
 import { logger } from '@/lib/logger';
@@ -554,12 +554,15 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Prioritize core architecture, manifest, and security files, capped at 60 files to prevent serverless timeout
+    const filesToFetch = prioritizeFilesForScan(treeFiles, 60);
+
     // Fetch raw file contents in parallel chunks from GitHub
-    const CHUNK_SIZE = 50;
+    const CHUNK_SIZE = 30;
     const fetchedFiles: Array<{ path: string; content: string }> = [];
 
-    for (let i = 0; i < treeFiles.length; i += CHUNK_SIZE) {
-      const chunk = treeFiles.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < filesToFetch.length; i += CHUNK_SIZE) {
+      const chunk = filesToFetch.slice(i, i + CHUNK_SIZE);
       const chunkResults = await Promise.all(
         chunk.map(async (file: any) => {
           try {

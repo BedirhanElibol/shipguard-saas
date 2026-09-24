@@ -6,7 +6,7 @@ import { UserProfile } from '@/components/auth/AuthModal';
 import { runStaticCodeScan, ScanResult, CodeFile } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
-import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock, Key } from 'lucide-react';
+import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock, Key, RotateCcw } from 'lucide-react';
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { PrivateRepoTokenModal } from '@/components/dashboard/PrivateRepoTokenModal';
@@ -39,6 +39,7 @@ interface ScanRunnerViewProps {
     uiClicheCount: number;
     scanDurationMs: number;
   }) => Promise<void>;
+  onResetQuota?: () => void;
 }
 
 export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
@@ -49,7 +50,8 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   onOpenCheckout,
   onConsumeScanQuota,
   onRequestScanAuthorization,
-  onCompleteScanTelemetry
+  onCompleteScanTelemetry,
+  onResetQuota
 }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
@@ -145,10 +147,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             setLogs([
               `[${new Date().toLocaleTimeString()}] [LIMIT] Monthly Free Tier Scan Limit Reached (${quota.scansUsed}/${quota.scansLimit} scans used).`,
               `[${new Date().toLocaleTimeString()}] [UPGRADE] Upgrade to Zelsis Pro ($19/mo) or Enterprise ($99/mo) to unlock unlimited audits and automated CI/CD scans.`,
-              `[${new Date().toLocaleTimeString()}] [ACTION] Opening subscription tier selector...`
+              `[${new Date().toLocaleTimeString()}] [ACTION] Select 'Upgrade to Pro' or 'Reset Demo Quota' below to proceed.`
             ]);
             setIsFinished(true);
-            onOpenCheckout?.('Pro');
           }
           return;
         }
@@ -170,10 +171,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
             setLogs([
               `[${new Date().toLocaleTimeString()}] [LIMIT] ${serverAuth.reason || 'Monthly Free Scan Limit Reached.'}`,
               `[${new Date().toLocaleTimeString()}] [UPGRADE] Upgrade to Zelsis Pro ($19/mo) or Enterprise ($99/mo) to unlock unlimited audits and automated CI/CD scans.`,
-              `[${new Date().toLocaleTimeString()}] [ACTION] Opening subscription tier selector...`
+              `[${new Date().toLocaleTimeString()}] [ACTION] Select 'Upgrade to Pro' or 'Reset Demo Quota' below to proceed.`
             ]);
             setIsFinished(true);
-            onOpenCheckout?.('Pro');
           }
           return;
         }
@@ -385,10 +385,9 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 ...prev,
                 `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 PRIVATE REPOSITORY DETECTED: "${project.repoUrl}".`,
                 `[${new Date().toLocaleTimeString()}] [PAYWALL] Private codebase audits require an active Zelsis Pro subscription ($19/mo).`,
-                `[${new Date().toLocaleTimeString()}] [ACTION] Upgrade to Pro to audit private repositories and proprietary code.`
+                `[${new Date().toLocaleTimeString()}] [ACTION] Upgrade to Pro below to audit private repositories and proprietary code.`
               ]);
               setIsFinished(true);
-              onOpenCheckout?.('Pro');
               return;
             }
 
@@ -823,6 +822,20 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                   >
                     <Lock size={14} />
                     <span>Upgrade to Pro ($19/mo)</span>
+                  </button>
+                )}
+
+                {scanFailureReason?.includes('Monthly Free Scan Limit') && onResetQuota && (
+                  <button
+                    onClick={() => {
+                      onResetQuota();
+                      hasCompletedRef.current = true;
+                      onCompleteScanRef.current();
+                    }}
+                    className="btn btn-secondary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 border border-white/20 hover:bg-white/10 text-white transition-all font-mono cursor-pointer"
+                  >
+                    <RotateCcw size={14} />
+                    <span>Reset Demo Quota</span>
                   </button>
                 )}
 

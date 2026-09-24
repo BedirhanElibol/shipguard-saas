@@ -1,0 +1,236 @@
+import { InfraRule } from "../schema";
+
+/**
+ * Zelsis Master Polyglot Backend & Enterprise Database Catalog (Rule IDs 18001..18050)
+ * Fulfills F-44 & F-45: Multi-language security analysis across PHP, Java, C#, Ruby, NoSQL, Firebase
+ */
+export const POLYGLOT_BACKEND_CATALOG: InfraRule[] = [
+  {
+    id: 18001,
+    code: "PHP-SEC-01",
+    title: "SQL Injection via Unparameterized Query Concatenation",
+    category: "SQL Injection",
+    targetStack: "PHP / MySQL",
+    riskLevel: "CRITICAL",
+    description: "Database queries constructed with raw HTTP request variables ($_GET/$_POST) without parameterized bindings.",
+    verificationControl: "Use PDO prepared statements or mysqli_prepare with parameterized bound parameters.",
+    remediationPrompt: "$stmt = $pdo->prepare('SELECT * FROM users WHERE id = :id'); $stmt->execute([':id' => $id]);",
+    sampleDiff: "--- a/db.php\n+++ b/db.php\n@@ -1,1 +1,2 @@\n-mysqli_query($conn, 'SELECT * FROM users WHERE id = ' . $_GET['id']);\n+$stmt = $pdo->prepare('SELECT * FROM users WHERE id = :id');\n+$stmt->execute([':id' => $_GET['id']]);"
+  },
+  {
+    id: 18002,
+    code: "PHP-SEC-02",
+    title: "Local File Inclusion (LFI) via Dynamic include/require",
+    category: "Path Traversal",
+    targetStack: "PHP Runtime",
+    riskLevel: "CRITICAL",
+    description: "Dynamic file inclusions passing unsanitized HTTP input directly to include() or require().",
+    verificationControl: "Whitelist allowable files in an array lookup map before invoking inclusion functions.",
+    remediationPrompt: "Whitelist file targets: $allowed = ['home' => 'home.php']; include($allowed[$_GET['page']]);",
+    sampleDiff: "--- a/index.php\n+++ b/index.php\n@@ -1,1 +1,2 @@\n-include($_GET['page'] . '.php');\n+include($whitelist[$_GET['page']] ?? 'default.php');"
+  },
+  {
+    id: 18003,
+    code: "PHP-SEC-03",
+    title: "OS Command Injection via shell_exec / system",
+    category: "Command Injection",
+    targetStack: "PHP Runtime",
+    riskLevel: "CRITICAL",
+    description: "System command execution functions invoked directly with untrusted user input.",
+    verificationControl: "Avoid shell command execution or sanitize all arguments using escapeshellarg().",
+    remediationPrompt: "Pass parameters through escapeshellarg() or use safe built-in PHP API functions.",
+    sampleDiff: "--- a/ping.php\n+++ b/ping.php\n@@ -1,1 +1,1 @@\n-shell_exec('ping -c 1 ' . $_GET['host']);\n+shell_exec('ping -c 1 ' . escapeshellarg($_GET['host']));"
+  },
+  {
+    id: 18004,
+    code: "PHP-SEC-04",
+    title: "Insecure PHP Object Deserialization via unserialize()",
+    category: "Insecure Deserialization",
+    targetStack: "PHP Runtime",
+    riskLevel: "CRITICAL",
+    description: "Native PHP unserialize() called on untrusted input, enabling POP gadget chain remote code execution.",
+    verificationControl: "Use json_decode() or pass ['allowed_classes' => false] to unserialize().",
+    remediationPrompt: "Replace with json_decode($data, true) or restrict allowed_classes.",
+    sampleDiff: "--- a/session.php\n+++ b/session.php\n@@ -1,1 +1,1 @@\n-$obj = unserialize($_COOKIE['session']);\n+$obj = json_decode($_COOKIE['session'], true);"
+  },
+  {
+    id: 18005,
+    code: "PHP-SEC-05",
+    title: "Reflected Cross-Site Scripting (XSS) via Direct Echo",
+    category: "Cross-Site Scripting",
+    targetStack: "PHP Web",
+    riskLevel: "HIGH",
+    description: "Echoing or printing raw request parameters to the browser without htmlspecialchars escaping.",
+    verificationControl: "Always encode dynamic output using htmlspecialchars($str, ENT_QUOTES, 'UTF-8').",
+    remediationPrompt: "echo htmlspecialchars($_GET['name'], ENT_QUOTES, 'UTF-8');",
+    sampleDiff: "--- a/view.php\n+++ b/view.php\n@@ -1,1 +1,1 @@\n-echo $_GET['name'];\n+echo htmlspecialchars($_GET['name'], ENT_QUOTES, 'UTF-8');"
+  },
+  {
+    id: 18011,
+    code: "JAVA-SEC-01",
+    title: "SQL Injection via String Concatenation in Statement Execution",
+    category: "SQL Injection",
+    targetStack: "Java JDBC / JPA",
+    riskLevel: "CRITICAL",
+    description: "Constructing SQL statements using dynamic string concatenation inside Statement.executeQuery().",
+    verificationControl: "Use PreparedStatement with positional parameter placeholders (?).",
+    remediationPrompt: "PreparedStatement ps = conn.prepareStatement('SELECT * FROM users WHERE id = ?'); ps.setString(1, id);",
+    sampleDiff: "--- a/UserDao.java\n+++ b/UserDao.java\n@@ -1,1 +1,2 @@\n-stmt.executeQuery('SELECT * FROM users WHERE id = ' + id);\n+PreparedStatement ps = conn.prepareStatement('SELECT * FROM users WHERE id = ?'); ps.setString(1, id);"
+  },
+  {
+    id: 18012,
+    code: "JAVA-SEC-02",
+    title: "Hardcoded Password or Secret Key in Java Source Code",
+    category: "Hardcoded Secret",
+    targetStack: "Java Enterprise",
+    riskLevel: "HIGH",
+    description: "Embedding plaintext credentials or cryptographic keys directly in compiled Java class source.",
+    verificationControl: "Externalize secrets using System.getenv() or a HashiCorp Vault / AWS Secrets Manager client.",
+    remediationPrompt: "String password = System.getenv('DB_PASSWORD');",
+    sampleDiff: "--- a/Config.java\n+++ b/Config.java\n@@ -1,1 +1,1 @@\n-String password = 'SuperSecretPassword123!';\n+String password = System.getenv('DB_PASSWORD');"
+  },
+  {
+    id: 18013,
+    code: "JAVA-SEC-03",
+    title: "Unrestricted Java Deserialization via ObjectInputStream.readObject",
+    category: "Insecure Deserialization",
+    targetStack: "Java JVM",
+    riskLevel: "CRITICAL",
+    description: "Deserializing untrusted byte streams using ObjectInputStream without an ObjectInputFilter class filter.",
+    verificationControl: "Enforce JEP 290 ObjectInputFilter or migrate to structured JSON or Protobuf serialization.",
+    remediationPrompt: "Attach an ObjectInputFilter or replace Java serialization with Jackson ObjectMapper.",
+    sampleDiff: "--- a/Receiver.java\n+++ b/Receiver.java\n@@ -1,1 +1,2 @@\n-Object obj = ois.readObject();\n+ois.setObjectInputFilter(filter);\n+Object obj = ois.readObject();"
+  },
+  {
+    id: 18014,
+    code: "JAVA-SEC-04",
+    title: "Log4Shell / JNDI Remote Code Execution Pattern (CVE-2021-44228)",
+    category: "Remote Code Execution",
+    targetStack: "Java Log4j",
+    riskLevel: "CRITICAL",
+    description: "Logging user-controlled values containing JNDI lookup expressions (${jndi:), triggering remote LDAP code execution.",
+    verificationControl: "Upgrade Log4j to >= 2.17.1 and set log4j2.formatMsgNoLookups=true.",
+    remediationPrompt: "Upgrade log4j-core dependency and strip JNDI prefixes before logging.",
+    sampleDiff: "--- a/pom.xml\n+++ b/pom.xml\n@@ -2,1 +2,1 @@\n-<version>2.14.1</version>\n+<version>2.17.1</version>"
+  },
+  {
+    id: 18015,
+    code: "JAVA-SEC-05",
+    title: "Cryptographically Weak Cipher or Hash in Java (DES / RC4 / MD5 / ECB)",
+    category: "Cryptographic Weakness",
+    targetStack: "Java Cryptography",
+    riskLevel: "HIGH",
+    description: "Using broken symmetric ciphers (DES, RC4) or ECB mode which leaks plaintext block patterns.",
+    verificationControl: "Use AES/GCM/NoPadding with 256-bit keys and SHA-256 for hashing.",
+    remediationPrompt: "Cipher.getInstance('AES/GCM/NoPadding');",
+    sampleDiff: "--- a/Crypto.java\n+++ b/Crypto.java\n@@ -1,1 +1,1 @@\n-Cipher.getInstance('DES');\n+Cipher.getInstance('AES/GCM/NoPadding');"
+  },
+  {
+    id: 18021,
+    code: "CS-SEC-01",
+    title: "C# SQL Injection via SqlCommand Interpolation / Concatenation",
+    category: "SQL Injection",
+    targetStack: "C# / .NET / Entity Framework",
+    riskLevel: "CRITICAL",
+    description: "Constructing SQL queries with string interpolation ($) or string concatenation without SqlParameter.",
+    verificationControl: "Use cmd.Parameters.AddWithValue() or EF Core FromSqlInterpolated.",
+    remediationPrompt: "cmd.CommandText = 'SELECT * FROM Users WHERE Id = @Id'; cmd.Parameters.AddWithValue('@Id', id);",
+    sampleDiff: "--- a/Repo.cs\n+++ b/Repo.cs\n@@ -1,1 +1,2 @@\n-new SqlCommand($'SELECT * FROM Users WHERE Id = {id}');\n+cmd.CommandText = 'SELECT * FROM Users WHERE Id = @Id';\n+cmd.Parameters.AddWithValue('@Id', id);"
+  },
+  {
+    id: 18022,
+    code: "CS-SEC-02",
+    title: "Cryptographically Broken Hash / Cipher Algorithm (MD5 / SHA1 / DES)",
+    category: "Cryptographic Weakness",
+    targetStack: ".NET Cryptography",
+    riskLevel: "HIGH",
+    description: "Invoking MD5.Create() or DESCryptoServiceProvider which are vulnerable to collision and decryption attacks.",
+    verificationControl: "Use SHA256.Create() and Aes.Create() for all cryptographic operations.",
+    remediationPrompt: "SHA256.Create() and Aes.Create();",
+    sampleDiff: "--- a/Hash.cs\n+++ b/Hash.cs\n@@ -1,1 +1,1 @@\n-using var md5 = MD5.Create();\n+using var sha256 = SHA256.Create();"
+  },
+  {
+    id: 18023,
+    code: "CS-SEC-03",
+    title: "Insecure .NET Deserialization via BinaryFormatter (RCE Hazard)",
+    category: "Insecure Deserialization",
+    targetStack: ".NET Runtime",
+    riskLevel: "CRITICAL",
+    description: "BinaryFormatter.Deserialize() can be exploited for arbitrary remote code execution and is obsolete.",
+    verificationControl: "Migrate to System.Text.Json or protobuf-net serialization formats.",
+    remediationPrompt: "Use JsonSerializer.Deserialize<T>(stream);",
+    sampleDiff: "--- a/Data.cs\n+++ b/Data.cs\n@@ -1,1 +1,1 @@\n-formatter.Deserialize(stream);\n+JsonSerializer.Deserialize<MyData>(stream);"
+  },
+  {
+    id: 18031,
+    code: "RUBY-SEC-01",
+    title: "Ruby on Rails SQL Injection in ActiveRecord Query Interpolation",
+    category: "SQL Injection",
+    targetStack: "Ruby on Rails",
+    riskLevel: "CRITICAL",
+    description: "Interpolating request params directly into ActiveRecord where/find_by_sql strings without parameterization.",
+    verificationControl: "Use hash conditions User.where(name: params[:name]) or array placeholders User.where('name = ?', name).",
+    remediationPrompt: "User.where(name: params[:name])",
+    sampleDiff: "--- a/user.rb\n+++ b/user.rb\n@@ -1,1 +1,1 @@\n-User.where(\"name = #{params[:name]}\")\n+User.where(name: params[:name])"
+  },
+  {
+    id: 18032,
+    code: "RUBY-SEC-02",
+    title: "Insecure Mass Assignment via params.permit!",
+    category: "Mass Assignment",
+    targetStack: "Ruby on Rails",
+    riskLevel: "HIGH",
+    description: "Disabling Strong Parameters via params.permit! allowing attackers to overwrite protected model attributes.",
+    verificationControl: "Explicitly declare permitted model fields using params.require(:model).permit(:field1, :field2).",
+    remediationPrompt: "params.require(:user).permit(:username, :email)",
+    sampleDiff: "--- a/controller.rb\n+++ b/controller.rb\n@@ -1,1 +1,1 @@\n-params.require(:user).permit!\n+params.require(:user).permit(:username, :email)"
+  },
+  {
+    id: 18033,
+    code: "RUBY-SEC-03",
+    title: "Remote Code Execution via eval with Unsanitized Parameters",
+    category: "Remote Code Execution",
+    targetStack: "Ruby Runtime",
+    riskLevel: "CRITICAL",
+    description: "Calling eval() on untrusted user parameters, allowing arbitrary code execution on the Ruby host.",
+    verificationControl: "Eliminate dynamic eval in favor of static dispatch tables or strict case statements.",
+    remediationPrompt: "Dispatch via whitelist map: ACTIONS[params[:cmd]]&.call",
+    sampleDiff: "--- a/app.rb\n+++ b/app.rb\n@@ -1,1 +1,1 @@\n-eval(params[:cmd])\n+ALLOWED_COMMANDS[params[:cmd]]&.call"
+  },
+  {
+    id: 18041,
+    code: "NOSQL-SEC-01",
+    title: "MongoDB $where Arbitrary JavaScript Evaluation Injection",
+    category: "NoSQL Injection",
+    targetStack: "MongoDB / Node.js",
+    riskLevel: "CRITICAL",
+    description: "Using the MongoDB $where operator with dynamic strings, allowing arbitrary JavaScript execution on the database engine.",
+    verificationControl: "Use standard query operators ($eq, $in, $regex) and start mongod with --noscripting.",
+    remediationPrompt: "db.users.find({ name: req.body.name })",
+    sampleDiff: "--- a/userModel.js\n+++ b/userModel.js\n@@ -1,1 +1,1 @@\n-db.users.find({ $where: \"this.name == '\" + name + \"'\" });\n+db.users.find({ name: name });"
+  },
+  {
+    id: 18042,
+    code: "NODE-SQL-01",
+    title: "Node.js Database Query Formatted via String Concatenation",
+    category: "SQL Injection",
+    targetStack: "Node.js / MySQL / PostgreSQL",
+    riskLevel: "CRITICAL",
+    description: "Constructing SQL queries in Node.js via string concatenation (+) without parameterized query values (?).",
+    verificationControl: "Pass query parameters as a values array: pool.query('SELECT * FROM users WHERE id = ?', [id]).",
+    remediationPrompt: "pool.query('SELECT * FROM users WHERE id = ?', [userId])",
+    sampleDiff: "--- a/repo.js\n+++ b/repo.js\n@@ -1,1 +1,1 @@\n-pool.query('SELECT * FROM users WHERE id = ' + id);\n+pool.query('SELECT * FROM users WHERE id = ?', [id]);"
+  },
+  {
+    id: 18043,
+    code: "FIREBASE-SEC-01",
+    title: "Insecure Firebase Security Rules (Unauthenticated Public Read/Write)",
+    category: "Access Control",
+    targetStack: "Firebase / Firestore",
+    riskLevel: "CRITICAL",
+    description: "Allowing open public read/write access via 'allow read, write: if true;' without user authentication checks.",
+    verificationControl: "Require authenticated session: allow read, write: if request.auth != null && request.auth.uid == userId;",
+    remediationPrompt: "allow read, write: if request.auth != null;",
+    sampleDiff: "--- a/firestore.rules\n+++ b/firestore.rules\n@@ -1,1 +1,1 @@\n-allow read, write: if true;\n+allow read, write: if request.auth != null && request.auth.uid == userId;"
+  }
+];

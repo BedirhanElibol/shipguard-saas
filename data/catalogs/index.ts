@@ -95,3 +95,4 @@ export { VECTOR_INDEX_OPTIMIZATION_RULES } from './vectorIndexOptimizationRules'
 export { AI_AGENT_ETHICS_GOVERNANCE_RULES } from './aiAgentEthicsGovernanceRules';
 export { EDGE_AI_MODEL_QUANTIZATION_RULES } from './edgeAiModelQuantizationRules';
 export { SERVERLESS_VECTOR_CACHE_RULES } from './serverlessVectorCacheRules';
+export { POLYGLOT_BACKEND_CATALOG } from './polyglot-backend-catalog';

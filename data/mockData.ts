@@ -97,6 +97,7 @@ import {
       AI_AGENT_ETHICS_GOVERNANCE_RULES,
         EDGE_AI_MODEL_QUANTIZATION_RULES,
       SERVERLESS_VECTOR_CACHE_RULES,
+  POLYGLOT_BACKEND_CATALOG,
                                                                                           } from './catalogs';
 export {
   UI_CLICHE_CATALOG,
@@ -196,6 +197,7 @@ export {
       AI_AGENT_ETHICS_GOVERNANCE_RULES,
         EDGE_AI_MODEL_QUANTIZATION_RULES,
       SERVERLESS_VECTOR_CACHE_RULES,
+  POLYGLOT_BACKEND_CATALOG,
                                                                                           };
 
 export const SECURITY_RULES_CATALOG: SecurityRule[] = [
@@ -1561,7 +1563,8 @@ export const INFRA_RULES_CATALOG: InfraRule[] = [
   ...MULTI_AGENT_ORCHESTRATION_RULES,
   ...VECTOR_INDEX_OPTIMIZATION_RULES,
   ...EDGE_AI_MODEL_QUANTIZATION_RULES,
-  ...SERVERLESS_VECTOR_CACHE_RULES
+  ...SERVERLESS_VECTOR_CACHE_RULES,
+  ...POLYGLOT_BACKEND_CATALOG
 ];
 
 export const DEMO_AUDIT_FINDINGS: Finding[] = SHOWCASE_DEMO_FINDINGS;

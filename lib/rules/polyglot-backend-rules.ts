@@ -1,6 +1,7 @@
 /**
- * Polyglot Backend Security Rules (PHP, Java, C# / .NET, Ruby)
- * Addresses audit finding F-44 & F-45: Multi-language security analysis
+ * Polyglot Backend & Database Security Rules Engine (PHP, Java, C# / .NET, Ruby, NoSQL, Firebase)
+ * Fulfills audit findings F-44, F-45, F-25, F-37:
+ * Addresses missing multi-language coverage across enterprise web and cloud backends.
  */
 import { Finding } from '@/data/schema';
 import { CodeFile } from '../scanner-engine';
@@ -33,7 +34,6 @@ export function evaluatePolyglotBackendRules(
     lowerPath.includes('data/mockdata') ||
     lowerPath.includes('data/workspacefiles') ||
     lowerPath.includes('data/schema') ||
-    lowerPath.includes('scratch/') ||
     lowerPath.includes('.agent/') ||
     lowerPath.includes('node_modules/') ||
     lowerPath.endsWith('.d.ts')
@@ -136,6 +136,64 @@ export function evaluatePolyglotBackendRules(
       });
       logs.push(`[${ts}] 🔒 [PHP AUDIT] CRITICAL: Command Injection in ${file.path}:${lineNum}`);
     }
+
+    // PHP-04: Insecure Deserialization via unserialize()
+    const phpUnserializeRegex = /\bunserialize\s*\(\s*(?:\$_(?:GET|POST|REQUEST|COOKIE)|\$[a-zA-Z0-9_]+)/i;
+    if (phpUnserializeRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('#') && phpUnserializeRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `php-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18004,
+        type: 'SECURITY',
+        title: 'PHP-SEC-04: Insecure PHP Object Deserialization via unserialize()',
+        severity: 'CRITICAL',
+        category: 'Insecure Deserialization',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'unserialize($_POST["data"])',
+        reproductionSteps: [
+          `Scanned object deserialization calls in ${file.path}:${lineNum}.`,
+          'Detected native PHP unserialize() invoked on user-controlled inputs, allowing Object Injection and Remote Code Execution via POP chains.'
+        ],
+        remediationPrompt: 'Use json_decode() for data interchange. If unserialize() is required, pass allowed_classes => false option.',
+        status: 'OPEN',
+        owner: 'Backend Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [PHP AUDIT] CRITICAL: PHP Insecure Deserialization in ${file.path}:${lineNum}`);
+    }
+
+    // PHP-05: Reflected Cross-Site Scripting (XSS)
+    const phpXssRegex = /(?:echo|print)\s+(?:\$_(?:GET|POST|REQUEST|COOKIE)\[[^\]]+\]|\$[a-zA-Z0-9_]+)/i;
+    if (phpXssRegex.test(cleanContent) && !/htmlspecialchars|htmlentities|strip_tags/i.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('#') && phpXssRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `php-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18005,
+        type: 'SECURITY',
+        title: 'PHP-SEC-05: Reflected Cross-Site Scripting (XSS) via Direct Echo',
+        severity: 'HIGH',
+        category: 'Cross-Site Scripting',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'echo $_GET["name"]',
+        reproductionSteps: [
+          `Scanned output rendering statements in ${file.path}:${lineNum}.`,
+          'Detected unencoded user request parameters echoed directly to output buffer without htmlspecialchars sanitization.'
+        ],
+        remediationPrompt: 'Sanitize output before rendering: echo htmlspecialchars($_GET["name"], ENT_QUOTES, "UTF-8");',
+        status: 'OPEN',
+        owner: 'Frontend/Backend Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [PHP AUDIT] HIGH: Reflected XSS in ${file.path}:${lineNum}`);
+    }
   }
 
   // =========================================================================
@@ -229,6 +287,64 @@ export function evaluatePolyglotBackendRules(
       });
       logs.push(`[${ts}] 🔒 [JAVA AUDIT] CRITICAL: Java Insecure Deserialization in ${file.path}:${lineNum}`);
     }
+
+    // JAVA-04: Log4j / JNDI Lookup Injection
+    const log4jJndiRegex = /\$\{jndi:(?:ldap|rmi|dns|iiop|corba|nis|http)/i;
+    if (log4jJndiRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => log4jJndiRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `java-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18014,
+        type: 'SECURITY',
+        title: 'JAVA-SEC-04: Log4Shell / JNDI Remote Code Execution Pattern (CVE-2021-44228)',
+        severity: 'CRITICAL',
+        category: 'Remote Code Execution',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || '${jndi:ldap://...}',
+        reproductionSteps: [
+          `Scanned Java code at ${file.path}:${lineNum}.`,
+          'Detected Log4j JNDI lookup string pattern susceptible to arbitrary remote code execution via LDAP/RMI directory services.'
+        ],
+        remediationPrompt: 'Upgrade Log4j to >= 2.17.1 and set formatMsgNoLookups=true or sanitize logger inputs.',
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [JAVA AUDIT] CRITICAL: Log4Shell Pattern in ${file.path}:${lineNum}`);
+    }
+
+    // JAVA-05: Broken / Deprecated Cryptographic Ciphers & Hashes
+    const javaWeakCryptoRegex = /Cipher\.getInstance\s*\(\s*["'](?:DES|RC4|Blowfish|DESede|AES\/ECB)[^"']*["']\)|MessageDigest\.getInstance\s*\(\s*["'](?:MD5|SHA-1)["']\)/i;
+    if (javaWeakCryptoRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && javaWeakCryptoRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `java-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18015,
+        type: 'SECURITY',
+        title: 'JAVA-SEC-05: Cryptographically Weak Cipher or Hash in Java (DES / RC4 / MD5 / ECB)',
+        severity: 'HIGH',
+        category: 'Cryptographic Weakness',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'Cipher.getInstance("DES")',
+        reproductionSteps: [
+          `Scanned cryptographic providers in ${file.path}:${lineNum}.`,
+          'Detected broken symmetric cipher (DES/RC4/ECB) or collision-vulnerable hash (MD5/SHA-1).'
+        ],
+        remediationPrompt: 'Use AES-GCM (Cipher.getInstance("AES/GCM/NoPadding")) and SHA-256 for secure hashing.',
+        status: 'OPEN',
+        owner: 'Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [JAVA AUDIT] HIGH: Weak Java Cryptography in ${file.path}:${lineNum}`);
+    }
   }
 
   // =========================================================================
@@ -293,6 +409,35 @@ export function evaluatePolyglotBackendRules(
       });
       logs.push(`[${ts}] 🔒 [C# AUDIT] HIGH: Weak Cryptography in ${file.path}:${lineNum}`);
     }
+
+    // CS-03: Insecure Deserialization via BinaryFormatter
+    const csBinaryFormatterRegex = /new\s+BinaryFormatter\s*\(\s*\)[\s\S]*?\.Deserialize\s*\(/i;
+    if (csBinaryFormatterRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && l.includes('Deserialize'));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `cs-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18023,
+        type: 'SECURITY',
+        title: 'CS-SEC-03: Insecure .NET Deserialization via BinaryFormatter (RCE Hazard)',
+        severity: 'CRITICAL',
+        category: 'Insecure Deserialization',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'formatter.Deserialize(stream)',
+        reproductionSteps: [
+          `Scanned deserializer initialization at ${file.path}:${lineNum}.`,
+          'Detected BinaryFormatter.Deserialize() which is inherently unsafe in .NET and leads to arbitrary remote code execution.'
+        ],
+        remediationPrompt: 'Migrate to System.Text.Json or Protobuf-net. BinaryFormatter is obsolete and disallowed in modern .NET.',
+        status: 'OPEN',
+        owner: 'Backend Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [C# AUDIT] CRITICAL: BinaryFormatter Deserialization in ${file.path}:${lineNum}`);
+    }
   }
 
   // =========================================================================
@@ -348,9 +493,9 @@ export function evaluatePolyglotBackendRules(
         snippet: snippet || lines[matchLineIdx] || 'params.require(:user).permit!',
         reproductionSteps: [
           `Scanned controller action in ${file.path}:${lineNum}.`,
-          'Detected params.permit! which completely disables Strong Parameters, allowing attackers to overwrite protected model attributes (e.g. role, admin, balance).'
+          'Detected params.permit! which completely disables Strong Parameters, allowing attackers to overwrite protected model attributes.'
         ],
-        remediationPrompt: 'Explicitly whitelist required model attributes: params.require(:user).permit(:username, :email). Never call permit! on untrusted parameters.',
+        remediationPrompt: 'Explicitly whitelist required model attributes: params.require(:user).permit(:username, :email).',
         status: 'OPEN',
         owner: 'Backend Security Lead',
         falsePositive: false
@@ -358,8 +503,8 @@ export function evaluatePolyglotBackendRules(
       logs.push(`[${ts}] 🔒 [RUBY AUDIT] HIGH: Ruby Mass Assignment in ${file.path}:${lineNum}`);
     }
 
-    // RUBY-03: Ruby Remote Code Execution via eval / Kernel.system
-    const rubyEvalRegex = /(?:eval|Kernel\.eval|system|Kernel\.system|`)\s*\(\s*(?:params\[|#\{params\[)/i;
+    // RUBY-03: Ruby Remote Code Execution via eval
+    const rubyEvalRegex = /(?:eval|Kernel\.eval)\s*\(\s*(?:params\[|#\{params\[)/i;
     if (rubyEvalRegex.test(cleanContent)) {
       const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('#') && rubyEvalRegex.test(l));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -377,14 +522,110 @@ export function evaluatePolyglotBackendRules(
         snippet: snippet || lines[matchLineIdx] || 'eval(params[:cmd])',
         reproductionSteps: [
           `Scanned dynamic evaluation handlers at ${file.path}:${lineNum}.`,
-          'Detected eval() or system() invoked directly with untrusted request parameters.'
+          'Detected eval() invoked directly with untrusted request parameters.'
         ],
-        remediationPrompt: 'Remove dynamic code evaluation. Use static condition trees or safe domain-specific dispatchers.',
+        remediationPrompt: 'Remove dynamic code evaluation. Use static condition trees or safe dispatchers.',
         status: 'OPEN',
         owner: 'Security Lead',
         falsePositive: false
       });
       logs.push(`[${ts}] 🔒 [RUBY AUDIT] CRITICAL: Ruby Remote Code Execution in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // =========================================================================
+  // 5. NOSQL, MONGODB & FIREBASE SECURITY RULES
+  // =========================================================================
+  // MongoDB $where evaluation injection (*.js, *.ts, *.mjs)
+  const isJsTs = lowerPath.endsWith('.js') || lowerPath.endsWith('.ts') || lowerPath.endsWith('.mjs') || lowerPath.endsWith('.cjs');
+  if (isJsTs) {
+    const mongoWhereRegex = /(?:\$where\s*:\s*["'][^"']*|\.find\s*\(\s*\{\s*["']?\$where["']?\s*:)/i;
+    if (mongoWhereRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && mongoWhereRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `nosql-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18041,
+        type: 'SECURITY',
+        title: 'NOSQL-SEC-01: MongoDB $where Arbitrary JavaScript Evaluation Injection',
+        severity: 'CRITICAL',
+        category: 'NoSQL Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'db.users.find({ $where: "this.name == \'" + name + "\'" })',
+        reproductionSteps: [
+          `Scanned MongoDB query expression at ${file.path}:${lineNum}.`,
+          'Detected MongoDB $where operator executing arbitrary JavaScript on the database engine. Attackers can execute arbitrary server-side code or cause Denial of Service.'
+        ],
+        remediationPrompt: 'Replace $where queries with standard MongoDB query operators ($eq, $in, $regex). Disable JavaScript execution on MongoDB daemon with --noscripting.',
+        status: 'OPEN',
+        owner: 'Database & Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [NOSQL AUDIT] CRITICAL: MongoDB $where Injection in ${file.path}:${lineNum}`);
+    }
+
+    // Node.js MySQL / Postgres string concatenation SQLi
+    const nodeSqlConcatRegex = /(?:connection|pool|db|client)\.query\s*\(\s*["'][^"']*\b(?:SELECT|INSERT|UPDATE|DELETE)\b[^"']*["']\s*\+/i;
+    if (nodeSqlConcatRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && nodeSqlConcatRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `sql-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18042,
+        type: 'SECURITY',
+        title: 'NODE-SQL-01: Node.js Database Query Formatted via String Concatenation',
+        severity: 'CRITICAL',
+        category: 'SQL Injection',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'connection.query("SELECT * FROM users WHERE id = " + req.query.id)',
+        reproductionSteps: [
+          `Scanned database query call at ${file.path}:${lineNum}.`,
+          'Detected SQL statement constructed with direct string concatenation (+) without parameterized query values (?).'
+        ],
+        remediationPrompt: 'Use parameterized queries: connection.query("SELECT * FROM users WHERE id = ?", [req.query.id], callback);',
+        status: 'OPEN',
+        owner: 'Backend Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [SQL AUDIT] CRITICAL: Node SQL Concatenation in ${file.path}:${lineNum}`);
+    }
+  }
+
+  // Firebase Firestore / Realtime DB Security Rules (*.rules, firebase.json)
+  const isFirebaseRules = lowerPath.endsWith('.rules') || lowerPath.includes('firestore') || lowerPath.includes('firebase');
+  if (isFirebaseRules) {
+    const firebaseAllowAllRegex = /allow\s+(?:read\s*,\s*write|write\s*,\s*read|write|read)\s*:\s*if\s+true\s*;/i;
+    if (firebaseAllowAllRegex.test(cleanContent)) {
+      const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && firebaseAllowAllRegex.test(l));
+      const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+      const snippet = extractSnippet(lines, lineNum);
+
+      findings.push({
+        id: `firebase-${Date.now()}-${findingCounter.count++}`,
+        ruleId: 18043,
+        type: 'SECURITY',
+        title: 'FIREBASE-SEC-01: Insecure Firebase Security Rules (Unauthenticated Public Read/Write)',
+        severity: 'CRITICAL',
+        category: 'Access Control',
+        filePath: file.path,
+        lineRange: `L${lineNum}`,
+        snippet: snippet || lines[matchLineIdx] || 'allow read, write: if true;',
+        reproductionSteps: [
+          `Scanned Firebase security rules at ${file.path}:${lineNum}.`,
+          'Detected permissive "allow read, write: if true;" rule granting public, unauthenticated read/write access to database collections.'
+        ],
+        remediationPrompt: 'Restrict access to authenticated users: allow read, write: if request.auth != null && request.auth.uid == userId;',
+        status: 'OPEN',
+        owner: 'Cloud Security Lead',
+        falsePositive: false
+      });
+      logs.push(`[${ts}] 🔒 [FIREBASE AUDIT] CRITICAL: Permissive Firebase Rule in ${file.path}:${lineNum}`);
     }
   }
 

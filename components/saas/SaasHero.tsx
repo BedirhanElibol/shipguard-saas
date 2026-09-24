@@ -162,11 +162,17 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-4 mb-16 text-xs text-zinc-400 font-mono"
+          className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 mb-16 text-xs text-zinc-400 font-mono"
         >
           <span>Zero-Retention Privacy (Code Never Stored)</span>
           <span>1,450+ Deep Web &amp; Cloud Rules</span>
-          <span>In-Memory Stream Evaluation</span>
+          <a
+            href="#benchmark"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-white transition-all cursor-pointer font-bold"
+          >
+            <span>16/16 Benchmark Matrix (Verified)</span>
+            <ArrowRight size={11} />
+          </a>
         </motion.div>
 
         {/* Hero Showcase Centerpiece: Real Application State (dashboard_overview.png) */}

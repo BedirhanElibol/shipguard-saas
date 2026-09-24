@@ -66,7 +66,7 @@ export const TIER_CONFIGS: Record<UserTier, TierFeatureConfig> = {
     cicdIntegration: true,
     customRules: true,
     ruleInventory: 'All Rules + Custom Policy Catalog',
-    supportSla: '1-Hour Priority SLA & Slack Channel',
+    supportSla: 'Priority Email & Slack Support',
     concurrentWorkers: 'Unlimited',
     historyRetentionDays: 'Unlimited'
   }

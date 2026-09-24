@@ -51,10 +51,15 @@ export default function TermsPage() {
 
         <div className="flex flex-col gap-6 text-xs sm:text-sm text-[#CCCCCC] leading-relaxed border-t border-[#262626] pt-6">
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">1. Terms Agreement</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">1. Terms Agreement &amp; Operating Entity</h2>
             <p>
               By accessing, browsing, or utilizing the Zelsis Pre-Flight Release Gate SaaS platform (&quot;Service&quot;), you agree to be bound by these Terms of Service. If you are accepting on behalf of an organization or corporate entity, you represent and warrant that you possess full authority to bind that entity to these Terms.
             </p>
+            <div className="bg-[#141414] border border-[#262626] rounded-xl p-3 text-xs font-mono text-[#AAAAAA] mt-1 space-y-1">
+              <div><strong className="text-white">Operating Entity:</strong> Zelsis Technologies (Bedirhan Elibol)</div>
+              <div><strong className="text-white">Commercial Presence:</strong> Istanbul, Turkey &amp; Global SaaS Operations</div>
+              <div><strong className="text-white">Official Correspondence:</strong> legal@zelsis.com // contact@zelsis.com</div>
+            </div>
           </section>
 
           <section className="flex flex-col gap-2">
@@ -99,9 +104,9 @@ export default function TermsPage() {
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">7. Governing Law &amp; Jurisdiction</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">7. Governing Law &amp; Dispute Resolution</h2>
             <p>
-              These Terms and any dispute arising out of or related to them shall be governed by and construed in accordance with the laws of the State of Delaware, United States, without giving effect to any choice or conflict of law provision. Any legal suit, action, or proceeding arising out of or related to these Terms shall be instituted exclusively in the federal or state courts located in Delaware.
+              For international users transacting via Polar Software Inc., contractual billing disputes and payment matters are governed by Polar's Merchant of Record consumer terms. For platform use, intellectual property, and service agreements, these Terms are governed by and construed in accordance with the laws of the State of Delaware, United States, without regard to conflict of law principles. For users resident in Turkey, mandatory statutory consumer rights under Law No. 6502 are fully preserved, and the courts and consumer arbitration committees of Istanbul shall have jurisdiction.
             </p>
           </section>
 

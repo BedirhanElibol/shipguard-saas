@@ -51,13 +51,15 @@ export default function PrivacyPolicyPage() {
 
         <div className="flex flex-col gap-6 text-xs sm:text-sm text-[#CCCCCC] leading-relaxed border-t border-[#262626] pt-6">
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">1. Data Controller &amp; Global Scope</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">1. Data Controller &amp; Operating Entity</h2>
             <p>
-              Zelsis (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the Zelsis Pre-Flight Release Gate SaaS platform. This Privacy Policy outlines our global data processing practices for international users, in full alignment with the European Union General Data Protection Regulation (GDPR), the California Consumer Privacy Act (CCPA/CPRA), and standard international data privacy principles.
+              Zelsis (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) operates the Zelsis Pre-Flight Release Gate SaaS platform. This Privacy Policy outlines our global data processing practices for international users, in full alignment with the European Union General Data Protection Regulation (GDPR), the Turkish Law on the Protection of Personal Data (KVKK No. 6698), the California Consumer Privacy Act (CCPA/CPRA), and standard international data privacy principles.
             </p>
-            <div className="bg-[#141414] border border-[#262626] rounded-xl p-3 text-xs font-mono text-[#AAAAAA] mt-1 space-y-0.5">
-              <div>Data Protection Office: privacy@zelsis.com</div>
-              <div>General Inquiries: contact@zelsis.com</div>
+            <div className="bg-[#141414] border border-[#262626] rounded-xl p-3 text-xs font-mono text-[#AAAAAA] mt-1 space-y-1">
+              <div><strong className="text-white">Operating Entity:</strong> Zelsis Technologies (Bedirhan Elibol)</div>
+              <div><strong className="text-white">Operations:</strong> Istanbul, Turkey // Global Edge SaaS Operations</div>
+              <div><strong className="text-white">Data Protection Office:</strong> privacy@zelsis.com</div>
+              <div><strong className="text-white">Legal &amp; Business Inquiries:</strong> contact@zelsis.com</div>
             </div>
           </section>
 
@@ -143,7 +145,14 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold text-[#FFFFFF]">7. Contact &amp; Inquiries</h2>
+            <h2 className="text-base font-bold text-[#FFFFFF]">7. Turkish Personal Data Protection Law (KVKK No. 6698)</h2>
+            <p>
+              For users located in Turkey or subject to the Republic of Turkey Law on the Protection of Personal Data No. 6698 (KVKK), Zelsis processes data strictly under Article 5 (establishment and performance of the contract, fulfillment of legal obligations, and legitimate interests of the data controller). In accordance with KVKK Article 11, data subjects are entitled to inquire about their personal data, request correction, request erasure upon cessation of processing reasons, and learn of third-party transfers. Requests may be directed to <a href="mailto:privacy@zelsis.com" className="text-emerald-400 underline">privacy@zelsis.com</a>.
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <h2 className="text-base font-bold text-[#FFFFFF]">8. Contact &amp; Inquiries</h2>
             <p className="font-mono text-xs text-emerald-400">
               privacy@zelsis.com // Attn: Data Protection Desk
             </p>

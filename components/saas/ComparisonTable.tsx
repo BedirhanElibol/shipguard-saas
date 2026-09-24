@@ -108,14 +108,14 @@ export const ComparisonTable: React.FC = () => {
           description: 'Supported repository types and permission boundary',
           free: '1 Public Repository only',
           pro: 'Unlimited Public & Private Repos',
-          enterprise: 'Unlimited Org-Wide & GHES Repos'
+          enterprise: 'Unlimited Org-Wide & Team Repos'
         },
         {
           name: 'Concurrent Analysis Workers',
           description: 'Simultaneous scanning pipelines',
           free: '1 Scan at a time (Shared Queue)',
           pro: '5 Concurrent Scans (Priority Pool)',
-          enterprise: 'Unlimited Parallel Workers (Isolated Cluster)'
+          enterprise: 'Unlimited Parallel Workers (High Priority)'
         }
       ]
     },
@@ -134,21 +134,21 @@ export const ComparisonTable: React.FC = () => {
           description: 'Scanning engine for hardcoded tokens, AWS keys, and private credentials',
           free: 'Surface Regex Pattern Check',
           pro: 'Deep AST & Vault Tracing',
-          enterprise: 'Deep AST + Custom Secret Entropy Patterns'
+          enterprise: 'Deep Static + Custom Secret Entropy Patterns'
         },
         {
           name: 'Repository Size Scalability',
           description: 'Analysis support for large multi-package and monorepo codebases',
           free: 'Standard Buffer (Small Repos)',
           pro: 'Yielded Event Loop (1,000+ Files, No OOM)',
-          enterprise: 'Distributed Multi-Process Monorepo Runner'
+          enterprise: 'Monorepo & Multi-Package Project Analysis'
         },
         {
           name: 'Zero-Code Retention Privacy',
           description: 'In-memory execution model ensuring intellectual property safety',
           free: 'Ephemeral RAM (Never Stored)',
           pro: 'Ephemeral RAM (Zero Code Retention)',
-          enterprise: 'Ephemeral RAM + Air-Gapped / VPC Runner'
+          enterprise: 'Ephemeral RAM (Zero-Retention Privacy)'
         }
       ]
     },
@@ -160,21 +160,21 @@ export const ComparisonTable: React.FC = () => {
           description: 'Visual before/after line-by-line code replacement for every detected flaw',
           free: 'Line Numbers only (No Diffs)',
           pro: 'Interactive Unified Git Diffs',
-          enterprise: 'Multi-File Refactoring Diffs'
+          enterprise: 'Multi-File Unified Git Diffs'
         },
         {
           name: 'Context-Engineered AI Prompts',
           description: 'Tailored prompts with CVE context for Cursor, Claude, and GitHub Copilot',
           free: '1 Lifetime Trial Prompt',
           pro: 'Unlimited 1-Click Fix Prompts',
-          enterprise: 'Unlimited Prompts + Custom Team Guidelines'
+          enterprise: 'Unlimited Fix Prompts + PR Diffs'
         },
         {
-          name: 'Autonomous GitHub PR Fix Bot',
-          description: 'Automated remediation pull request generation directly into repository branch',
+          name: 'Automated PR Gate Checks',
+          description: 'Automated remediation pull request guidance and CI status verification',
           free: false,
-          pro: '1-Click PR Fix Creation',
-          enterprise: 'Autonomous CI/CD PR Merge Gate'
+          pro: '1-Click PR Fix Diffs',
+          enterprise: 'Custom Webhook PR Merge Checks'
         }
       ]
     },
@@ -186,7 +186,7 @@ export const ComparisonTable: React.FC = () => {
           description: 'Blocks production deployment and fails merge checks on security policy breach',
           free: 'Manual Web Dashboard only',
           pro: 'GitHub Actions & Webhook Release Gate',
-          enterprise: 'GitLab CI, Jenkins, Azure & Custom Webhooks'
+          enterprise: 'GitHub Actions, GitLab CI & Webhooks'
         },
         {
           name: 'Policy Profile Configuration',
@@ -205,7 +205,7 @@ export const ComparisonTable: React.FC = () => {
           description: 'Tamper-proof signed verification PDF proving pre-flight compliance for stakeholders',
           free: false,
           pro: 'Instant Signed PDF Certificate',
-          enterprise: 'White-Labeled Certificate + Auditor Pack'
+          enterprise: 'Branded Certificate & Executive Pack'
         },
         {
           name: 'Issue Tracker Export',
@@ -231,14 +231,14 @@ export const ComparisonTable: React.FC = () => {
           description: 'Direct engineering support and issue escalation channel',
           free: 'Community Forum',
           pro: '24-Hour Priority Email Support',
-          enterprise: '1-Hour Dedicated SLA (Slack & Teams)'
+          enterprise: 'Priority Email & Dedicated Slack Support'
         },
         {
-          name: 'Security Architect Check-in',
-          description: 'Direct consultation with lead security engineers on architecture & compliance',
+          name: 'Custom Ruleset Onboarding',
+          description: 'Technical guidance for configuring organization-specific security gates',
           free: false,
           pro: false,
-          enterprise: 'Dedicated Solutions Architect Consultation'
+          enterprise: 'Custom Ruleset Onboarding Guidance'
         }
       ]
     }
@@ -551,6 +551,20 @@ export const ComparisonTable: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Custom Enterprise Inquiries Banner */}
+        <div className="p-4 sm:p-6 rounded-xl border border-white/10 bg-[#0E0E12] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <div>
+            <h4 className="text-sm font-bold text-white mb-1">Looking for custom security requirements or bespoke invoicing?</h4>
+            <p className="text-xs text-zinc-400">We offer custom organization onboarding, volume team pricing, and security questionnaire assistance.</p>
+          </div>
+          <a
+            href="mailto:contact@zelsis.com?subject=Enterprise%20Custom%20Inquiry"
+            className="px-4 py-2 rounded-lg text-xs font-mono font-bold uppercase tracking-wider bg-white/10 hover:bg-white/15 border border-white/20 text-white transition-all shrink-0 cursor-pointer"
+          >
+            Contact Enterprise Sales
+          </a>
         </div>
       </div>
 

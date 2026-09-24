@@ -78,6 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleDashboard, showDashboard
 
   const navLinks = [
     { label: 'Features', href: '#features' },
+    { label: 'Benchmark', href: '#benchmark' },
     { label: 'Workflow', href: '#workflow' },
     { label: 'Comparison', href: '#comparison' },
     { label: 'Pricing', href: '#pricing' },

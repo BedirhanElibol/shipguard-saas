@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { SaasHero } from '@/components/saas/SaasHero';
 import { WorkflowSteps } from '@/components/saas/WorkflowSteps';
 import { ProductCapabilities } from '@/components/saas/ProductCapabilities';
+import { BenchmarkSection } from '@/components/saas/BenchmarkSection';
 import { ComparisonTable } from '@/components/saas/ComparisonTable';
 import { FaqSection } from '@/components/saas/FaqSection';
 import { FinalCta } from '@/components/saas/FinalCta';
@@ -31,6 +32,9 @@ export default function Home() {
 
         {/* Product Capabilities Matrix featuring user screenshots */}
         <ProductCapabilities />
+
+        {/* Deterministic Exploit Benchmark Suite (F-25 & F-37 Transparency) */}
+        <BenchmarkSection />
 
         {/* Comprehensive Plan Comparison Matrix */}
         <ComparisonTable />

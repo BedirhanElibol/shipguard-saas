@@ -33,7 +33,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
       category: 'Scan Volume & Code Access',
       items: [
         { label: 'Monthly Live Audits', free: '3 Scans / mo', pro: 'Unlimited', enterprise: 'Unlimited' },
-        { label: 'Private Repositories', free: 'Locked (Public only)', pro: 'Full Access (1-Click OAuth)', enterprise: 'Private + Air-Gapped / GHES' },
+        { label: 'Private Repositories', free: 'Locked (Public only)', pro: 'Full Access (1-Click OAuth)', enterprise: 'Unlimited Private & Team Repos' },
         { label: 'Connected Projects', free: '1 Active Repo', pro: 'Unlimited Repos', enterprise: 'Unlimited Repos & Teams' }
       ]
     },
@@ -41,30 +41,30 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
       category: 'Rule Engine & Analysis Depth',
       items: [
         { label: 'Security & Bug Inventory', free: '20 Core OWASP Rules', pro: 'All 1,450+ Production Rules', enterprise: 'All Rules + Custom Company Rules' },
-        { label: 'Secret Detection & RLS', free: 'Basic Surface Check', pro: 'Deep AST & Vault Analysis', enterprise: 'Deep AST + Custom Token Regex' },
-        { label: '1,000+ File Repositories', free: 'Standard Buffer', pro: 'Cooperative Event Loop Yielding', enterprise: 'High-Throughput Enterprise Stream' }
+        { label: 'Secret Detection & RLS', free: 'Basic Surface Check', pro: 'Deep Static & Vault Analysis', enterprise: 'Deep Static + Custom Token Patterns' },
+        { label: '1,000+ File Repositories', free: 'Standard Buffer', pro: 'Cooperative Event Loop Yielding', enterprise: 'Monorepo & Multi-Package Analysis' }
       ]
     },
     {
       category: 'AI Remediation & Patching',
       items: [
-        { label: '1-Click Claude / Cursor Prompts', free: '1 Trial Prompt', pro: 'Unlimited 1-Click Fix Prompts', enterprise: 'Unlimited + Automated PR Bot' },
-        { label: 'Unified Git Diff Patches', free: 'Locked', pro: 'Instant Unified Diffs', enterprise: 'Direct Branch Commit / Pull Request' }
+        { label: '1-Click Claude / Cursor Prompts', free: '1 Trial Prompt', pro: 'Unlimited 1-Click Fix Prompts', enterprise: 'Unlimited Fix Prompts + PR Diffs' },
+        { label: 'Unified Git Diff Patches', free: 'Locked', pro: 'Instant Unified Diffs', enterprise: 'Multi-File Unified Git Diffs' }
       ]
     },
     {
       category: 'Executive Reports & Compliance',
       items: [
-        { label: 'Official PDF Release Certificate', free: 'Locked', pro: 'Included (Instant Download)', enterprise: 'White-Label & Custom Branding' },
-        { label: 'Jira Markdown & HTML Export', free: 'Locked', pro: 'Included', enterprise: 'Included' },
-        { label: 'SOC2 & ISO27001 Readiness', free: 'Not Included', pro: 'Standard Checkpoints', enterprise: 'Full Statutory Audit Dossiers' }
+        { label: 'Official PDF Release Certificate', free: 'Locked', pro: 'Included (Instant Download)', enterprise: 'Branded PDF Certificate & Export' },
+        { label: 'Jira Markdown & HTML Export', free: 'Locked', pro: 'Included', enterprise: 'Included (Jira, Linear, Markdown)' },
+        { label: 'SOC2 & ISO27001 Readiness', free: 'Not Included', pro: 'Standard Checkpoints', enterprise: 'Comprehensive Audit Checkpoints' }
       ]
     },
     {
       category: 'Support & Operations',
       items: [
-        { label: 'Support Channel', free: 'Community', pro: '24-Hour Email Support', enterprise: '1-Hour Priority SLA & Slack' },
-        { label: 'GitHub Actions / CI/CD Gate', free: 'Locked', pro: 'Automated PR Status Checks', enterprise: 'Custom Webhook Pipeline + Slack Bot' }
+        { label: 'Support Channel', free: 'Community', pro: '24-Hour Email Support', enterprise: 'Priority Email & Slack Support' },
+        { label: 'GitHub Actions / CI/CD Gate', free: 'Locked', pro: 'Automated PR Status Checks', enterprise: 'Custom Webhook Pipeline & PR Checks' }
       ]
     }
   ];
@@ -170,7 +170,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
               <div>
                 <span className="text-[10px] font-bold text-white uppercase tracking-wider">Enterprise Team</span>
                 <div className="text-2xl font-extrabold text-white mt-1 tabular-nums">$99 <span className="text-xs text-zinc-400 font-normal">/ month</span></div>
-                <p className="text-[11px] text-zinc-400 mt-1">Custom company rules, multi-seat RBAC, and dedicated 1h SLA support.</p>
+                <p className="text-[11px] text-zinc-400 mt-1">Custom company rules, multi-seat RBAC, and dedicated priority support.</p>
               </div>
               {currentTier === 'Enterprise' ? (
                 <a

@@ -372,6 +372,94 @@ async function runAllTests() {
   assert(hasNodeSql, 'NODE-SQL-01 detects Node.js pool.query string concatenation SQL injection');
   assert(hasFirebaseAllowTrue, 'FIREBASE-SEC-01 detects permissive unauthenticated allow read, write: if true;');
 
+  // ─── 12. Python & Go SAST Hardening (Zero Sentinels) ───────────
+  console.log('\n--- 12. Testing Hardened Python & Go Engine (Zero Sentinels) ---');
+  const pythonGoTestFiles: CodeFile[] = [
+    {
+      path: 'app/flask_app.py',
+      content: `
+        import os
+        from flask import Flask, request
+        import yaml
+
+        app = Flask(__name__)
+
+        @app.route('/unsafe')
+        def unsafe_endpoint():
+            raw_yaml = request.args.get('data')
+            cfg = yaml.load(raw_yaml)
+            return "ok"
+
+        if __name__ == '__main__':
+            app.run(host='0.0.0.0', debug=True)
+      `
+    },
+    {
+      path: 'app/django_settings.py',
+      content: `
+        # Production Settings
+        DEBUG = True
+        SECRET_KEY = "django-insecure-hardcoded-production-secret-token"
+      `
+    },
+    {
+      path: 'app/database.py',
+      content: `
+        import sqlite3
+        def get_user(user_id):
+            conn = sqlite3.connect('app.db')
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+            return cursor.fetchall()
+      `
+    },
+    {
+      path: 'services/microservice.go',
+      content: `
+        package main
+        import (
+          "database/sql"
+          "fmt"
+          "html/template"
+          "crypto/tls"
+        )
+        func handleRequest(db *sql.DB, id string, rawHtml string) {
+          query := fmt.Sprintf("SELECT name, email FROM accounts WHERE id = '%s'", id)
+          db.Query(query)
+          t := template.HTML(rawHtml)
+          tlsConfig := &tls.Config{InsecureSkipVerify: true}
+          _ = t
+          _ = tlsConfig
+        }
+      `
+    }
+  ];
+
+  const pyGoScan = await runStaticCodeScan(pythonGoTestFiles, 'Python & Go SAST Project');
+
+  const pyFlaskDebug = pyGoScan.findings.find(f => f.ruleId === 8805 && f.filePath === 'app/flask_app.py');
+  const pyDjangoDebug = pyGoScan.findings.find(f => f.ruleId === 8805 && f.filePath === 'app/django_settings.py');
+  const pyYaml = pyGoScan.findings.find(f => f.ruleId === 8802);
+  const pySql = pyGoScan.findings.find(f => f.ruleId === 8804);
+  const pySecretKey = pyGoScan.findings.find(f => f.ruleId === 8809);
+
+  const goSql = pyGoScan.findings.find(f => f.ruleId === 9002);
+  const goXss = pyGoScan.findings.find(f => f.ruleId === 9007);
+  const goTls = pyGoScan.findings.find(f => f.ruleId === 9010);
+
+  assert(pyFlaskDebug !== undefined, 'PY-SEC-05 detects Flask app.run(..., debug=True)');
+  assert(pyDjangoDebug !== undefined, 'PY-SEC-05 detects Django DEBUG = True in settings');
+  assert(pyYaml !== undefined, 'PY-SEC-02 detects insecure yaml.load() without SafeLoader');
+  assert(pySql !== undefined, 'PY-SEC-04 detects Python SQL injection via f-string interpolation');
+  assert(pySecretKey !== undefined, 'PY-SEC-09 detects hardcoded secret key in settings');
+
+  assert(goSql !== undefined, 'GO-02 detects Go SQL injection via fmt.Sprintf');
+  assert(goXss !== undefined, 'GO-07 detects Go XSS via unescaped template.HTML');
+  assert(goTls !== undefined, 'GO-10 detects InsecureSkipVerify: true in tls.Config');
+
+  // Verify exact line mapping (database.py SQL injection is on line 6, not line 1)
+  assert(pySql?.lineRange === 'L6', `Accurate line reporting for Python SQLi: expected L6, got ${pySql?.lineRange}`);
+
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
   console.log('===========================================================');

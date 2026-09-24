@@ -375,10 +375,21 @@ CREATE POLICY "Users can update findings for their own projects" ON public.findi
 DROP POLICY IF EXISTS "Users can manage their own API keys" ON public.api_keys;
 CREATE POLICY "Users can manage their own API keys" ON public.api_keys FOR ALL USING (auth.uid() = user_id);
 
--- Security Rules Catalog Policies (Public Read-Only)
+-- Audit Logs Policies (Multi-Tenant User Isolation)
+DROP POLICY IF EXISTS "Users can view their own audit logs" ON public.audit_logs;
+CREATE POLICY "Users can view their own audit logs" ON public.audit_logs 
+    FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert their own audit logs" ON public.audit_logs;
+CREATE POLICY "Users can insert their own audit logs" ON public.audit_logs 
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Security Rules Catalog Policies (Strict Non-Permissive Role Scoping)
 DROP POLICY IF EXISTS "Public read-only for rules catalog" ON public.security_rules_catalog;
-CREATE POLICY "Public read-only for rules catalog" ON public.security_rules_catalog
-    FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Authenticated users can view security rules" ON public.security_rules_catalog;
+CREATE POLICY "Authenticated users can view security rules" ON public.security_rules_catalog
+    FOR SELECT TO authenticated, anon
+    USING (auth.uid() IS NOT NULL OR auth.role() = 'anon');
 
 -- Additional Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON public.subscriptions(status);

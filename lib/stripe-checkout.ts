@@ -24,7 +24,12 @@ export interface LicenseVerificationResult {
  */
 export function generateLicenseKey(planId: string, email?: string): string {
   const prefix = planId === 'vibecare' || planId === 'zelsis-suite' ? 'ZS-SUITE' : 'ZS-PRO';
-  const randSegment = Math.random().toString(36).substring(2, 6).toUpperCase();
+  let randSegment = 'A1B2';
+  try {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
+      randSegment = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
+    }
+  } catch {}
   const dateSegment = new Date().getFullYear().toString();
   return `${prefix}-${dateSegment}-REF-${randSegment}`;
 }

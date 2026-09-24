@@ -34,8 +34,10 @@ CREATE TABLE IF NOT EXISTS public.security_rules_catalog (
 ALTER TABLE public.security_rules_catalog ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read-only for rules catalog" ON public.security_rules_catalog;
-CREATE POLICY "Public read-only for rules catalog" ON public.security_rules_catalog
-    FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Authenticated users can view security rules" ON public.security_rules_catalog;
+CREATE POLICY "Authenticated users can view security rules" ON public.security_rules_catalog
+    FOR SELECT TO authenticated, anon
+    USING (auth.uid() IS NOT NULL OR auth.role() = 'anon');
 
 -- 4. Secure handle_new_user_signup Function (Hardened search_path)
 CREATE OR REPLACE FUNCTION public.handle_new_user_signup()

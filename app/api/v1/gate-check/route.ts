@@ -10,7 +10,8 @@ import { logger } from '@/lib/logger';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
 
-export const maxDuration = 60;
+// CLOUD-01: Synchronous Serverless Function Timeout bounded <= 15s
+export const maxDuration = 15;
 export const dynamic = 'force-dynamic';
 
 function isAllowedWebhookUrl(url: string): boolean {

@@ -36,7 +36,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const addToast = useCallback(
     (message: string, options?: ToastOptions): string => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      let randSuffix = `${Date.now()}`;
+      try {
+        if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
+          randSuffix = globalThis.crypto.randomUUID().slice(0, 8);
+        }
+      } catch {}
+      const id = `toast-${Date.now()}-${randSuffix}`;
       const duration = options?.duration !== undefined ? options.duration : 4000;
       const newToast: ToastMessage = {
         id,

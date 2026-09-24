@@ -236,7 +236,7 @@ jobs:
                   </button>
                 </div>
 
-                <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-3 max-h-48 overflow-y-auto font-mono text-[11px] text-zinc-300">
+                <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-3 min-h-[120px] max-h-[40vh] overflow-y-auto font-mono text-[11px] text-zinc-300">
                   <pre className="whitespace-pre">{githubWorkflowYaml}</pre>
                 </div>
               </div>

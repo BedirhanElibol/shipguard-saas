@@ -403,7 +403,8 @@ export function evaluateApiRules(
   // API-15: GET Endpoint Performing State-Mutating Actions
   const getFuncMatch = cleanContent.match(/export\s+async\s+function\s+GET[\s\S]*?(?=export\s+(?:async\s+)?function|$)/i);
   const getBody = getFuncMatch ? getFuncMatch[0] : '';
-  if (/(?:app\/api|pages\/api)/i.test(lowerPath) && getBody && /(?:\.delete\(|\.update\(|\.insert\(|DELETE\s+FROM)/i.test(getBody)) {
+  const sanitizedGetBody = getBody.replace(/createHmac\s*\([^)]*\)\s*\.update\s*\([^)]*\)/gi, '').replace(/createHash\s*\([^)]*\)\s*\.update\s*\([^)]*\)/gi, '');
+  if (/(?:app\/api|pages\/api)/i.test(lowerPath) && sanitizedGetBody && /(?:\.(?:from|table|collection)\s*\([^)]*\)\s*\.(?:delete|update|insert)\b|\.delete\s*\([^)]*\)|\.update\s*\([^)]*\)|\.insert\s*\([^)]*\)|DELETE\s+FROM|UPDATE\s+\w+\s+SET|INSERT\s+INTO)/i.test(sanitizedGetBody)) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/(?:\.delete\(|\.update\(|\.insert\(|DELETE\s+FROM)/i.test(l) || /export\s+async\s+function\s+GET/i.test(l)));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({

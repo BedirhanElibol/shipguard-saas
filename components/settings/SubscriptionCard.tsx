@@ -1,0 +1,599 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import {
+  CreditCard,
+  CheckCircle2,
+  ShieldCheck,
+  AlertCircle,
+  AlertTriangle,
+  Key,
+  Check,
+  Calendar,
+  ExternalLink,
+  Loader2,
+  ArrowRight,
+  User,
+  Save,
+} from 'lucide-react';
+import { UserProfile } from '@/components/auth/AuthModal';
+import { getSupabase } from '@/lib/supabase';
+import { verifyLicenseKey } from '@/lib/stripe-checkout';
+import { getSubscriptionValidity, formatRenewalDate } from '@/lib/subscription-utils';
+
+interface SubscriptionCardProps {
+  user?: UserProfile | null;
+  onUpdateUser?: (updatedUser: UserProfile) => void;
+  onOpenCheckout?: (plan?: 'Pro' | 'Enterprise') => void;
+  onOpenAuth?: (mode?: 'signin' | 'signup') => void;
+}
+
+export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
+  user,
+  onUpdateUser,
+  onOpenCheckout,
+  onOpenAuth,
+}) => {
+  const router = useRouter();
+  const isAuthenticated = Boolean(user && user.isLoggedIn);
+  const isGuest = !isAuthenticated;
+  const validity = getSubscriptionValidity(user);
+
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState(user?.avatarUrl || '');
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  const [isSyncingSub, setIsSyncingSub] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
+    status: 'idle',
+    message: '',
+  });
+
+  const [licenseInput, setLicenseInput] = useState('');
+  const [licenseFeedback, setLicenseFeedback] = useState<{ status: 'idle' | 'success' | 'error'; message: string }>({
+    status: 'idle',
+    message: '',
+  });
+
+  useEffect(() => {
+    if (user && user.isLoggedIn) {
+      setProfileName(user.name || '');
+      setProfileEmail(user.email || '');
+      setProfileAvatarUrl(user.avatarUrl || '');
+    } else {
+      setProfileName('');
+      setProfileEmail('');
+      setProfileAvatarUrl('');
+    }
+  }, [user]);
+
+  const handleSyncSubscription = async () => {
+    if (!user?.email) return;
+    setIsSyncingSub(true);
+    setSyncFeedback({ status: 'idle', message: '' });
+    try {
+      const supabase = getSupabase();
+      const sessionRes = await supabase?.auth.getSession();
+      const token = sessionRes?.data?.session?.access_token;
+
+      if (!token) {
+        setSyncFeedback({
+          status: 'error',
+          message: 'Active session required to synchronize subscription status. Please sign in.',
+        });
+        setIsSyncingSub(false);
+        return;
+      }
+
+      const res = await fetch('/api/v1/subscription/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.active && (data.tier === 'Pro' || data.tier === 'Enterprise')) {
+          const validExpiresAt = data.expiresAt || user.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          const updatedUser: UserProfile = {
+            ...user,
+            tier: data.tier,
+            expiresAt: validExpiresAt,
+            billingCycle: data.billingCycle || user.billingCycle,
+            status: 'active',
+          };
+          if (onUpdateUser) {
+            onUpdateUser(updatedUser);
+          }
+          localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+          const dateStr = formatRenewalDate(validExpiresAt);
+          setSyncFeedback({
+            status: 'success',
+            message: `Active ${data.tier} subscription confirmed! Renews / valid until: ${dateStr}`,
+          });
+        } else {
+          const currentLic = typeof window !== 'undefined' ? localStorage.getItem('zelsis_license_key') : null;
+          const hasValidLicense = Boolean(currentLic && verifyLicenseKey(currentLic, user.email).valid);
+          const isLocallyActive = Boolean(
+            user.tier !== 'Free' && (!user.expiresAt || new Date(user.expiresAt).getTime() > Date.now())
+          );
+
+          if (isLocallyActive || hasValidLicense) {
+            const dateStr = formatRenewalDate(user.expiresAt);
+            setSyncFeedback({
+              status: 'success',
+              message: `Active ${user.tier} plan preserved. Renews / valid until: ${dateStr}`,
+            });
+          } else {
+            const updatedUser: UserProfile = {
+              ...user,
+              tier: 'Free',
+              expiresAt: undefined,
+              status: 'canceled',
+            };
+            if (onUpdateUser) {
+              onUpdateUser(updatedUser);
+            }
+            localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+            setSyncFeedback({
+              status: 'error',
+              message: `Subscription period ended for ${user.email}. Account reverted to Free Tier.`,
+            });
+          }
+        }
+      } else {
+        setSyncFeedback({
+          status: 'error',
+          message: 'Unable to reach subscription verification service.',
+        });
+      }
+    } catch {
+      setSyncFeedback({
+        status: 'error',
+        message: 'Network error checking subscription status.',
+      });
+    } finally {
+      setIsSyncingSub(false);
+      setTimeout(() => setSyncFeedback({ status: 'idle', message: '' }), 6000);
+    }
+  };
+
+  const handleActivateLicense = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedKey = licenseInput.trim();
+    if (!trimmedKey) {
+      setLicenseFeedback({
+        status: 'error',
+        message: 'License key or subscription reference is empty. Please enter your reference.',
+      });
+      setTimeout(() => setLicenseFeedback({ status: 'idle', message: '' }), 5000);
+      return;
+    }
+
+    if (isAuthenticated) {
+      setLicenseFeedback({
+        status: 'idle',
+        message: 'Synchronizing subscription with Polar server...',
+      });
+      handleSyncSubscription();
+    } else {
+      setLicenseFeedback({
+        status: 'error',
+        message: 'Please sign in to verify and link your Polar subscription.',
+      });
+      setTimeout(() => setLicenseFeedback({ status: 'idle', message: '' }), 6000);
+    }
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isGuest || !user) return;
+    const updatedUser: UserProfile = {
+      ...user,
+      name: profileName.trim() || user.name || 'User',
+      email: profileEmail.trim() || user.email || '',
+      avatarUrl: profileAvatarUrl.trim() || undefined,
+      tier: user.tier || 'Free',
+      isLoggedIn: true,
+      emailVerified: user.emailVerified ?? true,
+      expiresAt: user.expiresAt,
+      status: user.status,
+      gracePeriodUntil: user.gracePeriodUntil,
+      billingCycle: user.billingCycle,
+      lastVerifiedAt: user.lastVerifiedAt || Date.now(),
+    };
+    if (onUpdateUser) {
+      onUpdateUser(updatedUser);
+    }
+    try {
+      localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
+      localStorage.removeItem('shipguard_user');
+    } catch (err) {
+      console.warn('[Zelsis Profile] Failed to persist user in storage:', err);
+    }
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 2500);
+  };
+
+  return (
+    <div className="bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/20" />
+
+      {/* Header */}
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-center">
+            <CreditCard size={20} />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-extrabold text-white">Membership &amp; Subscription Management</h2>
+            <p className="text-xs text-[#A1A1AA] mt-0.5">Manage your active plan, included audit rules, and user profile preferences.</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold border flex items-center gap-1.5 ${validity.badgeColors.bg} ${validity.badgeColors.border} ${validity.badgeColors.text}`}>
+            {validity.isActive ? 'Active' : 'Expired'}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Plan Overview & Included Features */}
+        <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5 flex flex-col justify-between gap-5">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">Current Plan</span>
+                <div className="text-base font-extrabold text-white flex items-center gap-2">
+                  <span>{user?.tier === 'Pro' ? 'Pro Plan (Advanced Audit)' : user?.tier === 'Enterprise' ? 'Enterprise Plan' : 'Free Tier'}</span>
+                  {user?.tier && user.tier !== 'Free' && (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${validity.badgeColors.bg} ${validity.badgeColors.text} ${validity.badgeColors.border}`}>
+                      {validity.isActive ? 'ACTIVE' : 'EXPIRED'}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs font-mono font-bold text-[#EDEDED] bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg tabular-nums">
+                {user?.tier === 'Pro' ? '$19 / mo' : user?.tier === 'Enterprise' ? '$99 / mo' : '$0 / Free Tier'}
+              </span>
+            </div>
+
+            {/* Renewal Widget */}
+            {user?.tier && user.tier !== 'Free' ? (
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col gap-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-lg font-mono font-extrabold text-white">{validity.countdownLabel}</span>
+                  <a
+                    href="https://polar.sh/purchases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-zinc-300 hover:text-white font-medium inline-flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none rounded"
+                  >
+                    <span>Manage at Polar</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${validity.badgeColors.bar}`}
+                      style={{ width: `${validity.cycleProgressPercent}%` }}
+                      role="progressbar"
+                      aria-valuenow={validity.cycleProgressPercent}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-[#A1A1AA]">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={13} className="text-[#A1A1AA] shrink-0" />
+                      <span>{validity.isExpired ? `Expired on ${validity.formattedRenewalDate}` : `Renews on ${validity.formattedRenewalDate}`}</span>
+                    </div>
+                    <span className="font-mono text-[10px] tabular-nums">{validity.cycleProgressPercent}% Cycle Completed</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-xs text-[#A1A1AA]">
+                <Calendar size={13} className="text-emerald-400 shrink-0" />
+                <span>Free Tier &bull; Standard Access</span>
+              </div>
+            )}
+
+            {/* Included Features */}
+            <div className="flex flex-col gap-2.5">
+              <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">Included Features:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#EDEDED]">
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                  <span className="font-medium">OWASP Security Pre-flight Checks</span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                  <span className="font-medium">VibePolish UI &amp; Design System Rules</span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                  <span className="font-medium">Unlimited Static Analysis</span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5">
+                  <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                  <span className="font-medium">100% Local Privacy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Upgrade Buttons */}
+          <div className="pt-3 border-t border-white/10 flex items-center justify-between flex-wrap gap-3">
+            <span className="text-xs text-[#A1A1AA]">Purchased on Polar or need to verify your active plan?</span>
+            <div className="flex items-center gap-2">
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={handleSyncSubscription}
+                  disabled={isSyncingSub}
+                  className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                >
+                  {isSyncingSub ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin text-emerald-400" />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck size={14} className="text-emerald-400" />
+                      <span>Sync Subscription</span>
+                    </>
+                  )}
+                </button>
+              )}
+              {user?.tier === 'Pro' ? (
+                <>
+                  <a
+                    href="https://polar.sh/purchases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  >
+                    <ExternalLink size={13} />
+                    <span>Manage at Polar</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onOpenCheckout) onOpenCheckout('Enterprise');
+                      else router.push('/checkout?plan=enterprise');
+                    }}
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  >
+                    <ArrowRight size={14} />
+                    <span>Upgrade to Enterprise ($99/mo)</span>
+                  </button>
+                </>
+              ) : user?.tier === 'Enterprise' ? (
+                <a
+                  href="https://polar.sh/purchases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="min-h-[44px] px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                >
+                  <ExternalLink size={13} />
+                  <span>Manage Subscription at Polar</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenCheckout) onOpenCheckout('Pro');
+                    else router.push('/checkout?plan=pro');
+                  }}
+                  className="min-h-[44px] px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                >
+                  <ArrowRight size={14} />
+                  <span>Upgrade to Pro ($19/mo)</span>
+                </button>
+              )}
+            </div>
+          </div>
+          {syncFeedback.message && (
+            <div className={`text-xs font-mono p-3 rounded-xl border ${syncFeedback.status === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
+              {syncFeedback.message}
+            </div>
+          )}
+        </div>
+
+        {/* Profile Details & Avatar Preview Form */}
+        <form onSubmit={handleSaveProfile} className="bg-[#0A0A0A] border border-white/10 rounded-xl p-5 flex flex-col gap-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <span className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase tracking-wider">Profile Details &amp; Avatar</span>
+            {profileSaved && (
+              <span className="text-xs font-mono font-bold text-white flex items-center gap-1">
+                <Check size={13} /> Saved
+              </span>
+            )}
+          </div>
+
+          {!isAuthenticated && (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-300 text-xs">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle size={16} className="shrink-0" />
+                <span>Sign in to customize and link your profile. Profile settings are read-only in guest mode.</span>
+              </div>
+              {onOpenAuth && (
+                <button
+                  type="button"
+                  onClick={() => onOpenAuth('signin')}
+                  className="min-h-[44px] px-3.5 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold font-mono transition-colors shrink-0 cursor-pointer flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                >
+                  <span>Sign In / Register</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-4">
+            {profileAvatarUrl ? (
+              <Image
+                src={profileAvatarUrl}
+                alt={profileName || 'User Avatar'}
+                width={56}
+                height={56}
+                unoptimized
+                className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md bg-[#141414] shrink-0"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                }}
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0">
+                {profileName ? profileName.charAt(0).toUpperCase() : <User size={22} className="text-[#A1A1AA]" />}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold text-white truncate">{profileName || (isAuthenticated ? 'Unnamed Developer' : 'Guest Developer')}</div>
+              <div className="text-[11px] text-[#A1A1AA] truncate">{profileEmail || (isAuthenticated ? 'email@example.com' : 'Not signed in')}</div>
+              <div className="mt-1">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/10 border border-white/20 text-white">
+                  {user?.tier && user.tier !== 'Free' ? `${user.tier} Plan` : isAuthenticated ? 'Free Plan' : 'Guest Mode'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="settings-profile-display-name" className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase flex items-center justify-between">
+              <span>Display Name</span>
+              {!isAuthenticated && <span className="text-[10px] text-amber-400 font-mono font-normal">Sign in to customize</span>}
+            </label>
+            <input
+              id="settings-profile-display-name"
+              aria-label="Display Name"
+              type="text"
+              disabled={!isAuthenticated}
+              readOnly={!isAuthenticated}
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              placeholder={!isAuthenticated ? 'Sign in to customize and link your profile.' : 'e.g. Alex Morgan'}
+              className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                !isAuthenticated ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed' : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+              }`}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="settings-profile-email" className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase flex items-center justify-between">
+              <span>Email Address</span>
+              {!isAuthenticated && <span className="text-[10px] text-amber-400 font-mono font-normal">Sign in to customize</span>}
+            </label>
+            <input
+              id="settings-profile-email"
+              aria-label="Email Address"
+              type="email"
+              disabled={!isAuthenticated}
+              readOnly={!isAuthenticated}
+              value={profileEmail}
+              onChange={(e) => setProfileEmail(e.target.value)}
+              placeholder={!isAuthenticated ? 'Sign in to customize and link your profile.' : 'e.g. alex@example.com'}
+              className={`w-full border rounded-xl px-3.5 py-2 text-xs font-mono transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                !isAuthenticated ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed' : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+              }`}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="settings-profile-avatar-url" className="text-[11px] font-mono font-bold text-[#A1A1AA] uppercase flex items-center justify-between">
+              <span>Avatar Image URL (GitHub or Custom URL)</span>
+              {!isAuthenticated && <span className="text-[10px] text-amber-400 font-mono font-normal">Sign in to customize</span>}
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="settings-profile-avatar-url"
+                aria-label="Avatar Image URL"
+                type="text"
+                disabled={!isAuthenticated}
+                readOnly={!isAuthenticated}
+                value={profileAvatarUrl}
+                onChange={(e) => setProfileAvatarUrl(e.target.value)}
+                placeholder={!isAuthenticated ? 'Sign in to customize and link your profile.' : 'https://github.com/username.png'}
+                className={`flex-1 border rounded-xl px-3.5 py-2 text-xs font-mono transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                  !isAuthenticated ? 'bg-[#0A0A0A] border-white/5 text-[#71717A] cursor-not-allowed' : 'bg-[#141414] border-white/10 text-white focus:border-white/30'
+                }`}
+              />
+              <button
+                type="button"
+                disabled={!isAuthenticated}
+                onClick={() => {
+                  if (!isAuthenticated) return;
+                  const handle = (profileName || '').trim().replace(/\s+/g, '') || 'github';
+                  setProfileAvatarUrl(`https://github.com/${handle}.png`);
+                }}
+                className={`px-3 py-2 border rounded-xl text-[11px] font-mono transition-colors whitespace-nowrap focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                  !isAuthenticated ? 'bg-white/5 border-white/5 text-[#71717A] cursor-not-allowed' : 'bg-white/5 hover:bg-white/10 border-white/10 text-[#A1A1AA] hover:text-white cursor-pointer'
+                }`}
+                title={!isAuthenticated ? 'Sign in to customize avatar' : 'Use GitHub avatar'}
+              >
+                GitHub
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!isAuthenticated}
+            className={`mt-1 min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md self-end transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+              !isAuthenticated ? 'bg-white/5 border border-white/10 text-[#71717A] cursor-not-allowed' : 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
+            }`}
+          >
+            {profileSaved ? <Check size={14} /> : <Save size={14} />}
+            <span>{!isAuthenticated ? 'Sign In to Save Profile' : profileSaved ? 'Profile Saved' : 'Save Profile'}</span>
+          </button>
+        </form>
+      </div>
+
+      {/* License Key Activation Banner */}
+      <div className="pt-4 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[#0A0A0A] p-4 rounded-xl border border-white/10">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white flex items-center justify-center shrink-0 mt-0.5">
+            <Key size={16} />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-white font-mono uppercase tracking-wider">Have an Enterprise or Pro License Key?</h3>
+            <p className="text-[11px] text-[#A1A1AA] mt-0.5">Paste your license key to immediately unlock advanced rules and multi-team gate clearance.</p>
+            {licenseFeedback.status !== 'idle' && (
+              <div className={`text-[11px] font-mono mt-1.5 flex items-center gap-1.5 ${licenseFeedback.status === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
+                {licenseFeedback.status === 'success' ? <Check size={12} /> : <AlertTriangle size={12} />}
+                <span>{licenseFeedback.message}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <input
+            id="settings-license-key-input"
+            aria-label="License Key Input"
+            type="text"
+            placeholder="SG-PRO-2026-..."
+            value={licenseInput}
+            onChange={(e) => setLicenseInput(e.target.value)}
+            className="bg-[#141414] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono uppercase flex-1 md:w-60 focus:border-white/30 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+          />
+          <button
+            type="button"
+            onClick={handleActivateLicense}
+            className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-mono font-bold whitespace-nowrap bg-white text-black hover:bg-neutral-200 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+          >
+            Activate
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

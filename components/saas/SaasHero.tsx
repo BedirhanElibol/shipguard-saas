@@ -165,7 +165,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-4 mb-16 text-xs text-zinc-400 font-mono"
         >
           <span>Zero-Retention Privacy (Code Never Stored)</span>
-          <span>7,850+ Deep Web &amp; Cloud Rules</span>
+          <span>1,450+ Deep Web &amp; Cloud Rules</span>
           <span>In-Memory Stream Evaluation</span>
         </motion.div>
 

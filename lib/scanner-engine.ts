@@ -3645,7 +3645,7 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
 
     // Wave 30 Enterprise Release Gate Engines (Milestone 7,600 Rules):
 
-    // Wave 31 Enterprise Release Gate Engines (Milestone 7,850 Rules - Grand Finale):
+    // Enterprise Multi-Stack SAST & Release Gate Engines:
 
     // Wave 32: Software Composition Analysis (SCA), Dependency CVE & License Compliance Gate
     const scaCounter = { count: findingCounter };

@@ -40,7 +40,7 @@ export const TierDetailsModal: React.FC<TierDetailsModalProps> = ({
     {
       category: 'Rule Engine & Analysis Depth',
       items: [
-        { label: 'Security & Bug Inventory', free: '20 Core OWASP Rules', pro: 'All 7,850+ Production Rules', enterprise: 'All Rules + Custom Company Rules' },
+        { label: 'Security & Bug Inventory', free: '20 Core OWASP Rules', pro: 'All 1,450+ Production Rules', enterprise: 'All Rules + Custom Company Rules' },
         { label: 'Secret Detection & RLS', free: 'Basic Surface Check', pro: 'Deep AST & Vault Analysis', enterprise: 'Deep AST + Custom Token Regex' },
         { label: '1,000+ File Repositories', free: 'Standard Buffer', pro: 'Cooperative Event Loop Yielding', enterprise: 'High-Throughput Enterprise Stream' }
       ]

@@ -126,8 +126,8 @@ export const ComparisonTable: React.FC = () => {
           name: 'Static & AST Rule Inventory',
           description: 'Coverage of security vulnerabilities, misconfigurations, and anti-patterns',
           free: '20 Baseline Static Rules',
-          pro: '7,850+ Deep Production Rules',
-          enterprise: '7,850+ Rules + Custom Org Rulesets'
+          pro: '1,450+ Deep Production Rules',
+          enterprise: '1,450+ Rules + Custom Org Rulesets'
         },
         {
           name: 'Secret & API Key Leak Detection',

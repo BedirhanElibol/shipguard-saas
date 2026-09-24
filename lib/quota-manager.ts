@@ -49,7 +49,7 @@ export const TIER_CONFIGS: Record<UserTier, TierFeatureConfig> = {
     pdfExportAccess: true,
     cicdIntegration: true,
     customRules: false,
-    ruleInventory: 'All 7,850+ Production Rules',
+    ruleInventory: 'All 1,450+ Production Rules',
     supportSla: '24-Hour Email Support',
     concurrentWorkers: 5,
     historyRetentionDays: 90

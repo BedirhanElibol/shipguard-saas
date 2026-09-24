@@ -27,18 +27,14 @@ export interface SubscriptionValidityInfo {
 export function isPlatformAdminEmail(email?: string | null): boolean {
   if (!email || typeof email !== 'string') return false;
   const emailNorm = email.toLowerCase().trim();
+  // SEC-01: Server-only env vars — never expose admin identities in client bundle
   const configured = (
-    process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
     process.env.ADMIN_EMAILS ||
     process.env.FOUNDER_EMAIL ||
-    'rapidsycompany@gmail.com,bedirelibol7@gmail.com'
+    ''
   ).split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
 
-  return (
-    configured.includes(emailNorm) ||
-    emailNorm === 'rapidsycompany@gmail.com' ||
-    emailNorm === 'bedirelibol7@gmail.com'
-  );
+  return configured.includes(emailNorm);
 }
 
 const EMERALD_COLORS = {

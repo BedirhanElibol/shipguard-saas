@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyCanonicalSecurityHeaders } from '@/lib/security-headers';
 
 /**
- * Global Edge Security Middleware for Zelsis SaaS
- * - Injects enterprise-grade security headers (HSTS, CSP, X-Frame-Options, etc.) across all routes
- * - Enforces Origin whitelist and CORS policy on /api/:path* endpoints
- * - Sanitizes client IP headers to prevent IP-spoofing rate limit bypass (VULN-10)
+ * Global Edge Security Middleware for Zelsis SaaS (SEC-02, SEC-03, SEC-04, SEC-05)
+ * - Injects enterprise-grade canonical security headers (HSTS, CSP, X-Frame-Options, COOP)
+ * - Enforces Origin whitelist and strict 403 blocking on disallowed cross-origin API calls
+ * - Sanitizes client IP headers using trusted platform priority (x-vercel-ip, cf-ray verified cf-connecting-ip)
  * - Protects against Clickjacking (CWE-1021) and MIME sniffing (CWE-79)
  */
 
@@ -47,27 +48,12 @@ if (vercelUrl) {
   }
 }
 
-/**
- * Injects OWASP Top 10 recommended global security headers
- */
-function applySecurityHeaders(res: NextResponse): NextResponse {
-  res.headers.set('X-Frame-Options', 'DENY');
-  res.headers.set('X-Content-Type-Options', 'nosniff');
-  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
-  res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-  res.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://api.fontshare.com https://cdn.fontshare.com https://fonts.gstatic.com https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://api.polar.sh https://api.github.com https://raw.githubusercontent.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
-  );
-  return res;
-}
-
 export function middleware(req: NextRequest) {
-  // VULN-10: Prioritize trusted proxy IP headers to neutralize IP spoofing
+  // SEC-03: Platform-authenticated client IP resolution (prevents spoofing via arbitrary x-forwarded-for)
+  const isCfVerified = Boolean(req.headers.get('cf-ray') && req.headers.get('cf-connecting-ip'));
   const clientIp =
-    req.headers.get('cf-connecting-ip') ||
+    req.headers.get('x-vercel-ip') ||
+    (isCfVerified ? req.headers.get('cf-connecting-ip') : null) ||
     req.headers.get('x-real-ip') ||
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
     '127.0.0.1';
@@ -85,13 +71,13 @@ export function middleware(req: NextRequest) {
       const response = NextResponse.next({ request: { headers: requestHeaders } });
       response.headers.set('Access-Control-Allow-Origin', '*');
       response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-      return applySecurityHeaders(response);
+      return applyCanonicalSecurityHeaders(response);
     }
 
-    // Polar webhooks are posted directly from Polar servers without browser Origin
+    // Polar webhooks are server-to-server HTTP POSTs from Polar edge IPs
     if (pathname.startsWith('/api/v1/polar-webhook')) {
       const response = NextResponse.next({ request: { headers: requestHeaders } });
-      return applySecurityHeaders(response);
+      return applyCanonicalSecurityHeaders(response);
     }
 
     // Handle OPTIONS preflight requests
@@ -103,7 +89,7 @@ export function middleware(req: NextRequest) {
 
       const preflightHeaders = new Headers({
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, polar-webhook-signature',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, polar-webhook-signature, x-api-key',
         'Access-Control-Max-Age': '86400'
       });
 
@@ -113,23 +99,30 @@ export function middleware(req: NextRequest) {
       }
 
       const preflightResponse = new NextResponse(null, { status: 204, headers: preflightHeaders });
-      return applySecurityHeaders(preflightResponse);
+      return applyCanonicalSecurityHeaders(preflightResponse);
+    }
+
+    // SEC-02: Strict Origin Enforcement for browser requests
+    if (origin && !ALLOWED_ORIGINS.has(origin)) {
+      return new NextResponse(JSON.stringify({ error: 'Origin Forbidden' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     const response = NextResponse.next({ request: { headers: requestHeaders } });
 
-    // If an Origin header is present (browser-initiated request), validate against whitelist
     if (origin && ALLOWED_ORIGINS.has(origin)) {
       response.headers.set('Access-Control-Allow-Origin', origin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
     }
 
-    return applySecurityHeaders(response);
+    return applyCanonicalSecurityHeaders(response);
   }
 
   // Non-API routes (HTML pages, layouts, SSR documents)
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  return applySecurityHeaders(response);
+  return applyCanonicalSecurityHeaders(response);
 }
 
 export const config = {

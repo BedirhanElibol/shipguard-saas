@@ -17,6 +17,12 @@ const HANDLED_EVENTS = [
   'order.refunded',
 ];
 
+// SEC-06: In-memory event_id deduplication to prevent webhook replay attacks
+// Vercel serverless functions persist module-level state within a single instance lifecycle
+const DEDUP_MAX_SIZE = 10_000;
+const DEDUP_EVICT_BATCH = 2_000;
+const processedEventIds = new Set<string>();
+
 /**
  * Verifies Polar / Standard Webhooks HMAC-SHA256 signatures.
  * Supports both Standard Webhooks format (v1,base64... where toSign is ${webhookId}.${timestamp}.${rawBody})
@@ -178,6 +184,26 @@ export async function POST(req: NextRequest) {
   } catch (parseErr) {
     void parseErr;
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  // SEC-06: Idempotency guard — deduplicate by event_id to prevent replay attacks
+  const eventId = (body as Record<string, unknown>)?.event_id as string | undefined
+    || (body as Record<string, unknown>)?.id as string | undefined;
+  if (eventId) {
+    if (processedEventIds.has(eventId)) {
+      logger.info(`[Polar Webhook] Duplicate event_id detected, skipping: ${eventId}`);
+      return NextResponse.json({ received: true, deduplicated: true });
+    }
+    processedEventIds.add(eventId);
+    // Evict oldest entries when the set exceeds capacity
+    if (processedEventIds.size > DEDUP_MAX_SIZE) {
+      const iter = processedEventIds.values();
+      for (let i = 0; i < DEDUP_EVICT_BATCH; i++) {
+        const next = iter.next();
+        if (next.done) break;
+        processedEventIds.delete(next.value);
+      }
+    }
   }
 
   const eventType = body?.type;

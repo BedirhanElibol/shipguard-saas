@@ -137,7 +137,7 @@ export function mapSupabaseUserToProfile(supabaseUser: {
   const userEmailNorm = (supabaseUser?.email || '').toLowerCase().trim();
   const rawName = (metadata.full_name as string) || (metadata.name as string) || (metadata.user_name as string) || (userEmailNorm ? userEmailNorm.split('@')[0] : 'User');
   const avatar = (metadata.avatar_url as string) || (metadata.picture as string) || (metadata.user_name ? `https://github.com/${metadata.user_name}.png` : undefined);
-  // Founder & Platform Administrator Detection (Configured via ADMIN_EMAILS / NEXT_PUBLIC_ADMIN_EMAILS)
+  // Founder & Platform Administrator Detection (Configured via server-only ADMIN_EMAILS)
   const isPlatformAdmin = isPlatformAdminEmail(userEmailNorm);
 
   let tier: 'Free' | 'Pro' | 'Enterprise' = 'Free';

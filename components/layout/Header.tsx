@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
 
     const selectedUrl = selectedProject?.repoUrl || '';
     const normSelected = (selectedUrl === 'local' ? 'local' : (normalizeRepoUrl(selectedUrl) || selectedUrl)).toLowerCase().replace(/\/+$/, '').trim();
-    if (normTarget === normSelected) {
+    if (normTarget === normSelected && selectedProject?.repoUrl && selectedProject.repoUrl !== 'undefined') {
       onTriggerScan(selectedProject);
       return;
     }
@@ -95,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
     const existing = projects.find((p) => {
       const pUrl = p?.repoUrl || '';
       const pNorm = (pUrl === 'local' ? 'local' : (normalizeRepoUrl(pUrl) || pUrl)).toLowerCase().replace(/\/+$/, '').trim();
-      return pNorm === normTarget;
+      return pNorm === normTarget && p?.repoUrl && p.repoUrl !== 'undefined';
     });
     let savedToken: string | undefined;
     if (typeof window !== 'undefined') {

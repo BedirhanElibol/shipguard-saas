@@ -466,7 +466,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                 {onTriggerScan && (
                   <button
                     type="button"
-                    onClick={onTriggerScan}
+                    onClick={() => onTriggerScan?.()}
                     className="btn btn-secondary py-2 px-3 text-xs font-mono font-bold w-full flex items-center justify-center gap-2"
                   >
                     <Play size={13} />
@@ -715,7 +715,7 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
                         {onTriggerScan && (
                           <button
                             type="button"
-                            onClick={onTriggerScan}
+                            onClick={() => onTriggerScan?.()}
                             className="btn btn-secondary btn-sm px-4 py-2 text-xs font-bold flex items-center gap-2"
                           >
                             <Play size={13} />

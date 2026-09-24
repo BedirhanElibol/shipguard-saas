@@ -90,7 +90,7 @@ function DashboardContent() {
     setQuota(refreshed);
   };
 
-  const handleTriggerScan = (projectOverride?: Project) => {
+  const handleTriggerScan = (projectOverride?: Project | unknown) => {
     const isPlatformAdmin = isPlatformAdminEmail(user?.email);
     const userTier = isPlatformAdmin ? 'Enterprise' : ((user?.tier as UserTier) || 'Free');
     if (quota && !isPlatformAdmin) {
@@ -101,9 +101,23 @@ function DashboardContent() {
       }
     }
 
-    if (projectOverride) {
-      handleSelectProject(projectOverride);
-      setScanProjectOverride(projectOverride);
+    // Defensive check: Guard against SyntheticEvents, MouseEvents, or objects lacking repoUrl
+    const isGenuineProject = Boolean(
+      projectOverride &&
+      typeof projectOverride === 'object' &&
+      !('nativeEvent' in projectOverride) &&
+      !('preventDefault' in projectOverride) &&
+      !('_reactName' in (projectOverride as any)) &&
+      typeof (projectOverride as any).repoUrl === 'string' &&
+      (projectOverride as any).repoUrl.trim().length > 0 &&
+      (projectOverride as any).repoUrl !== 'undefined'
+    );
+
+    const validProject = isGenuineProject ? (projectOverride as Project) : null;
+
+    if (validProject) {
+      handleSelectProject(validProject);
+      setScanProjectOverride(validProject);
     } else {
       setScanProjectOverride(null);
     }
@@ -331,7 +345,13 @@ function DashboardContent() {
         {isScanning ? (
           <ComponentErrorBoundary componentName="ScanRunnerView" resetKeys={[scanProjectOverride?.id, selectedProject?.id]}>
             <ScanRunnerView
-              project={scanProjectOverride || selectedProject}
+              project={
+                (scanProjectOverride && scanProjectOverride.repoUrl && scanProjectOverride.repoUrl !== 'undefined')
+                  ? scanProjectOverride
+                  : (selectedProject && selectedProject.repoUrl && selectedProject.repoUrl !== 'undefined')
+                  ? selectedProject
+                  : (projects.find((p) => p?.repoUrl && p.repoUrl !== 'undefined') || MOCK_PROJECTS[0])
+              }
               user={user}
               quota={quota}
               onOpenCheckout={(plan) => handleOpenCheckoutModal(plan)}

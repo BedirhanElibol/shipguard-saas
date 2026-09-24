@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Project, PlanUsageQuota } from '@/data/schema';
 import { UserProfile } from '@/components/auth/AuthModal';
 import { runStaticCodeScan, ScanResult, CodeFile } from '@/lib/scanner-engine';
-import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl } from '@/lib/github-api';
+import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
 import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock, Key, RotateCcw } from 'lucide-react';
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
@@ -183,10 +183,23 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         }
       }
 
+      const targetRepoUrl = (project?.repoUrl || (project as any)?.targetUrl || '').trim();
+      if (!targetRepoUrl || targetRepoUrl === 'undefined') {
+        if (!isCancelled) {
+          setScanFailureReason('Target repository URL is missing or invalid.');
+          setLogs([
+            `[${new Date().toLocaleTimeString()}] [ERROR] ❌ TARGET ERROR: Target repository URL is missing or invalid.`,
+            `[${new Date().toLocaleTimeString()}] [ACTION] Please select or enter a valid GitHub repository URL in the header bar (e.g. github.com/owner/repo).`
+          ]);
+          setIsFinished(true);
+        }
+        return;
+      }
+
       const isLocalOrSelfAudit =
-        (project.repoUrl === 'local' || safeLower(project.repoUrl) === 'local') &&
+        (targetRepoUrl === 'local' || safeLower(targetRepoUrl) === 'local') &&
         canAccessLocalAudit();
-      const isWebTarget = isValidWebUrl(project.repoUrl);
+      const isWebTarget = isValidWebUrl(targetRepoUrl);
 
       let filesToScan: CodeFile[] = [];
 
@@ -270,7 +283,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         }
       } else {
         setLogs([
-          `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to GitHub Target: ${project.repoUrl}`,
+          `[${new Date().toLocaleTimeString()}] [TARGET] Connecting to GitHub Target: ${targetRepoUrl}`,
           `[${new Date().toLocaleTimeString()}] [STAGE 1] Initializing repository connection and resolving git tree...`
         ]);
         setProgress(2);
@@ -295,7 +308,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         }
 
         const liveData = await fetchGithubRepositoryData(
-          project.repoUrl,
+          targetRepoUrl,
           effectiveToken,
           controller.signal,
           ({ phase, loaded, total, currentFile }) => {
@@ -433,24 +446,43 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 `[${new Date().toLocaleTimeString()}] [ACTION] Push your application source code to run a deployment readiness audit.`
               ]);
             } else {
-              if (!isPrivateRepoAllowed(userTier)) {
-                setScanFailureReason(`Private repository audit is a Pro feature. Upgrade to Zelsis Pro ($19/mo) to inspect private codebases.`);
+              const isExplicitPrivate =
+                liveData?.isPrivate === true ||
+                liveData?.error === 'PRIVATE_OR_UNAUTHENTICATED' ||
+                liveData?.requiresAuth === true;
+
+              if (isExplicitPrivate) {
+                if (!isPrivateRepoAllowed(userTier)) {
+                  setScanFailureReason(`Private repository audit is a Pro feature. Upgrade to Zelsis Pro ($19/mo) to inspect private codebases.`);
+                  setLogs((prev) => [
+                    ...prev,
+                    `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 Unable to fetch files from private GitHub repository "${targetRepoUrl}".`,
+                    `[${new Date().toLocaleTimeString()}] [PAYWALL] If this is a private repository, private audits require a Zelsis Pro subscription ($19/mo).`
+                  ]);
+                  setIsFinished(true);
+                  onOpenCheckout?.('Pro');
+                  return;
+                }
+                setScanFailureReason(`Private repository access restricted. A GitHub Personal Access Token (PAT) with 'repo' scope is required to scan "${targetRepoUrl}".`);
                 setLogs((prev) => [
                   ...prev,
-                  `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 Unable to fetch files from GitHub repository "${project.repoUrl}".`,
-                  `[${new Date().toLocaleTimeString()}] [PAYWALL] If this is a private repository, private audits require a Zelsis Pro subscription ($19/mo).`
+                  `[${new Date().toLocaleTimeString()}] [ERROR] 🔒 ACCESS RESTRICTED: Private or unauthenticated repository "${targetRepoUrl}".`,
+                  `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT).`
                 ]);
-                setIsFinished(true);
-                onOpenCheckout?.('Pro');
-                return;
+                setIsPrivateTokenModalOpen(true);
+              } else {
+                // Public repository network error or API timeout: NEVER open PAT modal for public repos!
+                const fetchErrMsg = liveData?.error === 'REPO_NOT_FOUND'
+                  ? `GitHub repository "${targetRepoUrl}" was not found (HTTP 404). Check the repository name and owner for typos.`
+                  : `Unable to fetch files from repository "${targetRepoUrl}". The repository may be temporarily unreachable or GitHub API timed out.`;
+                setScanFailureReason(fetchErrMsg);
+                setLogs((prev) => [
+                  ...prev,
+                  `[${new Date().toLocaleTimeString()}] [ERROR] ❌ FETCH FAILURE: ${fetchErrMsg}`,
+                  `[${new Date().toLocaleTimeString()}] [INFO] Please verify the repository exists on GitHub, is publicly accessible, and try again.`
+                ]);
+                setIsPrivateTokenModalOpen(false);
               }
-              setScanFailureReason(`Unable to fetch files from GitHub repository "${project.repoUrl}". For private repositories or to avoid GitHub API rate limits (60 req/hr), add a GitHub Personal Access Token (PAT).`);
-              setLogs((prev) => [
-                ...prev,
-                `[${new Date().toLocaleTimeString()}] [ERROR] Unable to fetch files from GitHub repository "${project.repoUrl}".`,
-                `[${new Date().toLocaleTimeString()}] [AUTH] If this is a private repository, please add your GitHub Personal Access Token (PAT).`
-              ]);
-              setIsPrivateTokenModalOpen(true);
             }
             setIsFinished(true);
           }
@@ -589,7 +621,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="text-lg sm:text-xl font-extrabold text-[#EDEDED] truncate">
-              Sequential AST Audit: {project.name}
+              Sequential AST Audit: {project.name || extractRepoDisplayName(project.repoUrl) || 'Target Repository'}
             </h1>
             <div className="text-xs text-[#A1A1AA] mt-1">
               <span className="truncate">Automated security clearance &amp; UX quality gates</span>

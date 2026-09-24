@@ -48,7 +48,7 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
         </div>
 
         <button
-          onClick={onTriggerScan}
+          onClick={() => onTriggerScan()}
           className="btn btn-primary text-xs px-5 py-2.5 font-bold uppercase tracking-wider flex items-center gap-2 rounded-lg bg-white text-black hover:bg-neutral-200 transition-all shadow-sm"
         >
           <Play size={14} fill="#0A0A0A" />
@@ -102,7 +102,7 @@ export const ScanHistoryView: React.FC<ScanHistoryViewProps> = ({
                 <p className="text-[#A1A1AA]">Running an audit scan will populate real historical logs, readiness scores, and differential gates.</p>
               </div>
               <button
-                onClick={onTriggerScan}
+                onClick={() => onTriggerScan()}
                 className="btn btn-primary text-xs px-4 py-2 mt-1 font-bold uppercase tracking-wider flex items-center gap-2 rounded-lg bg-white text-black hover:bg-neutral-200 transition-all cursor-pointer"
               >
                 <Play size={12} fill="#0A0A0A" />

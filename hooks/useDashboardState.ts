@@ -385,6 +385,23 @@ export function useDashboardState() {
           currentProjects = getBaseProjects();
         }
 
+        // Sanitize projects to auto-heal any corrupt or undefined repoUrl from legacy storage
+        currentProjects = currentProjects.map((p) => {
+          if (!p || typeof p !== 'object') return MOCK_PROJECTS[0];
+          let cleanRepoUrl = typeof p.repoUrl === 'string' ? p.repoUrl.trim() : '';
+          if (!cleanRepoUrl || cleanRepoUrl === 'undefined' || cleanRepoUrl === 'null') {
+            cleanRepoUrl = MOCK_PROJECTS[0].repoUrl;
+          }
+          let cleanName = typeof p.name === 'string' && p.name.trim() && p.name !== 'undefined'
+            ? p.name.trim()
+            : (cleanRepoUrl ? cleanRepoUrl.split('/').pop() || 'Target Repository' : MOCK_PROJECTS[0].name);
+          return {
+            ...p,
+            name: cleanName,
+            repoUrl: cleanRepoUrl
+          };
+        });
+
         setProjects(currentProjects);
 
         const savedSelectedId = localStorage.getItem('zelsis_selected_project_id') || localStorage.getItem('shipguard_selected_project_id');
@@ -405,6 +422,21 @@ export function useDashboardState() {
           }
         } else {
           safeSetStorageItem('zelsis_selected_project_id', chosenProject.id);
+        }
+
+        if (chosenProject) {
+          let cleanRepoUrl = typeof chosenProject.repoUrl === 'string' ? chosenProject.repoUrl.trim() : '';
+          if (!cleanRepoUrl || cleanRepoUrl === 'undefined' || cleanRepoUrl === 'null') {
+            cleanRepoUrl = MOCK_PROJECTS[0].repoUrl;
+          }
+          let cleanName = typeof chosenProject.name === 'string' && chosenProject.name.trim() && chosenProject.name !== 'undefined'
+            ? chosenProject.name.trim()
+            : MOCK_PROJECTS[0].name;
+          chosenProject = {
+            ...chosenProject,
+            name: cleanName,
+            repoUrl: cleanRepoUrl
+          };
         }
 
         setSelectedProject(chosenProject);

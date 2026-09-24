@@ -183,7 +183,7 @@ ${openFindings.map((f, i) => `${i + 1}. [${f.severity}] ${f.title} (${f.filePath
             <span>{copiedMaster ? 'Prompt Copied!' : 'Copy Master Fix Prompt'}</span>
           </button>
 
-          <button className="btn btn-primary" onClick={onTriggerScan}>
+          <button className="btn btn-primary" onClick={() => onTriggerScan?.()}>
             <Play size={16} fill="#FFF" />
             <span>Run New Audit</span>
           </button>

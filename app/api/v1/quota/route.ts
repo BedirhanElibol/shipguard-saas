@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { FREE_SCAN_LIMIT } from '@/lib/quota-manager';
+import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -67,6 +68,18 @@ export async function GET(req: NextRequest) {
       remaining: FREE_SCAN_LIMIT,
       billingCycleReset: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       status: 'unauthenticated'
+    });
+  }
+
+  const userEmail = (user.email || '').toLowerCase().trim();
+  if (isPlatformAdminEmail(userEmail)) {
+    return NextResponse.json({
+      tier: 'Enterprise',
+      scansUsed: 0,
+      scansLimit: 'Unlimited',
+      remaining: 'Unlimited',
+      billingCycleReset: '2099-12-31T23:59:59.999Z',
+      status: 'active'
     });
   }
 
@@ -193,6 +206,18 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = user.id;
+  const userEmail = (user.email || '').toLowerCase().trim();
+  const isAdmin = isPlatformAdminEmail(userEmail);
+
+  if (isAdmin) {
+    return NextResponse.json({
+      allowed: true,
+      scansUsed: 0,
+      scansLimit: 'Unlimited',
+      remaining: 'Unlimited',
+      scanId: `scan-${Date.now()}`
+    });
+  }
 
   try {
     // 2. Fetch active subscription & profile

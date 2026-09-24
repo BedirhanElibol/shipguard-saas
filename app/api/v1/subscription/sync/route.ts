@@ -90,6 +90,17 @@ export async function POST(req: NextRequest) {
 
   logger.info(`[Subscription Sync] Checking subscription for: ${email}`);
 
+  if (isPlatformAdminEmail(email)) {
+    logger.info(`[Subscription Sync] Immediate Platform Admin resolution for: ${email}`);
+    return NextResponse.json({
+      tier: 'Enterprise',
+      active: true,
+      status: 'active',
+      expiresAt: '2099-12-31T23:59:59.999Z',
+      isFounder: true
+    });
+  }
+
   let verifiedTier: 'Pro' | 'Enterprise' | 'Free' = 'Free';
   let isActive = false;
   let subStatus: 'active' | 'past_due' | 'canceled' = 'canceled';

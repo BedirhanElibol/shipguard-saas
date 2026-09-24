@@ -76,11 +76,12 @@ export function useDashboardState() {
         const res = await fetch('/api/v1/quota', { headers });
         if (res.ok && !isCancelled) {
           const data = await res.json();
-          const isFree = data.tier === 'Free';
+          const isPlatformAdmin = isPlatformAdminEmail(user?.email);
+          const isFree = !isPlatformAdmin && data.tier === 'Free';
           setQuota((prev) => {
             const updated: PlanUsageQuota = {
               ...prev,
-              scansUsed: data.scansUsed ?? prev.scansUsed,
+              scansUsed: isPlatformAdmin ? 0 : (data.scansUsed ?? prev.scansUsed),
               scansLimit: isFree ? (data.scansLimit ?? FREE_SCAN_LIMIT) : Infinity,
               billingCycleReset: data.billingCycleReset || prev.billingCycleReset
             };
@@ -113,6 +114,15 @@ export function useDashboardState() {
     repoUrl: string;
     framework?: string;
   }): Promise<{ allowed: boolean; reason?: string; scanId?: string; projectId?: string }> => {
+    const isPlatformAdmin = isPlatformAdminEmail(user?.email);
+    if (isPlatformAdmin) {
+      return {
+        allowed: true,
+        scanId: `admin-scan-${Date.now()}`,
+        projectId: scanDetails.projectId
+      };
+    }
+
     try {
       const { getActiveUserAuth } = await import('@/lib/supabase-client');
       const { accessToken } = await getActiveUserAuth();

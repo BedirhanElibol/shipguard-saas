@@ -14,6 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
 import { checkScanQuota, resetUserQuota } from '@/lib/quota-manager';
 import { QuotaLimitModal } from '@/components/dashboard/QuotaLimitModal';
+import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
 // Next.js Dynamic Code Splitting for heavy dashboard views
 const SecurityAuditView = dynamic(() => import('@/components/SecurityAuditView').then(m => m.SecurityAuditView), { ssr: false });
@@ -90,8 +91,9 @@ function DashboardContent() {
   };
 
   const handleTriggerScan = (projectOverride?: Project) => {
-    const userTier = (user?.tier as UserTier) || 'Free';
-    if (quota) {
+    const isPlatformAdmin = isPlatformAdminEmail(user?.email);
+    const userTier = isPlatformAdmin ? 'Enterprise' : ((user?.tier as UserTier) || 'Free');
+    if (quota && !isPlatformAdmin) {
       const scanCheck = checkScanQuota(quota, userTier);
       if (!scanCheck.allowed) {
         setIsQuotaModalOpen(true);

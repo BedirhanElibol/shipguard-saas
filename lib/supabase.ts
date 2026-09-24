@@ -47,15 +47,7 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
     if (error) return { user: null, error: error.message };
 
     if (data.user) {
-      const fallbackName = data.user.email?.split('@')[0]?.replace(/[._-]/g, ' ') || 'User';
-      const userProfile: UserProfile = {
-        name: data.user.user_metadata?.full_name || fallbackName,
-        email: data.user.email || email,
-        avatarUrl: data.user.user_metadata?.avatar_url,
-        tier: (data.user.user_metadata?.tier as 'Free' | 'Pro' | 'Enterprise') || 'Free',
-        isLoggedIn: true,
-        emailVerified: data.user.email_confirmed_at != null
-      };
+      const userProfile = mapSupabaseUserToProfile(data.user);
       return { user: userProfile, error: null };
     }
     return { user: null, error: 'User not found' };
@@ -83,7 +75,7 @@ export async function supabaseSignUp(email: string, password: string, name: stri
       options: {
         data: {
           full_name: name,
-          tier: 'Free'
+          tier: isPlatformAdminEmail(email) ? 'Enterprise' : 'Free'
         }
       }
     });
@@ -91,13 +83,7 @@ export async function supabaseSignUp(email: string, password: string, name: stri
     if (error) return { user: null, error: error.message };
 
     if (data.user) {
-      const userProfile: UserProfile = {
-        name: name.trim(),
-        email: data.user.email || email,
-        tier: 'Free',
-        isLoggedIn: true,
-        emailVerified: data.user.email_confirmed_at != null
-      };
+      const userProfile = mapSupabaseUserToProfile(data.user);
       return { user: userProfile, error: null, requiresVerification: !data.user.email_confirmed_at };
     }
     return { user: null, error: 'Registration completed but user state could not be verified.' };

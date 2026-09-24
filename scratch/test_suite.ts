@@ -460,6 +460,220 @@ async function runAllTests() {
   // Verify exact line mapping (database.py SQL injection is on line 6, not line 1)
   assert(pySql?.lineRange === 'L6', `Accurate line reporting for Python SQLi: expected L6, got ${pySql?.lineRange}`);
 
+  // ─── 13. 16-Vulnerability Realistic Benchmark Matrix (F-25) ─────
+  console.log('\n--- 13. Testing 16-Vulnerability Realistic Benchmark Matrix (F-25) ---');
+  const matrixFiles: CodeFile[] = [
+    {
+      path: 'app/api/user/route.ts',
+      content: `
+        import { NextResponse } from 'next/server';
+        import pool from '@/lib/db';
+        import fs from 'fs';
+        import path from 'path';
+        import { exec } from 'child_process';
+        import crypto from 'crypto';
+        import jwt from 'jsonwebtoken';
+
+        export async function GET(req: Request) {
+          const { searchParams } = new URL(req.url);
+          const id = searchParams.get('id');
+          const targetUrl = searchParams.get('url');
+          const file = searchParams.get('file');
+          const host = searchParams.get('host');
+          const next = searchParams.get('next');
+          const tokenStr = searchParams.get('token');
+
+          // 1. SQL Injection
+          pool.query("SELECT * FROM users WHERE id = " + id);
+
+          // 6. SSRF
+          await fetch(targetUrl);
+
+          // 7. Command Injection
+          exec("ping " + host);
+
+          // 8. Path Traversal
+          fs.readFileSync(path.join("/uploads", file));
+
+          // 9. Weak Cryptography (MD5)
+          const hash = crypto.createHash('md5').update(id).digest('hex');
+
+          // 10. Unverified JWT Decode
+          const user = jwt.decode(tokenStr);
+
+          // 11. Insecure PRNG Math.random
+          const token = Math.random().toString(36);
+
+          // 13. Open Redirect
+          NextResponse.redirect(next);
+
+          // 14. Dynamic Code Execution eval
+          eval(searchParams.get('code'));
+
+          return NextResponse.json({ ok: true, hash, user, token });
+        }
+      `
+    },
+    {
+      path: 'components/UserProfile.tsx',
+      content: `
+        export function UserProfile({ bio }: { bio: string }) {
+          // 2. dangerouslySetInnerHTML
+          return <div dangerouslySetInnerHTML={{ __html: bio }} />;
+        }
+      `
+    },
+    {
+      path: 'lib/ai-service.ts',
+      content: `
+        // 3. Hardcoded OpenAI key
+        const apiKey = "sk-proj-1234567890abcdef1234567890abcdef1234";
+      `
+    },
+    {
+      path: '.env.production',
+      content: `
+        # 5. Exposed Service Role Key via NEXT_PUBLIC_
+        NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummysecret
+      `
+    },
+    {
+      path: 'server/middleware/cors.ts',
+      content: `
+        // 12. Insecure Cookie & 15. Insecure CORS with credentials
+        import cors from 'cors';
+        cors({ origin: '*', credentials: true });
+        res.cookie('session', '12345', { httpOnly: false });
+      `
+    },
+    {
+      path: 'supabase/migrations/20260901_schema.sql',
+      content: `
+        -- 4. Table without RLS
+        CREATE TABLE accounts (
+          id UUID PRIMARY KEY,
+          balance NUMERIC
+        );
+
+        -- 16. Permissive RLS policy USING (true)
+        CREATE POLICY "allow_all" ON users FOR ALL USING (true);
+      `
+    }
+  ];
+
+  const matrixScan = await runStaticCodeScan(matrixFiles, '16-Vulnerability Matrix Project');
+
+  assert(matrixScan.findings.some(f => f.ruleId === 18042 || f.ruleId === 3021), 'F-25/1: SQL Injection detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 16), 'F-25/2: dangerouslySetInnerHTML detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 1), 'F-25/3: Hardcoded OpenAI API key detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 3001 || f.title.includes('Missing Row Level Security')), 'F-25/4: Table missing RLS detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 36), 'F-25/5: NEXT_PUBLIC service role key detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 34), 'F-25/6: SSRF via unvalidated fetch detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 33), 'F-25/7: Command Injection in child_process exec detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 35), 'F-25/8: Path Traversal in fs.readFileSync detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 37), 'F-25/9: Weak Cryptography MD5 detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 39), 'F-25/10: Unverified jwt.decode detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 38), 'F-25/11: Insecure Math.random token detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 40), 'F-25/12: Insecure cookie httpOnly: false detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 41), 'F-25/13: Open Redirect detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 32), 'F-25/14: eval() dynamic code execution detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 44), 'F-25/15: CORS wildcard + credentials detected');
+  assert(matrixScan.findings.some(f => f.ruleId === 45 || f.ruleId === 3), 'F-25/16: Permissive RLS USING (true) policy detected');
+
+  // ─── 14. OWASP NodeGoat Benchmark Matrix (F-37) ─────────────────
+  console.log('\n--- 14. Testing OWASP NodeGoat Benchmark Matrix (F-37) ---');
+  const nodeGoatFiles: CodeFile[] = [
+    {
+      path: 'app/routes/contributions.js',
+      content: `
+        exports.handleContributions = function(req, res) {
+          // NodeGoat RCE via eval
+          var preTax = eval(req.body.preTax);
+          res.render("contributions", { preTax: preTax });
+        };
+      `
+    },
+    {
+      path: 'app/routes/allocations.js',
+      content: `
+        exports.getByUserId = function(req, res) {
+          // NodeGoat NoSQL injection via $where
+          db.allocations.find({ $where: "this.userId == '" + req.query.userId + "'" });
+        };
+      `
+    },
+    {
+      path: 'config/env/all.js',
+      content: `
+        module.exports = {
+          cookieSecret: "s3cr3tC00k13P@ssw0rd!123",
+          cryptoKey: "k3yF0rC0nf1gEncrypt10n!99"
+        };
+      `
+    },
+    {
+      path: 'app/routes/session.js',
+      content: `
+        exports.setSession = function(req, res) {
+          // NodeGoat insecure cookie & Math.random token
+          var sessionToken = Math.random().toString(36);
+          res.cookie("token", sessionToken, { httpOnly: false });
+        };
+      `
+    }
+  ];
+
+  const nodeGoatScan = await runStaticCodeScan(nodeGoatFiles, 'OWASP NodeGoat Project');
+
+  assert(nodeGoatScan.findings.some(f => f.ruleId === 32), 'F-37/1: NodeGoat eval(req.body.preTax) detected');
+  assert(nodeGoatScan.findings.some(f => f.ruleId === 42 || f.ruleId === 18041), 'F-37/2: NodeGoat NoSQL $where injection detected');
+  assert(nodeGoatScan.findings.some(f => f.ruleId === 43), 'F-37/3: NodeGoat static cookieSecret/cryptoKey in config detected');
+  assert(nodeGoatScan.findings.some(f => f.ruleId === 40), 'F-37/4: NodeGoat insecure cookie httpOnly: false detected');
+  assert(nodeGoatScan.findings.some(f => f.ruleId === 38), 'F-37/5: NodeGoat Math.random token generation detected');
+  assert(nodeGoatScan.criticalCount >= 2, 'NodeGoat scan produces CRITICAL findings (Gate FAILED)');
+
+  // ─── 15. Architecture Fixes: Gate Independence (F-38) & Vendor Exclusion (F-39) ───
+  console.log('\n--- 15. Testing Architecture Fixes: F-38 (Gate Independence) & F-39 (Vendor Exclusion) ---');
+  const vendorAndTemplateFiles: CodeFile[] = [
+    {
+      // F-39: Vendored/minified file with issues that should be completely skipped
+      path: 'public/vendor/jquery.min.js',
+      content: 'try { doSomething(); } catch (e) {} var secret = "sk-live-1234567890abcdef";'
+    },
+    {
+      // F-39: Dist bundle file that should be skipped
+      path: 'dist/bundle.min.js',
+      content: 'eval("alert(1)");'
+    },
+    {
+      // F-38: Clean Vercel template with cosmetic/style suggestions
+      path: 'app/pricing/page.tsx',
+      content: `
+        import React from 'react';
+        export default function PricingPage() {
+          return (
+            <div className="p-8">
+              <h1 className="text-3xl font-bold">Pricing</h1>
+              <p>Simple and transparent pricing plans.</p>
+              <img src="/pricing-badge.png" alt="Pricing Badge" />
+            </div>
+          );
+        }
+      `
+    }
+  ];
+
+  const templateScan = await runStaticCodeScan(vendorAndTemplateFiles, 'Vercel Subscription Payments Template');
+
+  // Verify F-39: Zero findings from vendor or minified files
+  const vendorFindings = templateScan.findings.filter(f => f.filePath.includes('vendor/') || f.filePath.endsWith('.min.js'));
+  assert(vendorFindings.length === 0, 'F-39: Vendored & minified files are completely excluded from scan');
+
+  // Verify F-38: Clean template receives PASSED release gate despite cosmetic/style suggestions
+  assert(templateScan.gateStatus === 'PASSED', `F-38: Clean template receives PASSED gate (no false warning blocker): ${templateScan.gateStatus}`);
+  assert(templateScan.score >= 90, `F-38: Clean template maintains high readiness score (score >= 90): ${templateScan.score}`);
+  assert(templateScan.criticalCount === 0, 'F-38: Clean template has zero critical blockers');
+
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
   console.log('===========================================================');

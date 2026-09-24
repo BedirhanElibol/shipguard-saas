@@ -929,7 +929,7 @@ export function evaluateSecurityRules(
 
   // Rule 33 / SEC-33: Command Injection via Unsanitized Child Process Execution
   if (isCodeFile && (cleanContent.includes('child_process') || cleanContent.includes('execSync(') || cleanContent.includes('exec('))) {
-    const cmdInjRegex = /(?:child_process\.(?:exec|execSync|spawn|spawnSync)|\bexec\s*\(|\bexecSync\s*\()\s*\([^)]*(?:`[^`]*\$\{[^}]+\}[^`]*`|['"][^'"]*['"]\s*\+|\b(?:req\.|params\.|query\.|body\.|userInput|cmd|command))/;
+    const cmdInjRegex = /(?:child_process\.(?:exec|execSync|spawn|spawnSync)|\bexec\s*\(|\bexecSync\s*\()\s*(?:`[^`]*\$\{[^}]+\}|['"][^'"]*['"]\s*\+|[a-zA-Z0-9_.]+\s*\+|[^,\)]*\b(?:req\.|params\.|query\.|body\.|userInput|cmd|command|host|input))/;
     if (cmdInjRegex.test(cleanContent)) {
       const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && cmdInjRegex.test(l));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -991,7 +991,7 @@ export function evaluateSecurityRules(
 
   // Rule 35 / SEC-35: Path Traversal Vulnerability via User-Controlled File Path
   if (isCodeFile && (cleanContent.includes('fs.') || cleanContent.includes('readFile') || cleanContent.includes('createReadStream'))) {
-    const pathTraversalRegex = /(?:fs\.(?:readFile|readFileSync|createReadStream|writeFile|writeFileSync|unlink))\s*\([^;\n]*(?:req\.(?:query|params|body)|path\.join\([^;\n]*(?:req\.|params\.|query\.))/;
+    const pathTraversalRegex = /(?:fs\.(?:readFile|readFileSync|createReadStream|writeFile|writeFileSync|unlink))\s*\([^;\n]*(?:path\.join\([^)]*|req\.(?:query|params|body)|\b(?:file|filePath|userInput|targetPath)\b)/;
     if (pathTraversalRegex.test(cleanContent)) {
       const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && pathTraversalRegex.test(l));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
@@ -1175,7 +1175,7 @@ export function evaluateSecurityRules(
 
   // Rule 41 / SEC-41: Open Redirection Vulnerability via Untrusted URL Target
   if (isCodeFile && cleanContent.includes('redirect(')) {
-    const openRedirectRegex = /(?:res\.redirect|redirect|NextResponse\.redirect)\s*\(\s*(?:req\.(?:query|body|params)\.[a-zA-Z0-9_]+|searchParams\.get\(['"](?:url|next|redirect|target)['"]\))/i;
+    const openRedirectRegex = /(?:res\.redirect|redirect|NextResponse\.redirect)\s*\(\s*(?:req\.(?:query|body|params)|searchParams\.get|\b(?:next|url|redirectUrl|target|targetUrl|returnTo)\b)/i;
     if (openRedirectRegex.test(cleanContent)) {
       const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('*') && openRedirectRegex.test(l));
       const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;

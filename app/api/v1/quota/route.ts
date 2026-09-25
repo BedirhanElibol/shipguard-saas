@@ -5,14 +5,14 @@ import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { FREE_SCAN_LIMIT } from '@/lib/quota-manager';
 import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
-const _SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-if (!_SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
-const SUPABASE_URL: string = _SUPABASE_URL;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 function getAdminClient() {
+  if (!SUPABASE_URL) return null;
   const key = SERVICE_ROLE_KEY || ANON_KEY;
+  if (!key) return null;
   return createClient(SUPABASE_URL, key, {
     auth: { persistSession: false }
   });
@@ -86,6 +86,16 @@ export async function GET(req: NextRequest) {
   }
 
   const adminClient = getAdminClient();
+  if (!adminClient) {
+    return NextResponse.json({
+      tier: 'Free',
+      scansUsed: 0,
+      scansLimit: FREE_SCAN_LIMIT,
+      remaining: FREE_SCAN_LIMIT,
+      billingCycleReset: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'active'
+    });
+  }
   const userId = user.id;
 
   try {
@@ -179,7 +189,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (SERVICE_ROLE_KEY && action === 'consume_scan') {
+    if (adminClient && SERVICE_ROLE_KEY && action === 'consume_scan') {
       try {
         await adminClient.from('audit_logs').insert({
           user_id: null,
@@ -217,6 +227,16 @@ export async function POST(req: NextRequest) {
       scansUsed: 0,
       scansLimit: 'Unlimited',
       remaining: 'Unlimited',
+      scanId: `scan-${Date.now()}`
+    });
+  }
+
+  if (!adminClient) {
+    return NextResponse.json({
+      allowed: true,
+      scansUsed: 1,
+      scansLimit: FREE_SCAN_LIMIT,
+      remaining: FREE_SCAN_LIMIT - 1,
       scanId: `scan-${Date.now()}`
     });
   }

@@ -12,6 +12,10 @@ export const CSP_DIRECTIVES = {
     "'self'",
     "'unsafe-inline'", // Required for Next.js inline bootstrap scripts
   ],
+  'worker-src': [
+    "'self'",
+    'blob:',
+  ],
   'style-src': [
     "'self'",
     "'unsafe-inline'", // Required for Tailwind CSS runtime emotion/styles

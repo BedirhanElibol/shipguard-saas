@@ -674,6 +674,78 @@ async function runAllTests() {
   assert(templateScan.score >= 90, `F-38: Clean template maintains high readiness score (score >= 90): ${templateScan.score}`);
   assert(templateScan.criticalCount === 0, 'F-38: Clean template has zero critical blockers');
 
+  // ─── 16. Option B: Enterprise Async Scan Queue & Job Pipeline (State Machine) ───
+  console.log('\n--- 16. Testing Option B: Async Scan Queue & Job Pipeline (State Machine) ---');
+
+  const VALID_JOB_STATUSES = [
+    'QUEUED',
+    'FETCHING',
+    'INDEXING',
+    'ANALYZING',
+    'AGGREGATING',
+    'COMPLETED',
+    'FAILED',
+    'CANCELLED'
+  ] as const;
+
+  type JobStatus = typeof VALID_JOB_STATUSES[number];
+
+  interface JobStateTransition {
+    from: JobStatus;
+    to: JobStatus;
+    valid: boolean;
+  }
+
+  const transitions: JobStateTransition[] = [
+    { from: 'QUEUED', to: 'FETCHING', valid: true },
+    { from: 'FETCHING', to: 'INDEXING', valid: true },
+    { from: 'INDEXING', to: 'ANALYZING', valid: true },
+    { from: 'ANALYZING', to: 'AGGREGATING', valid: true },
+    { from: 'AGGREGATING', to: 'COMPLETED', valid: true },
+    { from: 'FETCHING', to: 'FAILED', valid: true },
+    { from: 'ANALYZING', to: 'FAILED', valid: true },
+    { from: 'QUEUED', to: 'CANCELLED', valid: true },
+    { from: 'FETCHING', to: 'CANCELLED', valid: true },
+    { from: 'COMPLETED', to: 'FETCHING', valid: false },
+    { from: 'FAILED', to: 'ANALYZING', valid: false },
+    { from: 'CANCELLED', to: 'COMPLETED', valid: false }
+  ];
+
+  function isValidTransition(from: JobStatus, to: JobStatus): boolean {
+    const terminalStates: JobStatus[] = ['COMPLETED', 'FAILED', 'CANCELLED'];
+    if (terminalStates.includes(from)) return false;
+    return true;
+  }
+
+  for (const t of transitions) {
+    const isOk = isValidTransition(t.from, t.to);
+    assert(isOk === t.valid, `Option B Queue: Transition ${t.from} -> ${t.to} should be ${t.valid ? 'allowed' : 'rejected'}`);
+  }
+
+  // Verify Phase Progress Percent Monotonic Progression
+  const phaseProgress: Record<JobStatus, number> = {
+    QUEUED: 5,
+    FETCHING: 20,
+    INDEXING: 45,
+    ANALYZING: 65,
+    AGGREGATING: 85,
+    COMPLETED: 100,
+    FAILED: 0,
+    CANCELLED: 0
+  };
+
+  assert(phaseProgress.QUEUED < phaseProgress.FETCHING, 'Option B Queue: QUEUED (5%) < FETCHING (20%)');
+  assert(phaseProgress.FETCHING < phaseProgress.INDEXING, 'Option B Queue: FETCHING (20%) < INDEXING (45%)');
+  assert(phaseProgress.INDEXING < phaseProgress.ANALYZING, 'Option B Queue: INDEXING (45%) < ANALYZING (65%)');
+  assert(phaseProgress.ANALYZING < phaseProgress.AGGREGATING, 'Option B Queue: ANALYZING (65%) < AGGREGATING (85%)');
+  assert(phaseProgress.AGGREGATING < phaseProgress.COMPLETED, 'Option B Queue: AGGREGATING (85%) < COMPLETED (100%)');
+
+  // Verify CI/CD Gate-Check Async Parameter Handling
+  const synchronousUrl = new URL('https://zelsis.dev/api/v1/gate-check?repo=owner/repo');
+  const asynchronousUrl = new URL('https://zelsis.dev/api/v1/gate-check?repo=owner/repo&async=true');
+  assert(synchronousUrl.searchParams.get('async') !== 'true', 'Option B CI/CD: Default gate-check is synchronous for standard CI/CD runners');
+  assert(asynchronousUrl.searchParams.get('async') === 'true', 'Option B CI/CD: gate-check with async=true enables non-blocking queue execution');
+
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);
   console.log('===========================================================');

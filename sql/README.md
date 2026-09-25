@@ -2,7 +2,7 @@
 
 This directory contains the production-grade PostgreSQL / Supabase SQL schema definitions for the **Zelsis AI Release Gate SaaS** platform.
 
-> **Single Source of Truth:** The authoritative schema migrations are maintained under `supabase/migrations/` (`20260828000000_init_auth_saas_schema.sql` and `20260923000000_security_and_rls_hardening.sql`). The scripts in this directory (`sql/`) are modular standalone mirrors kept in strict synchronization.
+> **Single Source of Truth:** The authoritative schema migrations are maintained under `supabase/migrations/` (`20260828000000_init_auth_saas_schema.sql`, `20260923000000_security_and_rls_hardening.sql`, and `20260925000000_scan_jobs_async_queue.sql`). The scripts in this directory (`sql/`) are modular standalone mirrors kept in strict synchronization.
 
 ## 📁 File Directory Structure
 
@@ -15,6 +15,7 @@ This directory contains the production-grade PostgreSQL / Supabase SQL schema de
 | `05_rls_tier_protection.sql` | CWE-285 defense-in-depth trigger preventing client-side `profiles.tier` escalation |
 | `05_seed_data.sql` | OWASP rule catalog table with enforced RLS and seed entries |
 | `06_production_patch.sql` | Production live patch for adding denormalized columns idempotently |
+| `07_async_scan_jobs.sql` | Async scan jobs queue table with multi-tenant RLS and state tracking |
 
 ---
 

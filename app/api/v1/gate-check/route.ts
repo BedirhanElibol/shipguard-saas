@@ -224,6 +224,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Option B: Hybrid CI/CD Async Queue Support (?async=true)
+    const isAsync = req.nextUrl?.searchParams?.get('async') === 'true';
+    if (isAsync) {
+      const host = req.headers.get('host') || 'localhost:3000';
+      const protocol = req.headers.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https');
+      const queueUrl = `${protocol}://${host}/api/v1/scans/queue`;
+
+      const forwardHeaders: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (authHeader) forwardHeaders['Authorization'] = `Bearer ${authHeader}`;
+
+      const queueRes = await fetch(queueUrl, {
+        method: 'POST',
+        headers: forwardHeaders,
+        body: JSON.stringify({
+          repoUrl: rawRepoUrl,
+          targetName: (body as any).repoName || rawRepoUrl,
+          githubToken,
+          slackWebhookUrl,
+          discordWebhookUrl
+        })
+      });
+
+      const queueData = await queueRes.json().catch(() => ({}));
+      return NextResponse.json(
+        {
+          status: 'SUCCESS',
+          gateStatus: 'QUEUED',
+          jobId: queueData.jobId,
+          trackingUrl: `/api/v1/scans/jobs/${queueData.jobId}`,
+          message: 'Release gate check queued for asynchronous execution.',
+          timestamp: new Date().toISOString()
+        },
+        { status: 202 }
+      );
+    }
+
     let filesToScan: CodeFile[] = [];
     let targetName = rawRepoUrl;
 

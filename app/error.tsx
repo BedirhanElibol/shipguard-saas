@@ -69,9 +69,9 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
               <div className="text-[0.68rem] font-mono font-bold uppercase tracking-widest text-emerald-400">
                 Release Gate Live Update
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-[#F5F3EF] mt-0.5">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#F5F3EF] mt-0.5">
                 New Version Available
-              </h1>
+              </h2>
             </div>
           </div>
 

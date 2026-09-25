@@ -65,9 +65,8 @@ export const Footer: React.FC = () => {
           © 2026 Zelsis Software Technologies. All rights reserved.
         </div>
         <div className="flex flex-wrap gap-4 sm:gap-6">
-          <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="/privacy" className="hover:text-white transition-colors">Privacy &amp; Cookies</a>
           <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
-          <a href="/cookies" className="hover:text-white transition-colors">Cookie Policy</a>
           <a href="/refund" className="hover:text-white transition-colors">Refund Policy</a>
         </div>
       </div>

@@ -36,7 +36,6 @@ pnpm-debug.log*
 *.log
 gcm-diagnose.log
 scratch/
-!scratch/test_suite.ts
 
 # system & IDE
 .DS_Store

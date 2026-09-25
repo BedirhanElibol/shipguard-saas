@@ -16,10 +16,14 @@ export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   const token = authHeader?.replace('Bearer ', '') || null;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!token || !anonKey) {
+  if (!supabaseUrl || !anonKey) {
+    return NextResponse.json({ error: 'Supabase configuration is missing' }, { status: 500 });
+  }
+
+  if (!token) {
     return NextResponse.json({ error: 'Authentication required for data export' }, { status: 401 });
   }
 

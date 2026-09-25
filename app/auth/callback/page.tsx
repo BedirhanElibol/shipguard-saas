@@ -133,7 +133,6 @@ function CallbackHandler() {
         localStorage.removeItem('shipguard_user');
         if (typeof document !== 'undefined') {
           const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-          document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(merged))}; path=/; max-age=2592000; SameSite=Lax${secureFlag}`;
           document.cookie = `shipguard_user=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
         }
       } catch (storageErr) {

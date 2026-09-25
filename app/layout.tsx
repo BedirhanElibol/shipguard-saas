@@ -1,10 +1,30 @@
 import type { Metadata, Viewport } from 'next';
+import localFont from 'next/font/local';
+import { JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ToastProvider } from '@/lib/toast';
 import { CookieBanner } from '@/components/CookieBanner';
 import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts';
 import { ChunkErrorListener } from '@/components/common/ChunkErrorListener';
+
+const satoshi = localFont({
+  src: [
+    { path: '../public/fonts/Satoshi-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../public/fonts/Satoshi-Medium.woff2', weight: '500', style: 'normal' },
+    { path: '../public/fonts/Satoshi-Bold.woff2', weight: '700', style: 'normal' },
+    { path: '../public/fonts/Satoshi-Black.woff2', weight: '900', style: 'normal' },
+  ],
+  variable: '--font-satoshi',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -92,22 +112,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark notranslate" translate="no" suppressHydrationWarning>
+    <html lang="en" className={`dark notranslate ${satoshi.variable} ${jetbrainsMono.variable}`} translate="no" suppressHydrationWarning>
       <head>
         <title>Zelsis | Automated Codebase Security &amp; Release Gate</title>
         <meta name="description" content="Prove your application is secure, polished, and ready for production before launch. Comprehensive OWASP security pre-flight checks and automated code verification." />
         <meta property="og:title" content="Zelsis | Automated Codebase Security &amp; Release Gate" />
         <meta property="og:description" content="Prove your application is secure, polished, and ready for production before launch." />
-        {/* Fontshare CDN for Satoshi Font */}
-        <link
-          rel="preconnect"
-          href="https://api.fontshare.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body className="bg-[#0A0A0A] text-[#EDEDED] antialiased selection:bg-white selection:text-black notranslate" translate="no" suppressHydrationWarning>
         <ChunkErrorListener />

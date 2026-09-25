@@ -541,9 +541,6 @@ export function useDashboardState() {
                 window.history.replaceState({}, '', cleanUrl.toString());
               }
               localStorage.setItem('zelsis_user', JSON.stringify(activeUser));
-              if (typeof document !== 'undefined') {
-                document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(activeUser))}; path=/; max-age=2592000; SameSite=Lax`;
-              }
 
               // 3. Lazy Background Revalidation (Every 12 hours)
               const lastVerified = parsedUser.lastVerifiedAt || 0;
@@ -668,9 +665,6 @@ export function useDashboardState() {
                   lastVerifiedAt: Date.now(),
                 };
                 localStorage.setItem('zelsis_user', JSON.stringify(updated));
-                if (typeof document !== 'undefined') {
-                  document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(updated))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-                }
                 return updated;
               });
 
@@ -849,9 +843,6 @@ export function useDashboardState() {
           setUser(mergedUser);
           localStorage.setItem('zelsis_user', JSON.stringify(mergedUser));
           localStorage.removeItem('shipguard_user');
-          if (typeof document !== 'undefined') {
-            document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(mergedUser))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-          }
 
           if (resolvedTier !== 'Free' && supabaseUser.tier === 'Free' && isPlatformAdmin) {
             syncUserProfileToSupabase(mergedUser).catch(() => {});
@@ -1012,9 +1003,6 @@ export function useDashboardState() {
             setUser(mergedProfile);
             localStorage.setItem('zelsis_user', JSON.stringify(mergedProfile));
             localStorage.removeItem('shipguard_user');
-            if (typeof document !== 'undefined') {
-              document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(mergedProfile))}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-            }
 
             if (resolvedTier !== 'Free' && profile.tier === 'Free' && isPlatformAdmin) {
               syncUserProfileToSupabase(mergedProfile).catch(() => {});
@@ -1362,7 +1350,6 @@ export function useDashboardState() {
       safeSetStorageItem('zelsis_user', JSON.stringify(newUser));
       localStorage.removeItem('shipguard_user');
       if (typeof document !== 'undefined') {
-        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(newUser))}; path=/; max-age=2592000; SameSite=Lax`;
         document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
       }
       if (resolvedSignUpTier !== 'Free') {
@@ -1416,7 +1403,6 @@ export function useDashboardState() {
       safeSetStorageItem('zelsis_user', JSON.stringify(loggedInUser));
       localStorage.removeItem('shipguard_user');
       if (typeof document !== 'undefined') {
-        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(loggedInUser))}; path=/; max-age=2592000; SameSite=Lax`;
         document.cookie = 'shipguard_user=; path=/; max-age=0; SameSite=Lax';
       }
 
@@ -1469,9 +1455,6 @@ export function useDashboardState() {
       };
       safeSetStorageItem('zelsis_user', JSON.stringify(updated));
       localStorage.removeItem('shipguard_user');
-      if (typeof document !== 'undefined') {
-        document.cookie = `zelsis_user=${encodeURIComponent(JSON.stringify(updated))}; path=/; max-age=2592000; SameSite=Lax`;
-      }
 
       if (isUpgradingTier) {
         const planId = fields.tier === 'Enterprise' ? 'vibecare' : 'zelsis-core';

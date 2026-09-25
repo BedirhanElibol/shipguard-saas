@@ -5,7 +5,9 @@ import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { FREE_SCAN_LIMIT } from '@/lib/quota-manager';
 import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+const _SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!_SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable');
+const SUPABASE_URL: string = _SUPABASE_URL;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 

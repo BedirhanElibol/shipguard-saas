@@ -12,13 +12,10 @@ export const CSP_DIRECTIVES = {
     "'self'",
     "'unsafe-inline'", // Required for Next.js inline bootstrap scripts
     "'unsafe-eval'",   // Required for dynamic expression engines
-    'https://api.fontshare.com'
   ],
   'style-src': [
     "'self'",
     "'unsafe-inline'", // Required for Tailwind CSS runtime emotion/styles
-    'https://api.fontshare.com',
-    'https://fonts.googleapis.com'
   ],
   'img-src': [
     "'self'",
@@ -32,10 +29,6 @@ export const CSP_DIRECTIVES = {
   'font-src': [
     "'self'",
     'data:',
-    'https://api.fontshare.com',
-    'https://cdn.fontshare.com',
-    'https://fonts.gstatic.com',
-    'https://fonts.googleapis.com'
   ],
   'connect-src': [
     "'self'",

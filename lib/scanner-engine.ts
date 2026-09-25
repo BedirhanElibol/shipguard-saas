@@ -1275,9 +1275,6 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
     if (!f || typeof f.path !== 'string') return false;
     const lowerPath = (f.path || '').toLowerCase();
     if (
-      lowerPath.includes('scratch/') ||
-      lowerPath.includes('.agent/') ||
-      lowerPath.includes('artifacts/') ||
       lowerPath.startsWith('dist/') || lowerPath.includes('/dist/') ||
       lowerPath.startsWith('build/') || lowerPath.includes('/build/') ||
       lowerPath.startsWith('out/') || lowerPath.includes('/out/') ||
@@ -1373,9 +1370,7 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
       lowerFilePath.includes('vulnerabilityplayground.tsx') ||
       lowerFilePath.includes('ruleknowledgebasemodal.tsx') ||
       lowerFilePath.includes('interactiveanalyzer.tsx') ||
-      lowerFilePath.includes('05_seed_data.sql') ||
-      lowerFilePath.includes('scratch/') ||
-      lowerFilePath.includes('.agent/');
+      lowerFilePath.includes('05_seed_data.sql');
 
     // Helper to add finding unless suppressed or false-positive inside rule definition files
     const addFinding = (f: Finding) => {

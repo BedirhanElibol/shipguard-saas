@@ -16,7 +16,7 @@ export const FaqSection: React.FC = () => {
     {
       question: 'Do you store or train AI models on our proprietary source code?',
       answer:
-        'Never. Zelsis operates on a strict zero-retention architecture. Your repository payload is streamed directly into ephemeral worker memory, parsed via AST regex tokens, and immediately released. We never write your code to disk, never save repositories into databases, and never use customer data for AI model training.'
+        'Never. Zelsis operates on a strict zero-retention architecture. Your repository payload is streamed directly into ephemeral worker memory, parsed via syntax and structural pattern tokens, and immediately released. We never write your code to disk, never save repositories into databases, and never use customer data for AI model training.'
     },
     {
       question: 'Does Zelsis work with private GitHub repositories?',

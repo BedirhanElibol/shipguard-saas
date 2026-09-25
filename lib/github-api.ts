@@ -251,11 +251,14 @@ export async function fetchGithubRepositoryData(
       if (!effectiveToken && isBrowser) {
         try {
           effectiveToken =
-            localStorage.getItem('zelsis_github_token') ||
-            localStorage.getItem('github_token') ||
+            sessionStorage.getItem('zelsis_github_token') ||
             undefined;
+          try {
+            localStorage.removeItem('zelsis_github_token');
+            localStorage.removeItem('github_token');
+          } catch {}
         } catch {
-          // localStorage disabled or sandboxed
+          // storage disabled or sandboxed
         }
       }
       if (effectiveToken) {

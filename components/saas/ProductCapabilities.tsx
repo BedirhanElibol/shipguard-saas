@@ -39,7 +39,7 @@ export const ProductCapabilities: React.FC = () => {
       title: 'Exhaustive Pre-Flight Release Rules',
       subtitle: 'Continuous verification across OWASP Top 10, database isolation, and cloud architecture.',
       description:
-        'Audit your codebase against an extensive taxonomy of deterministic AST rules. Enforce zero day-one OWASP Top 10 vulnerabilities, verify Supabase Row Level Security policies, block wildcard CORS endpoints, and eliminate root container privilege escalation risks.',
+        'Audit your codebase against an extensive taxonomy of deterministic static & lexical rules. Enforce zero day-one OWASP Top 10 vulnerabilities, verify multi-database security policies, block wildcard CORS endpoints, and eliminate root container privilege escalation risks.',
       image: '/images/security_rules.png',
       alt: 'Zelsis Release Gate Rule Catalog and Policy Configurator',
       tag: 'POLICY ENGINE',
@@ -50,14 +50,14 @@ export const ProductCapabilities: React.FC = () => {
         'Docker & K8s Security Context'
       ],
       bulletPoints: [
-        'Deterministic AST inspection with zero false-positive rate hallucination',
+        'Deterministic static code inspection with zero hallucinated findings',
         'Granular severity controls: Configure CRITICAL, HIGH, MEDIUM per repository',
         'Clear explanations mapped to CWE standards and security best practices'
       ]
     },
     {
       id: 'findings',
-      badge: 'SURGICAL AST TRIAGE',
+      badge: 'SURGICAL CODE TRIAGE',
       title: 'Line-by-Line Vulnerability Triage & Context',
       subtitle: 'Pinpoint vulnerabilities down to the exact line number with 1-click AI remediation prompts.',
       description:
@@ -80,21 +80,21 @@ export const ProductCapabilities: React.FC = () => {
     {
       id: 'sandbox',
       badge: 'ZERO-INSTALL REPL',
-      title: 'Interactive In-Memory AST Sandbox',
+      title: 'Interactive In-Memory Security Sandbox',
       subtitle: 'Test production code snippets against clearance rules in live browser memory.',
       description:
         'Experiment with production snippets before pushing to version control. Test API routes, Dockerfiles, and React components against the full Zelsis engine without installing any local packages or daemons.',
       image: '/images/vulnerability_sandbox.png',
-      alt: 'Zelsis In-Memory Vulnerability Sandbox and AST Regex Playground',
+      alt: 'Zelsis In-Memory Vulnerability Sandbox and Lexical Pattern Playground',
       tag: 'ZERO-INSTALL REPL',
       architecturePills: [
         'Client-Side In-Memory Execution',
         'Zero Data Egress / Full Privacy',
-        'Instant AST Pattern Evaluation',
+        'Instant Pattern & Syntax Evaluation',
         '5 Built-in Production Presets'
       ],
       bulletPoints: [
-        'Live AST evaluator running directly inside your browser viewport',
+        'Live lexical & pattern analyzer running directly inside your browser viewport',
         '1-click presets for secret exposure, permissive RLS, and container root',
         'Real-time feedback as you type or paste production code'
       ]

@@ -77,7 +77,7 @@ async function main() {
   console.log(`[Self-Scan] Scan completed in ${durationMs}ms`);
   console.log(`[Self-Scan] Overall Score: ${scanResult.score}/100`);
   console.log(`[Self-Scan] Total Findings: ${scanResult.findings.length}`);
-  console.log(`[Self-Scan] Gate Status: ${scanResult.passed ? 'PASSED' : 'FAILED'}`);
+  console.log(`[Self-Scan] Gate Status: ${scanResult.gateStatus}`);
   console.log(`[Self-Scan] Detected Stacks: ${scanResult.detectedDatabases?.join(', ') || 'None'}`);
 
   // Format into markdown baseline report
@@ -92,7 +92,7 @@ async function main() {
   report += `**Analyzed Files:** ${files.length} source files  \n`;
   report += `**Duration:** ${durationMs}ms  \n`;
   report += `**Readiness Score:** ${scanResult.score}/100  \n`;
-  report += `**Gate Clearance:** ${scanResult.passed ? 'PASSED' : 'FAILED'}  \n\n`;
+  report += `**Gate Clearance:** ${scanResult.gateStatus}  \n\n`;
 
   report += `## Executive Summary\n\n`;
   report += `| Metric | Count |\n`;
@@ -122,7 +122,7 @@ async function main() {
   if (criticals.length > 0) {
     report += `### Critical Remediation Items:\n`;
     criticals.forEach((c) => {
-      report += `- **${c.title}** in \`${c.filePath}\` (Lines ${c.lineRange})\n  - Fix: ${c.fixGuidance || 'Review manual resolution'}\n`;
+      report += `- **${c.title}** in \`${c.filePath}\` (Lines ${c.lineRange})\n  - Fix: ${c.remediationPrompt || 'Review manual resolution'}\n`;
     });
   } else {
     report += `✅ Zero critical deployment blockers exist in the Zelsis core architecture.\n`;

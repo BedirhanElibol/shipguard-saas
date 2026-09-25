@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-bold text-[#FFFFFF]">2. Zero Codebase Retention Architecture</h2>
             <p>
-              Source code submitted for static security analysis, secret detection, and architectural hygiene checks is processed in ephemeral serverless execution environments. <strong>We never store, index, sell, or train public AI/LLM models on your proprietary source code.</strong> As soon as the AST evaluation completes, in-memory buffers are permanently purged.
+              Source code submitted for static security analysis, secret detection, and architectural hygiene checks is processed in ephemeral serverless execution environments. <strong>We never store, index, sell, or train public AI/LLM models on your proprietary source code.</strong> As soon as the static security evaluation completes, in-memory buffers are permanently purged.
             </p>
           </section>
 
@@ -75,7 +75,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc list-inside space-y-1.5 text-[#AAAAAA]">
               <li><strong>Account Credentials:</strong> Name, email address, GitHub username, avatar URL (when authenticated via GitHub OAuth).</li>
               <li><strong>Telemetry &amp; Audit Logs:</strong> Timestamps of security scans, pass/warning/failed clearance scores, rule violation counts.</li>
-              <li><strong>Technical Metadata:</strong> IP address, browser user-agent, secure session cookies (<code className="text-emerald-400">zelsis_user</code>).</li>
+              <li><strong>Technical Metadata:</strong> IP address, browser user-agent, secure encrypted session tokens.</li>
               <li><strong>Billing Records:</strong> Subscription plan tier, license keys, and transaction identifiers tokenized by PCI-DSS Level 1 certified payment gateways (Polar / Stripe). We never process or store raw payment card credentials.</li>
             </ul>
           </section>

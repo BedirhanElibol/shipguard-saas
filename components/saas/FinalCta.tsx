@@ -26,7 +26,7 @@ export const FinalCta: React.FC = () => {
 
         {/* Subtitle */}
         <p className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto mt-6 mb-10 font-sans leading-relaxed">
-          Test your repository against deterministic release rules in real time. Instant in-memory AST stream, zero code stored.
+          Test your repository against deterministic release rules in real time. Instant in-memory security analysis, zero code stored.
         </p>
 
         {/* CTA Buttons */}

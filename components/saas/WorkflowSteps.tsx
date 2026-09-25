@@ -21,10 +21,10 @@ export const WorkflowSteps: React.FC = () => {
       badge: 'INGESTION & PRIVACY',
       title: 'Target Ingestion & Zero-Retention Memory Stream',
       description:
-        'Connect any public or private GitHub repository, pull request branch, or direct code snippet. Our engine inspects AST syntax tokens in ephemeral serverless memory.',
+        'Connect any public or private GitHub repository, pull request branch, or direct code snippet. Our engine inspects syntax tokens & structural rules in ephemeral serverless memory.',
       codeSnippet: `// 1. Ingest via CLI, GitHub Action or Web Dashboard
 $ zelsis evaluate --repo github.com/enterprise/payment-gateway
-[INFO] Ephemeral AST stream opened. 
+[INFO] Ephemeral security stream opened. 
 [PRIVACY] Zero-retention enabled: In-memory evaluation only. No code written to disk.`,
       features: [
         'Zero-retention architecture (code is never permanently stored)',

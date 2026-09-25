@@ -210,9 +210,11 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         try {
           effectiveToken =
             sessionStorage.getItem('zelsis_github_token') ||
-            localStorage.getItem('zelsis_github_token') ||
-            localStorage.getItem('github_token') ||
             undefined;
+          try {
+            localStorage.removeItem('zelsis_github_token');
+            localStorage.removeItem('github_token');
+          } catch {}
         } catch {
           // Sandboxed storage fallback
         }

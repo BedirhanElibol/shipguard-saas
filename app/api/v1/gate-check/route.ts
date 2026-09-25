@@ -10,8 +10,8 @@ import { logger } from '@/lib/logger';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
 
-// CLOUD-01: Synchronous Serverless Function Timeout bounded <= 15s
-export const maxDuration = 15;
+// F-31: Bounded execution duration for static code scans (up to 60s on serverless)
+export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 function isAllowedWebhookUrl(url: string): boolean {
@@ -446,11 +446,15 @@ export async function POST(req: NextRequest) {
 
         // F-40 / F-31: Atomically deduct quota only after scan has succeeded
         if (shouldDeductQuota && authenticatedUserId) {
-          await adminClient
+          const { count } = await adminClient
             .from('subscriptions')
-            .update({ scans_used_this_month: currentScansUsed + 1, updated_at: new Date().toISOString() })
+            .update({ scans_used_this_month: currentScansUsed + 1, updated_at: new Date().toISOString() }, { count: 'exact' })
             .eq('user_id', authenticatedUserId)
             .lte('scans_used_this_month', currentScansUsed);
+
+          if (count === 0) {
+            logger.warn(`[Gate Check] Concurrent quota decrement detected for user ${authenticatedUserId}.`);
+          }
         }
       } catch (telemetryErr) {
         logger.warn('[Gate Check] Telemetry record notice:', telemetryErr);

@@ -4,161 +4,140 @@
  */
 import { Finding } from "@/data/schema";
 import { CodeFile } from "../scanner-engine";
-
 export interface CacheRedisRuleResult {
-  findings: Finding[];
-  logs: string[];
+    findings: Finding[];
+    logs: string[];
 }
-
-export function evaluateCacheRedisRules(
-  file: CodeFile,
-  lines: string[],
-  cleanContent: string,
-  findingCounter: { count: number }
-): CacheRedisRuleResult {
-  const findings: Finding[] = [];
-  const logs: string[] = [];
-  const lowerPath = file.path.toLowerCase().replace(/\\/g, "/");
-
-  // Skip self-referential catalogs, mocks, and schema definitions
-  if (
-    lowerPath.includes("data/catalogs/") ||
-    lowerPath.includes("data/mockdata") ||
-    lowerPath.includes("data/workspacefiles") ||
-    lowerPath.includes("data/schema") ||
-    lowerPath.includes("scratch/") ||
-    lowerPath.includes(".agent/") ||
-    lowerPath.includes("node_modules/") ||
-    lowerPath.endsWith(".d.ts")
-  ) {
+export function evaluateCacheRedisRules(file: CodeFile, lines: string[], cleanContent: string, findingCounter: {
+    count: number;
+}): CacheRedisRuleResult {
+    const findings: Finding[] = [];
+    const logs: string[] = [];
+    const lowerPath = file.path.toLowerCase().replace(/\\/g, "/");
+    // Skip self-referential catalogs, mocks, and schema definitions
+    if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
+        return { findings, logs };
+    }
+    const ts = new Date().toLocaleTimeString();
+    // CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses
+    if ((/redis\.get\s*\([\s\S]*?\)/.test(cleanContent) && !/lock|mutex|redlock/i.test(cleanContent))) {
+        const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
+        const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+        findings.push({
+            id: `cache10701-${Date.now()}-${findingCounter.count++}`,
+            ruleId: 10701,
+            type: 'INFRA_DATABASE',
+            title: "CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses",
+            severity: "HIGH",
+            category: "Cache Reliability",
+            filePath: file.path,
+            lineRange: `L${lineNum}`,
+            snippet: lines[matchLineIdx] || 'Redis cache operation',
+            reproductionSteps: [
+                `Audited caching routines in ${file.path}:${lineNum}.`,
+                'Detected cache architecture violation matching CACHE-01.'
+            ],
+            remediationPrompt: "Wrap high-traffic cache fetches with distributed redlock or early probabilistic recomputation.",
+            status: 'OPEN',
+            falsePositive: false
+        });
+        logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses at ${file.path}:${lineNum}`);
+    }
+    // CACHE-02: Unbounded Cache Keys Lacking TTL Expiration (OOM Crash)
+    if ((/redis\.(?:set|setex|hset)\s*\([\s\S]*?\)/.test(cleanContent) && !/ex|ttl|expire/i.test(cleanContent))) {
+        const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
+        const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+        findings.push({
+            id: `cache10702-${Date.now()}-${findingCounter.count++}`,
+            ruleId: 10702,
+            type: 'INFRA_DATABASE',
+            title: "CACHE-02: Unbounded Cache Keys Lacking TTL Expiration (OOM Crash)",
+            severity: "CRITICAL",
+            category: "Memory Management",
+            filePath: file.path,
+            lineRange: `L${lineNum}`,
+            snippet: lines[matchLineIdx] || 'Redis cache operation',
+            reproductionSteps: [
+                `Audited caching routines in ${file.path}:${lineNum}.`,
+                'Detected cache architecture violation matching CACHE-02.'
+            ],
+            remediationPrompt: "Enforce mandatory EX parameter on redis.set() calls and verify maxmemory-policy is set to allkeys-lru.",
+            status: 'OPEN',
+            falsePositive: false
+        });
+        logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-02: Unbounded Cache Keys Lacking TTL Expiration (OOM Crash) at ${file.path}:${lineNum}`);
+    }
+    // CACHE-03: Unauthenticated Redis Port Bound to Public Network Interfaces (0.0.0.0)
+    if ((/bind\s+0\.0\.0\.0/.test(cleanContent) && !/requirepass/i.test(cleanContent))) {
+        const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
+        const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+        findings.push({
+            id: `cache10703-${Date.now()}-${findingCounter.count++}`,
+            ruleId: 10703,
+            type: 'INFRA_DATABASE',
+            title: "CACHE-03: Unauthenticated Redis Port Bound to Public Network Interfaces (0.0.0.0)",
+            severity: "CRITICAL",
+            category: "Network Security",
+            filePath: file.path,
+            lineRange: `L${lineNum}`,
+            snippet: lines[matchLineIdx] || 'Redis cache operation',
+            reproductionSteps: [
+                `Audited caching routines in ${file.path}:${lineNum}.`,
+                'Detected cache architecture violation matching CACHE-03.'
+            ],
+            remediationPrompt: "Configure bind 127.0.0.1 and requirepass in redis.conf, and block public port 6379 in security groups.",
+            status: 'OPEN',
+            falsePositive: false
+        });
+        logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-03: Unauthenticated Redis Port Bound to Public Network Interfaces (0.0.0.0) at ${file.path}:${lineNum}`);
+    }
+    // CACHE-04: Unsafe Lua Script Execution Susceptible to Injection or Infinite Loops
+    if ((/redis\.eval\s*\(\s*`[\s\S]*?\$\{/.test(cleanContent))) {
+        const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
+        const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+        findings.push({
+            id: `cache10704-${Date.now()}-${findingCounter.count++}`,
+            ruleId: 10704,
+            type: 'INFRA_DATABASE',
+            title: "CACHE-04: Unsafe Lua Script Execution Susceptible to Injection or Infinite Loops",
+            severity: "HIGH",
+            category: "Script Security",
+            filePath: file.path,
+            lineRange: `L${lineNum}`,
+            snippet: lines[matchLineIdx] || 'Redis cache operation',
+            reproductionSteps: [
+                `Audited caching routines in ${file.path}:${lineNum}.`,
+                'Detected cache architecture violation matching CACHE-04.'
+            ],
+            remediationPrompt: "Refactor redis.eval() calls to use static EVALSHA scripts with parameterized KEYS/ARGV arrays.",
+            status: 'OPEN',
+            falsePositive: false
+        });
+        logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-04: Unsafe Lua Script Execution Susceptible to Injection or Infinite Loops at ${file.path}:${lineNum}`);
+    }
+    // CACHE-05: Unpartitioned Large Cache Key Degradation (>1MB Payload Blob)
+    if ((/JSON\.stringify\s*\([\s\S]*?\)/.test(cleanContent) && !/compress|gzip|snappy/i.test(cleanContent))) {
+        const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
+        const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
+        findings.push({
+            id: `cache10705-${Date.now()}-${findingCounter.count++}`,
+            ruleId: 10705,
+            type: 'INFRA_DATABASE',
+            title: "CACHE-05: Unpartitioned Large Cache Key Degradation (>1MB Payload Blob)",
+            severity: "MEDIUM",
+            category: "Network Throughput",
+            filePath: file.path,
+            lineRange: `L${lineNum}`,
+            snippet: lines[matchLineIdx] || 'Redis cache operation',
+            reproductionSteps: [
+                `Audited caching routines in ${file.path}:${lineNum}.`,
+                'Detected cache architecture violation matching CACHE-05.'
+            ],
+            remediationPrompt: "Apply gzip/snappy compression before caching or paginate large cached entity collections.",
+            status: 'OPEN',
+            falsePositive: false
+        });
+        logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-05: Unpartitioned Large Cache Key Degradation (>1MB Payload Blob) at ${file.path}:${lineNum}`);
+    }
     return { findings, logs };
-  }
-
-  const ts = new Date().toLocaleTimeString();
-  // CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses
-  if (cleanContent.includes('cacheStampedeThunderingHerd') || (/redis\.get\s*\([\s\S]*?\)/.test(cleanContent) && cleanContent.includes('unsynchronizedCacheFetch') && !/lock|mutex|redlock/i.test(cleanContent))) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cache10701-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 10701,
-      type: 'INFRA_DATABASE',
-      title: "CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses",
-      severity: "HIGH",
-      category: "Cache Reliability",
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Redis cache operation',
-      reproductionSteps: [
-        `Audited caching routines in ${file.path}:${lineNum}.`,
-        'Detected cache architecture violation matching CACHE-01.'
-      ],
-      remediationPrompt: "Wrap high-traffic cache fetches with distributed redlock or early probabilistic recomputation.",
-      status: 'OPEN',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses at ${file.path}:${lineNum}`);
-  }
-
-  // CACHE-02: Unbounded Cache Keys Lacking TTL Expiration (OOM Crash)
-  if (cleanContent.includes('unboundedCacheKeyMissingTtl') || (/redis\.(?:set|setex|hset)\s*\([\s\S]*?\)/.test(cleanContent) && cleanContent.includes('permanentCacheWrite') && !/ex|ttl|expire/i.test(cleanContent))) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cache10702-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 10702,
-      type: 'INFRA_DATABASE',
-      title: "CACHE-02: Unbounded Cache Keys Lacking TTL Expiration (OOM Crash)",
-      severity: "CRITICAL",
-      category: "Memory Management",
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Redis cache operation',
-      reproductionSteps: [
-        `Audited caching routines in ${file.path}:${lineNum}.`,
-        'Detected cache architecture violation matching CACHE-02.'
-      ],
-      remediationPrompt: "Enforce mandatory EX parameter on redis.set() calls and verify maxmemory-policy is set to allkeys-lru.",
-      status: 'OPEN',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-02: Unbounded Cache Keys Lacking TTL Expiration (OOM Crash) at ${file.path}:${lineNum}`);
-  }
-
-  // CACHE-03: Unauthenticated Redis Port Bound to Public Network Interfaces (0.0.0.0)
-  if (cleanContent.includes('unauthenticatedPublicRedisBinding') || (/bind\s+0\.0\.0\.0/.test(cleanContent) && cleanContent.includes('unprotectedRedisPort') && !/requirepass/i.test(cleanContent))) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cache10703-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 10703,
-      type: 'INFRA_DATABASE',
-      title: "CACHE-03: Unauthenticated Redis Port Bound to Public Network Interfaces (0.0.0.0)",
-      severity: "CRITICAL",
-      category: "Network Security",
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Redis cache operation',
-      reproductionSteps: [
-        `Audited caching routines in ${file.path}:${lineNum}.`,
-        'Detected cache architecture violation matching CACHE-03.'
-      ],
-      remediationPrompt: "Configure bind 127.0.0.1 and requirepass in redis.conf, and block public port 6379 in security groups.",
-      status: 'OPEN',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-03: Unauthenticated Redis Port Bound to Public Network Interfaces (0.0.0.0) at ${file.path}:${lineNum}`);
-  }
-
-  // CACHE-04: Unsafe Lua Script Execution Susceptible to Injection or Infinite Loops
-  if (cleanContent.includes('unsafeLuaScriptStringConcatenation') || (/redis\.eval\s*\(\s*`[\s\S]*?\$\{/.test(cleanContent) && cleanContent.includes('unparameterizedLua'))) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cache10704-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 10704,
-      type: 'INFRA_DATABASE',
-      title: "CACHE-04: Unsafe Lua Script Execution Susceptible to Injection or Infinite Loops",
-      severity: "HIGH",
-      category: "Script Security",
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Redis cache operation',
-      reproductionSteps: [
-        `Audited caching routines in ${file.path}:${lineNum}.`,
-        'Detected cache architecture violation matching CACHE-04.'
-      ],
-      remediationPrompt: "Refactor redis.eval() calls to use static EVALSHA scripts with parameterized KEYS/ARGV arrays.",
-      status: 'OPEN',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-04: Unsafe Lua Script Execution Susceptible to Injection or Infinite Loops at ${file.path}:${lineNum}`);
-  }
-
-  // CACHE-05: Unpartitioned Large Cache Key Degradation (>1MB Payload Blob)
-  if (cleanContent.includes('uncompressedLargeCacheBlob') || (/JSON\.stringify\s*\([\s\S]*?\)/.test(cleanContent) && cleanContent.includes('oversizedCachedCollection') && !/compress|gzip|snappy/i.test(cleanContent))) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
-    const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
-    findings.push({
-      id: `cache10705-${Date.now()}-${findingCounter.count++}`,
-      ruleId: 10705,
-      type: 'INFRA_DATABASE',
-      title: "CACHE-05: Unpartitioned Large Cache Key Degradation (>1MB Payload Blob)",
-      severity: "MEDIUM",
-      category: "Network Throughput",
-      filePath: file.path,
-      lineRange: `L${lineNum}`,
-      snippet: lines[matchLineIdx] || 'Redis cache operation',
-      reproductionSteps: [
-        `Audited caching routines in ${file.path}:${lineNum}.`,
-        'Detected cache architecture violation matching CACHE-05.'
-      ],
-      remediationPrompt: "Apply gzip/snappy compression before caching or paginate large cached entity collections.",
-      status: 'OPEN',
-      falsePositive: false
-    });
-    logs.push(`[${ts}] [CACHE AUDIT] Found CACHE-05: Unpartitioned Large Cache Key Degradation (>1MB Payload Blob) at ${file.path}:${lineNum}`);
-  }
-
-  return { findings, logs };
 }

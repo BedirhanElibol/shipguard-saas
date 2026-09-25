@@ -146,7 +146,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
         >
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
-            <span>Zero-Retention (Ephemeral In-Memory AST)</span>
+            <span>Zero-Retention (Ephemeral In-Memory Analysis)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
@@ -210,7 +210,7 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           {/* Footer Ribbon inside Frame */}
           <div className="px-5 py-2.5 bg-[#0E0E10] border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-zinc-400">
             <div className="flex items-center gap-4">
-              <span>Engine: <strong className="text-zinc-200 font-mono">AST Streaming</strong></span>
+              <span>Engine: <strong className="text-zinc-200 font-mono">Lexical &amp; Static Analysis</strong></span>
               <span>Memory: <strong className="text-zinc-200 font-mono">Ephemeral Buffer</strong></span>
               <span>Compliance: <strong className="text-zinc-200 font-mono">OWASP &amp; WCAG 2.2</strong></span>
             </div>

@@ -19,6 +19,16 @@ import { getClientIp } from '../lib/rate-limiter';
 import { generateLicenseKey, verifyLicenseKey } from '../lib/stripe-checkout';
 import { Project, OrganizationSchema } from '../data/schema';
 import { detectProjectDatabases, evaluateMultiDatabaseRules } from '../lib/rules/multi-database-rules';
+import {
+  FREE_SCAN_LIMIT,
+  checkScanQuota,
+  isPrivateRepoAllowed,
+  isPdfExportAllowed,
+  isCicdIntegrationAllowed,
+  isCustomRulesAllowed
+} from '../lib/quota-manager';
+import { isPlatformAdminEmail } from '../lib/subscription-utils';
+import { ZELSIS_PRICING_PLANS } from '../data/pricing-plans';
 
 let passedTests = 0;
 let totalTests = 0;
@@ -861,6 +871,46 @@ async function runAllTests() {
   assert(integrationScan.detectedOrms !== undefined && integrationScan.detectedOrms.includes('Prisma'), 'Full scan attaches detected ORMs');
   assert(integrationScan.findings.some(f => f.ruleId === 18101), 'Full scan includes MYSQL-SEC-01');
   assert(integrationScan.findings.some(f => f.ruleId === 18104), 'Full scan includes ORM-RAW-01');
+
+  // ─── 18. Testing Canonical Subscription Tiers & Quota Parity ────────────────
+  console.log('\n--- 18. Testing Canonical Subscription Tiers & Quota Parity (Free, Pro, Enterprise) ---');
+
+  // 18.1 Free Scan Limit & Enforced Cap
+  assert(FREE_SCAN_LIMIT === 3, 'Free tier scan limit is strictly 3');
+
+  const underQuota = { scansUsed: 2, scansLimit: 3, projectsUsed: 1, projectsLimit: 1, aiPromptsUsed: 0, aiPromptsLimit: 1, billingCycleReset: '2099-01-01' };
+  const atQuota = { scansUsed: 3, scansLimit: 3, projectsUsed: 1, projectsLimit: 1, aiPromptsUsed: 1, aiPromptsLimit: 1, billingCycleReset: '2099-01-01' };
+  
+  assert(checkScanQuota(underQuota, 'Free').allowed === true, 'Free tier allows scans when under limit (2/3)');
+  assert(checkScanQuota(atQuota, 'Free').allowed === false, 'Free tier strictly blocks scans when at limit (3/3)');
+
+  // 18.2 Unlimited Scans for Pro and Enterprise
+  assert(checkScanQuota(atQuota, 'Pro').allowed === true, 'Pro tier allows unlimited scans despite scan counts');
+  assert(checkScanQuota(atQuota, 'Enterprise').allowed === true, 'Enterprise tier allows unlimited scans');
+
+  // 18.3 Feature Gate Parity
+  assert(isPrivateRepoAllowed('Free') === false, 'Free tier forbids private repositories');
+  assert(isPrivateRepoAllowed('Pro') === true, 'Pro tier allows private repositories');
+  assert(isPrivateRepoAllowed('Enterprise') === true, 'Enterprise tier allows private repositories');
+
+  assert(isPdfExportAllowed('Free') === false, 'Free tier blocks signed PDF certificate export');
+  assert(isPdfExportAllowed('Pro') === true, 'Pro tier allows signed PDF certificate export');
+  assert(isPdfExportAllowed('Enterprise') === true, 'Enterprise tier allows signed PDF certificate export');
+
+  assert(isCicdIntegrationAllowed('Free') === false, 'Free tier blocks CI/CD integration keys');
+  assert(isCicdIntegrationAllowed('Pro') === true, 'Pro tier allows CI/CD integration keys');
+  assert(isCicdIntegrationAllowed('Enterprise') === true, 'Enterprise tier allows CI/CD integration keys');
+
+  assert(isCustomRulesAllowed('Free') === false, 'Free tier blocks custom rulesets');
+  assert(isCustomRulesAllowed('Pro') === false, 'Pro tier blocks custom rulesets');
+  assert(isCustomRulesAllowed('Enterprise') === true, 'Enterprise tier allows custom rulesets');
+
+  // 18.4 Platform Admin & Pricing Plans Parity
+  assert(isPlatformAdminEmail('bedirelibol7@gmail.com') === true, 'bedirelibol7@gmail.com is permanently recognized as platform administrator');
+  assert(ZELSIS_PRICING_PLANS.length === 3, 'ZELSIS_PRICING_PLANS contains all 3 canonical tiers (Free, Pro, Enterprise)');
+  assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'free' && p.priceMonthly === 0), 'Free Starter plan defined at $0/mo');
+  assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'zelsis-core' && p.priceMonthly === 19), 'Zelsis Pro plan defined at $19/mo');
+  assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'vibecare' && p.priceMonthly === 99), 'Zelsis Enterprise plan defined at $99/mo');
 
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);

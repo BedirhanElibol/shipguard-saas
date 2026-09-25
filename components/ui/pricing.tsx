@@ -64,10 +64,10 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
         </div>
       </div>
 
-      {/* 2 Pricing Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
+      {/* 3 Pricing Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
         {ZELSIS_PRICING_PLANS.length === 0 ? (
-          <div className="col-span-3 p-8 text-center bg-[#141414] border border-white/10 rounded-xl bg-[#141414] border-white/10 text-xs text-[#A1A1AA]">
+          <div className="col-span-3 p-8 text-center bg-[#141414] border border-white/10 rounded-xl text-xs text-[#A1A1AA]">
             No pricing tiers available. Contact sales@zelsis.com for enterprise quotes.
           </div>
         ) : (
@@ -79,10 +79,10 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
                 key={plan.id}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.15 }}
-                className={`bg-[#141414] border border-white/10 rounded-xl p-6 sm:p-8 flex flex-col justify-between relative ${
+                className={`bg-[#141414] border rounded-xl p-6 sm:p-7 flex flex-col justify-between relative ${
                   plan.isPopular
-                    ? 'border-white/30 bg-[#141414] shadow-xl'
-                    : 'border-white/10 bg-[#141414]'
+                    ? 'border-white/30 shadow-xl'
+                    : 'border-white/10'
                 }`}
               >
                 {plan.isPopular && (
@@ -106,7 +106,7 @@ export function PricingSection({ onSelectPlan }: PricingProps) {
                       <NumberFlow value={displayPrice} />
                     </span>
                     <span className="text-xs text-[#A1A1AA] font-bold">
-                      / mo {isAnnual ? '(billed annually)' : ''}
+                      {displayPrice === 0 ? 'forever free' : `/ mo ${isAnnual ? '(billed annually)' : ''}`}
                     </span>
                   </div>
 

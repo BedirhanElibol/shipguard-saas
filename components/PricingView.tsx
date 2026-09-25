@@ -8,6 +8,10 @@ export const PricingView: React.FC = () => {
   const router = useRouter();
 
   const handleSelectPlan = (planId: string, isAnnual: boolean) => {
+    if (planId === 'free') {
+      router.push('/dashboard');
+      return;
+    }
     const billingParam = isAnnual ? 'annual' : 'monthly';
     router.push(`/checkout?plan=${planId}&billing=${billingParam}`);
   };

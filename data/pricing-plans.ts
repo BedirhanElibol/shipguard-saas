@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PricingPlanSchema = z.object({
-  id: z.enum(['zelsis-core', 'shipguard-core', 'vibecare', 'zelsis-suite']),
+  id: z.enum(['free', 'zelsis-core', 'shipguard-core', 'vibecare', 'zelsis-suite']),
   name: z.string(),
   priceMonthly: z.number(),
   priceAnnual: z.number(),
@@ -16,6 +16,22 @@ export type PricingPlanItem = z.infer<typeof PricingPlanSchema>;
 
 export const ZELSIS_PRICING_PLANS: PricingPlanItem[] = [
   {
+    id: 'free',
+    name: 'Free Starter',
+    priceMonthly: 0,
+    priceAnnual: 0,
+    isPopular: false,
+    description: 'Baseline AST pre-flight checks for hobbyists and public open-source repositories.',
+    features: [
+      '3 automated scans per month',
+      '1 connected public repository',
+      '20 core OWASP security rules',
+      '1 AI remediation trial prompt',
+      'Community forum support',
+    ],
+    buttonText: 'Start Free',
+  },
+  {
     id: 'zelsis-core',
     name: 'Zelsis Pro',
     priceMonthly: 19,
@@ -23,13 +39,15 @@ export const ZELSIS_PRICING_PLANS: PricingPlanItem[] = [
     isPopular: true,
     description: 'Comprehensive Security Pre-flight Checks, Secret Isolation, DB RLS rules & Claude Remediation Prompts.',
     features: [
-      'Full Pre-flight Security Audit Taxonomy',
-      'Real-time CI/CD GitHub & Vercel Release Gate',
-      'One-click Claude & Cursor Fix Prompts',
-      'Unlimited connected AI applications',
+      'Unlimited automated scans per month',
+      'Unlimited public & private repositories',
+      'All 1,450+ production rules',
+      'Unlimited Claude & Cursor fix prompts',
+      'Signed cryptographic PDF certificates',
+      'GitHub Actions & CI/CD release gate',
       'Priority 24/7 SLA Guarantee',
     ],
-    buttonText: 'Select Zelsis Pro',
+    buttonText: 'Upgrade to Pro',
     polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_rxs3MC7Hq08OwYgoaJQatH93arqZfotoGUS0N15NqbC',
   },
   {
@@ -41,12 +59,13 @@ export const ZELSIS_PRICING_PLANS: PricingPlanItem[] = [
     description: 'Long-term lifecycle monitoring, Dependency CVE drifts, Cloud & LLM cost alerts, Multi-Org Security Gates.',
     features: [
       'Everything in Zelsis Pro',
-      'Dedicated Parallel AST Scan Cluster',
-      'Autonomous PR CI/CD Merge Blocker',
-      'White-Label PDF Audit Reports & SOC 2 Dossiers',
+      'Dedicated Parallel AST scan cluster',
+      'White-label PDF audit reports & SOC 2 dossiers',
+      'Custom organization ruleset catalog',
+      'Multi-organization team & role management',
       '1-Hour Priority SLA & Dedicated Solutions Architect',
     ],
-    buttonText: 'Select Zelsis Enterprise',
+    buttonText: 'Upgrade to Enterprise',
     polarCheckoutUrl: 'https://buy.polar.sh/polar_cl_M0yZJgYVCucd7U5gDz4oFTND6hdqvYPo65HJQ2334od',
   },
 ];

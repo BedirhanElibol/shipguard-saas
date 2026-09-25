@@ -18,6 +18,7 @@ import { validateSafeTargetUrl } from '../lib/ssrf-guard';
 import { getClientIp } from '../lib/rate-limiter';
 import { generateLicenseKey, verifyLicenseKey } from '../lib/stripe-checkout';
 import { Project, OrganizationSchema } from '../data/schema';
+import { detectProjectDatabases, evaluateMultiDatabaseRules } from '../lib/rules/multi-database-rules';
 
 let passedTests = 0;
 let totalTests = 0;
@@ -745,6 +746,121 @@ async function runAllTests() {
   const asynchronousUrl = new URL('https://zelsis.dev/api/v1/gate-check?repo=owner/repo&async=true');
   assert(synchronousUrl.searchParams.get('async') !== 'true', 'Option B CI/CD: Default gate-check is synchronous for standard CI/CD runners');
   assert(asynchronousUrl.searchParams.get('async') === 'true', 'Option B CI/CD: gate-check with async=true enables non-blocking queue execution');
+
+  // --- 17. Testing Universal Multi-Database & ORM Security Engine ---
+  console.log('\n--- 17. Testing Universal Multi-Database & ORM Security Engine ---');
+
+  // 17.1 Stack Detection (PostgreSQL, MySQL, MongoDB, Redis, SQLite, Prisma)
+  const mockRepoFiles: CodeFile[] = [
+    {
+      path: 'package.json',
+      content: JSON.stringify({
+        dependencies: {
+          'pg': '^8.11.0',
+          'mysql2': '^3.9.0',
+          'mongodb': '^6.3.0',
+          'ioredis': '^5.3.0',
+          '@prisma/client': '^5.10.0'
+        }
+      })
+    },
+    {
+      path: 'docker-compose.yml',
+      content: `
+        version: '3.8'
+        services:
+          postgres:
+            image: postgres:16
+          redis:
+            image: redis:7-alpine
+      `
+    },
+    {
+      path: 'schema.prisma',
+      content: `
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+        }
+      `
+    }
+  ];
+
+  const detectedStack = detectProjectDatabases(mockRepoFiles);
+  assert(detectedStack.databases.includes('PostgreSQL'), 'detectProjectDatabases detects PostgreSQL');
+  assert(detectedStack.databases.includes('MySQL'), 'detectProjectDatabases detects MySQL');
+  assert(detectedStack.databases.includes('MongoDB'), 'detectProjectDatabases detects MongoDB');
+  assert(detectedStack.databases.includes('Redis'), 'detectProjectDatabases detects Redis');
+  assert(detectedStack.orms.includes('Prisma'), 'detectProjectDatabases detects Prisma ORM');
+
+  // 17.2 MYSQL-SEC-01 (MySQL Raw Query Injection)
+  const mysqlFile: CodeFile = {
+    path: 'lib/db/mysql-client.ts',
+    content: `
+      export async function getUser(connection: any, id: string) {
+        return connection.query(\`SELECT * FROM users WHERE id = \${id}\`);
+      }
+    `
+  };
+  const mysqlRes = evaluateMultiDatabaseRules(mysqlFile, mysqlFile.content.split('\n'), mysqlFile.content, { count: 1 });
+  assert(mysqlRes.findings.some(f => f.ruleId === 18101), 'MYSQL-SEC-01 detects MySQL raw query string template injection');
+
+  // 17.3 MONGO-SEC-01 (MongoDB NoSQL Injection)
+  const mongoFile: CodeFile = {
+    path: 'routes/api/users.ts',
+    content: `
+      export async function findUser(db: any, req: any) {
+        return db.users.find({ $where: "this.username == '" + req.query.username + "'" });
+      }
+    `
+  };
+  const mongoRes = evaluateMultiDatabaseRules(mongoFile, mongoFile.content.split('\n'), mongoFile.content, { count: 1 });
+  assert(mongoRes.findings.some(f => f.ruleId === 18102), 'MONGO-SEC-01 detects MongoDB $where NoSQL injection');
+
+  // 17.4 REDIS-SEC-01 (Redis Insecure EVAL Lua Concatenation)
+  const redisFile: CodeFile = {
+    path: 'lib/cache/redis.ts',
+    content: `
+      export async function runLua(redis: any, key: string) {
+        return redis.eval("return redis.call('get', '" + key + "')");
+      }
+    `
+  };
+  const redisRes = evaluateMultiDatabaseRules(redisFile, redisFile.content.split('\n'), redisFile.content, { count: 1 });
+  assert(redisRes.findings.some(f => f.ruleId === 18103), 'REDIS-SEC-01 detects Redis insecure EVAL script concatenation');
+
+  // 17.5 ORM-RAW-01 (Prisma $queryRawUnsafe Template Injection)
+  const prismaFile: CodeFile = {
+    path: 'services/account-service.ts',
+    content: `
+      export async function rawQuery(prisma: any, accountId: string) {
+        return prisma.$queryRawUnsafe(\`SELECT * FROM accounts WHERE id = \${accountId}\`);
+      }
+    `
+  };
+  const prismaRes = evaluateMultiDatabaseRules(prismaFile, prismaFile.content.split('\n'), prismaFile.content, { count: 1 });
+  assert(prismaRes.findings.some(f => f.ruleId === 18104), 'ORM-RAW-01 detects Prisma $queryRawUnsafe template literal injection');
+
+  // 17.6 SQLITE-SEC-01 (Sensitive SQLite Database File in Public Web Root)
+  const sqliteFile: CodeFile = {
+    path: 'public/data/production.sqlite3',
+    content: 'SQLite format 3\u0000'
+  };
+  const sqliteRes = evaluateMultiDatabaseRules(sqliteFile, ['SQLite format 3'], 'SQLite format 3', { count: 1 });
+  assert(sqliteRes.findings.some(f => f.ruleId === 18105), 'SQLITE-SEC-01 detects SQLite database file in public web directory');
+
+  // 17.7 Full Integration Scan Verification
+  const integrationScan = await runStaticCodeScan([
+    ...mockRepoFiles,
+    mysqlFile,
+    mongoFile,
+    redisFile,
+    prismaFile
+  ]);
+  assert(integrationScan.detectedDatabases !== undefined && integrationScan.detectedDatabases.length >= 4, 'Full scan attaches detected databases');
+  assert(integrationScan.detectedOrms !== undefined && integrationScan.detectedOrms.includes('Prisma'), 'Full scan attaches detected ORMs');
+  assert(integrationScan.findings.some(f => f.ruleId === 18101), 'Full scan includes MYSQL-SEC-01');
+  assert(integrationScan.findings.some(f => f.ruleId === 18104), 'Full scan includes ORM-RAW-01');
 
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);

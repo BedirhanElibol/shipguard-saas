@@ -6,7 +6,7 @@ import { UserProfile } from '@/components/auth/AuthModal';
 import { runStaticCodeScan, ScanResult, CodeFile } from '@/lib/scanner-engine';
 import { fetchGithubRepositoryData, isValidGithubUrl, parseGithubUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { isValidWebUrl, fetchWebsiteAuditData } from '@/lib/website-scanner';
-import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock, Key, RotateCcw } from 'lucide-react';
+import { Terminal, CheckCircle2, Copy, Check, Search, Clock, Zap, Lock, Key, RotateCcw, Database, Layers } from 'lucide-react';
 import { TerminalLogWindow } from '@/components/scan/TerminalLogWindow';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { PrivateRepoTokenModal } from '@/components/dashboard/PrivateRepoTokenModal';
@@ -925,6 +925,40 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                 {queuedFilesCount.toLocaleString()} Files
               </span>
             )}
+          </div>
+        </div>
+
+        {/* Target Architecture & Multi-Database Stack Banner */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2.5 bg-[#0D0D14] border border-white/10 rounded-xl">
+          <div className="flex items-center gap-2">
+            <Database size={14} className="text-cyan-400 shrink-0" />
+            <span className="text-[11px] font-mono font-bold text-zinc-300 uppercase tracking-wider">
+              Target Architecture:
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {scanResult?.detectedDatabases && scanResult.detectedDatabases.length > 0 ? (
+              scanResult.detectedDatabases.map((db) => (
+                <span
+                  key={db}
+                  className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
+                >
+                  {db}
+                </span>
+              ))
+            ) : (
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/5 text-zinc-400 border border-white/10">
+                Universal (Postgres · MySQL · MongoDB · Redis · SQLite)
+              </span>
+            )}
+            {scanResult?.detectedOrms && scanResult.detectedOrms.map((orm) => (
+              <span
+                key={orm}
+                className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/10 text-blue-300 border border-blue-500/30"
+              >
+                {orm}
+              </span>
+            ))}
           </div>
         </div>
 

@@ -93,11 +93,11 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             onClick={() => {
               const p: Project = {
                 id: 'proj-preset-nextjs',
-                name: 'Next.js 15 SaaS Starter',
+                name: 'Next.js 15 + Prisma SaaS',
                 repoUrl: 'https://github.com/vercel/next.js',
                 previewUrl: 'https://demo.zelsis.com',
                 framework: 'Next.js 15 + Tailwind',
-                providers: ['PostgreSQL', 'Stripe', 'Vercel', 'Tailwind v4'],
+                providers: ['PostgreSQL', 'Prisma', 'Stripe', 'Vercel'],
                 lastScanAt: 'Just now',
                 readinessScore: 88,
                 gateStatus: 'PASSED',
@@ -113,7 +113,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
           >
-            <span>Next.js 15 SaaS Starter</span>
+            <span>Next.js 15 + Prisma (Postgres)</span>
           </button>
 
           <button
@@ -121,11 +121,11 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             onClick={() => {
               const p: Project = {
                 id: 'proj-preset-fastapi',
-                name: 'FastAPI REST Boilerplate',
+                name: 'FastAPI + MySQL API',
                 repoUrl: 'https://github.com/tiangolo/fastapi',
                 previewUrl: 'https://fastapi.tiangolo.com',
                 framework: 'FastAPI (Python)',
-                providers: ['Python 3.12', 'Docker', 'PostgreSQL', 'GitHub Actions'],
+                providers: ['Python 3.12', 'MySQL', 'SQLAlchemy', 'Docker'],
                 lastScanAt: 'Ready for Audit',
                 readinessScore: 92,
                 gateStatus: 'PASSED',
@@ -141,7 +141,35 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
           >
-            <span>FastAPI REST Boilerplate</span>
+            <span>FastAPI + SQLAlchemy (MySQL)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const p: Project = {
+                id: 'proj-preset-mongodb',
+                name: 'Node.js + MongoDB & Redis',
+                repoUrl: 'https://github.com/expressjs/express',
+                previewUrl: 'https://expressjs.com',
+                framework: 'Node.js Microservice',
+                providers: ['MongoDB', 'Mongoose', 'Redis Cache', 'Docker'],
+                lastScanAt: 'Ready for Audit',
+                readinessScore: 91,
+                gateStatus: 'PASSED',
+                criticalCount: 0,
+                highCount: 1,
+                mediumCount: 1,
+                lowCount: 1,
+                uiClicheCount: 0,
+                findings: []
+              };
+              onAddNewProject(p);
+              onSelectProject(p);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
+          >
+            <span>Node.js + MongoDB &amp; Redis</span>
           </button>
 
           <button

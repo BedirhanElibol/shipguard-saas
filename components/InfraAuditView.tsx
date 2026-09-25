@@ -59,15 +59,15 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#EDEDED] m-0">
-                Zelsis Infrastructure, Cloud &amp; Database Gate
+                Zelsis Infrastructure, Cloud &amp; Universal Database Gate
               </h1>
               <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase tracking-widest">
-                Supabase RLS · Docker Security · Connection URIs · CORS · Server Actions
+                Postgres · MySQL · MongoDB · Redis · SQLite · Docker · Cloud Gate
               </span>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-[#A1A1AA] mt-3 max-w-3xl leading-relaxed">
-            Architectural release gate verifying database multi-tenancy isolation (RLS), container privilege boundaries, exposed database secrets, wildcard CORS policies, and Next.js server mutation validation.
+            Architectural release gate verifying universal multi-database isolation (Postgres RLS, MySQL, MongoDB sanitization, Redis cache safety, SQLite boundaries), container privileges, exposed secrets, and API mutations.
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
           <input
             aria-label="Search infrastructure rules"
             type="text"
-            placeholder="Search rules, stacks (Supabase, Docker, Next.js), or categories..."
+            placeholder="Search rules, stacks (PostgreSQL, MySQL, MongoDB, Redis, SQLite, Docker), or categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-transparent border-none outline-none focus-visible:ring-1 focus-visible:ring-white/20 text-[#EDEDED] w-full text-xs font-mono placeholder:text-zinc-500 rounded"

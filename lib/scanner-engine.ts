@@ -23,6 +23,7 @@ import { evaluateModernFullstackRules } from './rules/modern-fullstack-rules';
 import { evaluateWeb3SecurityRules } from './rules/web3-security-rules';
 import { evaluatePythonEnterpriseRules } from './rules/python-enterprise-rules';
 import { evaluatePolyglotBackendRules } from './rules/polyglot-backend-rules';
+import { evaluateMultiDatabaseRules, detectProjectDatabases } from './rules/multi-database-rules';
 import { evaluateK8sHardeningRules } from './rules/k8s-hardening-rules';
 import { evaluateGoMicroservicesRules } from './rules/go-microservices-rules';
 import { evaluateTenantIsolationRules } from './rules/tenant-isolation-rules';
@@ -124,6 +125,8 @@ export interface ScanResult {
   findings: Finding[];
   logs: string[];
   summary?: string;
+  detectedDatabases?: string[];
+  detectedOrms?: string[];
 }
 
 /**
@@ -1251,8 +1254,15 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
   rcRuleIds.forEach(id => ignoredRuleIds.add(id));
   rcPaths.forEach(p => ignoredPaths.push(p));
 
+  // Pre-detect project database and ORM architecture before streaming loop cleans file memory
+  const detectedStack = detectProjectDatabases(files);
+
   logs.push(`[${new Date().toLocaleTimeString()}] [INFO] Initializing Zelsis High-Performance Static Pattern & AST Heuristics Engine v3.5...`);
   logs.push(`[${new Date().toLocaleTimeString()}] [TARGET] Repository: ${repoName}`);
+
+  if (detectedStack.databases.length > 0 || detectedStack.orms.length > 0) {
+    logs.push(`[${new Date().toLocaleTimeString()}] [STACK] Multi-Database Stack Detected: ${[...detectedStack.databases, ...detectedStack.orms].join(', ')}`);
+  }
 
   if (rcConfig) {
     logs.push(`[${new Date().toLocaleTimeString()}] [CONFIG] Policy-as-Code active: Loaded ${rcFile?.path || '.zelsisrc.json'} (Strategy: ${rcConfig.failStrategy || 'smart'}, MinScore: ${rcConfig.minScoreThreshold ?? 85}).`);
@@ -2730,6 +2740,17 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
     }
     logs.push(...polyglotResult.logs);
 
+    // 16c. Universal Multi-Database & ORM Gate (MySQL, MongoDB, Redis, SQLite, Prisma - Rule IDs 18101-18150)
+    const multiDbCounter = { count: findingCounter };
+    const multiDbResult = evaluateMultiDatabaseRules(file, lines, cleanContent, multiDbCounter);
+    findingCounter = multiDbCounter.count;
+    for (const item of multiDbResult.findings) {
+      if (!ignoredRuleIds.has(item.ruleId)) {
+        addFinding(item);
+      }
+    }
+    logs.push(...multiDbResult.logs);
+
     // 17. Kubernetes & Cloud Orchestration Hardening (K8S-01 to 50, Rule IDs 8901-8950)
     const k8sCounter = { count: findingCounter };
     const k8sResult = evaluateK8sHardeningRules(file, lines, cleanContent, k8sCounter);
@@ -3758,7 +3779,9 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
     uiClicheCount,
     findings,
     logs,
-    summary
+    summary,
+    detectedDatabases: detectedStack.databases,
+    detectedOrms: detectedStack.orms
   };
 }
 

@@ -55,9 +55,9 @@ export function evaluateInfraRules(
   if (isExcluded) return { findings, logs };
 
   // =========================================================================
-  // RULE 3001 (INFRA-01): Supabase & PostgreSQL Missing Row Level Security (RLS)
+  // RULE 3001 (INFRA-01): PostgreSQL Missing Row Level Security (RLS)
   // =========================================================================
-  const isSqlFile = lowerPath.endsWith('.sql') || lowerPath.includes('migration') || lowerPath.includes('supabase');
+  const isSqlFile = lowerPath.endsWith('.sql') || lowerPath.includes('migration') || lowerPath.includes('schema');
   if (isSqlFile) {
     const tableRegex = /create\s+table\s+(?:if\s+not\s+exists\s+)?([a-zA-Z0-9_."]+)/gi;
     let match: RegExpExecArray | null;
@@ -79,7 +79,7 @@ export function evaluateInfraRules(
           id: findingId,
           ruleId: 3001,
           type: 'INFRA_DATABASE',
-          title: `PostgreSQL/Supabase Table "${simpleName}" Missing Row Level Security (RLS)`,
+          title: `PostgreSQL Table "${simpleName}" Missing Row Level Security (RLS)`,
           severity: 'CRITICAL',
           category: 'Database Security',
           filePath: file.path,
@@ -88,7 +88,7 @@ export function evaluateInfraRules(
           reproductionSteps: [
             `Navigate to database schema file "${file.path}" at line ${lineNum}.`,
             `Observe table definition "CREATE TABLE ${rawTableName}" created without RLS enforcement.`,
-            `Anonymous Supabase PostgREST clients can query or manipulate table data if anon permissions exist.`,
+            `Anonymous unauthenticated database clients can query or manipulate table data if public/anon permissions exist.`,
             `Apply "ALTER TABLE ${rawTableName} ENABLE ROW LEVEL SECURITY;" with appropriate access policies.`
           ],
           remediationPrompt: `Enable Row Level Security (RLS) on "${rawTableName}" immediately:\nALTER TABLE ${rawTableName} ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Allow authenticated read" ON ${rawTableName} FOR SELECT TO authenticated USING (true);`,

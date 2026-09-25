@@ -273,30 +273,30 @@ export function evaluateDatabaseRules(
     logs.push(`[${ts}] 🗄️ DB-PERF-09: Long-Running External API Call Inside DB Transaction detected (${file.path}:${lineNum})`);
   }
 
-  // DB-PERF-10: Supabase Public Table Missing Row Level Security
+  // DB-PERF-10: PostgreSQL Public Table Missing Row Level Security (RLS)
   if (/CREATE\s+TABLE\s+(?:public\.)?[a-zA-Z0-9_]+/i.test(cleanContent) && !/ENABLE\s+ROW\s+LEVEL\s+SECURITY/i.test(cleanContent) && file.path.endsWith(".sql")) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/db-perf-10|supabase/i.test(l) || lines.indexOf(l) === 0));
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/db-perf-10|create\s+table/i.test(l) || lines.indexOf(l) === 0));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `dbperf-${Date.now()}-${findingCounter.count++}`,
       ruleId: 6010,
       type: 'INFRA_DATABASE',
-      title: 'DB-PERF-10: Supabase Public Table Missing Row Level Security',
+      title: 'DB-PERF-10: PostgreSQL Public Table Missing Row Level Security (RLS)',
       severity: 'CRITICAL',
       category: "Database Security",
       filePath: file.path,
       lineRange: `L${lineNum}`,
       snippet: lines[matchLineIdx] || '<detected database or orm pattern>',
       reproductionSteps: [
-        `Scanned database and ORM architecture in ${file.path}:${lineNum}.`,
-        "Detected Supabase Public Table Missing Row Level Security: Public database tables created without ALTER TABLE ... ENABLE ROW LEVEL SECURITY."
+        `Scanned database DDL schema in ${file.path}:${lineNum}.`,
+        "Detected PostgreSQL Public Table Missing Row Level Security: Public database tables created without ALTER TABLE ... ENABLE ROW LEVEL SECURITY."
       ],
       remediationPrompt: "Execute ALTER TABLE public.table_name ENABLE ROW LEVEL SECURITY;",
       status: 'OPEN',
       owner: 'Database Architect',
       falsePositive: false
     });
-    logs.push(`[${ts}] 🗄️ DB-PERF-10: Supabase Public Table Missing Row Level Security detected (${file.path}:${lineNum})`);
+    logs.push(`[${ts}] 🗄️ DB-PERF-10: PostgreSQL Public Table Missing Row Level Security (RLS) detected (${file.path}:${lineNum})`);
   }
 
   // DB-PERF-11: Non-Deterministic findFirst without OrderBy
@@ -767,30 +767,30 @@ export function evaluateDatabaseRules(
     logs.push(`[${ts}] 🗄️ DB-PERF-28: Missing pg_stat_statements Query Monitoring detected (${file.path}:${lineNum})`);
   }
 
-  // DB-PERF-29: Supabase Realtime Channel Flooding Without Filter
-  if (/supabase\.channel\([^)]+\)\.on\(\s*["\']postgres_changes["\'],\s*\{\s*event:\s*["\']\*["\'],\s*schema:\s*["\']public["\'],\s*table:\s*["\'][^"\']+["\']\s*\}\s*,\s*\(payload\)/i.test(cleanContent) && !/filter:/i.test(cleanContent)) {
-    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/db-perf-29|supabase/i.test(l) || lines.indexOf(l) === 0));
+  // DB-PERF-29: Realtime WebSocket Channel Flooding Without Filter
+  if (/(?:supabase\.channel|realtime\.channel|socket\.on)\([^)]+\)\.on\(\s*["\'](?:postgres_changes|change|events)["\'],\s*\{\s*event:\s*["\']\*["\'],\s*schema:\s*["\']public["\'],\s*table:\s*["\'][^"\']+["\']\s*\}\s*,\s*\(payload\)/i.test(cleanContent) && !/filter:/i.test(cleanContent)) {
+    const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*') && (/db-perf-29|channel/i.test(l) || lines.indexOf(l) === 0));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
       id: `dbperf-${Date.now()}-${findingCounter.count++}`,
       ruleId: 6029,
       type: 'INFRA_DATABASE',
-      title: 'DB-PERF-29: Supabase Realtime Channel Flooding Without Filter',
+      title: 'DB-PERF-29: Realtime WebSocket Channel Flooding Without Filter',
       severity: 'HIGH',
       category: "Resource Protection",
       filePath: file.path,
       lineRange: `L${lineNum}`,
       snippet: lines[matchLineIdx] || '<detected database or orm pattern>',
       reproductionSteps: [
-        `Scanned database and ORM architecture in ${file.path}:${lineNum}.`,
-        "Detected Supabase Realtime Channel Flooding Without Filter: Subscribing to Supabase Realtime channel on entire table without filter parameter."
+        `Scanned realtime event stream architecture in ${file.path}:${lineNum}.`,
+        "Detected Realtime WebSocket Channel Flooding Without Filter: Subscribing to change events on an entire table without filter predicates."
       ],
-      remediationPrompt: "Add row filter parameter to Supabase Realtime channel subscription.",
+      remediationPrompt: "Add row filter parameter to realtime channel subscription.",
       status: 'OPEN',
       owner: 'Database Architect',
       falsePositive: false
     });
-    logs.push(`[${ts}] 🗄️ DB-PERF-29: Supabase Realtime Channel Flooding Without Filter detected (${file.path}:${lineNum})`);
+    logs.push(`[${ts}] 🗄️ DB-PERF-29: Realtime WebSocket Channel Flooding Without Filter detected (${file.path}:${lineNum})`);
   }
 
   // DB-PERF-30: Prisma Schema Missing @@index on Search Columns

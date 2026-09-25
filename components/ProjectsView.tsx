@@ -176,18 +176,18 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             type="button"
             onClick={() => {
               const p: Project = {
-                id: 'proj-preset-supabase',
-                name: 'Supabase Fullstack Template',
-                repoUrl: 'https://github.com/supabase/supabase',
-                previewUrl: 'https://supabase.com',
-                framework: 'Next.js + Supabase',
-                providers: ['Supabase Auth', 'PostgreSQL RLS', 'Edge Functions', 'Vercel'],
+                id: 'proj-preset-go-postgres',
+                name: 'Go + PostgreSQL & Redis (Cloud-Native)',
+                repoUrl: 'https://github.com/gin-gonic/gin',
+                previewUrl: 'https://gin-gonic.com',
+                framework: 'Go + PostgreSQL & Redis',
+                providers: ['PostgreSQL', 'Redis Cache', 'Docker Engine', 'AWS / Cloud'],
                 lastScanAt: 'Ready for Audit',
-                readinessScore: 95,
+                readinessScore: 98,
                 gateStatus: 'PASSED',
                 criticalCount: 0,
                 highCount: 0,
-                mediumCount: 1,
+                mediumCount: 0,
                 lowCount: 1,
                 uiClicheCount: 0,
                 findings: []
@@ -197,7 +197,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white/5 hover:bg-white/10 border border-white/15 text-white transition-colors"
           >
-            <span>Supabase Fullstack Template</span>
+            <span>Go + PostgreSQL &amp; Redis (Cloud-Native)</span>
           </button>
         </div>
       </div>

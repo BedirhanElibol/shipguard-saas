@@ -151,7 +151,7 @@ export function isValidGithubUrl(url: string): boolean {
  * Ensures the most impactful architecture, manifest, route, and security files are audited
  * while keeping scans fast (2-3s) and well within GitHub API & Vercel serverless bounds.
  */
-export function prioritizeFilesForScan<T extends { path: string }>(files: T[], maxFiles: number = 60): T[] {
+export function prioritizeFilesForScan<T extends { path: string }>(files: T[], maxFiles?: number): T[] {
   const getFileScore = (filePath: string): number => {
     const lower = filePath.toLowerCase();
 
@@ -211,10 +211,14 @@ export function prioritizeFilesForScan<T extends { path: string }>(files: T[], m
     return 30;
   };
 
-  return [...files]
+  const sorted = [...files]
     .filter((f) => getFileScore(f.path) > 0)
-    .sort((a, b) => getFileScore(b.path) - getFileScore(a.path))
-    .slice(0, maxFiles);
+    .sort((a, b) => getFileScore(b.path) - getFileScore(a.path));
+
+  if (typeof maxFiles === 'number' && maxFiles > 0) {
+    return sorted.slice(0, maxFiles);
+  }
+  return sorted;
 }
 
 /**
@@ -610,13 +614,13 @@ export async function fetchGithubRepositoryData(
       };
     }
 
-    const filesToFetch = prioritizeFilesForScan(treeFiles, 60);
+    const filesToFetch = prioritizeFilesForScan(treeFiles);
 
     onProgress?.({
       phase: 'tree',
       loaded: 0,
       total: filesToFetch.length,
-      currentFile: `Discovered ${treeFiles.length} files (prioritizing ${filesToFetch.length} core architecture files)`
+      currentFile: `Discovered ${treeFiles.length} files (queued ${filesToFetch.length} source files for audit)`
     });
 
     const CHUNK_SIZE = 30;

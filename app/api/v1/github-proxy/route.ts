@@ -565,8 +565,8 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Prioritize core architecture, manifest, and security files, capped at 60 files to prevent serverless timeout
-    const filesToFetch = prioritizeFilesForScan(treeFiles, 60);
+    // Prioritize and fetch all scannable source code files in parallel chunks
+    const filesToFetch = prioritizeFilesForScan(treeFiles);
 
     // Fetch raw file contents in parallel chunks from GitHub
     const CHUNK_SIZE = 30;

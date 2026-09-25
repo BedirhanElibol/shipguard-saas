@@ -308,7 +308,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
       setProgress(5);
       setLogs([
         `[${new Date().toLocaleTimeString()}] [INIT] Initializing Zelsis Asynchronous Scan Pipeline...`,
-        `[${new Date().toLocaleTimeString()}] [QUEUE] Registering target "${targetRepoUrl}" in Supabase job queue...`
+        `[${new Date().toLocaleTimeString()}] [QUEUE] Registering target "${targetRepoUrl}" in distributed scan queue...`
       ]);
 
       let dispatchedJobId: string | null = null;
@@ -364,7 +364,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         setLogs((prev) => [
           ...prev,
           `[${new Date().toLocaleTimeString()}] [QUEUE] Job queued successfully (Job ID: ${dispatchedJobId?.slice(0, 8)}...).`,
-          `[${new Date().toLocaleTimeString()}] [STREAM] Connecting to Supabase Realtime WebSocket telemetry channel...`
+          `[${new Date().toLocaleTimeString()}] [STREAM] Connecting to Realtime WebSocket telemetry stream...`
         ]);
 
         let hasFinishedProcessing = false;

@@ -167,13 +167,16 @@ export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boo
     }
   }
 
-  // 5. Direct IP check if hostname is already an IP address (strip IPv6 brackets if present)
+  // 5. Alternate IP representation defense (hex, octal, integer notation)
   const cleanHostname = hostname.replace(/^\[|\]$/g, '');
-  if (net.isIP(cleanHostname)) {
-    if (isPrivateIp(cleanHostname)) {
+  const alternateIp = parseAlternateIpNotation(cleanHostname);
+  const ipToCheck = alternateIp || cleanHostname;
+
+  if (net.isIP(ipToCheck)) {
+    if (isPrivateIp(ipToCheck)) {
       return { safe: false, reason: `Access to private or loopback IP "${hostname}" is prohibited` };
     }
-    return { safe: true, url: parsed, resolvedIp: cleanHostname };
+    return { safe: true, url: parsed, resolvedIp: ipToCheck };
   }
 
   // 6. DNS Resolution to prevent DNS Rebinding to RFC 1918 / Cloud Metadata addresses
@@ -195,4 +198,96 @@ export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boo
     // If DNS resolution fails, reject to prevent blind proxying
     return { safe: false, reason: `Target host "${hostname}" could not be resolved via DNS` };
   }
+}
+
+/**
+ * Normalizes alternate IP representations (integer, hex, octal) to standard dotted IPv4
+ */
+function parseAlternateIpNotation(hostname: string): string | null {
+  // Pure integer IP (e.g., 2130706433 for 127.0.0.1)
+  if (/^\d+$/.test(hostname)) {
+    const num = parseInt(hostname, 10);
+    if (!isNaN(num) && num >= 0 && num <= 4294967295) {
+      return `${(num >>> 24) & 255}.${(num >>> 16) & 255}.${(num >>> 8) & 255}.${num & 255}`;
+    }
+  }
+  // Hex notation (e.g., 0x7f000001)
+  if (/^0x[0-9a-f]+$/i.test(hostname)) {
+    const num = parseInt(hostname, 16);
+    if (!isNaN(num) && num >= 0 && num <= 4294967295) {
+      return `${(num >>> 24) & 255}.${(num >>> 16) & 255}.${(num >>> 8) & 255}.${num & 255}`;
+    }
+  }
+  // Octal/mixed parts (e.g., 0177.0.0.1 or 0x7f.0.0.1)
+  const parts = hostname.split('.');
+  if (parts.length === 4) {
+    const parsedParts: number[] = [];
+    for (const p of parts) {
+      if (/^0x[0-9a-f]+$/i.test(p)) {
+        parsedParts.push(parseInt(p, 16));
+      } else if (/^0\d+$/.test(p)) {
+        parsedParts.push(parseInt(p, 8));
+      } else if (/^\d+$/.test(p)) {
+        parsedParts.push(parseInt(p, 10));
+      } else {
+        return null;
+      }
+    }
+    if (parsedParts.every(n => !isNaN(n) && n >= 0 && n <= 255)) {
+      return parsedParts.join('.');
+    }
+  }
+  return null;
+}
+
+/**
+ * Hardened SSRF-safe fetch wrapper (F-04).
+ * 1. Validates initial target URL via validateSafeTargetUrl
+ * 2. Strictly intercepts redirects (manual mode) up to maxRedirects (default 5)
+ * 3. Inspects and re-validates EVERY redirection hop against SSRF rules before following
+ * 4. Prevents DNS rebinding and internal network pivot attacks
+ */
+export async function safeFetch(
+  targetUrl: string,
+  init?: RequestInit & { maxRedirects?: number; timeoutMs?: number }
+): Promise<Response> {
+  const maxRedirects = init?.maxRedirects ?? 5;
+  let currentUrl = targetUrl;
+  let redirectCount = 0;
+
+  while (redirectCount <= maxRedirects) {
+    if (typeof window === 'undefined') {
+      const check = await validateSafeTargetUrl(currentUrl);
+      if (!check.safe) {
+        throw new Error(`SSRF Guard Blocked: ${check.reason || 'Unsafe target endpoint'}`);
+      }
+    }
+
+    const timeoutSignal = init?.timeoutMs ? AbortSignal.timeout(init.timeoutMs) : undefined;
+    const combinedSignal = init?.signal || timeoutSignal;
+
+    const res = await fetch(currentUrl, {
+      ...init,
+      redirect: 'manual',
+      signal: combinedSignal
+    });
+
+    // Check for HTTP redirect status codes
+    if ([301, 302, 303, 307, 308].includes(res.status)) {
+      const location = res.headers.get('location');
+      if (!location) {
+        return res;
+      }
+      redirectCount++;
+      if (redirectCount > maxRedirects) {
+        throw new Error(`SSRF Guard: Exceeded maximum allowed redirects (${maxRedirects})`);
+      }
+      currentUrl = new URL(location, currentUrl).toString();
+      continue;
+    }
+
+    return res;
+  }
+
+  throw new Error(`SSRF Guard: Exceeded maximum allowed redirects (${maxRedirects})`);
 }

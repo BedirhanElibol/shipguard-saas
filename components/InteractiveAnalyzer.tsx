@@ -348,7 +348,7 @@ export function processUserData(payload: any) {
         <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-[#FAFAFA]">
-              Live AST Analysis Results ({emptyWarning ? 0 : analyzedFindings.length} Violations Found)
+              Live Static Analysis Results ({emptyWarning ? 0 : analyzedFindings.length} Violations Found)
             </h3>
           </div>
 

@@ -1,6 +1,6 @@
 import { CodeFile } from './scanner-engine';
 
-import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
+import { validateSafeTargetUrl, safeFetch } from '@/lib/ssrf-guard';
 
 export interface WebsiteAuditData {
   url: string;
@@ -67,47 +67,14 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
 
   // 2. Direct Fetch (Server environment with SSRF check, or browser fallback)
   if (!htmlText) {
-    if (typeof window === 'undefined') {
-      const ssrfCheck = await validateSafeTargetUrl(formattedUrl);
-      if (!ssrfCheck.safe) {
-        console.warn(`[SSRF Guard Blocked] Target ${formattedUrl} rejected: ${ssrfCheck.reason}`);
-        return null;
-      }
-    }
-
     try {
-      let currentUrl = formattedUrl;
-      let redirectCount = 0;
-      let res = await fetch(currentUrl, {
+      const res = await safeFetch(formattedUrl, {
         headers: {
           'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5'
         },
-        redirect: 'manual',
+        maxRedirects: 5,
         signal: signal || AbortSignal.timeout(8000)
       });
-
-      // Securely follow redirects, validating each hop against SSRF filters
-      while ([301, 302, 303, 307, 308].includes(res.status) && redirectCount < 5) {
-        const location = res.headers.get('location');
-        if (!location) break;
-        const nextUrl = new URL(location, currentUrl).toString();
-        if (typeof window === 'undefined') {
-          const redirectSsrfCheck = await validateSafeTargetUrl(nextUrl);
-          if (!redirectSsrfCheck.safe) {
-            console.warn(`[SSRF Guard Blocked Redirect] ${nextUrl} rejected: ${redirectSsrfCheck.reason}`);
-            return null;
-          }
-        }
-        currentUrl = nextUrl;
-        redirectCount++;
-        res = await fetch(currentUrl, {
-          headers: {
-            'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5'
-          },
-          redirect: 'manual',
-          signal: signal || AbortSignal.timeout(8000)
-        });
-      }
 
       statusCode = res.status;
       res.headers.forEach((val, key) => {
@@ -118,24 +85,24 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
     } catch (directErr) {
       if (signal?.aborted) return null;
       console.warn(`Direct fetch to ${formattedUrl} failed:`, directErr);
+    }
 
-      // In browser environment, fallback to internal hardened proxy if not already used
-      if (typeof window !== 'undefined' && !usedProxy) {
-        try {
-          const internalProxyUrl = `/api/v1/proxy?url=${encodeURIComponent(formattedUrl)}`;
-          const proxyRes = await fetch(internalProxyUrl, { signal: signal || AbortSignal.timeout(10000) });
-          if (proxyRes.ok) {
-            const data = await proxyRes.json();
-            if (data && data.content) {
-              htmlText = data.content;
-              statusCode = data.status || 200;
-              headers = data.headers || {};
-              usedProxy = true;
-            }
+    // In browser environment, fallback to internal hardened proxy if not already used
+    if (typeof window !== 'undefined' && !usedProxy && !htmlText) {
+      try {
+        const internalProxyUrl = `/api/v1/proxy?url=${encodeURIComponent(formattedUrl)}`;
+        const proxyRes = await fetch(internalProxyUrl, { signal: signal || AbortSignal.timeout(10000) });
+        if (proxyRes.ok) {
+          const data = await proxyRes.json();
+          if (data && data.content) {
+            htmlText = data.content;
+            statusCode = data.status || 200;
+            headers = data.headers || {};
+            usedProxy = true;
           }
-        } catch {
-          if (signal?.aborted) return null;
         }
+      } catch {
+        if (signal?.aborted) return null;
       }
     }
   }
@@ -236,17 +203,11 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
 
   // Concurrent Subpages Content Ingestion via Promise.allSettled with SSRF protection
   const subpagePromises = subpagesToCrawl.map(async (subUrl) => {
-    if (typeof window === 'undefined') {
-      const ssrfCheck = await validateSafeTargetUrl(subUrl);
-      if (!ssrfCheck.safe) {
-        console.warn(`[SSRF Guard Blocked Subpage] ${subUrl} rejected: ${ssrfCheck.reason}`);
-        return null;
-      }
-    }
     const pathName = new URL(subUrl).pathname.replace(/[^a-zA-Z0-9_-]/g, '_');
     try {
-      const subRes = await fetch(subUrl, { 
+      const subRes = await safeFetch(subUrl, { 
         headers: { 'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5' },
+        maxRedirects: 3,
         signal: signal || AbortSignal.timeout(5000) 
       });
       if (subRes.ok) {
@@ -285,17 +246,10 @@ export async function fetchWebsiteAuditData(siteUrl: string, signal?: AbortSigna
       scriptUrl = `${origin}/${src}`;
     }
 
-    if (typeof window === 'undefined') {
-      const ssrfCheck = await validateSafeTargetUrl(scriptUrl);
-      if (!ssrfCheck.safe) {
-        console.warn(`[SSRF Guard Blocked Script Bundle] ${scriptUrl} rejected: ${ssrfCheck.reason}`);
-        return null;
-      }
-    }
-
     try {
-      const scriptRes = await fetch(scriptUrl, { 
+      const scriptRes = await safeFetch(scriptUrl, { 
         headers: { 'User-Agent': 'Zelsis-Release-Gate-Scanner/3.5' },
+        maxRedirects: 3,
         signal: signal || AbortSignal.timeout(5000) 
       });
       if (scriptRes.ok) {

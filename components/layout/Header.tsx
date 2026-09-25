@@ -100,7 +100,11 @@ export const Header: React.FC<HeaderProps> = ({
     let savedToken: string | undefined;
     if (typeof window !== 'undefined') {
       try {
-        savedToken = localStorage.getItem('zelsis_github_token') || localStorage.getItem('github_token') || undefined;
+        savedToken =
+          sessionStorage.getItem('zelsis_github_token') ||
+          localStorage.getItem('zelsis_github_token') ||
+          localStorage.getItem('github_token') ||
+          undefined;
       } catch {
         // Sandboxed storage fallback
       }

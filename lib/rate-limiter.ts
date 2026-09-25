@@ -61,6 +61,12 @@ function isValidIp(ip: string): boolean {
  * 3. Parses valid IP from x-forwarded-for, strictly validating IPv4/IPv6 syntax.
  */
 export function getClientIp(req: NextRequest): string {
+  // Highest priority: Vercel Edge infrastructure verified IP (cannot be spoofed by clients)
+  const xVercelIp = req.headers.get('x-vercel-ip')?.trim();
+  if (xVercelIp && isValidIp(xVercelIp)) {
+    return xVercelIp;
+  }
+
   // Only trust cf-connecting-ip if genuine Cloudflare edge headers (cf-ray) are present
   const cfRay = req.headers.get('cf-ray');
   const cfConnectingIp = req.headers.get('cf-connecting-ip')?.trim();

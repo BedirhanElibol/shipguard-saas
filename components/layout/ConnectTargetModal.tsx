@@ -36,6 +36,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
     if (isOpen) {
       try {
         const saved =
+          sessionStorage.getItem('zelsis_github_token') ||
           localStorage.getItem('zelsis_github_token') ||
           localStorage.getItem('github_token') ||
           '';
@@ -119,8 +120,9 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
     const cleanToken = githubToken.trim();
     if (cleanToken) {
       try {
-        localStorage.setItem('zelsis_github_token', cleanToken);
-        localStorage.setItem('github_token', cleanToken);
+        sessionStorage.setItem('zelsis_github_token', cleanToken);
+        localStorage.removeItem('zelsis_github_token');
+        localStorage.removeItem('github_token');
       } catch {
         // Sandboxed storage fallback
       }

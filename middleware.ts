@@ -15,7 +15,6 @@ const ALLOWED_ORIGINS = new Set([
   'http://127.0.0.1:3000',
   'https://zelsis.com',
   'https://zelsis-saas.vercel.app',
-  'https://shipguard.dev',
   'https://shipguard-saas.vercel.app'
 ]);
 

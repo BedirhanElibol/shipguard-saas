@@ -28,6 +28,7 @@ export const PrivateRepoTokenModal: React.FC<PrivateRepoTokenModalProps> = ({
       setIsSubmitting(false);
       try {
         const savedToken =
+          sessionStorage.getItem('zelsis_github_token') ||
           localStorage.getItem('zelsis_github_token') ||
           localStorage.getItem('github_token') ||
           '';
@@ -65,8 +66,10 @@ export const PrivateRepoTokenModal: React.FC<PrivateRepoTokenModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      localStorage.setItem('zelsis_github_token', cleanToken);
-      localStorage.setItem('github_token', cleanToken);
+      // F-08: Store in ephemeral sessionStorage only, wipe from persistent localStorage
+      sessionStorage.setItem('zelsis_github_token', cleanToken);
+      localStorage.removeItem('zelsis_github_token');
+      localStorage.removeItem('github_token');
     } catch {
       // Sandboxed storage fallback
     }

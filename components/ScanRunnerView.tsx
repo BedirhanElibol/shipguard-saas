@@ -292,6 +292,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
         if (!effectiveToken && typeof window !== 'undefined') {
           try {
             effectiveToken =
+              sessionStorage.getItem('zelsis_github_token') ||
               localStorage.getItem('zelsis_github_token') ||
               localStorage.getItem('github_token') ||
               undefined;

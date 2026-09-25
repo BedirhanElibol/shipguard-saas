@@ -11,7 +11,6 @@ export const CSP_DIRECTIVES = {
   'script-src': [
     "'self'",
     "'unsafe-inline'", // Required for Next.js inline bootstrap scripts
-    "'unsafe-eval'",   // Required for dynamic expression engines
   ],
   'style-src': [
     "'self'",
@@ -23,8 +22,7 @@ export const CSP_DIRECTIVES = {
     'blob:',
     'https://avatars.githubusercontent.com',
     'https://raw.githubusercontent.com',
-    'https://images.unsplash.com',
-    'https:'
+    'https://images.unsplash.com'
   ],
   'font-src': [
     "'self'",

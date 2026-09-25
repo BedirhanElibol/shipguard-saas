@@ -1032,14 +1032,17 @@ export function useDashboardState() {
       const sanitized = canAccessLocalAudit()
         ? updated
         : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
-      const lightweight = sanitized.map((p) => ({
-        ...p,
-        findings: (p.findings ?? []).slice(0, 60).map((f) => ({
-          ...f,
-          snippet: typeof f.snippet === 'string' && f.snippet.length > 150 ? f.snippet.slice(0, 150) + '...' : f.snippet,
-          reproductionSteps: Array.isArray(f.reproductionSteps) ? f.reproductionSteps.slice(0, 1) : []
-        }))
-      }));
+      const lightweight = sanitized.map((p) => {
+        const { githubToken, ...safeProject } = p as any;
+        return {
+          ...safeProject,
+          findings: (p.findings ?? []).slice(0, 60).map((f) => ({
+            ...f,
+            snippet: typeof f.snippet === 'string' && f.snippet.length > 150 ? f.snippet.slice(0, 150) + '...' : f.snippet,
+            reproductionSteps: Array.isArray(f.reproductionSteps) ? f.reproductionSteps.slice(0, 1) : []
+          }))
+        };
+      });
       safeSetStorageItem('zelsis_projects', JSON.stringify(lightweight), selectedProject.id);
 
       if (user?.isLoggedIn && user?.email) {
@@ -1052,18 +1055,21 @@ export function useDashboardState() {
         const sanitized = canAccessLocalAudit()
           ? updated
           : updated.filter((p) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
-        const ultraCompact = sanitized.map((p) => ({
-          ...p,
-          findings: (p.findings ?? []).slice(0, 20).map((f) => ({
-            id: f.id,
-            ruleId: f.ruleId,
-            type: f.type,
-            title: f.title,
-            severity: f.severity,
-            filePath: f.filePath,
-            status: f.status
-          }))
-        }));
+        const ultraCompact = sanitized.map((p) => {
+          const { githubToken, ...safeProject } = p as any;
+          return {
+            ...safeProject,
+            findings: (p.findings ?? []).slice(0, 20).map((f) => ({
+              id: f.id,
+              ruleId: f.ruleId,
+              type: f.type,
+              title: f.title,
+              severity: f.severity,
+              filePath: f.filePath,
+              status: f.status
+            }))
+          };
+        });
         safeSetStorageItem('zelsis_projects', JSON.stringify(ultraCompact), selectedProject.id);
 
         if (user?.isLoggedIn && user?.email) {
@@ -1423,9 +1429,13 @@ export function useDashboardState() {
           const parsed = JSON.parse(savedUserProjectsStr);
           if (Array.isArray(parsed) && parsed.length > 0) {
             const allowedLocal = canAccessLocalAudit();
-            const filtered = allowedLocal
+            const filtered = (allowedLocal
               ? parsed
-              : parsed.filter((p: any) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self');
+              : parsed.filter((p: any) => p.repoUrl !== 'local' && p.id !== 'proj-zelsis-self' && p.id !== 'proj-shipguard-self')
+            ).map((p: any) => {
+              const { githubToken, ...safeP } = p;
+              return safeP;
+            });
             setProjects(filtered);
             setSelectedProject(filtered[0]);
             safeSetStorageItem('zelsis_projects', JSON.stringify(filtered));

@@ -81,6 +81,8 @@ export const ComplianceAuditView: React.FC<ComplianceAuditViewProps> = ({
         <div className="flex items-center gap-2.5 bg-[#141414] px-4 py-2.5 rounded-xl border border-white/10 flex-1 min-w-[280px]">
           <Search size={16} className="text-[#A1A1AA]" />
           <input
+            id="compliance-search-input"
+            name="complianceSearch"
             aria-label="Search compliance rules or legal frameworks"
             type="text"
             placeholder="Search rules, legal frameworks (GDPR, CCPA), or penalties..."
@@ -93,6 +95,8 @@ export const ComplianceAuditView: React.FC<ComplianceAuditViewProps> = ({
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[#A1A1AA]" />
           <select
+            id="compliance-category-select"
+            name="complianceCategory"
             aria-label="Filter compliance framework by category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}

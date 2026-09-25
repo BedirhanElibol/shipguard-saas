@@ -331,10 +331,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             {mode === 'signup' && (
               <div className="flex flex-col gap-1">
-                <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Full Name</label>
+                <label htmlFor="auth-fullname-input" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Full Name</label>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
                   <User size={15} className="text-[#A1A1AA]" />
                   <input
+                    id="auth-fullname-input"
+                    name="fullName"
                     aria-label="Full Name"
                     type="text"
                     value={name}
@@ -347,10 +349,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
 
             <div className="flex flex-col gap-1">
-              <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Email Address</label>
+              <label htmlFor="auth-email-input" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Email Address</label>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
                 <Mail size={15} className="text-[#A1A1AA]" />
                 <input
+                  id="auth-email-input"
+                  name="email"
                   aria-label="Email Address"
                   type="email"
                   value={email}
@@ -364,7 +368,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {mode !== 'forgot' && (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Password</label>
+                  <label htmlFor="auth-password-input" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Password</label>
                   {mode === 'signin' && (
                     <button
                       type="button"
@@ -378,6 +382,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-white/20">
                   <Lock size={15} className="text-[#A1A1AA]" />
                   <input
+                    id="auth-password-input"
+                    name="password"
                     aria-label="Password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}

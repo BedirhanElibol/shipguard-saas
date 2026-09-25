@@ -302,6 +302,7 @@ export const ScaLicenseRiskCard: React.FC = () => {
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
           <input
             id="sca-license-search-input"
+            name="scaLicenseSearch"
             aria-label="Search package or license"
             type="text"
             placeholder="Search package or license (e.g. next, Apache, MIT)..."

@@ -259,6 +259,7 @@ export const DangerZoneCard: React.FC<DangerZoneCardProps> = ({
                       </label>
                       <input
                         id="delete-confirm-input"
+                        name="deleteConfirmation"
                         aria-label="Type DELETE to confirm account and data erasure"
                         type="text"
                         value={confirmationInput}
@@ -271,6 +272,7 @@ export const DangerZoneCard: React.FC<DangerZoneCardProps> = ({
                     <label htmlFor="confirm-delete-checkbox" className="flex items-start gap-2.5 cursor-pointer text-xs text-[#A1A1AA] hover:text-white select-none">
                       <input
                         id="confirm-delete-checkbox"
+                        name="confirmDelete"
                         aria-label="Confirm permanent deletion of account and telemetry"
                         type="checkbox"
                         checked={hasConfirmedCheckbox}

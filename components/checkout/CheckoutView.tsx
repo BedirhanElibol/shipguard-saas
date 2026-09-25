@@ -471,6 +471,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     <div className="relative">
                       <input
                         id="full-name-input"
+                        name="fullName"
                         type="text"
                         placeholder="Alex Morgan"
                         value={fullName}
@@ -489,6 +490,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     <div className="relative">
                       <input
                         id="email-input"
+                        name="email"
                         type="email"
                         placeholder="user@company.com"
                         value={email}
@@ -509,6 +511,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     <div className="relative">
                       <input
                         id="company-input"
+                        name="companyName"
                         type="text"
                         placeholder="Your Company Name"
                         value={companyName}
@@ -525,6 +528,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
                     </label>
                     <input
                       id="vat-input"
+                      name="vatNumber"
                       type="text"
                       placeholder="US987654321 or EU123456"
                       value={vatNumber}

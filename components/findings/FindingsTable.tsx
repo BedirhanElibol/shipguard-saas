@@ -381,6 +381,8 @@ export const FindingsTable: React.FC<FindingsTableProps> = ({
           <div className="flex items-center gap-2 bg-[#0A0A0A] px-3 py-1.5 rounded-lg border border-white/10 flex-1 sm:w-64">
             <Search size={14} className="text-[#A1A1AA]" />
             <input
+              id="findings-search-input"
+              name="findingsSearch"
               aria-label="Search filter input"
               type="text"
               placeholder="Search findings or files..."

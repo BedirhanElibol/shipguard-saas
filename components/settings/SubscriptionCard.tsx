@@ -474,6 +474,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             </label>
             <input
               id="settings-profile-display-name"
+              name="profileName"
               aria-label="Display Name"
               type="text"
               disabled={!isAuthenticated}
@@ -494,6 +495,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             </label>
             <input
               id="settings-profile-email"
+              name="profileEmail"
               aria-label="Email Address"
               type="email"
               disabled={!isAuthenticated}
@@ -515,6 +517,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             <div className="flex gap-2">
               <input
                 id="settings-profile-avatar-url"
+                name="profileAvatarUrl"
                 aria-label="Avatar Image URL"
                 type="text"
                 disabled={!isAuthenticated}
@@ -578,6 +581,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <div className="flex items-center gap-2 w-full md:w-auto">
           <input
             id="settings-license-key-input"
+            name="licenseKey"
             aria-label="License Key Input"
             type="text"
             placeholder="SG-PRO-2026-..."

@@ -90,6 +90,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             </label>
             <input
               id="app-name-input"
+              name="name"
               type="text"
               placeholder="e.g. My SaaS App"
               value={name}
@@ -105,6 +106,7 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             </label>
             <input
               id="repo-url-input"
+              name="repoUrl"
               type="text"
               placeholder="github.com/org/repo"
               value={repoUrl}

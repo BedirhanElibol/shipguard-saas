@@ -121,6 +121,8 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
               <Terminal size={18} className="text-zinc-400 shrink-0" />
               <span className="text-xs font-mono text-zinc-500 hidden sm:inline">github.com/</span>
               <input
+                id="hero-repo-input"
+                name="repository"
                 type="text"
                 value={repoInput}
                 onChange={(e) => setRepoInput(e.target.value)}

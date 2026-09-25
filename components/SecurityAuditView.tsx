@@ -55,6 +55,8 @@ export const SecurityAuditView: React.FC<SecurityAuditViewProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-surface)', padding: '10px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)', flex: 1, minWidth: '280px' }}>
           <Search size={16} color="#A1A1AA" />
           <input
+            id="security-rules-search-input"
+            name="securityRulesSearch"
             aria-label="Search security rules or OWASP tags"
             type="text"
             placeholder="Search security rules or OWASP tags..."
@@ -68,6 +70,8 @@ export const SecurityAuditView: React.FC<SecurityAuditViewProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Filter size={16} color="#A1A1AA" />
           <select
+            id="security-category-select"
+            name="securityCategory"
             aria-label="Filter security rules by category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}

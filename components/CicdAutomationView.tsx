@@ -260,6 +260,8 @@ jobs:
             </div>
             <div className="flex items-center gap-3">
               <input
+                id="min-score-slider"
+                name="minScore"
                 type="range"
                 min="60"
                 max="95"
@@ -351,8 +353,10 @@ jobs:
               Object.keys(enabledGates).map((gateKey) => {
                 const k = gateKey as keyof typeof enabledGates;
                 return (
-                  <label key={k} className="flex items-center gap-2 cursor-pointer text-xs font-mono text-zinc-300">
+                  <label key={k} htmlFor={`gate-toggle-${k}`} className="flex items-center gap-2 cursor-pointer text-xs font-mono text-zinc-300">
                     <input
+                      id={`gate-toggle-${k}`}
+                      name={`gate-${k}`}
                       type="checkbox"
                       checked={enabledGates[k]}
                       aria-label={`Toggle ${k} gate`}

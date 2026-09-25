@@ -167,6 +167,7 @@ export const PrivateRepoTokenModal: React.FC<PrivateRepoTokenModalProps> = ({
                 </div>
                 <input
                   id="modal-github-pat"
+                  name="githubPat"
                   aria-label="GitHub Personal Access Token"
                   type={showToken ? 'text' : 'password'}
                   value={token}

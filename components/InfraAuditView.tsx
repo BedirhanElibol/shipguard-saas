@@ -89,6 +89,8 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
         <div className="flex items-center gap-2.5 bg-[#141414] px-4 py-2.5 rounded-xl border border-white/10 flex-1 min-w-[280px]">
           <Search size={16} className="text-[#A1A1AA]" />
           <input
+            id="infra-rules-search-input"
+            name="infraRulesSearch"
             aria-label="Search infrastructure rules"
             type="text"
             placeholder="Search rules, stacks (PostgreSQL, MySQL, MongoDB, Redis, SQLite, Docker), or categories..."
@@ -101,6 +103,8 @@ export const InfraAuditView: React.FC<InfraAuditViewProps> = ({
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-[#A1A1AA]" />
           <select
+            id="infra-category-select"
+            name="infraCategory"
             aria-label="Filter infrastructure rules by category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}

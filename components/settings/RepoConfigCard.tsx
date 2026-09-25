@@ -33,6 +33,7 @@ export const RepoConfigCard: React.FC<RepoConfigCardProps> = ({
         </label>
         <input
           id="settings-repo-url"
+          name="repoUrl"
           aria-label="Target Repository or Web Deployment URL"
           type="text"
           value={repoUrl}
@@ -50,6 +51,7 @@ export const RepoConfigCard: React.FC<RepoConfigCardProps> = ({
         <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-[#0A0A0A] border border-white/10 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500">
           <input
             id="settings-pat-token"
+            name="patToken"
             aria-label="GitHub Personal Access Token"
             type={showPatToken ? 'text' : 'password'}
             placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

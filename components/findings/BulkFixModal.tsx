@@ -132,6 +132,8 @@ ${addedComment}
               >
                 <div className="flex items-center gap-3">
                   <input
+                    id={`bulk-fix-checkbox-${finding.id}`}
+                    name={`bulkFixFinding_${finding.id}`}
                     aria-label={`Select finding ${finding.title} for bulk remediation patch`}
                     type="checkbox"
                     checked={selectedIds.includes(finding.id)}

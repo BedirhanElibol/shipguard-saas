@@ -67,6 +67,8 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-surface)', padding: '10px 16px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)', flex: 1, minWidth: '280px' }}>
           <Search size={16} color="#A1A1AA" />
           <input
+            id="vibepolish-search-input"
+            name="vibePolishSearch"
             aria-label="Search 200 AI anti-patterns, clichés or rules"
             type="text"
             placeholder="Search 200 AI anti-patterns, clichés or rules..."
@@ -80,6 +82,8 @@ ABSOLUTELY DO NOT USE THE FOLLOWING CLICHÉS: Forced Apple-style bento box grids
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Filter size={16} color="#A1A1AA" />
           <select
+            id="vibepolish-category-select"
+            name="vibePolishCategory"
             aria-label="Filter AI anti-patterns by category"
             value={selectedCat}
             onChange={(e) => setSelectedCat(e.target.value)}

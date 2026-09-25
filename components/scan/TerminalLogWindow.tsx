@@ -34,6 +34,8 @@ export const TerminalLogWindow: React.FC<TerminalLogWindowProps> = ({
           <div className="relative flex-1 sm:w-64 max-w-xs">
             <Search size={12} className="absolute left-2.5 top-2.5 text-[#A1A1AA]" />
             <input
+              id="terminal-log-filter-input"
+              name="terminalLogFilter"
               type="text"
               aria-label="Filter terminal logs"
               value={logSearchQuery}

@@ -124,11 +124,13 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           {/* Form Controls */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-mono font-bold text-[#94A3B8] mb-1.5 flex items-center gap-2">
+              <label htmlFor="slack-webhook-url-input" className="block text-xs font-mono font-bold text-[#94A3B8] mb-1.5 flex items-center gap-2">
                 <Slack size={14} className="text-[#E01E5A]" />
                 <span>Slack Webhook URL:</span>
               </label>
               <input
+                id="slack-webhook-url-input"
+                name="slackWebhookUrl"
                 aria-label="Slack Webhook URL"
                 type="text"
                 placeholder="https://hooks.slack.com/services/T00/B00/XXXX"
@@ -139,11 +141,13 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
             </div>
 
             <div>
-              <label className="block text-xs font-mono font-bold text-[#94A3B8] mb-1.5 flex items-center gap-2">
+              <label htmlFor="discord-webhook-url-input" className="block text-xs font-mono font-bold text-[#94A3B8] mb-1.5 flex items-center gap-2">
                 <Send size={14} className="text-[#5865F2]" />
                 <span>Discord Webhook URL:</span>
               </label>
               <input
+                id="discord-webhook-url-input"
+                name="discordWebhookUrl"
                 aria-label="Discord Webhook URL"
                 type="text"
                 placeholder="https://discord.com/api/webhooks/123456/abcdef"

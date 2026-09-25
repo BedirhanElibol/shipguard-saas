@@ -232,6 +232,8 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="relative w-full flex items-center">
             <Terminal size={14} className="absolute left-2.5 sm:left-3 text-[#A1A1AA] pointer-events-none shrink-0" />
             <input
+              id="header-target-repo-input"
+              name="targetRepo"
               type="text"
               aria-label="Target repository or deployment URL"
               value={activeTargetUrl}

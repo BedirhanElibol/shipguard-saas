@@ -138,6 +138,8 @@ export const RuleConfiguratorModal: React.FC<RuleConfiguratorModalProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         <input
+                          id={`rule-toggle-${idx}`}
+                          name={`ruleEnabled_${idx}`}
                           aria-label={`Toggle rule ${rule.name}`}
                           type="checkbox"
                           checked={rule.enabled}

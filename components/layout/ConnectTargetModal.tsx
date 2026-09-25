@@ -198,6 +198,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
             <label htmlFor="target-project-name" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Target Display Name (Optional)</label>
             <input
               id="target-project-name"
+              name="repoName"
               aria-label="Target Display Name"
               type="text"
               value={repoName}
@@ -213,6 +214,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                 <label htmlFor="target-github-url" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">GitHub Repository URL *</label>
                 <input
                   id="target-github-url"
+                  name="githubUrl"
                   aria-label="GitHub Repository URL"
                   type="text"
                   value={githubUrl}
@@ -227,6 +229,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                   <label htmlFor="target-branch" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Branch</label>
                   <input
                     id="target-branch"
+                    name="branch"
                     aria-label="Branch"
                     type="text"
                     value={branch}
@@ -238,6 +241,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                   <label htmlFor="target-framework-select" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Framework</label>
                   <select
                     id="target-framework-select"
+                    name="framework"
                     aria-label="Framework"
                     value={framework}
                     onChange={(e) => setFramework(e.target.value)}
@@ -264,6 +268,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
                 <div className="relative flex items-center">
                   <input
                     id="target-github-token"
+                    name="githubToken"
                     aria-label="GitHub Personal Access Token (PAT)"
                     type={showToken ? 'text' : 'password'}
                     value={githubToken}
@@ -290,6 +295,7 @@ export const ConnectTargetModal: React.FC<ConnectTargetModalProps> = ({
               <label htmlFor="target-website-url" className="text-[0.7rem] text-[#A1A1AA] font-mono font-bold uppercase">Live Web App Endpoint URL *</label>
               <input
                 id="target-website-url"
+                name="webSiteUrl"
                 aria-label="Live Web App Endpoint URL"
                 type="text"
                 value={webSiteUrl}

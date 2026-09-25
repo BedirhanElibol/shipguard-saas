@@ -80,6 +80,7 @@ export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) =>
           </label>
           <input
             id="settings-org-name"
+            name="orgName"
             aria-label="Workspace Organization Name"
             type="text"
             value={orgName}
@@ -96,6 +97,7 @@ export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) =>
           </label>
           <input
             id="settings-org-domain"
+            name="orgDomain"
             aria-label="SSO Allowed Email Domains"
             type="text"
             value={orgDomain}
@@ -113,6 +115,7 @@ export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) =>
           <div className="flex items-center gap-3">
             <input
               id="settings-org-min-score"
+              name="orgMinScore"
               aria-label="Org-Wide Minimum Gate Score"
               type="range"
               min="70"
@@ -132,6 +135,7 @@ export const EnterpriseOrgCard: React.FC<EnterpriseOrgCardProps> = ({ user }) =>
           <label htmlFor="settings-enforce-org-gate" className="text-xs font-mono font-bold text-[#EDEDED] flex items-center gap-2 cursor-pointer select-none">
             <input
               id="settings-enforce-org-gate"
+              name="enforceOrgGate"
               aria-label="Enforce Organization Security Policies across all repositories"
               type="checkbox"
               checked={enforceOrgGate}

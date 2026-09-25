@@ -29,7 +29,9 @@ export function generateLicenseKey(planId: string, email?: string): string {
     if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
       randSegment = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
     }
-  } catch {}
+  } catch (err) {
+    console.debug('[LicenseKey] randomUUID unavailable, using static fallback', err);
+  }
   const dateSegment = new Date().getFullYear().toString();
   return `${prefix}-${dateSegment}-REF-${randSegment}`;
 }

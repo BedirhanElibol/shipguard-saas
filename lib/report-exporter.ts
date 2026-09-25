@@ -17,7 +17,9 @@ function getSecureRandomHex(length: number = 64): string {
         return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('').slice(0, length);
       }
     }
-  } catch {}
+  } catch (err) {
+    console.debug('[ReportExporter] Secure random hex fallback triggered', err);
+  }
   return `${Date.now().toString(16)}${Date.now().toString(16)}`.slice(0, length);
 }
 
@@ -551,8 +553,8 @@ export function exportProjectPdfReport(project: Project): void {
   setTimeout(() => {
     try {
       printWindow.print();
-    } catch {
-      // Print dialog handled by user
+    } catch (err) {
+      console.debug('[ReportExporter] Print dialog cancelled or error', err);
     }
   }, 500);
 }

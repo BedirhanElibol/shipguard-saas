@@ -36,7 +36,7 @@ export function evaluateFintechComplianceRules(
 
   const ts = new Date().toLocaleTimeString();
   // FINTECH-01: Storage of Sensitive Authentication Data (Card CVV / CVC)
-  if (cleanContent.includes('rawCardCvvPersistentStorage') || (/(?:CREATE\s+TABLE|ALTER\s+TABLE)[\s\S]*?\b(?:cvv|cvc|card_security_code)\b\s+(?:varchar|text|int)/i.test(cleanContent) && cleanContent.includes('paymentCardSchema'))) {
+  if (/(?:CREATE\s+TABLE|ALTER\s+TABLE)[\s\S]*?\b(?:cvv|cvc|card_security_code)\b\s+(?:varchar|text|int)/i.test(cleanContent) || (/\b(?:cvv|cvc|card_security_code)\b/i.test(cleanContent) && /(?:db\.|schema\.|columns|migration)/i.test(cleanContent))) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -61,7 +61,7 @@ export function evaluateFintechComplianceRules(
   }
 
   // FINTECH-02: Unmasked Primary Account Number (PAN) Displayed in UI
-  if (cleanContent.includes('unmaskedCreditCardPanDisplay') || (/<span>\s*\{[a-zA-Z0-9_]+\.cardNumber\}\s*<\/span>/i.test(cleanContent) && cleanContent.includes('unmaskedCardPan'))) {
+  if (/<span>\s*\{[a-zA-Z0-9_]+\.cardNumber\}\s*<\/span>/i.test(cleanContent) || (/\bcardNumber\b/i.test(cleanContent) && /<[a-z]+[^>]*>\{[^}]*cardNumber[^}]*\}<\/[a-z]+>/i.test(cleanContent))) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -86,7 +86,7 @@ export function evaluateFintechComplianceRules(
   }
 
   // FINTECH-03: Missing Idempotency-Key on Financial Payment Mutation
-  if (cleanContent.includes('financialMutationMissingIdempotency') || (/stripe\.charges\.create\s*\([\s\S]*?\)/i.test(cleanContent) && cleanContent.includes('unidempotentStripeCharge') && !/idempotencyKey/i.test(cleanContent))) {
+  if ((/stripe\.charges\.create\s*\([\s\S]*?\)/i.test(cleanContent) || /stripe\.paymentIntents\.create\s*\([\s\S]*?\)/i.test(cleanContent)) && !/idempotencyKey/i.test(cleanContent)) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -111,7 +111,7 @@ export function evaluateFintechComplianceRules(
   }
 
   // FINTECH-04: Insecure Webhook Signature Verification on Payment Callback
-  if (cleanContent.includes('unverifiedPaymentWebhookCallback') || (lowerPath.includes('webhook') && /req\.(?:body|json)\s*\(\)/.test(cleanContent) && !/constructEvent|verifySignature|crypto\.createHmac|webhookSecret/i.test(cleanContent))) {
+  if (lowerPath.includes('webhook') && /(?:payment|stripe|polar|billing|checkout|subscription|invoice)/i.test(lowerPath + cleanContent) && /req\.(?:body|json)\s*\(\)/.test(cleanContent) && !/constructEvent|verifySignature|crypto\.createHmac|webhookSecret/i.test(cleanContent)) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({
@@ -136,7 +136,7 @@ export function evaluateFintechComplianceRules(
   }
 
   // FINTECH-05: Plaintext Cardholder Data Logged to Application Telemetry
-  if (cleanContent.includes('plaintextCardholderTelemetryLogging') || (/(?:console\.log|logger\.(?:info|debug|error))\s*\([^)]*(?:card(?:Number|_number)?|cvv|cvc|pan)\b/i.test(cleanContent))) {
+  if (/(?:console\.log|logger\.(?:info|debug|error))\s*\([^)]*(?:card(?:Number|_number)?|cvv|cvc|pan)\b/i.test(cleanContent)) {
     const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
     const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
     findings.push({

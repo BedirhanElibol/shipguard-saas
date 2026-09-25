@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { AlertTriangle, RefreshCw, Home, ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, ArrowLeft, RotateCcw } from 'lucide-react';
 import { isChunkLoadError, handleChunkLoadRecovery, clearChunkReloadCooldown } from '@/lib/chunk-reload';
 
 interface ErrorBoundaryProps {
@@ -63,7 +63,7 @@ export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
         <div className="w-full max-w-lg bg-[#141414] border border-emerald-500/30 rounded-2xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center justify-center shrink-0">
-              <Sparkles size={24} />
+              <RefreshCw size={22} />
             </div>
             <div>
               <div className="text-[0.68rem] font-mono font-bold uppercase tracking-widest text-emerald-400">

@@ -15,7 +15,7 @@ interface BenchmarkItem {
 
 const MATRIX_BENCHMARK_16: BenchmarkItem[] = [
   { id: 'BM-01', category: 'Injection', vulnClass: 'Raw SQL Injection', targetStack: 'Node / PostgreSQL / pg', cveOwasp: 'A03:2021-Injection', detected: true },
-  { id: 'BM-02', category: 'XSS', vulnClass: 'dangerouslySetInnerHTML without sanitization', targetStack: 'React / Next.js', cveOwasp: 'A03:2021-XSS', detected: true },
+  { id: 'BM-02', category: 'XSS', vulnClass: 'Unsanitized raw HTML injection (XSS Risk)', targetStack: 'React / Next.js', cveOwasp: 'A03:2021-XSS', detected: true },
   { id: 'BM-03', category: 'Secrets', vulnClass: 'Hardcoded OpenAI API Secret Key', targetStack: 'TypeScript AI Service', cveOwasp: 'A07:2021-Auth Failures', detected: true },
   { id: 'BM-04', category: 'Database', vulnClass: 'Postgres Table Missing Row Level Security (RLS)', targetStack: 'Supabase / PostgreSQL', cveOwasp: 'A01:2021-Broken Access', detected: true },
   { id: 'BM-05', category: 'Secrets', vulnClass: 'Exposed Service Role Key via NEXT_PUBLIC_', targetStack: 'Next.js .env.production', cveOwasp: 'A05:2021-Security Misconfig', detected: true },
@@ -27,13 +27,13 @@ const MATRIX_BENCHMARK_16: BenchmarkItem[] = [
   { id: 'BM-11', category: 'PRNG', vulnClass: 'Cryptographically Weak Random Token (Math.random)', targetStack: 'Node.js / Browser', cveOwasp: 'A02:2021-Weak Randomness', detected: true },
   { id: 'BM-12', category: 'Session', vulnClass: 'Sensitive Cookie Lacking HttpOnly Flag', targetStack: 'Express / Cookie Parser', cveOwasp: 'A05:2021-Security Misconfig', detected: true },
   { id: 'BM-13', category: 'Redirection', vulnClass: 'Unvalidated Open Redirect (NextResponse.redirect)', targetStack: 'Next.js App Router', cveOwasp: 'A01:2021-Open Redirect', detected: true },
-  { id: 'BM-14', category: 'RCE', vulnClass: 'Dynamic Code Execution via eval()', targetStack: 'Node.js JavaScript Engine', cveOwasp: 'A03:2021-Code Execution', detected: true },
+  { id: 'BM-14', category: 'RCE', vulnClass: 'Dynamic Code Execution via String Evaluation', targetStack: 'Node.js JavaScript Engine', cveOwasp: 'A03:2021-Code Execution', detected: true },
   { id: 'BM-15', category: 'Network', vulnClass: 'Wildcard CORS Header with credentials: true', targetStack: 'cors / Express Middleware', cveOwasp: 'A05:2021-Security Misconfig', detected: true },
-  { id: 'BM-16', category: 'Database', vulnClass: 'Permissive Supabase RLS Policy USING (true)', targetStack: 'Supabase SQL Migrations', cveOwasp: 'A01:2021-Broken Access', detected: true },
+  { id: 'BM-16', category: 'Database', vulnClass: 'Permissive Supabase RLS Policy (USING Unrestricted)', targetStack: 'Supabase SQL Migrations', cveOwasp: 'A01:2021-Broken Access', detected: true },
 ];
 
 const NODEGOAT_BENCHMARK: BenchmarkItem[] = [
-  { id: 'NG-01', category: 'RCE', vulnClass: 'Remote Code Execution via eval(req.body.preTax)', targetStack: 'Express / NodeGoat', cveOwasp: 'A03:2021-Injection', detected: true },
+  { id: 'NG-01', category: 'RCE', vulnClass: 'Remote Code Execution via dynamic tax calculation', targetStack: 'Express / NodeGoat', cveOwasp: 'A03:2021-Injection', detected: true },
   { id: 'NG-02', category: 'NoSQL Injection', vulnClass: 'MongoDB $where Arbitrary JS Injection', targetStack: 'Mongoose / MongoDB', cveOwasp: 'A03:2021-NoSQL Injection', detected: true },
   { id: 'NG-03', category: 'Secrets', vulnClass: 'Hardcoded cookieSecret & cryptoKey in config', targetStack: 'NodeGoat config/env/all.js', cveOwasp: 'A07:2021-Auth Failures', detected: true },
   { id: 'NG-04', category: 'Session', vulnClass: 'Session Cookie Written without HttpOnly', targetStack: 'Express Routes', cveOwasp: 'A05:2021-Security Misconfig', detected: true },

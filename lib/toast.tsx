@@ -41,7 +41,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
           randSuffix = globalThis.crypto.randomUUID().slice(0, 8);
         }
-      } catch {}
+      } catch (err) {
+        console.debug('[ToastProvider] randomUUID unavailable, using timestamp fallback', err);
+      }
       const id = `toast-${Date.now()}-${randSuffix}`;
       const duration = options?.duration !== undefined ? options.duration : 4000;
       const newToast: ToastMessage = {

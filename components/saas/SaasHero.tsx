@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   ShieldCheck, 
   ArrowRight, 
@@ -22,7 +22,6 @@ interface SaasHeroProps {
 export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
   const router = useRouter();
   const [repoInput, setRepoInput] = useState('expressjs/express');
-  const [activeHotspot, setActiveHotspot] = useState<number | null>(null);
   const [isScanning, setIsScanning] = useState(false);
 
   const sampleRepos = [
@@ -61,30 +60,6 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
     }
   };
 
-  const hotspots = [
-    {
-      id: 1,
-      x: '18%',
-      y: '32%',
-      title: '94/100 Release Readiness Gauge',
-      description: 'Comprehensive mathematical health evaluation synthesized across security, performance, and cloud rules.'
-    },
-    {
-      id: 2,
-      x: '52%',
-      y: '22%',
-      title: 'Deep Rule Inventory',
-      description: 'Continuous checks covering OWASP Top 10, Supabase RLS, WCAG 2.1 AA, and Docker privilege escalation.'
-    },
-    {
-      id: 3,
-      x: '82%',
-      y: '48%',
-      title: 'Surgical PR Remediation',
-      description: 'Exportable JSON release manifests and 1-click AI prompt patches tailored for GitHub Copilot & Cursor.'
-    }
-  ];
-
   return (
     <section className="relative min-h-[90vh] flex flex-col justify-start pt-28 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-12 bg-[#0A0A0A] border-b border-white/10">
       <div className="relative z-10 max-w-6xl mx-auto w-full flex flex-col items-center text-center">
@@ -111,14 +86,14 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-2xl mb-4"
+          className="w-full max-w-2xl mb-6"
         >
           <form 
             onSubmit={handleStartScan}
-            className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-xl bg-[#141414] border border-white/15 shadow-2xl focus-within:border-white/40 transition-all"
+            className="flex flex-col sm:flex-row items-stretch gap-2 p-1.5 rounded-xl bg-[#141414] border border-white/10 shadow-2xl focus-within:border-white/30 transition-all"
           >
             <div className="flex items-center gap-2.5 px-3 py-2 flex-1 min-w-0">
-              <Terminal size={18} className="text-zinc-400 shrink-0" />
+              <Terminal size={16} className="text-zinc-400 shrink-0" />
               <span className="text-xs font-mono text-zinc-500 hidden sm:inline">github.com/</span>
               <input
                 id="hero-repo-input"
@@ -127,78 +102,84 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                 value={repoInput}
                 onChange={(e) => setRepoInput(e.target.value)}
                 placeholder="owner/repository or public git URL"
-                className="w-full bg-transparent text-sm font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded px-1"
+                className="w-full bg-transparent text-xs font-mono text-[#EDEDED] placeholder-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/20 rounded px-1"
                 aria-label="GitHub Repository to Scan"
               />
             </div>
             <button
               type="submit"
               disabled={isScanning}
-              className="px-6 py-3 rounded-lg text-xs font-bold font-mono uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-5 py-2.5 rounded-lg text-xs font-bold font-mono uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <span>Scan Repository</span>
-              <ArrowRight size={14} />
+              <ArrowRight size={13} />
             </button>
           </form>
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs">
-            <span className="text-zinc-500 text-[11px] font-mono uppercase">1-Click Presets:</span>
+
+          {/* Minimal 1-Click Preset Chips */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5 text-xs">
+            <span className="text-zinc-500 text-[11px] font-mono uppercase tracking-wider">Presets:</span>
             {sampleRepos.map((r) => (
               <button
                 key={r.value}
                 type="button"
                 onClick={() => handleSelectAndScan(r.value)}
                 title={`Run instant audit on ${r.value}`}
-                className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer flex items-center gap-1.5 ${
                   repoInput === r.value
-                    ? 'border-white/40 bg-white/10 text-white shadow-sm'
-                    : 'border-white/10 bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/30'
+                    ? 'border-white/40 bg-white/10 text-white'
+                    : 'border-white/10 bg-[#121212] text-zinc-400 hover:text-white hover:border-white/25'
                 }`}
               >
                 <span>{r.label}</span>
-                <ArrowRight size={10} className="text-zinc-500 group-hover:text-white" />
               </button>
             ))}
           </div>
         </motion.div>
+
+        {/* Minimal Engineering Telemetry Ribbon */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 mb-16 text-xs text-zinc-400 font-mono"
+          className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-12 text-xs text-zinc-400 font-mono"
         >
-          <span>Zero-Retention Privacy (Code Never Stored)</span>
-          <span>1,450+ Deep Web &amp; Cloud Rules</span>
-          <a
-            href="#benchmark"
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-white transition-all cursor-pointer font-bold"
-          >
-            <span>16/16 Benchmark Matrix (Verified)</span>
-            <ArrowRight size={11} />
-          </a>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>Zero-Retention (Ephemeral In-Memory AST)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span>Multi-Database (Postgres · MySQL · Mongo · Redis)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <span>OASIS SARIF v2.1.0 Native</span>
+          </div>
         </motion.div>
 
-        {/* Hero Showcase Centerpiece: Real Application State (dashboard_overview.png) */}
+        {/* Hero Showcase: Clean Industrial Application Preview Frame */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="w-full max-w-5xl relative rounded-2xl border border-white/15 bg-[#121212] shadow-2xl overflow-hidden text-left"
+          className="w-full max-w-5xl relative rounded-xl border border-white/10 bg-[#121212] shadow-2xl overflow-hidden text-left"
         >
           {/* Browser Window Chrome Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-[#0E0E10] border-b border-white/10">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-[#0E0E10] border-b border-white/10">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500/80" />
-              <span className="w-3 h-3 rounded-full bg-amber-500/80" />
-              <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-              <div className="ml-3 px-3 py-1 rounded-md bg-white/[0.04] border border-white/5 text-[11px] font-mono text-zinc-400 flex items-center gap-1.5">
-                <Lock size={11} className="text-zinc-400" />
-                <span>app.zelsis.com/dashboard/eval/express-prod-gate</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
+              <div className="ml-3 px-3 py-1 rounded bg-white/[0.04] border border-white/5 text-[11px] font-mono text-zinc-400 flex items-center gap-1.5">
+                <Lock size={10} className="text-zinc-500" />
+                <span>zelsis.com/dashboard/eval/production-gate</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-white/10 text-zinc-200 border border-white/15">
-                <span>Clearance: Passed (94/100)</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                Gate Status: PASSED (94/100)
               </span>
               <button
                 onClick={() => {
@@ -207,76 +188,33 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
                 }}
                 className="text-xs font-mono text-zinc-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <span>Open Dashboard</span>
-                <ExternalLink size={12} />
+                <span>Launch Console</span>
+                <ExternalLink size={11} />
               </button>
             </div>
           </div>
 
-          {/* Screenshot Container with Interactive Hotspots */}
-          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-[#0A0A0A] overflow-hidden group">
+          {/* Screenshot Container */}
+          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-[#0A0A0A] overflow-hidden">
             <Image
               src="/images/dashboard_overview.png"
               alt="Zelsis Production Readiness and Security Dashboard Overview"
               fill
               priority
               sizes="(max-width: 1200px) 100vw, 1200px"
-              className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.01]"
+              className="object-cover object-top"
             />
-
-            {/* Interactive Hotspots */}
-            {hotspots.map((hs) => (
-              <div
-                key={hs.id}
-                style={{ left: hs.x, top: hs.y }}
-                className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
-              >
-                <button
-                  onClick={() => setActiveHotspot(activeHotspot === hs.id ? null : hs.id)}
-                  onMouseEnter={() => setActiveHotspot(hs.id)}
-                  onMouseLeave={() => setActiveHotspot(null)}
-                  className="relative group/btn p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-full cursor-pointer"
-                  aria-label={hs.title}
-                >
-                  <span className="relative flex items-center justify-center w-6 h-6 rounded-full bg-white text-black font-mono font-bold text-xs shadow-lg border border-white">
-                    {hs.id}
-                  </span>
-                </button>
-
-                {/* Hotspot Tooltip */}
-                <AnimatePresence>
-                  {activeHotspot === hs.id && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-64 p-3 rounded-xl bg-[#141414] border border-white/20 shadow-2xl z-30 pointer-events-none"
-                    >
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-300 font-bold block mb-1">
-                        Verified Area #{hs.id}
-                      </span>
-                      <h4 className="text-xs font-bold text-white mb-1">
-                        {hs.title}
-                      </h4>
-                      <p className="text-[11px] text-zinc-400 leading-normal font-sans">
-                        {hs.description}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
           </div>
 
           {/* Footer Ribbon inside Frame */}
-          <div className="px-5 py-3 bg-[#0E0E10] border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-zinc-400">
+          <div className="px-5 py-2.5 bg-[#0E0E10] border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-zinc-400">
             <div className="flex items-center gap-4">
-              <span>AST Engine: <strong className="text-zinc-200">Continuous Stream</strong></span>
-              <span>Memory Isolation: <strong className="text-zinc-200">Zero Retention</strong></span>
+              <span>Engine: <strong className="text-zinc-200 font-mono">AST Streaming</strong></span>
+              <span>Memory: <strong className="text-zinc-200 font-mono">Ephemeral Buffer</strong></span>
+              <span>Compliance: <strong className="text-zinc-200 font-mono">OWASP &amp; WCAG 2.2</strong></span>
             </div>
-            <div className="flex items-center gap-2">
-              <span>All Verification Engines Calibrated for Deployment</span>
+            <div className="flex items-center gap-2 text-zinc-500 text-[11px]">
+              <span>Industrial Deployment Readiness Gate</span>
             </div>
           </div>
         </motion.div>

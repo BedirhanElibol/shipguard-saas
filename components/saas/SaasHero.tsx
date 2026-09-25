@@ -145,15 +145,15 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
           className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mb-12 text-xs text-zinc-400 font-mono"
         >
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
             <span>Zero-Retention (Ephemeral In-Memory AST)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
             <span>Multi-Database (Postgres · MySQL · Mongo · Redis)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
             <span>OASIS SARIF v2.1.0 Native</span>
           </div>
         </motion.div>
@@ -178,7 +178,8 @@ export const SaasHero: React.FC<SaasHeroProps> = ({ onOpenDashboard }) => {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase bg-white/[0.04] text-zinc-300 border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 Gate Status: PASSED (94/100)
               </span>
               <button

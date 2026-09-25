@@ -48,8 +48,8 @@ export const BenchmarkSection: React.FC = () => {
       <div className="max-w-6xl mx-auto flex flex-col gap-12">
         {/* Header */}
         <div className="flex flex-col gap-3 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 justify-center text-xs font-mono uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full self-center">
-            <ShieldCheck size={14} />
+          <div className="inline-flex items-center gap-2 justify-center text-xs font-mono uppercase tracking-wider text-zinc-300 bg-white/[0.04] border border-white/10 px-3 py-1 rounded-full self-center">
+            <ShieldCheck size={13} className="text-zinc-400" />
             <span>Deterministic Exploit Benchmark</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
@@ -106,16 +106,17 @@ export const BenchmarkSection: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <span>Realistic 16-Vulnerability Full-Stack Matrix</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium text-zinc-300 bg-white/[0.05] border border-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     16 / 16 PASSED (100%)
                   </span>
                 </h3>
                 <p className="text-xs text-zinc-400 mt-1 font-sans">
-                  Evaluated on modern Next.js 15 App Router, Supabase RLS migrations, and Express backend codebases.
+                  Evaluated on modern Next.js 15 App Router, PostgreSQL schema migrations, and Express backend codebases.
                 </p>
               </div>
               <div className="text-xs font-mono text-zinc-400 flex items-center gap-3">
-                <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-emerald-400" /> Automated Regression Gate</span>
+                <span className="flex items-center gap-1.5"><CheckCircle2 size={13} className="text-zinc-400" /> Automated Regression Gate</span>
               </div>
             </div>
 
@@ -138,8 +139,8 @@ export const BenchmarkSection: React.FC = () => {
                       <td className="py-3 px-4 text-zinc-400">{item.targetStack}</td>
                       <td className="py-3 px-4 text-zinc-400">{item.cveOwasp}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 size={11} /> DETECTED
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/10">
+                          <CheckCircle2 size={11} className="text-emerald-500" /> DETECTED
                         </span>
                       </td>
                     </tr>
@@ -162,7 +163,8 @@ export const BenchmarkSection: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <span>OWASP NodeGoat Benchmark Suite</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium text-zinc-300 bg-white/[0.05] border border-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                     5 / 5 DETECTED (Gate Blocked)
                   </span>
                 </h3>
@@ -191,8 +193,8 @@ export const BenchmarkSection: React.FC = () => {
                       <td className="py-3 px-4 text-zinc-400">{item.targetStack}</td>
                       <td className="py-3 px-4 text-zinc-400">{item.cveOwasp}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 size={11} /> CRITICAL BLOCKER
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono text-zinc-300 bg-white/[0.04] border border-white/10">
+                          <CheckCircle2 size={11} className="text-red-400" /> CRITICAL BLOCKER
                         </span>
                       </td>
                     </tr>
@@ -213,7 +215,7 @@ export const BenchmarkSection: React.FC = () => {
           >
             <div className="p-6 rounded-2xl border border-white/10 bg-[#121214] flex flex-col justify-between gap-4">
               <div>
-                <span className="text-xs font-mono uppercase text-emerald-400 font-bold">Execution Speed</span>
+                <span className="text-[11px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">Execution Speed</span>
                 <h4 className="text-2xl font-extrabold text-white mt-1 tabular-nums">&lt; 3.5 Seconds</h4>
                 <p className="text-xs text-zinc-400 mt-2 font-sans leading-relaxed">
                   In-memory AST stream evaluation processes thousands of files directly in RAM. No slow Docker containers or multi-minute CI queues.
@@ -226,7 +228,7 @@ export const BenchmarkSection: React.FC = () => {
 
             <div className="p-6 rounded-2xl border border-white/10 bg-[#121214] flex flex-col justify-between gap-4">
               <div>
-                <span className="text-xs font-mono uppercase text-emerald-400 font-bold">Code Privacy</span>
+                <span className="text-[11px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">Code Privacy</span>
                 <h4 className="text-2xl font-extrabold text-white mt-1">Zero Retention</h4>
                 <p className="text-xs text-zinc-400 mt-2 font-sans leading-relaxed">
                   Ephemeral in-memory buffers are flushed immediately upon score synthesis. Your proprietary code is never persisted to disk, stored in databases, or used for AI model training.
@@ -239,7 +241,7 @@ export const BenchmarkSection: React.FC = () => {
 
             <div className="p-6 rounded-2xl border border-white/10 bg-[#121214] flex flex-col justify-between gap-4">
               <div>
-                <span className="text-xs font-mono uppercase text-emerald-400 font-bold">Surgical Remediation</span>
+                <span className="text-[11px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">Surgical Remediation</span>
                 <h4 className="text-2xl font-extrabold text-white mt-1">Unified Git Diffs</h4>
                 <p className="text-xs text-zinc-400 mt-2 font-sans leading-relaxed">
                   Every detected vulnerability generates an exact before/after line patch and tailored prompts ready to paste directly into Cursor or Claude Code.

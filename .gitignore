@@ -46,4 +46,5 @@ scratch/
 # temporary extraction files
 .agent/extracted_*.txt
 patch-hostname.js
+supabase/.temp/
 

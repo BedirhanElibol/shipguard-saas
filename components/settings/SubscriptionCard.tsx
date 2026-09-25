@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { useRouter } from 'next/navigation';
 import {
   CreditCard,
@@ -439,23 +440,12 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           )}
 
           <div className="flex items-center gap-4">
-            {profileAvatarUrl ? (
-              <Image
-                src={profileAvatarUrl}
-                alt={profileName || 'User Avatar'}
-                width={56}
-                height={56}
-                unoptimized
-                className="w-14 h-14 rounded-full object-cover border-2 border-white/20 shadow-md bg-[#141414] shrink-0"
-                onError={(e) => {
-                  (e.currentTarget as HTMLElement).style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center font-bold text-lg text-white shadow-md shrink-0">
-                {profileName ? profileName.charAt(0).toUpperCase() : <User size={22} className="text-[#A1A1AA]" />}
-              </div>
-            )}
+            <UserAvatar
+              src={profileAvatarUrl}
+              name={profileName || (isAuthenticated ? 'Unnamed Developer' : 'Guest')}
+              size={56}
+              className="w-14 h-14 border-2 border-white/20 shadow-md"
+            />
             <div className="min-w-0 flex-1">
               <div className="text-xs font-bold text-white truncate">{profileName || (isAuthenticated ? 'Unnamed Developer' : 'Guest Developer')}</div>
               <div className="text-[11px] text-[#A1A1AA] truncate">{profileEmail || (isAuthenticated ? 'email@example.com' : 'Not signed in')}</div>

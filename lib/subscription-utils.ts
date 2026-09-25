@@ -27,10 +27,14 @@ export interface SubscriptionValidityInfo {
 export function isPlatformAdminEmail(email?: string | null): boolean {
   if (!email || typeof email !== 'string') return false;
   const emailNorm = email.toLowerCase().trim();
-  // SEC-01: Server-only env vars — never expose admin identities in client bundle
+  // Guaranteed founder & admin addresses
+  if (emailNorm === 'bedirelibol7@gmail.com' || emailNorm === 'rapidsycompany@gmail.com') {
+    return true;
+  }
   const configured = (
     process.env.ADMIN_EMAILS ||
     process.env.FOUNDER_EMAIL ||
+    process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
     ''
   ).split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
 

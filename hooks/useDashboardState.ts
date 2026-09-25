@@ -79,9 +79,16 @@ export function useDashboardState() {
           const isPlatformAdmin = isPlatformAdminEmail(user?.email);
           const isFree = !isPlatformAdmin && data.tier === 'Free';
           setQuota((prev) => {
+            // For unauthenticated users, preserve local quota count and do not let server wipe it to 0
+            const authoritativeScansUsed = isPlatformAdmin
+              ? 0
+              : data.status === 'unauthenticated'
+                ? prev.scansUsed
+                : (data.scansUsed ?? prev.scansUsed);
+
             const updated: PlanUsageQuota = {
               ...prev,
-              scansUsed: isPlatformAdmin ? 0 : (data.scansUsed ?? prev.scansUsed),
+              scansUsed: authoritativeScansUsed,
               scansLimit: isFree ? (data.scansLimit ?? FREE_SCAN_LIMIT) : Infinity,
               billingCycleReset: data.billingCycleReset || prev.billingCycleReset
             };

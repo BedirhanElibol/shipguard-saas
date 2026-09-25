@@ -208,11 +208,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const guestScansUsed = Math.max(1, guestRateLimit.limit - guestRateLimit.remaining);
     return NextResponse.json({
       allowed: true,
-      scansUsed: 1,
+      scansUsed: guestScansUsed,
       scansLimit: 3,
-      remaining: 2,
+      remaining: guestRateLimit.remaining,
       guest: true
     });
   }

@@ -15,7 +15,6 @@ import { DashboardModals, ActiveModalType } from './DashboardModals';
 import { GateStatusBanner } from './GateStatusBanner';
 import { DemoShowcaseBanner } from '../OverviewView';
 import { generateAuditPdfReport } from '@/lib/pdf-exporter';
-import confetti from 'canvas-confetti';
 import { ShieldCheck, Code, Server } from 'lucide-react';
 import { ConnectTargetModal } from '../layout/ConnectTargetModal';
 import { ClipboardToastBadge, useClipboardToast } from '../ui/Toast';
@@ -77,21 +76,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       uiClicheCount: typeof p.uiClicheCount === 'number' ? p.uiClicheCount : 0,
     };
   }, [project]);
-
-  // Confetti feedback on clearance PASSED
-  useEffect(() => {
-    if (safeProject.gateStatus === 'PASSED') {
-      try {
-        confetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.7 }
-        });
-      } catch (e: unknown) {
-        console.warn('[Confetti] Clearance celebration passed');
-      }
-    }
-  }, [safeProject.gateStatus]);
 
   // Cmd+K / Ctrl+K keyboard shortcut listener for Knowledge Base
   useEffect(() => {

@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldAlert, Zap, ArrowRight, RotateCcw } from 'lucide-react';
+import { X, ShieldAlert, Zap, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface QuotaLimitModalProps {
@@ -10,7 +10,6 @@ interface QuotaLimitModalProps {
   onClose: () => void;
   scansUsed: number;
   scansLimit: number;
-  onResetQuota?: () => void;
 }
 
 export const QuotaLimitModal: React.FC<QuotaLimitModalProps> = ({
@@ -18,7 +17,6 @@ export const QuotaLimitModal: React.FC<QuotaLimitModalProps> = ({
   onClose,
   scansUsed,
   scansLimit,
-  onResetQuota,
 }) => {
   const router = useRouter();
 
@@ -100,26 +98,11 @@ export const QuotaLimitModal: React.FC<QuotaLimitModalProps> = ({
                 onClose();
                 router.push('/checkout?plan=pro&reason=quota_exceeded');
               }}
-              className="btn btn-primary w-full sm:flex-1 py-2.5 px-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+              className="btn btn-primary w-full py-2.5 px-4 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
             >
               <span>Upgrade to Pro ($19/mo)</span>
               <ArrowRight size={14} />
             </button>
-
-            {onResetQuota && (
-              <button
-                type="button"
-                onClick={() => {
-                  onResetQuota();
-                  onClose();
-                }}
-                className="w-full sm:w-auto py-2.5 px-3.5 rounded-xl text-xs font-mono font-bold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                title="Reset demo scans count to 0/3 for testing"
-              >
-                <RotateCcw size={13} />
-                <span>Reset Demo Quota</span>
-              </button>
-            )}
           </div>
         </motion.div>
       </div>

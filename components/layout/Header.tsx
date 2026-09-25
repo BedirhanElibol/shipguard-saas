@@ -8,6 +8,7 @@ import { UserProfile } from '@/components/auth/AuthModal';
 import { normalizeRepoUrl, extractRepoDisplayName } from '@/lib/github-api';
 import { ConnectTargetModal } from './ConnectTargetModal';
 import { ZelsisLogo } from '@/components/ui/ZelsisLogo';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getSubscriptionValidity } from '@/lib/subscription-utils';
 import { TierDetailsModal } from '../pricing/TierDetailsModal';
 
@@ -285,20 +286,12 @@ export const Header: React.FC<HeaderProps> = ({
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/5 text-xs font-mono transition-colors"
                 aria-label="User Profile and Plan Options"
               >
-                {user.avatarUrl ? (
-                  <Image
-                    src={user.avatarUrl}
-                    alt={user.name || 'User'}
-                    width={28}
-                    height={28}
-                    className="w-7 h-7 rounded-full object-cover border border-white/20 shrink-0"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-[10px] text-white shrink-0">
-                    {(user.name || 'User').charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <UserAvatar
+                  src={user.avatarUrl}
+                  name={user.name}
+                  size={28}
+                  className="w-7 h-7"
+                />
                 <span className="hidden sm:inline font-bold text-white max-w-[110px] truncate">
                   {user.name || 'User'}
                 </span>
@@ -307,7 +300,7 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-white/10 border border-white/15 text-zinc-300'
                     : user.tier === 'Pro'
                     ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
-                    : 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                    : 'bg-white/10 border border-white/20 text-zinc-100'
                 }`}>
                   {user.tier === 'Free' ? 'Free Plan' : `${user.tier} Plan`}
                 </span>
@@ -317,20 +310,12 @@ export const Header: React.FC<HeaderProps> = ({
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-[#141414] border border-white/10 rounded-xl p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs font-mono">
                     <div className="px-3 py-2.5 border-b border-white/10 flex items-center gap-2.5">
-                      {user.avatarUrl ? (
-                        <Image
-                          src={user.avatarUrl}
-                          alt={user.name || 'User'}
-                          width={32}
-                          height={32}
-                          className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-xs text-white shrink-0">
-                          {(user.name || 'User').charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <UserAvatar
+                        src={user.avatarUrl}
+                        name={user.name}
+                        size={32}
+                        className="w-8 h-8"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-white truncate">{user.name || 'User'}</div>
                         <div className="text-[10px] text-[#A1A1AA] truncate">{user.email}</div>

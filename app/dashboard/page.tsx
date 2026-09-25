@@ -12,7 +12,7 @@ import { AuthModal, UserProfile } from '@/components/auth/AuthModal';
 import { useDashboardState } from '@/hooks/useDashboardState';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyLicenseKey } from '@/lib/stripe-checkout';
-import { checkScanQuota, resetUserQuota } from '@/lib/quota-manager';
+import { checkScanQuota } from '@/lib/quota-manager';
 import { QuotaLimitModal } from '@/components/dashboard/QuotaLimitModal';
 import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
@@ -84,11 +84,6 @@ function DashboardContent() {
   const [scanProjectOverride, setScanProjectOverride] = useState<Project | null>(null);
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState<boolean>(false);
   const hasProcessedRepoRef = React.useRef(false);
-
-  const handleResetQuota = () => {
-    const refreshed = resetUserQuota((user?.tier as UserTier) || 'Free');
-    setQuota(refreshed);
-  };
 
   const handleTriggerScan = (projectOverride?: Project | unknown) => {
     const isPlatformAdmin = isPlatformAdminEmail(user?.email);
@@ -378,7 +373,6 @@ function DashboardContent() {
               onConsumeScanQuota={recordScanUsage}
               onRequestScanAuthorization={requestScanAuthorization}
               onCompleteScanTelemetry={completeScanTelemetry}
-              onResetQuota={handleResetQuota}
               onCompleteScan={(result) => {
                 const currentTarget = scanProjectOverride || selectedProject;
                 if (result) {
@@ -709,7 +703,6 @@ function DashboardContent() {
         onClose={() => setIsQuotaModalOpen(false)}
         scansUsed={quota?.scansUsed || 3}
         scansLimit={quota?.scansLimit || 3}
-        onResetQuota={handleResetQuota}
       />
     </AppShell>
   );

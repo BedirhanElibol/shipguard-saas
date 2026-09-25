@@ -41,7 +41,6 @@ interface ScanRunnerViewProps {
     uiClicheCount: number;
     scanDurationMs: number;
   }) => Promise<void>;
-  onResetQuota?: () => void;
 }
 
 export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
@@ -52,8 +51,7 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
   onOpenCheckout,
   onConsumeScanQuota,
   onRequestScanAuthorization,
-  onCompleteScanTelemetry,
-  onResetQuota
+  onCompleteScanTelemetry
 }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
@@ -1140,20 +1138,6 @@ export const ScanRunnerView: React.FC<ScanRunnerViewProps> = ({
                   >
                     <Lock size={14} />
                     <span>Upgrade to Pro ($19/mo)</span>
-                  </button>
-                )}
-
-                {scanFailureReason?.includes('Monthly Free Scan Limit') && onResetQuota && (
-                  <button
-                    onClick={() => {
-                      onResetQuota();
-                      hasCompletedRef.current = true;
-                      onCompleteScanRef.current();
-                    }}
-                    className="btn btn-secondary px-5 py-3 text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shrink-0 flex items-center gap-2 border border-white/20 hover:bg-white/10 text-white transition-all font-mono cursor-pointer"
-                  >
-                    <RotateCcw size={14} />
-                    <span>Reset Demo Quota</span>
                   </button>
                 )}
 

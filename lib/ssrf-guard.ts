@@ -1,5 +1,26 @@
-import dns from 'dns';
-import net from 'net';
+/**
+ * IP helper functions without relying on Node's native 'net' module,
+ * ensuring seamless execution in browser and edge runtimes.
+ */
+export function isIPv4(ip: string): boolean {
+  const parts = ip.split('.');
+  if (parts.length !== 4) return false;
+  return parts.every((p) => {
+    if (!/^\d+$/.test(p)) return false;
+    const n = parseInt(p, 10);
+    return n >= 0 && n <= 255 && (p === '0' || !p.startsWith('0'));
+  });
+}
+
+export function isIPv6(ip: string): boolean {
+  return ip.includes(':') && /^[0-9a-fA-F:]+$/.test(ip);
+}
+
+export function isIP(ip: string): number {
+  if (isIPv4(ip)) return 4;
+  if (isIPv6(ip)) return 6;
+  return 0;
+}
 
 /**
  * Enterprise SSRF Defense Module for Zelsis SaaS
@@ -85,7 +106,7 @@ export function isPrivateIPv6(ip: string): boolean {
   // IPv4-mapped IPv6 addresses (::ffff:127.0.0.1, etc.)
   if (cleanIp.startsWith('::ffff:')) {
     const ipv4Part = cleanIp.replace('::ffff:', '');
-    if (net.isIPv4(ipv4Part)) {
+    if (isIPv4(ipv4Part)) {
       return isPrivateIPv4(ipv4Part);
     }
     return true;
@@ -113,7 +134,7 @@ export function isPrivateIPv6(ip: string): boolean {
  * Determines whether an IP address is private, loopback, or link-local
  */
 export function isPrivateIp(ip: string): boolean {
-  const ipVersion = net.isIP(ip);
+  const ipVersion = isIP(ip);
   if (ipVersion === 4) return isPrivateIPv4(ip);
   if (ipVersion === 6) return isPrivateIPv6(ip);
   return false;
@@ -172,7 +193,7 @@ export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boo
   const alternateIp = parseAlternateIpNotation(cleanHostname);
   const ipToCheck = alternateIp || cleanHostname;
 
-  if (net.isIP(ipToCheck)) {
+  if (isIP(ipToCheck) !== 0) {
     if (isPrivateIp(ipToCheck)) {
       return { safe: false, reason: `Access to private or loopback IP "${hostname}" is prohibited` };
     }
@@ -180,24 +201,30 @@ export async function validateSafeTargetUrl(rawUrl: string): Promise<{ safe: boo
   }
 
   // 6. DNS Resolution to prevent DNS Rebinding to RFC 1918 / Cloud Metadata addresses
-  try {
-    const lookupResult = await dns.promises.lookup(hostname, { all: true });
-    if (!lookupResult || lookupResult.length === 0) {
-      return { safe: false, reason: `Target host "${hostname}" returned no DNS records` };
-    }
-    for (const record of lookupResult) {
-      if (isPrivateIp(record.address)) {
-        return {
-          safe: false,
-          reason: `Hostname "${hostname}" resolves to restricted private IP (${record.address})`
-        };
+  // Dynamically loaded exclusively on Node server runtimes; safe in browser/edge bundles
+  if (typeof window === 'undefined') {
+    try {
+      const dns = await import('dns');
+      const lookupResult = await dns.promises.lookup(hostname, { all: true });
+      if (!lookupResult || lookupResult.length === 0) {
+        return { safe: false, reason: `Target host "${hostname}" returned no DNS records` };
       }
+      for (const record of lookupResult) {
+        if (isPrivateIp(record.address)) {
+          return {
+            safe: false,
+            reason: `Hostname "${hostname}" resolves to restricted private IP (${record.address})`
+          };
+        }
+      }
+      return { safe: true, url: parsed, resolvedIp: lookupResult[0].address };
+    } catch (dnsErr: any) {
+      // If DNS resolution fails, reject to prevent blind proxying
+      return { safe: false, reason: `Target host "${hostname}" could not be resolved via DNS` };
     }
-    return { safe: true, url: parsed, resolvedIp: lookupResult[0].address };
-  } catch (dnsErr: any) {
-    // If DNS resolution fails, reject to prevent blind proxying
-    return { safe: false, reason: `Target host "${hostname}" could not be resolved via DNS` };
   }
+
+  return { safe: true, url: parsed };
 }
 
 /**

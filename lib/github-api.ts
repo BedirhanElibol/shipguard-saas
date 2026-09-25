@@ -195,13 +195,24 @@ export function prioritizeFilesForScan<T extends { path: string }>(files: T[], m
     if (lower.endsWith('.ts') || lower.endsWith('.tsx') || lower.endsWith('.js') || lower.endsWith('.jsx')) return 70;
     if (lower.endsWith('.py') || lower.endsWith('.go') || lower.endsWith('.rs') || lower.endsWith('.php')) return 68;
 
-    // Tier 4: Readme & General docs (40)
-    if (lower.endsWith('readme.md')) return 40;
+    // F-39: Exclude minified bundles, source maps, and vendored third-party code
+    if (
+      lower.endsWith('.min.js') ||
+      lower.endsWith('.min.css') ||
+      lower.endsWith('.bundle.js') ||
+      lower.endsWith('.map') ||
+      lower.includes('/vendor/') ||
+      lower.includes('/third_party/') ||
+      lower.includes('node_modules/')
+    ) {
+      return -1;
+    }
 
     return 30;
   };
 
   return [...files]
+    .filter((f) => getFileScore(f.path) > 0)
     .sort((a, b) => getFileScore(b.path) - getFileScore(a.path))
     .slice(0, maxFiles);
 }

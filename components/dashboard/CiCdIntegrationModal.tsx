@@ -38,7 +38,7 @@ export const CiCdIntegrationModal: React.FC<CiCdIntegrationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://shipguard-saas.vercel.app';
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://zelsis-saas.vercel.app';
   const targetRepo = project.repoUrl || 'https://github.com/your-org/your-repo';
 
   const githubWorkflowYaml = `name: Zelsis Deployment Release Gate

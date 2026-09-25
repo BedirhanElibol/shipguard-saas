@@ -60,7 +60,7 @@ jobs:
         id: gate_check
         run: |
           echo "Initiating pre-flight release audit for \${{ github.repository }}..."
-          RESPONSE=$(curl -s -X POST "https://shipguard-saas.vercel.app/api/v1/gate-check?failOnBlock=true" \\
+          RESPONSE=$(curl -s -X POST "https://zelsis-saas.vercel.app/api/v1/gate-check?failOnBlock=true" \\
             -H "Content-Type: application/json" \\
             -d '{"repoUrl": "\${{ github.server_url }}/\${{ github.repository }}"}')
           
@@ -102,7 +102,7 @@ zelsis_gate_audit:
   script:
     - echo "Running Zelsis Release Gate for $CI_PROJECT_PATH..."
     - >
-      RESPONSE=$(curl -s -X POST "https://shipguard-saas.vercel.app/api/v1/gate-check?failOnBlock=true"
+      RESPONSE=$(curl -s -X POST "https://zelsis-saas.vercel.app/api/v1/gate-check?failOnBlock=true"
       -H "Content-Type: application/json"
       -d '{"repoUrl": "'$CI_PROJECT_URL'"}')
     - echo "Audit Payload: $RESPONSE"
@@ -130,7 +130,7 @@ if [ -z "$REPO_REMOTE" ]; then
 fi
 
 echo "Verifying branch $BRANCH against release criteria..."
-STATUS=$(curl -s -X POST "https://shipguard-saas.vercel.app/api/v1/gate-check" \\
+STATUS=$(curl -s -X POST "https://zelsis-saas.vercel.app/api/v1/gate-check" \\
   -H "Content-Type: application/json" \\
   -d "{\\"repoUrl\\": \\"$REPO_REMOTE\\"}" | grep -o '"gateStatus":"[^"]*' | cut -d'"' -f4)
 

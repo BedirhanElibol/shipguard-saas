@@ -185,7 +185,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenDashboard }) => {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="text-base sm:text-lg text-[#A1A1AA] max-w-2xl mx-auto leading-relaxed mt-6 mb-8 font-sans"
         >
-          Ship with uncompromising confidence. ShipGuard automatically evaluates critical OWASP security vulnerabilities, UI/UX performance flaws, and cloud infrastructure risks before your code ever merges into production.
+          Ship with uncompromising confidence. Zelsis automatically evaluates critical OWASP security vulnerabilities, UI/UX performance flaws, and cloud infrastructure risks before your code ever merges into production.
         </motion.p>
 
         {/* Primary CTA */}

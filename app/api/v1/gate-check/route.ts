@@ -157,6 +157,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let shouldDeductQuota = false;
+    let currentScansUsed = 0;
+
     if (authenticatedUserId && serviceRoleKey) {
       try {
         const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
@@ -183,12 +186,11 @@ export async function POST(req: NextRequest) {
             );
           }
 
-          // F-31: Optimistic concurrency control prevents race condition during simultaneous scan requests
-          await adminClient
-            .from('subscriptions')
-            .update({ scans_used_this_month: scansUsed + 1, updated_at: new Date().toISOString() })
-            .eq('user_id', authenticatedUserId)
-            .lte('scans_used_this_month', scansUsed);
+          // F-40: Defer quota deduction until after the scan completes successfully
+          if (userTier === 'Free') {
+            shouldDeductQuota = true;
+            currentScansUsed = scansUsed;
+          }
         }
       } catch (subErr) {
         logger.warn('[Gate Check] Quota check notice:', subErr);
@@ -403,6 +405,15 @@ export async function POST(req: NextRequest) {
           },
           ip_address: clientIp
         });
+
+        // F-40 / F-31: Atomically deduct quota only after scan has succeeded
+        if (shouldDeductQuota && authenticatedUserId) {
+          await adminClient
+            .from('subscriptions')
+            .update({ scans_used_this_month: currentScansUsed + 1, updated_at: new Date().toISOString() })
+            .eq('user_id', authenticatedUserId)
+            .lte('scans_used_this_month', currentScansUsed);
+        }
       } catch (telemetryErr) {
         logger.warn('[Gate Check] Telemetry record notice:', telemetryErr);
       }

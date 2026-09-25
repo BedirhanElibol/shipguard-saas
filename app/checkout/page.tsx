@@ -140,7 +140,7 @@ function CheckoutPageContent() {
           setUser(updatedUser);
           try {
             localStorage.setItem('zelsis_user', JSON.stringify(updatedUser));
-            localStorage.setItem('shipguard_user', JSON.stringify(updatedUser));
+            localStorage.removeItem('shipguard_user');
           } catch (storageErr) {
             void storageErr;
           }
@@ -182,7 +182,7 @@ function CheckoutPageContent() {
           setUser(finalUser);
           try {
             localStorage.setItem('zelsis_user', JSON.stringify(finalUser));
-            localStorage.setItem('shipguard_user', JSON.stringify(finalUser));
+            localStorage.removeItem('shipguard_user');
             if (typeof document !== 'undefined') {
               const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
               const secureAttr = isHttps ? '; Secure' : '';

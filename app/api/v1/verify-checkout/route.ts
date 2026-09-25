@@ -28,30 +28,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'checkout_id is required' }, { status: 400 });
   }
 
-  // F-14: Caller Authorization Check
+  // F-14: MANDATORY Caller Authorization — reject unauthenticated requests
   const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const polarAccessToken = process.env.POLAR_ACCESS_TOKEN;
 
+  if (!token || !supabaseUrl || !anonKey) {
+    return NextResponse.json(
+      { error: 'Authentication required to verify checkout' },
+      { status: 401 }
+    );
+  }
+
   let authenticatedUserId: string | null = null;
   let authenticatedEmail: string | null = null;
 
-  if (token && supabaseUrl && anonKey) {
-    try {
-      const authClient = createClient(supabaseUrl, anonKey);
-      const { data: authData, error: authError } = await authClient.auth.getUser(token);
-      if (!authError && authData?.user) {
-        authenticatedUserId = authData.user.id;
-        authenticatedEmail = authData.user.email?.toLowerCase().trim() || null;
-      }
-    } catch (authErr) {
-      logger.warn('[Verify Checkout] Session auth check notice:', authErr);
+  try {
+    const authClient = createClient(supabaseUrl, anonKey);
+    const { data: authData, error: authError } = await authClient.auth.getUser(token);
+    if (authError || !authData?.user) {
+      return NextResponse.json(
+        { error: 'Invalid or expired authentication token' },
+        { status: 401 }
+      );
     }
+    authenticatedUserId = authData.user.id;
+    authenticatedEmail = authData.user.email?.toLowerCase().trim() || null;
+  } catch {
+    return NextResponse.json(
+      { error: 'Authentication verification failed' },
+      { status: 401 }
+    );
   }
-
-  logger.info(`[Verify Checkout] Verifying checkout: ${checkoutId} for user: ${authenticatedEmail || email || 'unauthenticated'}`);
 
   // 1. Enforce Polar API verification requirement
   if (!polarAccessToken) {
@@ -111,6 +121,17 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  // F-14: Email cross-check — prevent user A from claiming user B's checkout
+  if (customerEmail && authenticatedEmail && customerEmail.toLowerCase().trim() !== authenticatedEmail) {
+    logger.warn(`[Verify Checkout] Email mismatch: authenticated=${authenticatedEmail}, checkout=${customerEmail}`);
+    return NextResponse.json(
+      { verified: false, error: 'Checkout email does not match authenticated user' },
+      { status: 403 }
+    );
+  }
+
+  logger.info(`[Verify Checkout] Verified checkout ${checkoutId} for user ${authenticatedUserId} (${authenticatedEmail})`);
 
   // 3. Persist verified tier to Supabase subscriptions and metadata via direct O(1) user ID lookup (F-14)
   if (isVerified && serviceRoleKey && supabaseUrl) {

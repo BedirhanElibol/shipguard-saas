@@ -101,10 +101,12 @@ export function generateExecutiveReportHtml(project: Project): string {
 <head>
   <meta charset="UTF-8">
   <title>Zelsis Executive Audit Report — ${escapeHtml(project.name ?? 'Project')}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- F-05/F-42: No external font CDN — use system font stack for generated reports -->
   <style>
+    :root {
+      --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
     @page {
       size: A4;
       margin: 16mm 14mm 16mm 14mm;
@@ -115,7 +117,7 @@ export function generateExecutiveReportHtml(project: Project): string {
       padding: 0;
     }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--font-sans);
       color: #0f172a;
       background: #ffffff;
       line-height: 1.45;
@@ -124,7 +126,7 @@ export function generateExecutiveReportHtml(project: Project): string {
       print-color-adjust: exact;
     }
     .mono {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-mono);
     }
     .container {
       max-width: 820px;

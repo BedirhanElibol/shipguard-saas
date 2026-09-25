@@ -3,6 +3,7 @@ import { parseGithubUrl, prioritizeFilesForScan } from '@/lib/github-api';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { GithubProxyQuerySchema, validateQueryParams } from '@/lib/validations/api-schemas';
 import { logger } from '@/lib/logger';
+import { createClient } from '@supabase/supabase-js';
 
 // CLOUD-01 Remediation: Enforce <= 15s synchronous serverless execution ceiling.
 // Long-running batch background tasks (>15s) must be queued to async workers (SQS/Inngest/QStash)
@@ -216,25 +217,35 @@ export async function GET(req: NextRequest) {
     return createRateLimitResponse(rateLimit);
   }
 
-  // 2. Caller Authorization Defense (F-09: Prevent arbitrary third-party proxy abuse)
+  // 2. Caller Authorization Defense (F-09: Proper JWT verification instead of presence-only check)
   const authHeaderRaw = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
-  const apiKeyHeader = req.headers.get('x-api-key')?.trim();
-  const secFetchSite = req.headers.get('sec-fetch-site');
-  const origin = req.headers.get('origin');
-  const host = req.headers.get('host');
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const isSameOrigin = secFetchSite === 'same-origin' || (origin && host && origin.includes(host));
-  const hasValidAuth = Boolean(authHeaderRaw || apiKeyHeader || isSameOrigin);
+  let authenticatedUserId: string | null = null;
 
-  if (!hasValidAuth && process.env.NODE_ENV === 'production') {
-    return NextResponse.json(
-      {
-        error: 'Unauthorized',
-        message: 'Authentication required. Provide an Authorization Bearer token or API key to access github-proxy.'
-      },
-      { status: 401 }
-    );
+  // If a Bearer token is provided, verify it's a valid Supabase JWT
+  if (authHeaderRaw && supabaseUrl && supabaseAnonKey) {
+    try {
+      const authClient = createClient(supabaseUrl, supabaseAnonKey);
+      const { data: authData, error: authError } = await authClient.auth.getUser(authHeaderRaw);
+      if (authError || !authData?.user) {
+        logger.warn(`[GitHub Proxy] Invalid Bearer token rejected`);
+        return NextResponse.json(
+          { error: 'Unauthorized', message: 'Invalid or expired authentication token.' },
+          { status: 401 }
+        );
+      }
+      authenticatedUserId = authData.user.id;
+    } catch {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication verification failed.' },
+        { status: 401 }
+      );
+    }
   }
+  // Note: Unauthenticated access is allowed for public repo scanning (core product feature).
+  // Private repo access is separately guarded at the repo-level check below (line ~378).
 
   // 3. Prohibit credential transmission via URL query string (CWE-598)
   if (req.nextUrl.searchParams.has('token')) {

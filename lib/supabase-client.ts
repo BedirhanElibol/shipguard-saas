@@ -1,28 +1,30 @@
 import { Project, Finding } from '@/data/schema';
 
-import { getSupabase } from './supabase';
+import {
+  getSupabase,
+  getEffectiveSupabaseUrl,
+  getEffectiveSupabaseAnonKey,
+  isSupabaseConfigured,
+} from './supabase';
+
+export { isSupabaseConfigured };
 
 /**
  * Resilient Supabase Service Layer for Zelsis Release Gate
- * Provides production DB persistence when environment variables exist,
+ * Provides production DB persistence with canonical fallback credentials,
  * with fallback support to client-side localStorage.
  * Attaches authenticated user JWT Bearer headers and user_id to comply with PostgreSQL RLS.
  */
 export interface SupabaseConfig {
-  url?: string;
-  anonKey?: string;
+  url: string;
+  anonKey: string;
 }
 
 export function getSupabaseConfig(): SupabaseConfig {
   return {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
+    url: getEffectiveSupabaseUrl(),
+    anonKey: getEffectiveSupabaseAnonKey(),
   };
-}
-
-export function isSupabaseConfigured(): boolean {
-  const config = getSupabaseConfig();
-  return Boolean(config.url && config.anonKey);
 }
 
 /**

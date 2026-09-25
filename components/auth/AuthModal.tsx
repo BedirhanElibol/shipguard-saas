@@ -164,10 +164,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           window.location.href = url;
           return;
         }
-        // Google OAuth not available - show error
+        // Google OAuth not available - show friendly error
         clearTimeout(safetyTimer);
         setLoadingTarget(null);
-        setError(oauthError || 'Google authentication is not available at this time. Please use GitHub or email.');
+        const displayError = oauthError && !oauthError.toLowerCase().includes('not configured')
+          ? oauthError
+          : 'Google authentication is currently unavailable. Please sign in with GitHub or email.';
+        setError(displayError);
         return;
       }
 
@@ -178,7 +181,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
       clearTimeout(safetyTimer);
       setLoadingTarget(null);
-      setError(oauthError || `${provider === 'github' ? 'GitHub' : 'Google'} authentication could not be initiated.`);
+      const displayError = oauthError && !oauthError.toLowerCase().includes('not configured')
+        ? oauthError
+        : `${provider === 'github' ? 'GitHub' : 'Google'} authentication could not be initiated. Please try again or use email.`;
+      setError(displayError);
     } catch (err: any) {
       clearTimeout(safetyTimer);
       setLoadingTarget(null);

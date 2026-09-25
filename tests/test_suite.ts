@@ -29,6 +29,17 @@ import {
 } from '../lib/quota-manager';
 import { isPlatformAdminEmail } from '../lib/subscription-utils';
 import { ZELSIS_PRICING_PLANS } from '../data/pricing-plans';
+import {
+  isSupabaseConfigured as isSupabaseConfiguredServer,
+  getSupabase,
+  getEffectiveSupabaseUrl,
+  getEffectiveSupabaseAnonKey,
+  CANONICAL_SUPABASE_URL
+} from '../lib/supabase';
+import {
+  isSupabaseConfigured as isSupabaseConfiguredClient,
+  getSupabaseConfig
+} from '../lib/supabase-client';
 
 let passedTests = 0;
 let totalTests = 0;
@@ -911,6 +922,17 @@ async function runAllTests() {
   assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'free' && p.priceMonthly === 0), 'Free Starter plan defined at $0/mo');
   assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'zelsis-core' && p.priceMonthly === 19), 'Zelsis Pro plan defined at $19/mo');
   assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'vibecare' && p.priceMonthly === 99), 'Zelsis Enterprise plan defined at $99/mo');
+
+  // 19. Resilient Supabase Configuration & Canonical Production Fallbacks
+  console.log('\n--- 19. Testing Resilient Supabase Configuration & Canonical Production Fallbacks ---');
+  assert(isSupabaseConfiguredServer() === true, 'Server-side isSupabaseConfigured() is always true');
+  assert(isSupabaseConfiguredClient() === true, 'Client-side isSupabaseConfigured() is always true');
+  assert(getEffectiveSupabaseUrl().includes('afzpaydfkmycrwuxmzkk'), 'getEffectiveSupabaseUrl resolves valid project URL');
+  assert(getEffectiveSupabaseAnonKey().startsWith('eyJ'), 'getEffectiveSupabaseAnonKey resolves valid JWT anon key');
+  assert(getSupabase() !== null, 'getSupabase() returns initialized client instance');
+  const clientConfig = getSupabaseConfig();
+  assert(clientConfig.url.length > 0 && clientConfig.anonKey.length > 0, 'getSupabaseConfig provides populated config object');
+  assert(CANONICAL_SUPABASE_URL === 'https://afzpaydfkmycrwuxmzkk.supabase.co', 'CANONICAL_SUPABASE_URL points to live production ref');
 
   console.log('\n===========================================================');
   console.log(`🏁 TEST RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100%)`);

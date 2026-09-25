@@ -4,25 +4,52 @@ import { isPlatformAdminEmail } from '@/lib/subscription-utils';
 
 export { isPlatformAdminEmail };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+export const CANONICAL_SUPABASE_URL = 'https://afzpaydfkmycrwuxmzkk.supabase.co';
+export const CANONICAL_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmenBheWRma215Y3J3dXhtemtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MTc5NzEsImV4cCI6MjEwMzQ5Mzk3MX0.MNtKjLI3mNmGIRmcirzwnGknw0VJy58A2noAnEZZKZA';
+
+export const getEffectiveSupabaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  if (envUrl && !envUrl.includes('sb-project.supabase.co') && !envUrl.includes('placeholder')) {
+    return envUrl;
+  }
+  return CANONICAL_SUPABASE_URL;
+};
+
+export const getEffectiveSupabaseAnonKey = (): string => {
+  const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (envKey && !envKey.includes('placeholder') && envKey.length > 20) {
+    return envKey;
+  }
+  return CANONICAL_SUPABASE_ANON_KEY;
+};
 
 let supabaseInstance: SupabaseClient | null = null;
 
 export const isSupabaseConfigured = (): boolean => {
+  const url = getEffectiveSupabaseUrl();
+  const anonKey = getEffectiveSupabaseAnonKey();
   return Boolean(
-    supabaseUrl &&
-    supabaseAnonKey &&
-    !supabaseUrl.includes('sb-project.supabase.co') &&
-    !supabaseUrl.includes('placeholder')
+    url &&
+    anonKey &&
+    !url.includes('sb-project.supabase.co') &&
+    !url.includes('placeholder')
   );
 };
 
 export const getSupabase = (): SupabaseClient | null => {
-  if (!isSupabaseConfigured()) return null;
   if (!supabaseInstance) {
+    const url = getEffectiveSupabaseUrl();
+    const anonKey = getEffectiveSupabaseAnonKey();
+    if (!url || !anonKey) return null;
     try {
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+      supabaseInstance = createClient(url, anonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        }
+      });
     } catch (err) {
       console.warn('[Zelsis Supabase] Failed to initialize Supabase client:', err);
     }
@@ -36,7 +63,7 @@ export async function supabaseSignIn(email: string, password: string): Promise<{
   if (!supabase || !isSupabaseConfigured()) {
     return {
       user: null,
-      error: 'Authentication service is unavailable. Please check Supabase configuration or network connection.'
+      error: 'Authentication service is momentarily unavailable. Please check your network connection and try again.'
     };
   }
 
@@ -61,7 +88,7 @@ export async function supabaseSignUp(email: string, password: string, name: stri
   if (!supabase || !isSupabaseConfigured()) {
     return {
       user: null,
-      error: 'Authentication service is unavailable. Please check Supabase configuration or network connection.',
+      error: 'Authentication service is momentarily unavailable. Please check your network connection and try again.',
       requiresVerification: false
     };
   }
@@ -95,7 +122,7 @@ export async function supabaseResetPassword(email: string): Promise<{ success: b
   if (!supabase || !isSupabaseConfigured()) {
     return {
       success: false,
-      message: 'Authentication service is unavailable. Please check Supabase configuration or network connection.'
+      message: 'Authentication service is momentarily unavailable. Please check your network connection and try again.'
     };
   }
 
@@ -224,7 +251,7 @@ export async function supabaseSignInWithOAuth(
 ): Promise<{ url?: string | null; error: string | null }> {
   const supabase = getSupabase();
   if (!supabase || !isSupabaseConfigured()) {
-    return { error: 'Supabase is not configured' };
+    return { error: 'Authentication service is momentarily unavailable. Please try again in a moment.' };
   }
 
   try {

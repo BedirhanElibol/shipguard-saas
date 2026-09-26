@@ -44,7 +44,7 @@ export function evaluateThreatDetectionRules(file: CodeFile, lines: string[], cl
         logs.push(`[${ts}] [THREAT AUDIT] Found THREAT-01: MITRE T1078 Valid Accounts: Missing Detection on Impossible Travel Anomalies at ${file.path}:${lineNum}`);
     }
     // THREAT-02: MITRE T1059 Command Execution: Unmonitored Interactive Shell Spawning in Web Pods
-    if ((/child_process|execFile/i.test(cleanContent) && !/auditShellProcess/i.test(cleanContent))) {
+    if ((/(?:require\(["']child_process["']\)|from\s+["']child_process["']|execFile\s*\()/i.test(cleanContent) && !/auditShellProcess/i.test(cleanContent))) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('#') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

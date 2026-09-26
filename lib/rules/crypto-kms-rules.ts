@@ -20,7 +20,7 @@ export function evaluateCryptoKmsRules(file: CodeFile, lines: string[], cleanCon
     }
     const ts = new Date().toLocaleTimeString();
     // CRYPTO-01: Hardcoded Cryptographic Keys and Static Salts in Source Code
-    if ((/aesKey|secretKey/i.test(cleanContent) && !/kmsClient|fetchSecret/i.test(cleanContent))) {
+    if (/(?:aesKey|secretKey)\s*[:=]\s*["'][a-zA-Z0-9+/=_-]{16,}["']/i.test(cleanContent) && !/process\.env/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('#') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

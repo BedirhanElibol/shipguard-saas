@@ -92,7 +92,7 @@ export function evaluateIso27001ComplianceRules(file: CodeFile, lines: string[],
         logs.push(`[${ts}] [ISO AUDIT] Found ISO-03: Information Deletion and Secure Disposal Verification Failure (A.8.10) at ${file.path}:${lineNum}`);
     }
     // ISO-04: Missing Segregation in Production and Development Environments (A.8.31)
-    if ((/NODE_ENV\s*===\s*['"]development['"]/i.test(cleanContent))) {
+    if (/NODE_ENV\s*===\s*['"]development['"]/i.test(cleanContent) && /(?:prod-db|production\.rds|live-secret)/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

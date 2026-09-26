@@ -221,7 +221,7 @@ export function evaluateModernFullstackRules(file: CodeFile, lines: string[], cl
         logs.push(`[${ts}] ⚡ FULLSTACK NEXT15-08: Parallel Route Missing default.tsx Fallback in ${file.path}:${lineNum}`);
     }
     // NEXT15-09: React 19 useActionState Missing Double-Submit Guard
-    if (/<button[^>]*type=['"]submit['"][^>]*>/i.test(cleanContent) && !/disabled\s*=\s*\{\s*(?:isPending|pending)\s*\}/i.test(cleanContent)) {
+    if (/<button[^>]*type=['"]submit['"][^>]*>/i.test(cleanContent) && !/disabled\s*(?:=|\s|>)/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

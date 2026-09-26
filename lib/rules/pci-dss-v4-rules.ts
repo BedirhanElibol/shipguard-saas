@@ -20,7 +20,8 @@ export function evaluatePciDssV4Rules(file: CodeFile, lines: string[], cleanCont
     }
     const ts = new Date().toLocaleTimeString();
     // PCI4-01: PCI-DSS Req 3.4 Unencrypted Primary Account Numbers (PAN) at Rest
-    if ((/creditCard|cardNumber/i.test(cleanContent) && !/aes256GcmEncrypt/i.test(cleanContent))) {
+    // Note: Ignore Lucide icon components (<CreditCard) and UI labels
+    if ((/(?:storeCard|saveCard|rawCardNumber|creditCardPan)\s*[:=]/i.test(cleanContent) && !cleanContent.includes('<CreditCard') && !/aes256GcmEncrypt/i.test(cleanContent))) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('#') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({
@@ -44,7 +45,8 @@ export function evaluatePciDssV4Rules(file: CodeFile, lines: string[], cleanCont
         logs.push(`[${ts}] [PCI-DSS AUDIT] Found PCI4-01: PCI-DSS Req 3.4 Unencrypted Primary Account Numbers (PAN) at Rest at ${file.path}:${lineNum}`);
     }
     // PCI4-02: PCI-DSS Req 6.4.3 Insecure Third-Party Scripts on Payment Pages
-    if ((/payment|checkout/i.test(lowerPath) && !/integrity=|Content-Security-Policy/i.test(cleanContent))) {
+    // Only applies if payment/checkout view actually loads an external <script> tag
+    if (/<script\s+[^>]*src=/i.test(cleanContent) && /payment|checkout/i.test(lowerPath) && !/integrity=|Content-Security-Policy/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('#') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

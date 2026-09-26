@@ -20,7 +20,7 @@ export function evaluateEdgeCdnRules(file: CodeFile, lines: string[], cleanConte
     }
     const ts = new Date().toLocaleTimeString();
     // CDN-01: Missing Stale-While-Revalidate and Immutable Directives on Static Bundles
-    if ((/Cache-Control/i.test(cleanContent) && !/immutable/i.test(cleanContent))) {
+    if ((/next\.config/i.test(lowerPath) || /static/i.test(lowerPath)) && /Cache-Control/i.test(cleanContent) && !/immutable/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({
@@ -116,7 +116,7 @@ export function evaluateEdgeCdnRules(file: CodeFile, lines: string[], cleanConte
         logs.push(`[${ts}] [CDN AUDIT] Found CDN-04: Missing HTTP/3 (QUIC) Protocol Support at Edge Reverse Proxy at ${file.path}:${lineNum}`);
     }
     // CDN-05: Uncached Dynamic API Responses Missing Cache-Control Revalidation Headers
-    if ((/export\s+async\s+function\s+GET/i.test(cleanContent) && !/s-maxage|stale-while-revalidate/i.test(cleanContent))) {
+    if (/app\/api\//i.test(lowerPath) && /export\s+async\s+function\s+GET/i.test(cleanContent) && !/Cache-Control/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

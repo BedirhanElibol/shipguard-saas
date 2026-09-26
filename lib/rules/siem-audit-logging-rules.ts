@@ -20,7 +20,8 @@ export function evaluateSiemAuditLoggingRules(file: CodeFile, lines: string[], c
     }
     const ts = new Date().toLocaleTimeString();
     // AUDIT-01: Plaintext Credentials or PII Leaked in Application Logs
-    if ((/logger\.(?:info|debug|warn)/i.test(cleanContent) && !/sanitizeLog/i.test(cleanContent))) {
+    // Files using @/lib/logger automatically redact sensitive tokens, passwords, and PII.
+    if (/console\.(?:log|warn|info|debug)\s*\([^)]*(?:password|secret|apiKey|bearerToken)[^)]*\)/i.test(cleanContent) && !/logger\./i.test(cleanContent) && !/sanitizeLog/i.test(cleanContent)) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('#') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

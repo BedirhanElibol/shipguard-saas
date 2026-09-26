@@ -44,7 +44,7 @@ export function evaluateOwaspAsvsRules(file: CodeFile, lines: string[], cleanCon
         logs.push(`[${ts}] [ASVS AUDIT] Found ASVS-01: ASVS V2.1 Password Security: Permitting Weak Passwords or Failing Breached Checks at ${file.path}:${lineNum}`);
     }
     // ASVS-02: ASVS V3.2 Session Management: Permitting Session Fixation or Insecure Cookie Flags
-    if ((/set-cookie/i.test(cleanContent) && !/HttpOnly/i.test(cleanContent))) {
+    if ((/(?:setHeader\(\s*["']set-cookie["']|cookies\(\)\.set|response\.cookies\.set)\s*\(/i.test(cleanContent) && !/HttpOnly/i.test(cleanContent))) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('#') && !l.trim().startsWith('*'));
         const lineNum = matchLineIdx !== -1 ? matchLineIdx + 1 : 1;
         findings.push({

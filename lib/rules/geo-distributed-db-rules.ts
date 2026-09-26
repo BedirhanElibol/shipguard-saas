@@ -14,8 +14,11 @@ export function evaluateGeoDistributedDbRules(file: CodeFile, lines: string[], c
     const findings: Finding[] = [];
     const logs: string[] = [];
     const lowerPath = file.path.toLowerCase().replace(/\\/g, "/");
-    // Skip self-referential catalogs, mocks, and schema definitions
-    if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
+    // Skip standard SQL files unless explicitly targeting CockroachDB/Yugabyte/Geo-distributed schemas
+    if (
+        lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts") ||
+        (!/cockroach|yugabyte|geo_dist|spanner/i.test(lowerPath) && !/cockroachdb|yugabytedb|google_spanner/i.test(cleanContent))
+    ) {
         return { findings, logs };
     }
     const ts = new Date().toLocaleTimeString();

@@ -27,7 +27,7 @@ import {
   isCicdIntegrationAllowed,
   isCustomRulesAllowed
 } from '../lib/quota-manager';
-import { isPlatformAdminEmail } from '../lib/subscription-utils';
+import { isPlatformAdminEmail, hasAdminRole } from '../lib/subscription-utils';
 import { ZELSIS_PRICING_PLANS } from '../data/pricing-plans';
 import {
   isSupabaseConfigured as isSupabaseConfiguredServer,
@@ -918,6 +918,10 @@ async function runAllTests() {
 
   // 18.4 Platform Admin & Pricing Plans Parity
   assert(isPlatformAdminEmail('bedirelibol7@gmail.com') === true, 'bedirelibol7@gmail.com is permanently recognized as platform administrator');
+  assert(hasAdminRole({ role: 'admin' }, 'random@company.com') === true, 'Database role "admin" confers administrator privileges');
+  assert(hasAdminRole({ role: 'super_admin' }, 'random@company.com') === true, 'Database role "super_admin" confers administrator privileges');
+  assert(hasAdminRole({ role: 'member' }, 'random@company.com') === false, 'Database role "member" does not confer administrator privileges');
+  assert(hasAdminRole({ role: 'auditor' }, 'random@company.com') === false, 'Database role "auditor" does not confer administrator privileges');
   assert(ZELSIS_PRICING_PLANS.length === 3, 'ZELSIS_PRICING_PLANS contains all 3 canonical tiers (Free, Pro, Enterprise)');
   assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'free' && p.priceMonthly === 0), 'Free Starter plan defined at $0/mo');
   assert(ZELSIS_PRICING_PLANS.some(p => p.id === 'zelsis-core' && p.priceMonthly === 19), 'Zelsis Pro plan defined at $19/mo');

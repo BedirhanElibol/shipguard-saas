@@ -41,6 +41,17 @@ export function isPlatformAdminEmail(email?: string | null): boolean {
   return configured.includes(emailNorm);
 }
 
+/**
+ * Enterprise RBAC: Resolves whether a user has administrator authority based on database-backed roles.
+ * Primary authority: database `profiles.role` or JWT `app_metadata.role`.
+ */
+export function hasAdminRole(profile?: { role?: string } | null, email?: string | null): boolean {
+  if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+    return true;
+  }
+  return isPlatformAdminEmail(email);
+}
+
 const EMERALD_COLORS = {
   bg: 'bg-emerald-500/10',
   border: 'border-emerald-500/30',

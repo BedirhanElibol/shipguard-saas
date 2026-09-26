@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
   }
 
-  const {
+  let {
     jobId,
     repoUrl: rawRepoUrl,
     targetName: providedTargetName,
@@ -57,6 +57,35 @@ export async function POST(req: NextRequest) {
   const adminClient = (supabaseUrl && serviceRoleKey)
     ? createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
     : null;
+
+  // SEC-02 Authority Invariant: If database connection is active, derive target parameters
+  // strictly from verified scan_jobs record to prevent worker request tampering.
+  if (adminClient && jobId) {
+    try {
+      const { data: jobRow } = await adminClient
+        .from('scan_jobs')
+        .select('repo_url, user_id')
+        .eq('id', jobId)
+        .maybeSingle();
+
+      if (jobRow) {
+        if (jobRow.repo_url) rawRepoUrl = jobRow.repo_url;
+        if (jobRow.user_id) {
+          authenticatedUserId = jobRow.user_id;
+          const { data: subRow } = await adminClient
+            .from('subscriptions')
+            .select('plan_tier')
+            .eq('user_id', authenticatedUserId)
+            .maybeSingle();
+          if (subRow?.plan_tier) {
+            userTier = subRow.plan_tier;
+          }
+        }
+      }
+    } catch (dbErr) {
+      logger.warn('[Process Job] Notice deriving DB job authority:', dbErr);
+    }
+  }
 
   const updateJobState = async (updates: Record<string, any>) => {
     if (!adminClient) return;

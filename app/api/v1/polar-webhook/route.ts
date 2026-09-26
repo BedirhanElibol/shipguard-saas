@@ -1,6 +1,7 @@
 // Polar subscription webhook handler
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 
@@ -190,10 +191,40 @@ export async function POST(req: NextRequest) {
   const eventId = (body as Record<string, unknown>)?.event_id as string | undefined
     || (body as Record<string, unknown>)?.id as string | undefined;
   if (eventId) {
+    // 1. Fast in-memory check
     if (processedEventIds.has(eventId)) {
-      logger.info(`[Polar Webhook] Duplicate event_id detected, skipping: ${eventId}`);
+      logger.info(`[Polar Webhook] Duplicate event_id detected in memory cache, skipping: ${eventId}`);
       return NextResponse.json({ received: true, deduplicated: true });
     }
+
+    // 2. Durable database check if Supabase is available
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (supabaseUrl && serviceRoleKey) {
+      try {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+        const { data: existingEvent } = await adminClient
+          .from('webhook_events')
+          .select('event_id')
+          .eq('event_id', eventId)
+          .maybeSingle();
+
+        if (existingEvent) {
+          logger.info(`[Polar Webhook] Duplicate event_id detected in database, skipping: ${eventId}`);
+          processedEventIds.add(eventId);
+          return NextResponse.json({ received: true, deduplicated: true });
+        }
+
+        // Persist processed event into durable database table
+        await adminClient
+          .from('webhook_events')
+          .insert({ event_id: eventId, source: 'polar', processed_at: new Date().toISOString() });
+      } catch (dbErr) {
+        // Fallback safely to memory deduplication if table is not yet provisioned in dev
+        logger.debug('[Polar Webhook] Database idempotency fallback to memory cache:', dbErr);
+      }
+    }
+
     processedEventIds.add(eventId);
     // Evict oldest entries when the set exceeds capacity
     if (processedEventIds.size > DEDUP_MAX_SIZE) {

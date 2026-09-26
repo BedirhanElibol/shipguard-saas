@@ -54,6 +54,43 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // BOLA/IDOR Defense: Validate caller access rights if job is bound to a tenant
+    if (job.user_id) {
+      const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+      let callerUserId: string | null = null;
+      let isCallerAdmin = false;
+
+      if (authHeader && anonKey) {
+        try {
+          const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
+          const { data: { user } } = await authClient.auth.getUser(authHeader);
+          if (user) {
+            callerUserId = user.id;
+            const { data: profile } = await adminClient
+              .from('profiles')
+              .select('role')
+              .eq('id', user.id)
+              .maybeSingle();
+            if (profile?.role === 'admin' || profile?.role === 'super_admin' || user.app_metadata?.role === 'admin') {
+              isCallerAdmin = true;
+            }
+          }
+        } catch {
+          // Token decoding failure
+        }
+      }
+
+      if (!callerUserId || (callerUserId !== job.user_id && !isCallerAdmin)) {
+        // Return 404 to prevent malicious tenant job enumeration
+        return NextResponse.json(
+          { status: 'ERROR', error: `Scan job "${jobId}" not found` },
+          { status: 404 }
+        );
+      }
+    }
+
     // Optional: Fetch scan summary if job has finished successfully
     let scanSummary: any = null;
     if (job.status === 'COMPLETED' && job.scan_id) {

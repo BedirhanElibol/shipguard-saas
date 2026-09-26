@@ -1,0 +1,21 @@
+# Zelsis Static Scanner Ignore Configuration
+# Excludes test fixtures, temporary development files, and third-party dependencies from SAST audits
+
+# Temporary and Scratch Scripts
+scratch/
+.agent/
+.gemini/
+
+# Test Suites and Synthetic Vulnerability Verification Fixtures
+tests/
+
+# Package Lockfiles (evaluated by SCA dependency analyzer, not SAST code engine)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build Outputs and Caches
+.next/
+dist/
+build/
+out/

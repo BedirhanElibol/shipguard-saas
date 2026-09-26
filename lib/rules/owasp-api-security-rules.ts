@@ -18,6 +18,10 @@ export function evaluateOwaspApiSecurityRules(file: CodeFile, lines: string[], c
     if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
         return { findings, logs };
     }
+    const isApiTarget = lowerPath.startsWith("app/api/") || lowerPath.startsWith("pages/api/") || lowerPath.includes("/api/") || lowerPath.includes("server/") || lowerPath.includes("backend/");
+    if (!isApiTarget) {
+      return { findings, logs };
+    }
     const ts = new Date().toLocaleTimeString();
     // APIDEF-01: API1:2023 Broken Object Level Authorization (BOLA): Insecure Record Lookup
     if ((/lookupResource|getItem/i.test(cleanContent) && !/verifyOwnership/i.test(cleanContent))) {

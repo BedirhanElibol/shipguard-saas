@@ -18,6 +18,10 @@ export function evaluateCacheRedisRules(file: CodeFile, lines: string[], cleanCo
     if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
         return { findings, logs };
     }
+    const isCacheTarget = /redis|ioredis|upstash|memcached|cacheClient|cacheStore/i.test(cleanContent);
+    if (!isCacheTarget) {
+      return { findings, logs };
+    }
     const ts = new Date().toLocaleTimeString();
     // CACHE-01: Cache Stampede (Thundering Herd) via Unsynchronized Cache Misses
     if ((/redis\.get\s*\([\s\S]*?\)/.test(cleanContent) && !/lock|mutex|redlock/i.test(cleanContent))) {

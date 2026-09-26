@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
 import { createClient } from '@supabase/supabase-js';
@@ -60,12 +61,24 @@ export async function GET(req: NextRequest) {
 
     logger.info(`[GDPR Portability] Exported personal data archive for user: ${user.id}`);
 
-    return new NextResponse(JSON.stringify(exportPayload, null, 2), {
+    const payloadStr = JSON.stringify(exportPayload, null, 2);
+    const etag = `"${crypto.createHash('sha256').update(payloadStr).digest('base64url').substring(0, 27)}"`;
+    const ifNoneMatch = req.headers.get('if-none-match');
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="zelsis-user-data-${user.id.slice(0, 8)}.json"`,
+      'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+      'ETag': etag
+    };
+
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304, headers });
+    }
+
+    return new NextResponse(payloadStr, {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Disposition': `attachment; filename="zelsis-user-data-${user.id.slice(0, 8)}.json"`
-      }
+      headers
     });
   } catch (err: any) {
     logger.error('[GDPR Portability] Exception during export:', err?.message);

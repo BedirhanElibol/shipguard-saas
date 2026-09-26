@@ -1291,6 +1291,8 @@ export async function runStaticCodeScan(files: CodeFile[], repoName: string = 'T
       lowerPath.includes('assets/vendor/') ||
       lowerPath.includes('data/catalogs/') ||
       lowerPath.includes('data/workspacefiles.ts') ||
+      lowerPath.startsWith('scratch/') || lowerPath.includes('/scratch/') ||
+      lowerPath.endsWith('package-lock.json') || lowerPath.endsWith('yarn.lock') || lowerPath.endsWith('pnpm-lock.yaml') ||
       lowerPath.endsWith('.png') ||
       lowerPath.endsWith('.jpg') ||
       lowerPath.endsWith('.jpeg') ||

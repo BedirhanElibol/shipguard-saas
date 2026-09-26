@@ -18,6 +18,11 @@ export function evaluateGraphqlFederationRules(file: CodeFile, lines: string[], 
     if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
         return { findings, logs };
     }
+    const isFedTarget = (lowerPath.includes("supergraph") || lowerPath.includes("subgraph") || lowerPath.includes("federation") || lowerPath.endsWith(".graphql") || lowerPath.endsWith(".gql")) ||
+      (cleanContent.includes("@apollo/gateway") || cleanContent.includes("@apollo/subgraph") || cleanContent.includes("ApolloGateway"));
+    if (!isFedTarget) {
+      return { findings, logs };
+    }
     const ts = new Date().toLocaleTimeString();
     // FED-01: Unbounded Subgraph Query Depth in Federated Gateway
     if ((/router|supergraph/i.test(cleanContent) && !/max_depth|queryDepth/i.test(cleanContent))) {

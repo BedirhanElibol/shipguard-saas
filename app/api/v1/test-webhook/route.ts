@@ -58,6 +58,15 @@ export async function POST(req: NextRequest) {
       return createRateLimitResponse(rateLimit);
     }
 
+    // Validate Content-Type
+    const contentType = req.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return NextResponse.json(
+        { error: 'Unsupported Media Type: Content-Type must be application/json' },
+        { status: 415 }
+      );
+    }
+
     // 2. Caller Authorization Defense (F-19: Prevent anonymous webhook flooding)
     const authHeader = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '').trim();
     const apiKeyHeader = req.headers.get('x-api-key')?.trim();

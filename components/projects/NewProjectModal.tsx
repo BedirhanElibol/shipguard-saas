@@ -16,12 +16,21 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
   const [repoUrl, setRepoUrl] = useState('');
   const [framework, setFramework] = useState<'Next.js 15' | 'Vite + React' | 'FastAPI + React' | 'SvelteKit'>('Next.js 15');
   const [urlError, setUrlError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setIsSubmitting(false);
+      setUrlError('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmitNew = (e: React.FormEvent) => {
     e.preventDefault();
     setUrlError('');
+    setIsSubmitting(true);
 
     let cleanUrl = repoUrl.trim();
     if (/^[a-zA-Z0-9_\-\.]+\/[a-zA-Z0-9_\-\.]+$/.test(cleanUrl)) {
@@ -139,10 +148,10 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({ isOpen, onClos
             </button>
             <button
               type="submit"
-              disabled={!name.trim() || !repoUrl.trim()}
-              className="btn btn-primary flex-1 py-2.5 text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting || !name.trim() || !repoUrl.trim()}
+              className="btn btn-primary flex-1 py-2.5 text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              Connect &amp; Audit
+              {isSubmitting ? 'Connecting...' : 'Connect & Audit'}
             </button>
           </div>
         </form>

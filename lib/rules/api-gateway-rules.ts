@@ -18,6 +18,10 @@ export function evaluateApiGatewayRules(file: CodeFile, lines: string[], cleanCo
     if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
         return { findings, logs };
     }
+    const isGatewayOrApi = lowerPath.startsWith("app/api/") || lowerPath.startsWith("pages/api/") || lowerPath.includes("/api/") || lowerPath.includes("middleware") || lowerPath.includes("gateway") || lowerPath.includes("server/");
+    if (!isGatewayOrApi) {
+      return { findings, logs };
+    }
     const ts = new Date().toLocaleTimeString();
     // GW-01: Unauthenticated Gateway Route Fallthrough (Missing Catch-All Rejection)
     if ((/router\.(?:use|all)\s*\([\s\S]*?\)/.test(cleanContent) && !/notFound|reject|deny/i.test(cleanContent))) {

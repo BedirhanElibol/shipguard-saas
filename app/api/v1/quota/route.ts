@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, createRateLimitResponse } from '@/lib/rate-limiter';
@@ -133,14 +134,30 @@ export async function GET(req: NextRequest) {
     const isUnlimited = planTier !== 'Free';
     const remaining = isUnlimited ? 'Unlimited' : Math.max(0, monthlyQuota - scansUsed);
 
-    return NextResponse.json({
+    const payload = {
       tier: planTier,
       scansUsed,
       scansLimit: isUnlimited ? 'Unlimited' : monthlyQuota,
       remaining,
       billingCycleReset: periodEnd.toISOString(),
       status
-    });
+    };
+
+    const payloadStr = JSON.stringify(payload);
+    const etag = `"${crypto.createHash('sha256').update(`${userId}:${planTier}:${scansUsed}:${remaining}`).digest('base64url').substring(0, 27)}"`;
+    const ifNoneMatch = req.headers.get('if-none-match');
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'private, max-age=10, s-maxage=10, stale-while-revalidate=30',
+      'ETag': etag,
+    };
+
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304, headers });
+    }
+
+    return new NextResponse(payloadStr, { headers });
   } catch (err: unknown) {
     logger.error('[Quota API] Error retrieving quota:', err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -160,6 +177,15 @@ export async function POST(req: NextRequest) {
   });
   if (!rateLimit.allowed) {
     return createRateLimitResponse(rateLimit);
+  }
+
+  // Validate Content-Type
+  const contentType = req.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    return NextResponse.json(
+      { error: 'Unsupported Media Type: Content-Type must be application/json' },
+      { status: 415 }
+    );
   }
 
   const user = await resolveAuthUser(req);

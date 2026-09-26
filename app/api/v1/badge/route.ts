@@ -137,12 +137,22 @@ export async function GET(req: NextRequest) {
   <text x="${statusCenter}" y="18" fill="#0A0A0A" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="900" text-anchor="middle" letter-spacing="0.5">${safeStatusText}</text>
 </svg>`;
 
-  return new NextResponse(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml; charset=utf-8',
-      'X-Content-Type-Options': 'nosniff',
-      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'",
-      'Cache-Control': isVerified ? 'public, max-age=120, s-maxage=600' : 'no-cache, no-store, must-revalidate'
-    }
-  });
+  const etag = `"${crypto.createHash('sha256').update(svg).digest('base64url').substring(0, 27)}"`;
+  const ifNoneMatch = req.headers.get('if-none-match');
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'image/svg+xml; charset=utf-8',
+    'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'",
+    'Cache-Control': isVerified
+      ? 'public, max-age=120, s-maxage=600, stale-while-revalidate=86400, immutable'
+      : 'no-cache, no-store, must-revalidate',
+    'ETag': etag,
+  };
+
+  if (ifNoneMatch && ifNoneMatch === etag) {
+    return new NextResponse(null, { status: 304, headers });
+  }
+
+  return new NextResponse(svg, { headers });
 }

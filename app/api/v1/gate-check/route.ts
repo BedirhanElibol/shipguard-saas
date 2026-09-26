@@ -10,8 +10,8 @@ import { logger } from '@/lib/logger';
 import { canAccessLocalAudit } from '@/lib/env-config';
 import { validateSafeTargetUrl } from '@/lib/ssrf-guard';
 
-// F-31: Bounded execution duration for static code scans (up to 60s on serverless)
-export const maxDuration = 60;
+// F-31: Bounded execution duration for static code scans (bounded to 30s for serverless SLA)
+export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
 
 function isAllowedWebhookUrl(url: string): boolean {
@@ -57,7 +57,21 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
-    // 2. Safe JSON body extraction and Zod validation
+    // 2. Validate Content-Type
+    const contentType = req.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return NextResponse.json(
+        {
+          status: 'ERROR',
+          gateStatus: 'FAILED',
+          error: 'Unsupported Media Type: Content-Type must be application/json',
+          timestamp: new Date().toISOString()
+        },
+        { status: 415 }
+      );
+    }
+
+    // 3. Safe JSON body extraction and Zod validation
     const rawBody = await req.json().catch(() => null);
     if (!rawBody || typeof rawBody !== 'object') {
       return NextResponse.json(

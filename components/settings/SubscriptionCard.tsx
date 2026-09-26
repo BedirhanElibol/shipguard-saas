@@ -537,16 +537,28 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={!isAuthenticated}
-            className={`mt-1 min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md self-end transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
-              !isAuthenticated ? 'bg-white/5 border border-white/10 text-[#71717A] cursor-not-allowed' : 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
-            }`}
-          >
-            {profileSaved ? <Check size={14} /> : <Save size={14} />}
-            <span>{!isAuthenticated ? 'Sign In to Save Profile' : profileSaved ? 'Profile Saved' : 'Save Profile'}</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-2 pt-1 border-t border-white/5">
+            <span className="text-[10px] text-[#71717A] font-mono text-center sm:text-left">
+              By saving profile changes, you agree to our{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">
+                Privacy Policy
+              </a>{' '}
+              and{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">
+                Terms of Service
+              </a>.
+            </span>
+            <button
+              type="submit"
+              disabled={!isAuthenticated}
+              className={`min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md self-end sm:self-auto shrink-0 transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                !isAuthenticated ? 'bg-white/5 border border-white/10 text-[#71717A] cursor-not-allowed' : 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
+              }`}
+            >
+              {profileSaved ? <Check size={14} /> : <Save size={14} />}
+              <span>{!isAuthenticated ? 'Sign In to Save Profile' : profileSaved ? 'Profile Saved' : 'Save Profile'}</span>
+            </button>
+          </div>
         </form>
       </div>
 

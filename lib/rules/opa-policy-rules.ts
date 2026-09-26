@@ -18,6 +18,11 @@ export function evaluateOpaPolicyRules(file: CodeFile, lines: string[], cleanCon
     if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
         return { findings, logs };
     }
+    const isOpaTarget = lowerPath.endsWith(".rego") || lowerPath.endsWith(".opa") ||
+      ((lowerPath.includes("k8s") || lowerPath.includes("policy") || lowerPath.includes("admission")) && (cleanContent.includes("package ") || cleanContent.includes("ValidatingWebhookConfiguration") || cleanContent.includes("rego")));
+    if (!isOpaTarget) {
+      return { findings, logs };
+    }
     const ts = new Date().toLocaleTimeString();
     // OPA-01: Rego Policy Infinite Recursion and Execution Timeout
     if ((/rego|policy/i.test(cleanContent) && !/evaluationTimeout|timeoutSeconds/i.test(cleanContent))) {

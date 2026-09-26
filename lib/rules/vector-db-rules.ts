@@ -18,6 +18,10 @@ export function evaluateVectorDbRules(file: CodeFile, lines: string[], cleanCont
     if (lowerPath.includes("data/catalogs/") || lowerPath.includes("data/mockdata") || lowerPath.includes("data/workspacefiles") || lowerPath.includes("data/schema") || lowerPath.includes("scratch/") || lowerPath.includes(".agent/") || lowerPath.includes("node_modules/") || lowerPath.endsWith(".d.ts")) {
         return { findings, logs };
     }
+    const isVectorTarget = /pinecone|qdrant|chromadb|weaviate|milvus|pgvector|createCollection|searchVector/i.test(cleanContent);
+    if (!isVectorTarget) {
+      return { findings, logs };
+    }
     const ts = new Date().toLocaleTimeString();
     // VECTOR-01: Unindexed Vector Column Triggering Exhaustive Flat KNN Scans
     if ((/createCollection|create_index/i.test(cleanContent) && !/HNSW|IVF_FLAT/i.test(cleanContent))) {

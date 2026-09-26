@@ -19,7 +19,9 @@ export function evaluateGraphqlSecurityRules(file: CodeFile, lines: string[], cl
         return { findings, logs };
     }
     const ts = new Date().toLocaleTimeString();
-    const isGqlRelated = lowerPath.includes("graphql") || lowerPath.includes("schema") || lowerPath.includes("resolver") || cleanContent.includes("ApolloServer") || cleanContent.includes("createYoga") || cleanContent.includes("buildSchema") || cleanContent.includes("gql`");
+    const isGqlRelated = (lowerPath.endsWith(".graphql") || lowerPath.endsWith(".gql") || lowerPath.includes("graphql") || lowerPath.includes("resolver")) &&
+        !lowerPath.endsWith(".sql") &&
+        (cleanContent.includes("ApolloServer") || cleanContent.includes("createYoga") || cleanContent.includes("buildSchema") || cleanContent.includes("gql`") || /type\s+(Query|Mutation|Subscription)\s*\{/i.test(cleanContent));
     // GQL-01: Unrestricted GraphQL Query Depth (DoS Vulnerability)
     if (isGqlRelated && /(?:ApolloServer|createYoga|buildSchema)/i.test(cleanContent) && !/depthLimit|maxDepth|queryDepth/i.test(cleanContent) && !cleanContent.includes('ZelsisProductionHardened')) {
         const matchLineIdx = lines.findIndex(l => !l.trim().startsWith('//') && !l.trim().startsWith('--') && !l.trim().startsWith('*'));
